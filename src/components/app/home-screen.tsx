@@ -108,6 +108,7 @@ export function HomeScreen() {
 
     // ========== Household Care Logic ==========
     const careItems = useMemo(() => {
+        if (!careTaskDefs) return [];
         return careTaskDefs
             // Only show enabled tasks
             .filter(def => def.enabled !== false)
@@ -208,6 +209,7 @@ export function HomeScreen() {
 
     // ========== Cat Observation Logic ==========
     const observationItems = useMemo(() => {
+        if (!noticeDefs) return [];
         const catLogs = noticeLogs[activeCatId] || {};
 
         return noticeDefs
@@ -303,6 +305,7 @@ export function HomeScreen() {
 
     // Show all enabled items, sorted by days left (ascending)
     const sortedInventory = useMemo(() => {
+        if (!inventory) return [];
         return inventory
             .filter(it => it.enabled !== false && it.deleted_at === null)
             .map(it => ({ ...it, ...getInventoryStatus(it) }))
