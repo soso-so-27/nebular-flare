@@ -94,8 +94,9 @@ export type SignalLog = {
 export type InventoryItem = {
   id: string;
   label: string;
-  range: [number, number]; // [minDays, maxDays] (Legacy)
+  range?: [number, number]; // [minDays, maxDays] (Legacy)
   range_max?: number; // Supabase
+  range_min?: number; // Supabase
   last?: string;
   lastRefillDate?: string; // Legacy
   last_bought?: string | null; // Supabase

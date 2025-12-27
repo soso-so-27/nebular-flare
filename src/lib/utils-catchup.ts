@@ -284,8 +284,17 @@ export function getCatchUpItems({
         // Skip if alerts are disabled for this item
         if (it.alertEnabled === false) return;
 
-        const item = it as any;
-        const minDays = item.range_min ?? item.range?.[0] ?? 7;
+        // Calculate days left (Logic matched with home-screen.tsx)
+        const rangeMax = it.range_max || it.range?.[1] || 30;
+        let daysLeft = rangeMax;
+
+        if (it.last_bought) {
+            const lastDate = new Date(it.last_bought);
+            const diffTime = now.getTime() - lastDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            daysLeft = Math.max(0, rangeMax - diffDays);
+        }
+
         const { critical, urgent } = settings.invThresholds;
 
         // Also consider stockLevel if set
@@ -297,18 +306,18 @@ export function getCatchUpItems({
             shouldAlert = true;
             severity = it.stockLevel === 'empty' ? 80 : 70;
             status = it.stockLevel === 'empty' ? 'danger' : 'warn';
-        } else if (minDays <= critical) {
+        } else if (daysLeft <= critical) {
             shouldAlert = true;
             severity = 75;
             status = 'danger';
-        } else if (minDays <= urgent) {
+        } else if (daysLeft <= urgent) {
             shouldAlert = true;
             severity = 65;
             status = 'warn';
         }
 
         if (shouldAlert) {
-            const bodyParts = [`残り約 ${minDays} 日分`];
+            const bodyParts = [`残り約 ${daysLeft} 日分`];
             if (it.purchaseMemo) {
                 bodyParts.push(`メモ: ${it.purchaseMemo}`);
             }
