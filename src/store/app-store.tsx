@@ -376,8 +376,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     }, [inventory, isDemo]);
 
     // CRUD: Care Tasks
+    // CRUD: Care Tasks
     const addCareTask = async (title: string, settings?: Partial<CareTaskDef>) => {
-        const id = `custom_${Date.now()}`;
+        const id = crypto.randomUUID();
         const newTask: CareTaskDef = {
             id,
             title,
@@ -419,6 +420,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             });
         }
     };
+
+
+
     const updateCareTask = async (id: string, updates: Partial<CareTaskDef>) => {
         setCareTaskDefs(prev => prev.map(t => {
             if (t.id !== id) return t;
@@ -627,7 +631,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             const { count: careCount } = await supabase.from('care_task_defs').select('*', { count: 'exact', head: true });
             if (careCount === 0) {
                 const careTasks = DEFAULT_CARE_TASK_DEFS.map(def => ({
-                    id: def.id,
                     household_id: householdId,
                     title: def.title,
                     icon: def.icon,
@@ -645,7 +648,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             const { count: noticeCount } = await supabase.from('notice_defs').select('*', { count: 'exact', head: true });
             if (noticeCount === 0) {
                 const notices = DEFAULT_NOTICE_DEFS.map(def => ({
-                    id: def.id,
                     household_id: householdId,
                     title: def.title,
                     kind: def.kind,
@@ -666,7 +668,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             const { count: invCount } = await supabase.from('inventory').select('*', { count: 'exact', head: true });
             if (invCount === 0) {
                 const items = DEFAULT_INVENTORY_ITEMS.map((item: any) => ({
-                    id: item.id,
                     household_id: householdId,
                     label: item.label,
                     range_max: item.range_max || item.range?.[1] || 30, // Map legacy range
