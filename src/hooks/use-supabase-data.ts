@@ -357,6 +357,59 @@ export function usePushToken() {
     return { saveToken };
 }
 
+// Hook for notification preferences
+export function useNotificationPreferences() {
+    const [preferences, setPreferences] = useState({ care_reminder: true, health_alert: true });
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient() as any;
+
+    useEffect(() => {
+        async function fetchPreferences() {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('users')
+                .select('notification_preferences')
+                .eq('id', user.id)
+                .single();
+
+            if (data?.notification_preferences) {
+                // Merge with defaults to handle new keys in future
+                setPreferences(prev => ({ ...prev, ...data.notification_preferences }));
+            }
+            setLoading(false);
+        }
+
+        fetchPreferences();
+    }, []);
+
+    const updatePreference = async (key: string, value: boolean) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Optimistic update
+        const newPreferences = { ...preferences, [key]: value };
+        setPreferences(newPreferences);
+
+        const { error } = await supabase
+            .from('users')
+            .update({ notification_preferences: newPreferences })
+            .eq('id', user.id);
+
+        if (error) {
+            console.error('Error updating preferences:', error);
+            // Revert on error? For now, we just log it.
+        }
+    };
+
+    return { preferences, loading, updatePreference };
+}
+
 
 
 
