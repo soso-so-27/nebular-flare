@@ -15,7 +15,7 @@ export function buildWeeklyDigest({
         Object.values(catLogs).filter(l => l.value !== "いつも通り" && l.value !== "なし" && l.value !== "記録した")
     );
 
-    const lowStock = inventory.filter(it => it.range[0] <= settings.invThresholds.soon);
+    const lowStock = inventory.filter(it => (it.range_min ?? it.range?.[0] ?? 999) <= settings.invThresholds.soon);
     const openTasks = tasks.filter(t => !t.done);
 
     return {
