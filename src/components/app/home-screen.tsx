@@ -318,11 +318,16 @@ export function HomeScreen() {
 
     // Show all enabled items, sorted by days left (ascending)
     const sortedInventory = useMemo(() => {
-        if (!inventory) return [];
-        return inventory
-            .filter(it => it.enabled !== false && it.deleted_at === null)
-            .map(it => ({ ...it, ...getInventoryStatus(it) }))
-            .sort((a, b) => a.daysLeft - b.daysLeft);
+        try {
+            if (!inventory) return [];
+            return inventory
+                .filter(it => it.enabled !== false && it.deleted_at === null)
+                .map(it => ({ ...it, ...getInventoryStatus(it) }))
+                .sort((a, b) => a.daysLeft - b.daysLeft);
+        } catch (e) {
+            console.error("Error in sortedInventory:", e);
+            return [];
+        }
     }, [inventory]);
 
     const urgentCount = useMemo(() => {
