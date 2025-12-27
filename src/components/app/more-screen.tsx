@@ -9,6 +9,8 @@ import { Settings as SettingsIcon, Sparkles, User, Info, Cat, LogOut } from "luc
 import { useAppState } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { CatSettingsModal } from "./cat-settings-modal";
+import { CareSettingsModal } from "./care-settings-modal";
+import { NoticeSettingsModal } from "./notice-settings-modal";
 import { InventorySettingsModal } from "./inventory-settings-modal";
 import { toast } from "sonner";
 
@@ -16,6 +18,8 @@ export function MoreScreen() {
     const { isPro, setIsPro, aiEnabled, setAiEnabled, settings, setSettings, cats, isDemo } = useAppState();
     const { user, signOut } = useAuth();
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+    const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+    const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
     const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -128,6 +132,28 @@ export function MoreScreen() {
                     </div>
 
                     <div
+                        className="px-4 py-3 flex items-center justify-between border-b border-slate-50 cursor-pointer active:bg-slate-50"
+                        onClick={() => setIsCareModalOpen(true)}
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold">お世話設定</span>
+                            <span className="text-[10px] text-muted-foreground">ごはんやトイレの頻度・時間</span>
+                        </div>
+                        <SettingsIcon className="h-4 w-4 text-slate-300" />
+                    </div>
+
+                    <div
+                        className="px-4 py-3 flex items-center justify-between border-b border-slate-50 cursor-pointer active:bg-slate-50"
+                        onClick={() => setIsNoticeModalOpen(true)}
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold">記録設定</span>
+                            <span className="text-[10px] text-muted-foreground">体調・様子チェックの項目</span>
+                        </div>
+                        <SettingsIcon className="h-4 w-4 text-slate-300" />
+                    </div>
+
+                    <div
                         className="px-4 py-3 flex items-center justify-between cursor-pointer active:bg-slate-50"
                         onClick={() => setIsInventoryModalOpen(true)}
                     >
@@ -137,10 +163,6 @@ export function MoreScreen() {
                         </div>
                         <SettingsIcon className="h-4 w-4 text-slate-300" />
                     </div>
-
-                    <p className="px-4 py-2 text-[10px] text-slate-400">
-                        ※ お世話・猫の様子の設定はホーム画面の⚙️アイコンから
-                    </p>
                 </CardContent>
             </Card>
 
@@ -192,7 +214,9 @@ export function MoreScreen() {
             {/* Cat Settings Modal */}
             <CatSettingsModal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} />
 
-            {/* Settings Modal */}
+            {/* New Settings Modals */}
+            <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
+            <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
             <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
         </div>
     );
