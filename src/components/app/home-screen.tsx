@@ -116,6 +116,13 @@ export function HomeScreen() {
             return careTaskDefs
                 // Only show enabled tasks
                 .filter(def => def.enabled !== false)
+                // Filter by targetCatIds if set
+                .filter(def => {
+                    if (def.perCat && def.targetCatIds && def.targetCatIds.length > 0) {
+                        return def.targetCatIds.includes(activeCatId);
+                    }
+                    return true;
+                })
                 .flatMap(def => {
                     // Determine if we should split by slots
                     const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&

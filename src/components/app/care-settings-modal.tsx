@@ -14,7 +14,7 @@ interface CareSettingsModalProps {
 }
 
 export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
-    const { careTaskDefs, addCareTask, updateCareTask, deleteCareTask, isDemo } = useAppState();
+    const { careTaskDefs, addCareTask, updateCareTask, deleteCareTask, isDemo, cats } = useAppState();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -23,6 +23,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
     const [icon, setIcon] = useState("📋");
     const [frequency, setFrequency] = useState<Frequency>("once-daily");
     const [perCat, setPerCat] = useState(false);
+    const [targetCatIds, setTargetCatIds] = useState<string[]>([]);
     const [enabled, setEnabled] = useState(true);
 
     const resetForm = () => {
@@ -30,6 +31,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
         setIcon("📋");
         setFrequency("once-daily");
         setPerCat(false);
+        setTargetCatIds([]);
         setEnabled(true);
         setIsAdding(false);
         setEditingId(null);
@@ -46,6 +48,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
             icon,
             frequency,
             perCat,
+            targetCatIds: perCat ? targetCatIds : undefined,
             enabled
         };
 
@@ -65,6 +68,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
         setIcon(task.icon);
         setFrequency(task.frequency);
         setPerCat(task.perCat);
+        setTargetCatIds(task.targetCatIds || cats.map(c => c.id));
         setEnabled(task.enabled !== false); // default to true if undefined
         setIsAdding(false);
     };
@@ -149,11 +153,46 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                                                 type="checkbox"
                                                 id={`perCat-${task.id}`}
                                                 checked={perCat}
-                                                onChange={(e) => setPerCat(e.target.checked)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setPerCat(checked);
+                                                    if (checked && targetCatIds.length === 0) {
+                                                        setTargetCatIds(cats.map(c => c.id));
+                                                    }
+                                                }}
                                                 className="rounded border-slate-300"
                                             />
                                             <label htmlFor={`perCat-${task.id}`} className="text-sm">猫ごとに記録する</label>
                                         </div>
+
+                                        {perCat && (
+                                            <div className="pl-6 space-y-2">
+                                                <p className="text-xs text-slate-500 font-bold">対象の猫</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {cats.map(cat => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => {
+                                                                setTargetCatIds(prev =>
+                                                                    prev.includes(cat.id)
+                                                                        ? prev.filter(id => id !== cat.id)
+                                                                        : [...prev, cat.id]
+                                                                );
+                                                            }}
+                                                            className={cn(
+                                                                "px-2 py-1 rounded text-xs border transition-colors flex items-center gap-1",
+                                                                targetCatIds.includes(cat.id)
+                                                                    ? "bg-primary/10 border-primary text-primary"
+                                                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500"
+                                                            )}
+                                                        >
+                                                            {targetCatIds.includes(cat.id) && <Check className="h-3 w-3" />}
+                                                            {cat.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Enabled Toggle */}
                                         <div className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">

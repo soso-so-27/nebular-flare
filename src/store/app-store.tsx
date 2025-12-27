@@ -416,6 +416,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 time_of_day: newTask.timeOfDay,
                 meal_slots: newTask.mealSlots,
                 per_cat: newTask.perCat,
+                target_cat_ids: newTask.targetCatIds,
                 enabled: newTask.enabled
             });
         }
@@ -455,6 +456,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             if (updates.timeOfDay !== undefined) dbUpdates.time_of_day = updates.timeOfDay;
             if (updates.mealSlots !== undefined) dbUpdates.meal_slots = updates.mealSlots;
             if (updates.perCat !== undefined) dbUpdates.per_cat = updates.perCat;
+            if (updates.targetCatIds !== undefined) dbUpdates.target_cat_ids = updates.targetCatIds;
             if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
             // Also update meal_slots if auto-updated? 
             // The map logic above handles auto-update in local state 'updated' object.

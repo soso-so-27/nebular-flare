@@ -26,6 +26,7 @@ export type CareTaskDef = {
   timeOfDay: TimeOfDay;
   mealSlots?: MealSlot[]; // Which time slots this task applies to
   perCat: boolean; // true = per cat, false = shared
+  targetCatIds?: string[]; // IDs of cats this task applies to (if perCat is true)
   enabled: boolean;
 };
 
