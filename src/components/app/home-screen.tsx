@@ -329,7 +329,7 @@ export function HomeScreen() {
         }));
 
         if (!isDemo) {
-            const supabase = createClient();
+            const supabase = createClient() as any;
             await supabase
                 .from('inventory')
                 .update({ last_bought: now })
@@ -693,295 +693,297 @@ export function HomeScreen() {
                                         )
                                     )}
 
+
                                     {/* Cat Content */}
-                                                        {openSection === 'cat' && (
-                                                            <>
-                                                                {cats.length > 1 && (
-                                                                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                                                                        {cats.map(cat => (
-                                                                            <button
-                                                                                key={cat.id}
-                                                                                onClick={() => setActiveCatId(cat.id)}
-                                                                                className={cn(
-                                                                                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0",
-                                                                                    cat.id === activeCatId
-                                                                                        ? "bg-primary/5 border-primary/20 text-primary shadow-sm"
-                                                                                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                                                                                )}
-                                                                            >
-                                                                                <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-100">
-                                                                                    {(cat.avatar && (cat.avatar.startsWith('http') || cat.avatar.startsWith('/'))) ? (
-                                                                                        <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
-                                                                                    ) : (
-                                                                                        <Cat className="w-3 h-3 text-slate-400" />
-                                                                                    )}
-                                                                                </div>
-                                                                                {cat.name}
-                                                                            </button>
-                                                                        ))}
-                                                                    </div>
+                                    {openSection === 'cat' && (
+                                        <>
+                                            {cats.length > 1 && (
+                                                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                                                    {cats.map(cat => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => setActiveCatId(cat.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0",
+                                                                cat.id === activeCatId
+                                                                    ? "bg-primary/5 border-primary/20 text-primary shadow-sm"
+                                                                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                                                            )}
+                                                        >
+                                                            <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-100">
+                                                                {(cat.avatar && (cat.avatar.startsWith('http') || cat.avatar.startsWith('/'))) ? (
+                                                                    <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <Cat className="w-3 h-3 text-slate-400" />
                                                                 )}
+                                                            </div>
+                                                            {cat.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
 
-                                                                {/* Grouped Observations */}
-                                                                {Object.entries(
-                                                                    observationItems.reduce((acc, item) => {
-                                                                        const cat = item.category || 'other';
-                                                                        if (!acc[cat]) acc[cat] = [];
-                                                                        acc[cat].push(item);
-                                                                        return acc;
-                                                                    }, {} as Record<string, typeof observationItems>)
-                                                                ).map(([category, items]) => (
-                                                                    <div key={category} className="mb-6 last:mb-0">
-                                                                        <h3 className="text-xs font-bold text-slate-500 mb-3 pl-2 border-l-2 border-primary/20">
-                                                                            {category === 'physical' ? '体調' :
-                                                                                category === 'toilet' ? 'トイレ' :
-                                                                                    category === 'food' ? '食事' :
-                                                                                        category === 'behavior' ? '行動' : 'その他'}
-                                                                        </h3>
-                                                                        <div className="space-y-2">
-                                                                            {items.map(obs => (
-                                                                                <div
-                                                                                    key={obs.id}
-                                                                                    className={cn(
-                                                                                        "flex flex-col gap-2 px-4 py-3 rounded-xl transition-colors",
-                                                                                        obs.isAbnormal ? "bg-amber-50 dark:bg-amber-900/10" : obs.done ? "bg-slate-50 dark:bg-slate-800/50" : "bg-white border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
-                                                                                    )}
-                                                                                >
-                                                                                    <div className="flex items-center justify-between">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <span className={cn("text-sm font-medium", obs.done ? "text-slate-400" : "text-slate-700 dark:text-slate-200")}>
-                                                                                                {obs.label}
-                                                                                            </span>
-                                                                                            {obs.done && (
-                                                                                                <span className={cn(
-                                                                                                    "text-xs font-bold px-2 py-0.5 rounded-full",
-                                                                                                    obs.isAbnormal ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-200"
-                                                                                                )}>{obs.value}</span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                        {obs.done ? (
-                                                                                            <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-amber-500" : "text-emerald-500")} />
-                                                                                        ) : (
-                                                                                            obs.required && <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded">必須</span>
-                                                                                        )}
-                                                                                    </div>
-
-                                                                                    {!obs.done && (
-                                                                                        <div className="mt-1">
-                                                                                            {obs.inputType === 'count' ? (
-                                                                                                <div className="flex gap-2">
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        placeholder="0"
-                                                                                                        className="w-20 px-3 py-1.5 text-sm border rounded-lg bg-slate-50 focus:bg-white transition-colors dark:bg-slate-700 dark:border-slate-600"
-                                                                                                        value={obsValues[obs.id] || ''}
-                                                                                                        onChange={e => setObsValues(prev => ({ ...prev, [obs.id]: e.target.value }))}
-                                                                                                    />
-                                                                                                    <button
-                                                                                                        onClick={() => {
-                                                                                                            const val = obsValues[obs.id];
-                                                                                                            if (val) {
-                                                                                                                handleObservation(obs.id, obs.type, obs.label, val);
-                                                                                                                setObsValues(prev => ({ ...prev, [obs.id]: '' }));
-                                                                                                            }
-                                                                                                        }}
-                                                                                                        className="text-xs font-bold px-4 py-1.5 rounded-lg bg-primary text-white shadow-sm hover:bg-primary/90"
-                                                                                                    >
-                                                                                                        記録
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            ) : obs.inputType === 'choice' ? (
-                                                                                                <div className="flex gap-2 flex-wrap">
-                                                                                                    {obs.choices && obs.choices.length > 0 ? (
-                                                                                                        obs.choices.map(choice => (
-                                                                                                            <button
-                                                                                                                key={choice}
-                                                                                                                onClick={() => handleObservation(obs.id, obs.type, obs.label, choice)}
-                                                                                                                className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-colors dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                                                                                                            >
-                                                                                                                {choice}
-                                                                                                            </button>
-                                                                                                        ))
-                                                                                                    ) : (
-                                                                                                        <span className="text-xs text-slate-400">選択肢がありません</span>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            ) : (
-                                                                                                <div className="flex gap-2">
-                                                                                                    <button
-                                                                                                        onClick={() => handleObservation(obs.id, obs.type, obs.label, 'いつも通り')}
-                                                                                                        className="text-xs font-bold px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 transition-colors dark:bg-emerald-900/20 dark:border-emerald-900/50"
-                                                                                                    >OK</button>
-                                                                                                    <button
-                                                                                                        onClick={() => handleObservation(obs.id, obs.type, obs.label, 'ちょっと違う')}
-                                                                                                        className="text-xs font-bold px-4 py-2 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100 transition-colors dark:bg-amber-900/20 dark:border-amber-900/50"
-                                                                                                    >注意</button>
-                                                                                                </div>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
+                                            {/* Grouped Observations */}
+                                            {Object.entries(
+                                                observationItems.reduce((acc, item) => {
+                                                    const cat = item.category || 'other';
+                                                    if (!acc[cat]) acc[cat] = [];
+                                                    acc[cat].push(item);
+                                                    return acc;
+                                                }, {} as Record<string, typeof observationItems>)
+                                            ).map(([category, items]) => (
+                                                <div key={category} className="mb-6 last:mb-0">
+                                                    <h3 className="text-xs font-bold text-slate-500 mb-3 pl-2 border-l-2 border-primary/20">
+                                                        {category === 'physical' ? '体調' :
+                                                            category === 'toilet' ? 'トイレ' :
+                                                                category === 'food' ? '食事' :
+                                                                    category === 'behavior' ? '行動' : 'その他'}
+                                                    </h3>
+                                                    <div className="space-y-2">
+                                                        {items.map(obs => (
+                                                            <div
+                                                                key={obs.id}
+                                                                className={cn(
+                                                                    "flex flex-col gap-2 px-4 py-3 rounded-xl transition-colors",
+                                                                    obs.isAbnormal ? "bg-amber-50 dark:bg-amber-900/10" : obs.done ? "bg-slate-50 dark:bg-slate-800/50" : "bg-white border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
+                                                                )}
+                                                            >
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={cn("text-sm font-medium", obs.done ? "text-slate-400" : "text-slate-700 dark:text-slate-200")}>
+                                                                            {obs.label}
+                                                                        </span>
+                                                                        {obs.done && (
+                                                                            <span className={cn(
+                                                                                "text-xs font-bold px-2 py-0.5 rounded-full",
+                                                                                obs.isAbnormal ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-200"
+                                                                            )}>{obs.value}</span>
+                                                                        )}
                                                                     </div>
-                                                                ))}
-                                                            </>
-                                                        )}
-
-                                                        {/* Inventory Content */}
-                                                        {openSection === 'inventory' && (
-                                                            <div className="space-y-4">
-                                                                {/* Alert threshold */}
-                                                                <div className="pb-4 border-b">
-                                                                    <div className="flex items-center justify-between mb-2">
-                                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">アラート表示</span>
-                                                                        <span className="text-sm text-primary font-bold">{settings.invThresholds.urgent}日前</span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min="1"
-                                                                        max="7"
-                                                                        value={settings.invThresholds.urgent}
-                                                                        onChange={e => updateInvThreshold('urgent', parseInt(e.target.value))}
-                                                                        className="w-full accent-primary"
-                                                                    />
-                                                                </div>
-
-                                                                {/* Add new inventory */}
-                                                                <div className="flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="新しい在庫アイテム..."
-                                                                        value={newItemInput}
-                                                                        onChange={e => setNewItemInput(e.target.value)}
-                                                                        className="flex-1 rounded-full px-4 py-2 text-sm bg-slate-100 border-none focus:outline-none focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white"
-                                                                        onKeyDown={e => {
-                                                                            if (e.key === 'Enter' && newItemInput.trim()) {
-                                                                                addInventoryItem(newItemInput.trim(), 30, 30); // Default args
-                                                                                setNewItemInput('');
-                                                                                toast.success('追加しました');
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (newItemInput.trim()) {
-                                                                                addInventoryItem(newItemInput.trim(), 30, 30);
-                                                                                setNewItemInput('');
-                                                                                toast.success('追加しました');
-                                                                            }
-                                                                        }}
-                                                                        className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 transition-colors"
-                                                                    >
-                                                                        <Plus className="h-4 w-4 text-white" />
-                                                                    </button>
-                                                                </div>
-
-                                                                {/* List */}
-                                                                <div className="space-y-3">
-                                                                    {inventory.length === 0 ? (
-                                                                        <div className="text-center py-8 text-slate-400">
-                                                                            <p className="text-sm">在庫アイテムを登録しましょう</p>
-                                                                        </div>
-                                                                    ) : sortedInventory.length > 0 ? (
-                                                                        sortedInventory.map(it => (
-                                                                            <div key={it.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                                                                                <div className="flex items-center gap-3">
-                                                                                    <span className={cn(
-                                                                                        "text-xs font-bold px-2 py-0.5 rounded-full text-white min-w-[60px] text-center shadow-sm",
-                                                                                        it.status === 'danger' ? "bg-red-500" :
-                                                                                            it.status === 'warn' ? "bg-amber-500" : "bg-emerald-500"
-                                                                                    )}>
-                                                                                        あと{it.daysLeft}日
-                                                                                    </span>
-                                                                                    <div className="flex flex-col">
-                                                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{it.label}</span>
-                                                                                        <span className="text-[10px] text-slate-400">
-                                                                                            {it.last_bought ? `購入: ${new Date(it.last_bought).toLocaleDateString()}` : '未購入'}
-                                                                                            {it.range_max ? ` / サイクル: ${it.range_max}日` : ''}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <button
-                                                                                    onClick={() => handleInventoryAction(it.id)}
-                                                                                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 shadow-sm transition-colors"
-                                                                                >
-                                                                                    購入
-                                                                                </button>
-                                                                            </div>
-                                                                        ))
+                                                                    {obs.done ? (
+                                                                        <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-amber-500" : "text-emerald-500")} />
                                                                     ) : (
-                                                                        <div className="text-center py-4 text-slate-400">
-                                                                            <ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                                                            <p className="text-sm">表示する在庫がありません</p>
-                                                                        </div>
+                                                                        obs.required && <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded">必須</span>
                                                                     )}
                                                                 </div>
+
+                                                                {!obs.done && (
+                                                                    <div className="mt-1">
+                                                                        {obs.inputType === 'count' ? (
+                                                                            <div className="flex gap-2">
+                                                                                <input
+                                                                                    type="number"
+                                                                                    placeholder="0"
+                                                                                    className="w-20 px-3 py-1.5 text-sm border rounded-lg bg-slate-50 focus:bg-white transition-colors dark:bg-slate-700 dark:border-slate-600"
+                                                                                    value={obsValues[obs.id] || ''}
+                                                                                    onChange={e => setObsValues(prev => ({ ...prev, [obs.id]: e.target.value }))}
+                                                                                />
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const val = obsValues[obs.id];
+                                                                                        if (val) {
+                                                                                            handleObservation(obs.id, obs.type, obs.label, val);
+                                                                                            setObsValues(prev => ({ ...prev, [obs.id]: '' }));
+                                                                                        }
+                                                                                    }}
+                                                                                    className="text-xs font-bold px-4 py-1.5 rounded-lg bg-primary text-white shadow-sm hover:bg-primary/90"
+                                                                                >
+                                                                                    記録
+                                                                                </button>
+                                                                            </div>
+                                                                        ) : obs.inputType === 'choice' ? (
+                                                                            <div className="flex gap-2 flex-wrap">
+                                                                                {obs.choices && obs.choices.length > 0 ? (
+                                                                                    obs.choices.map(choice => (
+                                                                                        <button
+                                                                                            key={choice}
+                                                                                            onClick={() => handleObservation(obs.id, obs.type, obs.label, choice)}
+                                                                                            className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-colors dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                                                                                        >
+                                                                                            {choice}
+                                                                                        </button>
+                                                                                    ))
+                                                                                ) : (
+                                                                                    <span className="text-xs text-slate-400">選択肢がありません</span>
+                                                                                )}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex gap-2">
+                                                                                <button
+                                                                                    onClick={() => handleObservation(obs.id, obs.type, obs.label, 'いつも通り')}
+                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 transition-colors dark:bg-emerald-900/20 dark:border-emerald-900/50"
+                                                                                >OK</button>
+                                                                                <button
+                                                                                    onClick={() => handleObservation(obs.id, obs.type, obs.label, 'ちょっと違う')}
+                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100 transition-colors dark:bg-amber-900/20 dark:border-amber-900/50"
+                                                                                >注意</button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
-                            </motion.div>
-                                            </motion.div>
-                    )}
-                                </AnimatePresence>
-
-                                {/* Shared Memos - Compact */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-4"
-                                >
-                                    {/* Memo input - horizontal layout */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <Users className="h-4 w-4 text-slate-400" />
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">メモ</span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            placeholder="家族に共有..."
-                                            className="flex-1 rounded-full px-4 py-2 text-sm bg-slate-100 border-none focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            value={memoDraft}
-                                            onChange={(e) => setMemoDraft(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && saveSharedMemo()}
-                                        />
-                                        <button
-                                            onClick={saveSharedMemo}
-                                            className="w-9 h-9 rounded-full bg-slate-300 flex items-center justify-center hover:bg-slate-400 shrink-0"
-                                        >
-                                            <Send className="h-4 w-4 text-slate-600" />
-                                        </button>
-                                    </div>
-
-                                    {/* Memo chips */}
-                                    {memos.items.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {memos.items.slice(0, 3).map((m, idx) => (
-                                                <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-xs text-slate-600 group">
-                                                    <span className="max-w-[120px] truncate">{m.text}</span>
-                                                    <button
-                                                        onClick={() => {
-                                                            setMemos(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
-                                                            toast.info("削除しました");
-                                                        }}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <X className="h-3 w-3 text-slate-400 hover:text-slate-600" />
-                                                    </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ))}
-                                            {memos.items.length > 3 && (
-                                                <span className="text-xs text-slate-400 py-1.5">+{memos.items.length - 3}</span>
-                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Inventory Content */}
+                                    {openSection === 'inventory' && (
+                                        <div className="space-y-4">
+                                            {/* Alert threshold */}
+                                            <div className="pb-4 border-b">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">アラート表示</span>
+                                                    <span className="text-sm text-primary font-bold">{settings.invThresholds.urgent}日前</span>
+                                                </div>
+                                                <input
+                                                    type="range"
+                                                    min="1"
+                                                    max="7"
+                                                    value={settings.invThresholds.urgent}
+                                                    onChange={e => updateInvThreshold('urgent', parseInt(e.target.value))}
+                                                    className="w-full accent-primary"
+                                                />
+                                            </div>
+
+                                            {/* Add new inventory */}
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="新しい在庫アイテム..."
+                                                    value={newItemInput}
+                                                    onChange={e => setNewItemInput(e.target.value)}
+                                                    className="flex-1 rounded-full px-4 py-2 text-sm bg-slate-100 border-none focus:outline-none focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white"
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter' && newItemInput.trim()) {
+                                                            addInventoryItem(newItemInput.trim(), 30, 30); // Default args
+                                                            setNewItemInput('');
+                                                            toast.success('追加しました');
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        if (newItemInput.trim()) {
+                                                            addInventoryItem(newItemInput.trim(), 30, 30);
+                                                            setNewItemInput('');
+                                                            toast.success('追加しました');
+                                                        }
+                                                    }}
+                                                    className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 transition-colors"
+                                                >
+                                                    <Plus className="h-4 w-4 text-white" />
+                                                </button>
+                                            </div>
+
+                                            {/* List */}
+                                            <div className="space-y-3">
+                                                {inventory.length === 0 ? (
+                                                    <div className="text-center py-8 text-slate-400">
+                                                        <p className="text-sm">在庫アイテムを登録しましょう</p>
+                                                    </div>
+                                                ) : sortedInventory.length > 0 ? (
+                                                    sortedInventory.map(it => (
+                                                        <div key={it.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className={cn(
+                                                                    "text-xs font-bold px-2 py-0.5 rounded-full text-white min-w-[60px] text-center shadow-sm",
+                                                                    it.status === 'danger' ? "bg-red-500" :
+                                                                        it.status === 'warn' ? "bg-amber-500" : "bg-emerald-500"
+                                                                )}>
+                                                                    あと{it.daysLeft}日
+                                                                </span>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{it.label}</span>
+                                                                    <span className="text-[10px] text-slate-400">
+                                                                        {it.last_bought ? `購入: ${new Date(it.last_bought).toLocaleDateString()}` : '未購入'}
+                                                                        {it.range_max ? ` / サイクル: ${it.range_max}日` : ''}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleInventoryAction(it.id)}
+                                                                className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 shadow-sm transition-colors"
+                                                            >
+                                                                購入
+                                                            </button>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-4 text-slate-400">
+                                                        <ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                                        <p className="text-sm">表示する在庫がありません</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
-                                </motion.div>
-                            </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                            {/* Settings Modals */}
-                            <CareSettingsModal isOpen={isCareSettingsOpen} onClose={() => setIsCareSettingsOpen(false)} />
-                            <NoticeSettingsModal isOpen={isNoticeSettingsOpen} onClose={() => setIsNoticeSettingsOpen(false)} />
-                            <InventorySettingsModal isOpen={isInventorySettingsOpen} onClose={() => setIsInventorySettingsOpen(false)} />
+                {/* Shared Memos - Compact */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-4"
+                >
+                    {/* Memo input - horizontal layout */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <Users className="h-4 w-4 text-slate-400" />
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">メモ</span>
                         </div>
-                    );
+                        <input
+                            type="text"
+                            placeholder="家族に共有..."
+                            className="flex-1 rounded-full px-4 py-2 text-sm bg-slate-100 border-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            value={memoDraft}
+                            onChange={(e) => setMemoDraft(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && saveSharedMemo()}
+                        />
+                        <button
+                            onClick={saveSharedMemo}
+                            className="w-9 h-9 rounded-full bg-slate-300 flex items-center justify-center hover:bg-slate-400 shrink-0"
+                        >
+                            <Send className="h-4 w-4 text-slate-600" />
+                        </button>
+                    </div>
+
+                    {/* Memo chips */}
+                    {memos.items.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                            {memos.items.slice(0, 3).map((m, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-xs text-slate-600 group">
+                                    <span className="max-w-[120px] truncate">{m.text}</span>
+                                    <button
+                                        onClick={() => {
+                                            setMemos(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
+                                            toast.info("削除しました");
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <X className="h-3 w-3 text-slate-400 hover:text-slate-600" />
+                                    </button>
+                                </div>
+                            ))}
+                            {memos.items.length > 3 && (
+                                <span className="text-xs text-slate-400 py-1.5">+{memos.items.length - 3}</span>
+                            )}
+                        </div>
+                    )}
+                </motion.div>
+            </div>
+
+            {/* Settings Modals */}
+            <CareSettingsModal isOpen={isCareSettingsOpen} onClose={() => setIsCareSettingsOpen(false)} />
+            <NoticeSettingsModal isOpen={isNoticeSettingsOpen} onClose={() => setIsNoticeSettingsOpen(false)} />
+            <InventorySettingsModal isOpen={isInventorySettingsOpen} onClose={() => setIsInventorySettingsOpen(false)} />
+        </div>
+    );
 }
