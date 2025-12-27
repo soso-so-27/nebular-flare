@@ -11,6 +11,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { CatSettingsModal } from "./cat-settings-modal";
 import { CareSettingsModal } from "./care-settings-modal";
 import { NoticeSettingsModal } from "./notice-settings-modal";
+import { InventorySettingsModal } from "./inventory-settings-modal";
 import { toast } from "sonner";
 
 export function MoreScreen() {
@@ -19,6 +20,7 @@ export function MoreScreen() {
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
     const [isCareModalOpen, setIsCareModalOpen] = useState(false);
     const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
+    const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const handleLogout = async () => {
@@ -141,12 +143,23 @@ export function MoreScreen() {
                     </div>
 
                     <div
-                        className="px-4 py-3 flex items-center justify-between cursor-pointer active:bg-slate-50"
+                        className="px-4 py-3 flex items-center justify-between border-b border-slate-50 cursor-pointer active:bg-slate-50"
                         onClick={() => setIsNoticeModalOpen(true)}
                     >
                         <div className="flex flex-col">
                             <span className="text-xs font-bold">記録設定</span>
                             <span className="text-[10px] text-muted-foreground">体調・様子チェックの項目</span>
+                        </div>
+                        <SettingsIcon className="h-4 w-4 text-slate-300" />
+                    </div>
+
+                    <div
+                        className="px-4 py-3 flex items-center justify-between cursor-pointer active:bg-slate-50"
+                        onClick={() => setIsInventoryModalOpen(true)}
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold">在庫設定</span>
+                            <span className="text-[10px] text-muted-foreground">補充サイクルの設定</span>
                         </div>
                         <SettingsIcon className="h-4 w-4 text-slate-300" />
                     </div>
@@ -204,6 +217,7 @@ export function MoreScreen() {
             {/* New Settings Modals */}
             <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
             <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
+            <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
         </div>
     );
 }
