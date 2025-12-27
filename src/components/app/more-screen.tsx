@@ -12,7 +12,7 @@ import { CatSettingsModal } from "./cat-settings-modal";
 import { toast } from "sonner";
 
 export function MoreScreen() {
-    const { isPro, setIsPro, aiEnabled, setAiEnabled, settings, setSettings, cats, isDemo } = useAppState();
+    const { isPro, setIsPro, aiEnabled, setAiEnabled, settings, setSettings, cats, isDemo, initializeDefaults } = useAppState();
     const { user, signOut } = useAuth();
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -157,6 +157,31 @@ export function MoreScreen() {
                     使い方
                 </Button>
             </div>
+
+            {/* System Section */}
+            {!isDemo && (
+                <div className="space-y-4">
+                    <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">システム</h3>
+                    <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
+                        <div
+                            onClick={async () => {
+                                if (confirm("初期データをロードしますか？（既存のデータがあればスキップされます）")) {
+                                    try {
+                                        await initializeDefaults();
+                                        toast.success("データを初期化しました");
+                                    } catch (e) {
+                                        toast.error("初期化に失敗しました");
+                                    }
+                                }
+                            }}
+                            className="px-4 py-3 flex items-center justify-between active:bg-slate-50 cursor-pointer"
+                        >
+                            <span className="text-xs font-medium">基本データの登録</span>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </div>
+                    </Card>
+                </div>
+            )}
 
             <div className="space-y-4">
                 <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">サポート</h3>

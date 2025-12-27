@@ -57,6 +57,8 @@ type AppState = {
     // Notification
     fcmToken: string | null;
     setFcmToken: (token: string | null) => void;
+    // Defaults
+    initializeDefaults: () => Promise<void>;
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -617,6 +619,75 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         return supabaseAddObservation(type, value);
     };
 
+    const initializeDefaults = async () => {
+        if (isDemo || !householdId) return;
+
+        try {
+            // Care Tasks
+            const { count: careCount } = await supabase.from('care_task_defs').select('*', { count: 'exact', head: true });
+            if (careCount === 0) {
+                const careTasks = DEFAULT_CARE_TASK_DEFS.map(def => ({
+                    id: def.id,
+                    household_id: householdId,
+                    title: def.title,
+                    icon: def.icon,
+                    frequency: def.frequency,
+                    time_of_day: def.timeOfDay || 'anytime',
+                    meal_slots: def.mealSlots || [],
+                    per_cat: def.perCat,
+                    enabled: def.enabled
+                }));
+                const { error } = await supabase.from('care_task_defs').insert(careTasks);
+                if (error) throw error;
+            }
+
+            // Notice Defs
+            const { count: noticeCount } = await supabase.from('notice_defs').select('*', { count: 'exact', head: true });
+            if (noticeCount === 0) {
+                const notices = DEFAULT_NOTICE_DEFS.map(def => ({
+                    id: def.id,
+                    household_id: householdId,
+                    title: def.title,
+                    kind: def.kind,
+                    cadence: def.cadence,
+                    due: def.due,
+                    choices: def.choices,
+                    input_type: def.inputType,
+                    category: def.category,
+                    required: def.required,
+                    enabled: def.enabled,
+                    optional: def.optional
+                }));
+                const { error } = await supabase.from('notice_defs').insert(notices);
+                if (error) throw error;
+            }
+
+            // Inventory
+            const { count: invCount } = await supabase.from('inventory').select('*', { count: 'exact', head: true });
+            if (invCount === 0) {
+                const items = DEFAULT_INVENTORY_ITEMS.map((item: any) => ({
+                    id: item.id,
+                    household_id: householdId,
+                    label: item.label,
+                    range_max: item.range_max || item.range?.[1] || 30, // Map legacy range
+                    range_min: item.range_min || item.range?.[0] || 7,
+                    stock_level: item.stockLevel,
+                    alert_enabled: item.alertEnabled,
+                    purchase_memo: item.purchaseMemo
+                }));
+                const { error } = await supabase.from('inventory').insert(items);
+                if (error) throw error;
+            }
+
+            // Reload page to reflect changes
+            window.location.reload();
+
+        } catch (e) {
+            console.error("Failed to initialize defaults", e);
+            throw e;
+        }
+    };
+
     const value: AppState = {
         isPro: settings.plan === 'Pro',
         setIsPro: (v) => setSettings(s => ({ ...s, plan: v ? 'Pro' : 'Free' })),
@@ -657,6 +728,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         // Notification
         fcmToken,
         setFcmToken,
+        initializeDefaults,
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
