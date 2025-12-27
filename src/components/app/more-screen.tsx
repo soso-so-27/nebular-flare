@@ -163,22 +163,31 @@ export function MoreScreen() {
                 <div className="space-y-4">
                     <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">システム</h3>
                     <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
-                        <div
+                        <button
+                            type="button"
                             onClick={async () => {
+                                console.log("Button clicked, calling initializeDefaults...", initializeDefaults);
+                                if (!initializeDefaults) {
+                                    toast.error("初期化機能が見つかりません。リロードしてください。");
+                                    return;
+                                }
                                 if (confirm("初期データをロードしますか？（既存のデータがあればスキップされます）")) {
                                     try {
+                                        console.log("Starting initialization...");
                                         await initializeDefaults();
+                                        console.log("Initialization done.");
                                         toast.success("データを初期化しました");
                                     } catch (e) {
+                                        console.error("Initialization failed", e);
                                         toast.error("初期化に失敗しました");
                                     }
                                 }
                             }}
-                            className="px-4 py-3 flex items-center justify-between active:bg-slate-50 cursor-pointer"
+                            className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors cursor-pointer text-left"
                         >
-                            <span className="text-xs font-medium">基本データの登録</span>
+                            <span className="text-xs font-medium text-slate-900">基本データの登録</span>
                             <SettingsIcon className="h-4 w-4 text-slate-300" />
-                        </div>
+                        </button>
                     </Card>
                 </div>
             )}
