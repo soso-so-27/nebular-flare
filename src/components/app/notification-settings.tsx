@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { requestFcmToken } from '@/lib/firebase';
 import { toast } from 'sonner';
-import { usePushToken } from '@/hooks/use-supabase-data';
+import { usePushToken, useNotificationPreferences } from '@/hooks/use-supabase-data';
 
 export function NotificationSettings() {
     const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -60,19 +60,63 @@ export function NotificationSettings() {
         }
     };
 
+    const { preferences, loading: prefsLoading, updatePreference } = useNotificationPreferences();
+
+    const handleToggle = (key: 'care_reminder' | 'health_alert') => {
+        updatePreference(key, !preferences[key]);
+    };
+
     if (permission === 'granted') {
         return (
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
-                        <Bell className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-emerald-900 text-sm">通知はオンです</h3>
-                        <p className="text-xs text-emerald-700">お世話の時間にお知らせします</p>
+            <div className="space-y-3">
+                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
+                            <Bell className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-emerald-900 text-sm">通知はオンです</h3>
+                            <p className="text-xs text-emerald-700">お世話の時間にお知らせします</p>
+                        </div>
                     </div>
                 </div>
-                {/* <button onClick={handleTestNotification} className="text-xs text-emerald-600 underline">テスト</button> */}
+
+                {/* Settings Toggles */}
+                {prefsLoading ? (
+                    <div className="p-8 text-center text-slate-400">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                    </div>
+                ) : (
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
+                        <h4 className="text-sm font-bold text-slate-700">通知の受け取り設定</h4>
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <span className="text-sm font-medium text-slate-800">お世話リマインダー</span>
+                                <p className="text-xs text-slate-500">ごはんやトイレ掃除の忘れ防止</p>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('care_reminder')}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.care_reminder ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.care_reminder ? 'left-6' : 'left-1'}`} />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <span className="text-sm font-medium text-slate-800">健康アラート</span>
+                                <p className="text-xs text-slate-500">嘔吐や食欲不振を検知した時</p>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('health_alert')}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.health_alert ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
