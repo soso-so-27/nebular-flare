@@ -63,7 +63,8 @@ async function sendMorningReminder() {
 
     // 5. Send Notification
     try {
-        const response = await admin.messaging().sendMulticast(message);
+        // Use sendEachForMulticast for firebase-admin v11+
+        const response = await admin.messaging().sendEachForMulticast(message);
         console.log(`${response.successCount} messages sent successfully.`);
 
         if (response.failureCount > 0) {
