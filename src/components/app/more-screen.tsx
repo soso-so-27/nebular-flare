@@ -171,17 +171,19 @@ export function MoreScreen() {
                                     toast.error("初期化機能が見つかりません。リロードしてください。");
                                     return;
                                 }
-                                if (confirm("初期データをロードしますか？（既存のデータがあればスキップされます）")) {
-                                    try {
-                                        console.log("Starting initialization...");
-                                        await initializeDefaults();
-                                        console.log("Initialization done.");
-                                        toast.success("データを初期化しました");
-                                    } catch (e) {
-                                        console.error("Initialization failed", e);
-                                        toast.error("初期化に失敗しました");
-                                    }
+                                // Remove native confirm which might be blocked
+                                // if (confirm("初期データをロードしますか？（既存のデータがあればスキップされます）")) {
+                                try {
+                                    console.log("Starting initialization...");
+                                    toast.info("初期化を開始しました...");
+                                    await initializeDefaults();
+                                    console.log("Initialization done.");
+                                    toast.success("データを初期化しました（必要に応じてリロードされます）");
+                                } catch (e) {
+                                    console.error("Initialization failed", e);
+                                    toast.error("初期化に失敗しました");
                                 }
+                                // }
                             }}
                             className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors cursor-pointer text-left"
                         >
