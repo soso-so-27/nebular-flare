@@ -29,6 +29,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
     // Form State
     const [label, setLabel] = useState("");
     const [rangeMax, setRangeMax] = useState(30);
+    const [lastBought, setLastBought] = useState("");
 
     const supabase = createClient() as any;
 
@@ -56,6 +57,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
     const resetForm = () => {
         setLabel("");
         setRangeMax(30);
+        setLastBought(new Date().toISOString().split('T')[0]); // Default to today
         setIsAdding(false);
         setEditingId(null);
     };
@@ -70,7 +72,11 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
             // Update existing
             const { error } = await supabase
                 .from('inventory')
-                .update({ label, range_max: rangeMax })
+                .update({
+                    label,
+                    range_max: rangeMax,
+                    last_bought: lastBought || null
+                })
                 .eq('id', editingId);
 
             if (error) {
@@ -86,7 +92,8 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                     household_id: householdId,
                     label,
                     range_max: rangeMax,
-                    range_min: Math.floor(rangeMax * 0.7) // default range_min to 70% of range_max
+                    range_min: Math.floor(rangeMax * 0.7), // default range_min to 70% of range_max
+                    last_bought: lastBought || null
                 });
 
             if (error) {
@@ -118,6 +125,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
         setEditingId(item.id);
         setLabel(item.label);
         setRangeMax(item.range_max || 30);
+        setLastBought(item.last_bought ? item.last_bought.split('T')[0] : "");
         setIsAdding(false);
     };
 
@@ -270,7 +278,17 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                                 </div>
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="space-y-1 pt-2">
+                                <label className="text-xs font-bold text-slate-500">最終購入日</label>
+                                <input
+                                    type="date"
+                                    value={lastBought}
+                                    onChange={(e) => setLastBought(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
                                 <button
                                     onClick={handleSave}
                                     className="flex-1 py-1.5 rounded-lg bg-primary text-white text-xs font-bold"

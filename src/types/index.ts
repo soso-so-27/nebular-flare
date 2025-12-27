@@ -94,12 +94,16 @@ export type SignalLog = {
 export type InventoryItem = {
   id: string;
   label: string;
-  range: [number, number]; // [minDays, maxDays]
+  range: [number, number]; // [minDays, maxDays] (Legacy)
+  range_max?: number; // Supabase
   last?: string;
+  lastRefillDate?: string; // Legacy
+  last_bought?: string | null; // Supabase
+  deleted_at?: string | null;
+
   // Enhanced settings
   stockLevel: StockLevel;
   purchaseMemo?: string;
-  lastRefillDate?: string;
   alertEnabled: boolean;
   enabled?: boolean; // Optional, defaults to true
 };

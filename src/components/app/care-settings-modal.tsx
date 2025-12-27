@@ -22,7 +22,6 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
     const [title, setTitle] = useState("");
     const [icon, setIcon] = useState("📋");
     const [frequency, setFrequency] = useState<Frequency>("once-daily");
-    const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("anytime");
     const [perCat, setPerCat] = useState(false);
     const [enabled, setEnabled] = useState(true);
 
@@ -30,7 +29,6 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
         setTitle("");
         setIcon("📋");
         setFrequency("once-daily");
-        setTimeOfDay("anytime");
         setPerCat(false);
         setEnabled(true);
         setIsAdding(false);
@@ -43,18 +41,19 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
             return;
         }
 
+        const settings = {
+            title,
+            icon,
+            frequency,
+            perCat,
+            enabled
+        };
+
         if (editingId) {
-            updateCareTask(editingId, {
-                title,
-                icon,
-                frequency,
-                timeOfDay,
-                perCat,
-                enabled
-            });
+            updateCareTask(editingId, settings);
             toast.success("変更しました");
         } else {
-            addCareTask(title);
+            addCareTask(title, settings);
             toast.success("追加しました");
         }
         resetForm();
@@ -65,7 +64,6 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
         setTitle(task.title);
         setIcon(task.icon);
         setFrequency(task.frequency);
-        setTimeOfDay(task.timeOfDay);
         setPerCat(task.perCat);
         setEnabled(task.enabled !== false); // default to true if undefined
         setIsAdding(false);
@@ -129,24 +127,20 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-xs font-bold text-slate-500 mb-1 block">頻度</label>
                                             <select
                                                 value={frequency}
                                                 onChange={(e) => setFrequency(e.target.value as Frequency)}
-                                                className="px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                className="w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
                                             >
                                                 <option value="once-daily">1日1回</option>
                                                 <option value="twice-daily">1日2回</option>
+                                                <option value="three-times-daily">1日3回</option>
+                                                <option value="four-times-daily">1日4回</option>
+                                                <option value="as-needed">必要時</option>
                                                 <option value="weekly">週1回</option>
-                                            </select>
-                                            <select
-                                                value={timeOfDay}
-                                                onChange={(e) => setTimeOfDay(e.target.value as TimeOfDay)}
-                                                className="px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                                            >
-                                                <option value="anytime">いつでも</option>
-                                                <option value="morning">朝</option>
-                                                <option value="evening">夜</option>
+                                                <option value="monthly">月1回</option>
                                             </select>
                                         </div>
 

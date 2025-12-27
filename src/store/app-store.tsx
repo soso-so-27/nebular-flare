@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, Memo, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations } from '@/hooks/use-supabase-data';
+import { createClient } from '@/lib/supabase';
 
 type AppState = {
     isPro: boolean;
@@ -42,13 +43,13 @@ type AppState = {
     observations: any[];
     refetchCats: () => void;
     // CRUD functions for settings
-    addCareTask: (title: string) => void;
+    addCareTask: (title: string, settings?: Partial<CareTaskDef>) => void;
     updateCareTask: (id: string, updates: Partial<CareTaskDef>) => void;
     deleteCareTask: (id: string) => void;
-    addNoticeDef: (title: string) => void;
+    addNoticeDef: (title: string, settings?: Partial<NoticeDef>) => void;
     updateNoticeDef: (id: string, updates: Partial<NoticeDef>) => void;
     deleteNoticeDef: (id: string) => void;
-    addInventoryItem: (label: string, minDays: number, maxDays: number) => void;
+    addInventoryItem: (label: string, minDays: number, maxDays: number, settings?: Partial<InventoryItem>) => void;
     updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
     deleteInventoryItem: (id: string) => void;
     updateInvThreshold: (key: 'soon' | 'urgent' | 'critical', value: number) => void;
@@ -88,23 +89,90 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
     // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
     const today = new Date().toISOString().split('T')[0];
+
     const [demoCareLogsDone, setDemoCareLogsDone] = useState<Record<string, string>>(() => {
         if (typeof window !== 'undefined' && isDemo) {
-            const saved = localStorage.getItem('demoCareLogsDone');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                // Only keep today's logs
-                const todayLogs: Record<string, string> = {};
-                for (const [key, value] of Object.entries(parsed)) {
-                    if (typeof value === 'string' && value.startsWith(today)) {
-                        todayLogs[key] = value;
+            try {
+                const saved = localStorage.getItem('demoCareLogsDone');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const todayLogs: Record<string, string> = {};
+                    for (const [key, value] of Object.entries(parsed)) {
+                        if (typeof value === 'string' && String(value).startsWith(today)) {
+                            todayLogs[key] = String(value);
+                        }
                     }
+                    return todayLogs;
                 }
-                return todayLogs;
-            }
+            } catch (e) { }
         }
         return {};
     });
+
+    const supabase = createClient() as any;
+
+    // Load initial settings data from Supabase
+    useEffect(() => {
+        if (!householdId || isDemo) return;
+
+        const fetchData = async () => {
+            // Care Tasks
+            const { data: ctData } = await supabase
+                .from('care_task_defs')
+                .select('*')
+                .eq('household_id', householdId)
+                .is('deleted_at', null);
+
+            if (ctData) {
+                setCareTaskDefs(ctData.map((t: any) => ({
+                    id: t.id,
+                    title: t.title,
+                    icon: t.icon,
+                    frequency: t.frequency,
+                    timeOfDay: t.time_of_day,
+                    mealSlots: t.meal_slots,
+                    perCat: t.per_cat,
+                    enabled: t.enabled
+                })) as CareTaskDef[]);
+            }
+
+            // Notice Defs
+            const { data: ndData } = await supabase
+                .from('notice_defs')
+                .select('*')
+                .eq('household_id', householdId)
+                .is('deleted_at', null);
+
+            if (ndData) {
+                setNoticeDefs(ndData.map((n: any) => ({
+                    id: n.id,
+                    title: n.title,
+                    kind: n.kind,
+                    cadence: n.cadence,
+                    due: n.due,
+                    choices: n.choices,
+                    enabled: n.enabled,
+                    optional: n.optional,
+                    inputType: n.input_type || 'ok-notice',
+                    category: n.category || 'physical',
+                    required: n.required || false
+                })) as NoticeDef[]);
+            }
+
+            // Inventory
+            const { data: invData } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('household_id', householdId)
+                .is('deleted_at', null);
+
+            if (invData) {
+                setInventory(invData as InventoryItem[]);
+            }
+        };
+
+        fetchData();
+    }, [householdId, isDemo]);
 
     // Persist demoCareLogsDone
     useEffect(() => {
@@ -306,7 +374,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     }, [inventory, isDemo]);
 
     // CRUD: Care Tasks
-    const addCareTask = (title: string) => {
+    const addCareTask = async (title: string, settings?: Partial<CareTaskDef>) => {
         const id = `custom_${Date.now()}`;
         const newTask: CareTaskDef = {
             id,
@@ -317,10 +385,39 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             mealSlots: ['morning'], // Default for once-daily
             perCat: false,
             enabled: true,
+            ...settings
         };
+        // Auto-set mealSlots if frequency is provided in settings
+        if (settings?.frequency && !settings.mealSlots) {
+            const getDefaultSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
+                switch (freq) {
+                    case 'once-daily': return ['morning'];
+                    case 'twice-daily': return ['morning', 'evening'];
+                    case 'three-times-daily': return ['morning', 'noon', 'evening'];
+                    case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
+                    case 'as-needed': return [];
+                    default: return [];
+                }
+            };
+            newTask.mealSlots = getDefaultSlots(settings.frequency);
+        }
         setCareTaskDefs(prev => [...prev, newTask]);
+
+        if (!isDemo && householdId) {
+            await supabase.from('care_task_defs').insert({
+                id: newTask.id,
+                household_id: householdId,
+                title: newTask.title,
+                icon: newTask.icon,
+                frequency: newTask.frequency,
+                time_of_day: newTask.timeOfDay,
+                meal_slots: newTask.mealSlots,
+                per_cat: newTask.perCat,
+                enabled: newTask.enabled
+            });
+        }
     };
-    const updateCareTask = (id: string, updates: Partial<CareTaskDef>) => {
+    const updateCareTask = async (id: string, updates: Partial<CareTaskDef>) => {
         setCareTaskDefs(prev => prev.map(t => {
             if (t.id !== id) return t;
 
@@ -343,13 +440,47 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
             return updated;
         }));
+
+        if (!isDemo && householdId) {
+            const dbUpdates: any = {};
+            if (updates.title !== undefined) dbUpdates.title = updates.title;
+            if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+            if (updates.frequency !== undefined) dbUpdates.frequency = updates.frequency;
+            if (updates.timeOfDay !== undefined) dbUpdates.time_of_day = updates.timeOfDay;
+            if (updates.mealSlots !== undefined) dbUpdates.meal_slots = updates.mealSlots;
+            if (updates.perCat !== undefined) dbUpdates.per_cat = updates.perCat;
+            if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
+            // Also update meal_slots if auto-updated? 
+            // The map logic above handles auto-update in local state 'updated' object.
+            // We should use 'updated' object logic here?
+            // Actually, we should just replicate the logic or pass specific updates.
+            // Simpler: recalculate meal_slots if frequency changed.
+            if (updates.frequency && !updates.mealSlots) {
+                const getDefaultSlots = (freq: string) => {
+                    switch (freq) {
+                        case 'once-daily': return ['morning'];
+                        case 'twice-daily': return ['morning', 'evening'];
+                        case 'three-times-daily': return ['morning', 'noon', 'evening'];
+                        case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
+                        case 'as-needed': return [];
+                        default: return [];
+                    }
+                };
+                dbUpdates.meal_slots = getDefaultSlots(updates.frequency);
+            }
+
+            await supabase.from('care_task_defs').update(dbUpdates).eq('id', id);
+        }
     };
-    const deleteCareTask = (id: string) => {
+    const deleteCareTask = async (id: string) => {
         setCareTaskDefs(prev => prev.filter(t => t.id !== id));
+        if (!isDemo && householdId) {
+            await supabase.from('care_task_defs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+        }
     };
 
     // CRUD: Notice Defs
-    const addNoticeDef = (title: string) => {
+    const addNoticeDef = async (title: string, settings?: Partial<NoticeDef>) => {
         const id = `custom_n_${Date.now()}`;
         const newNotice: NoticeDef = {
             id,
@@ -364,18 +495,51 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             inputType: 'ok-notice',
             category: 'health',
             required: false,
+            ...settings
         };
         setNoticeDefs(prev => [...prev, newNotice]);
+
+        if (!isDemo && householdId) {
+            await supabase.from('notice_defs').insert({
+                id: newNotice.id,
+                household_id: householdId,
+                title: newNotice.title,
+                kind: newNotice.kind,
+                cadence: newNotice.cadence,
+                due: newNotice.due,
+                choices: newNotice.choices,
+                enabled: newNotice.enabled,
+                optional: newNotice.optional,
+                input_type: newNotice.inputType,
+                category: newNotice.category,
+                required: newNotice.required
+            });
+        }
     };
-    const updateNoticeDefFn = (id: string, updates: Partial<NoticeDef>) => {
+    const updateNoticeDefFn = async (id: string, updates: Partial<NoticeDef>) => {
         setNoticeDefs(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+
+        if (!isDemo && householdId) {
+            const dbUpdates: any = {};
+            if (updates.title !== undefined) dbUpdates.title = updates.title;
+            if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
+            if (updates.choices !== undefined) dbUpdates.choices = updates.choices;
+            if (updates.inputType !== undefined) dbUpdates.input_type = updates.inputType;
+            if (updates.category !== undefined) dbUpdates.category = updates.category;
+            if (updates.required !== undefined) dbUpdates.required = updates.required;
+
+            await supabase.from('notice_defs').update(dbUpdates).eq('id', id);
+        }
     };
-    const deleteNoticeDef = (id: string) => {
+    const deleteNoticeDef = async (id: string) => {
         setNoticeDefs(prev => prev.filter(n => n.id !== id));
+        if (!isDemo && householdId) {
+            await supabase.from('notice_defs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+        }
     };
 
     // CRUD: Inventory
-    const addInventoryItem = (label: string, minDays: number, maxDays: number) => {
+    const addInventoryItem = async (label: string, minDays: number, maxDays: number, settings?: Partial<InventoryItem>) => {
         const id = `inv_${Date.now()}`;
         const newItem: InventoryItem = {
             id,
@@ -385,14 +549,43 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             // Enhanced fields
             stockLevel: 'full',
             alertEnabled: true,
+            ...settings
         };
         setInventory(prev => [...prev, newItem]);
+
+        if (!isDemo && householdId) {
+            await supabase.from('inventory').insert({
+                id: newItem.id,
+                household_id: householdId,
+                label: newItem.label,
+                range_min: minDays,
+                range_max: maxDays,
+                last_bought: newItem.last_bought || null,
+                stock_level: newItem.stockLevel,
+                alert_enabled: newItem.alertEnabled
+            });
+        }
     };
-    const updateInventoryItemFn = (id: string, updates: Partial<InventoryItem>) => {
+    const updateInventoryItemFn = async (id: string, updates: Partial<InventoryItem>) => {
         setInventory(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
+
+        if (!isDemo && householdId) {
+            const dbUpdates: any = {};
+            if (updates.label !== undefined) dbUpdates.label = updates.label;
+            if (updates.range_max !== undefined) dbUpdates.range_max = updates.range_max;
+            if (updates.last_bought !== undefined) dbUpdates.last_bought = updates.last_bought;
+            if (updates.stockLevel !== undefined) dbUpdates.stock_level = updates.stockLevel;
+            // map alertEnabled to alert_enabled
+            if (updates.alertEnabled !== undefined) dbUpdates.alert_enabled = updates.alertEnabled;
+
+            await supabase.from('inventory').update(dbUpdates).eq('id', id);
+        }
     };
-    const deleteInventoryItem = (id: string) => {
+    const deleteInventoryItem = async (id: string) => {
         setInventory(prev => prev.filter(i => i.id !== id));
+        if (!isDemo && householdId) {
+            await supabase.from('inventory').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+        }
     };
 
     // Settings: Threshold

@@ -23,6 +23,8 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
     const [inputType, setInputType] = useState<ObservationInputType>("ok-notice");
     const [required, setRequired] = useState(false);
     const [enabled, setEnabled] = useState(true);
+    const [choices, setChoices] = useState<string[]>([]);
+    const [newChoice, setNewChoice] = useState("");
 
     const resetForm = () => {
         setTitle("");
@@ -30,6 +32,8 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
         setInputType("ok-notice");
         setRequired(false);
         setEnabled(true);
+        setChoices([]);
+        setNewChoice("");
         setIsAdding(false);
         setEditingId(null);
     };
@@ -46,12 +50,18 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                 category,
                 inputType,
                 required,
-                enabled
+                enabled,
+                choices
             });
             toast.success("変更しました");
         } else {
-            // Similarly restricted by store interface for `addNoticeDef`
-            addNoticeDef(title);
+            addNoticeDef(title, {
+                category,
+                inputType,
+                required,
+                enabled,
+                choices
+            });
             toast.success("追加しました");
         }
         resetForm();
@@ -64,6 +74,7 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
         setInputType(def.inputType);
         setRequired(def.required);
         setEnabled(def.enabled !== false); // default to true if undefined
+        setChoices(def.choices || []);
         setIsAdding(false);
     };
 
@@ -125,6 +136,54 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                                                 </select>
                                             </div>
                                         </div>
+
+                                        {inputType === 'choice' && (
+                                            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                <label className="text-xs font-bold text-slate-500">選択肢</label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {choices.map((c, idx) => (
+                                                        <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">
+                                                            <span>{c}</span>
+                                                            <button
+                                                                onClick={() => setChoices(prev => prev.filter((_, i) => i !== idx))}
+                                                                className="hover:text-red-500"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={newChoice}
+                                                        onChange={(e) => setNewChoice(e.target.value)}
+                                                        placeholder="選択肢を追加"
+                                                        className="flex-1 px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                if (newChoice.trim()) {
+                                                                    setChoices([...choices, newChoice.trim()]);
+                                                                    setNewChoice("");
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            if (newChoice.trim()) {
+                                                                setChoices([...choices, newChoice.trim()]);
+                                                                setNewChoice("");
+                                                            }
+                                                        }}
+                                                        className="px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-xs"
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="flex items-center gap-2">
                                             <input
@@ -253,6 +312,6 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
