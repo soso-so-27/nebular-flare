@@ -28,6 +28,9 @@ import { CollapsibleCard } from "./collapsible-card";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { getIcon } from "@/lib/icon-utils";
+import { CareSettingsModal } from "./care-settings-modal";
+import { NoticeSettingsModal } from "./notice-settings-modal";
+import { InventorySettingsModal } from "./inventory-settings-modal";
 
 export function HomeScreen() {
     const {
@@ -71,6 +74,9 @@ export function HomeScreen() {
     const [editingValue, setEditingValue] = useState('');
     const [newInvMin, setNewInvMin] = useState(3);
     const [newInvMax, setNewInvMax] = useState(7);
+    const [isCareSettingsOpen, setIsCareSettingsOpen] = useState(false);
+    const [isNoticeSettingsOpen, setIsNoticeSettingsOpen] = useState(false);
+    const [isInventorySettingsOpen, setIsInventorySettingsOpen] = useState(false);
     const activeCat = cats.find(c => c.id === activeCatId);
     const { dayStartHour } = settings;
     // Calculate "today" based on custom day start time
@@ -438,21 +444,22 @@ export function HomeScreen() {
                                 {/* Header */}
                                 <div className="sticky top-0 bg-white dark:bg-slate-900 px-5 py-4 border-b flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                                        {openSection === 'care' && (settingsMode ? 'お世話の設定' : 'お世話')}
-                                        {openSection === 'cat' && (settingsMode ? '観察項目の設定' : '猫の様子')}
-                                        {openSection === 'inventory' && (settingsMode ? '在庫の設定' : '在庫')}
+                                        {openSection === 'care' && 'お世話'}
+                                        {openSection === 'cat' && '猫の様子'}
+                                        {openSection === 'inventory' && '在庫'}
                                     </h2>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => {
-                                                setSettingsMode(!settingsMode);
-                                                setNewItemInput('');
-                                                setEditingId(null);
+                                                if (openSection === 'care') {
+                                                    setIsCareSettingsOpen(true);
+                                                } else if (openSection === 'cat') {
+                                                    setIsNoticeSettingsOpen(true);
+                                                } else if (openSection === 'inventory') {
+                                                    setIsInventorySettingsOpen(true);
+                                                }
                                             }}
-                                            className={cn(
-                                                "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
-                                                settingsMode ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
-                                            )}
+                                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-slate-100 text-slate-500 hover:bg-primary hover:text-white"
                                         >
                                             <Settings className="h-4 w-4" />
                                         </button>
@@ -1068,6 +1075,11 @@ export function HomeScreen() {
                     )}
                 </motion.div>
             </div>
+
+            {/* Settings Modals */}
+            <CareSettingsModal isOpen={isCareSettingsOpen} onClose={() => setIsCareSettingsOpen(false)} />
+            <NoticeSettingsModal isOpen={isNoticeSettingsOpen} onClose={() => setIsNoticeSettingsOpen(false)} />
+            <InventorySettingsModal isOpen={isInventorySettingsOpen} onClose={() => setIsInventorySettingsOpen(false)} />
         </div>
     );
 }
