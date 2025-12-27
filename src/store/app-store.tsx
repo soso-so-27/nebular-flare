@@ -1,0 +1,478 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, Memo, CareTaskDef } from '@/types';
+import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations } from '@/hooks/use-supabase-data';
+
+type AppState = {
+    isPro: boolean;
+    setIsPro: (v: boolean) => void;
+    aiEnabled: boolean;
+    setAiEnabled: (v: boolean) => void;
+    activeCatId: string;
+    setActiveCatId: (v: string) => void;
+    cats: Cat[];
+    catsLoading: boolean;
+    tasks: Task[];
+    setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+    noticeDefs: NoticeDef[];
+    setNoticeDefs: React.Dispatch<React.SetStateAction<NoticeDef[]>>;
+    noticeLogs: Record<string, Record<string, NoticeLog>>; // catId -> noticeId -> log
+    setNoticeLogs: React.Dispatch<React.SetStateAction<Record<string, Record<string, NoticeLog>>>>;
+    signalLogs: Record<string, Record<string, SignalLog>>; // catId -> signalId -> log
+    setSignalLogs: React.Dispatch<React.SetStateAction<Record<string, Record<string, SignalLog>>>>;
+    inventory: InventoryItem[];
+    setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
+    memos: { draft: string; items: Memo[] };
+    setMemos: React.Dispatch<React.SetStateAction<{ draft: string; items: Memo[] }>>;
+    events: AppEvent[];
+    setEvents: React.Dispatch<React.SetStateAction<AppEvent[]>>;
+    settings: AppSettings;
+    setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+    lastSeenAt: string;
+    setLastSeenAt: (v: string) => void;
+    householdId: string | null;
+    isDemo: boolean;
+    // Supabase functions
+    addCareLog: (type: string, slotOrCatId?: string, catId?: string) => Promise<{ error: any } | undefined>;
+    addObservation: (type: string, value: string) => Promise<{ error: any } | undefined>;
+    careLogs: { type: string; done_at: string; slot?: string; date?: string; id?: string; cat_id?: string | null }[];
+    demoCareLogsDone: Record<string, string>; // taskId -> doneAt ISO string
+    observations: any[];
+    refetchCats: () => void;
+    // CRUD functions for settings
+    addCareTask: (title: string) => void;
+    updateCareTask: (id: string, updates: Partial<CareTaskDef>) => void;
+    deleteCareTask: (id: string) => void;
+    addNoticeDef: (title: string) => void;
+    updateNoticeDef: (id: string, updates: Partial<NoticeDef>) => void;
+    deleteNoticeDef: (id: string) => void;
+    addInventoryItem: (label: string, minDays: number, maxDays: number) => void;
+    updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
+    deleteInventoryItem: (id: string) => void;
+    updateInvThreshold: (key: 'soon' | 'urgent' | 'critical', value: number) => void;
+    careTaskDefs: CareTaskDef[];
+    // Notification
+    fcmToken: string | null;
+    setFcmToken: (token: string | null) => void;
+};
+
+const AppContext = createContext<AppState | undefined>(undefined);
+
+type AppProviderProps = {
+    children: ReactNode;
+    householdId?: string | null;
+    isDemo?: boolean;
+};
+
+export function AppProvider({ children, householdId = null, isDemo = false }: AppProviderProps) {
+    const [isPro, setIsPro] = useState(true);
+    const [aiEnabled, setAiEnabled] = useState(true);
+    const [activeCatId, setActiveCatId] = useState('');
+
+    // Demo mode: use hardcoded cats
+    const demoCats: Cat[] = useMemo(() => [
+        { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "🐈" },
+        { id: "c2", name: "雨", age: "2才", sex: "オス", avatar: "🐈‍⬛" },
+    ], []);
+
+    // Use Supabase cats or demo cats based on mode
+    const { cats: supabaseCats, loading: catsLoading, refetch: refetchCats } = useSupabaseCats(isDemo ? null : householdId);
+
+    // Notification State
+    const [fcmToken, setFcmToken] = useState<string | null>(null);
+
+    // Use Supabase care logs
+    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog } = useTodayCareLogs(isDemo ? null : householdId);
+
+    // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
+    const today = new Date().toISOString().split('T')[0];
+    const [demoCareLogsDone, setDemoCareLogsDone] = useState<Record<string, string>>(() => {
+        if (typeof window !== 'undefined' && isDemo) {
+            const saved = localStorage.getItem('demoCareLogsDone');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Only keep today's logs
+                const todayLogs: Record<string, string> = {};
+                for (const [key, value] of Object.entries(parsed)) {
+                    if (typeof value === 'string' && value.startsWith(today)) {
+                        todayLogs[key] = value;
+                    }
+                }
+                return todayLogs;
+            }
+        }
+        return {};
+    });
+
+    // Persist demoCareLogsDone
+    useEffect(() => {
+        if (isDemo) {
+            localStorage.setItem('demoCareLogsDone', JSON.stringify(demoCareLogsDone));
+        }
+    }, [demoCareLogsDone, isDemo]);
+
+    // Convert demo care logs to same format as Supabase
+    const careLogs = useMemo(() => {
+        if (isDemo) {
+            return Object.entries(demoCareLogsDone).map(([type, doneAt]) => ({
+                id: `demo_${type}_${doneAt}`,
+                type,
+                done_at: doneAt,
+                date: doneAt.split('T')[0],
+                cat_id: null,
+            }));
+        }
+        return supabaseCareLogs;
+    }, [isDemo, demoCareLogsDone, supabaseCareLogs]);
+
+    // Use Supabase observations for active cat
+    const { observations, addObservation: supabaseAddObservation } = useTodayObservations(isDemo ? null : activeCatId);
+
+    // Convert Supabase cats to local Cat type - memoize to avoid infinite loops
+    const cats: Cat[] = useMemo(() => {
+        if (isDemo) return demoCats;
+        return supabaseCats.map(c => ({
+            id: c.id,
+            name: c.name,
+            age: c.birthday ? `${Math.floor((Date.now() - new Date(c.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}才` : '年齢不明',
+            sex: c.sex || 'オス',
+            avatar: c.avatar || '🐈',
+            birthday: c.birthday || undefined,
+        }));
+    }, [isDemo, supabaseCats, demoCats]);
+
+    // Stable cat IDs for dependency tracking
+    const catIds = useMemo(() => cats.map(c => c.id).join(','), [cats]);
+
+    // Set active cat when cats are loaded
+    useEffect(() => {
+        if (cats.length > 0 && !activeCatId) {
+            setActiveCatId(cats[0].id);
+        }
+    }, [catIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    // Update tasks when cats change
+    useEffect(() => {
+        if (cats.length > 0) {
+            setTasks(prevTasks => {
+                const catTasks = cats.flatMap(cat =>
+                    DEFAULT_TASKS.map(t => ({
+                        ...t,
+                        id: `${cat.id}_${t.id}`,
+                        catId: cat.id,
+                        done: false,
+                        later: false
+                    }))
+                );
+                return catTasks;
+            });
+        }
+    }, [catIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const [noticeDefs, setNoticeDefs] = useState<NoticeDef[]>(DEFAULT_NOTICE_DEFS);
+
+    // Demo notice logs with some abnormal values to show in cat tab overlay
+    const [noticeLogs, setNoticeLogs] = useState<Record<string, Record<string, NoticeLog>>>(() => {
+        // Create demo data for cat tab overlay
+        if (isDemo) {
+            const now = new Date();
+            return {
+                'c1': {
+                    'notice_vomit': {
+                        id: 'c1_notice_vomit_demo',
+                        noticeId: 'notice_vomit',
+                        catId: 'c1',
+                        at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
+                        value: '1回吐いた',
+                        done: false,
+                        later: false
+                    },
+                    'notice_appetite': {
+                        id: 'c1_notice_appetite_demo',
+                        noticeId: 'notice_appetite',
+                        catId: 'c1',
+                        at: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString(),
+                        value: '食欲がない',
+                        done: false,
+                        later: false
+                    }
+                },
+                'c2': {
+                    'notice_water': {
+                        id: 'c2_notice_water_demo',
+                        noticeId: 'notice_water',
+                        catId: 'c2',
+                        at: new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString(),
+                        value: '水をたくさん飲む',
+                        done: false,
+                        later: false
+                    }
+                }
+            } as Record<string, Record<string, NoticeLog>>;
+        }
+        return {};
+    });
+    const [signalLogs, setSignalLogs] = useState<Record<string, Record<string, SignalLog>>>({});
+
+    const [inventory, setInventory] = useState<InventoryItem[]>(() => {
+        // Load from localStorage in demo mode
+        if (typeof window !== 'undefined' && isDemo) {
+            const saved = localStorage.getItem('inventory');
+            if (saved) return JSON.parse(saved);
+        }
+        // Use centralized defaults from constants
+        return DEFAULT_INVENTORY_ITEMS;
+    });
+
+    const [memos, setMemos] = useState<{ draft: string; items: Memo[] }>({
+        draft: "",
+        items: [],
+    });
+
+    const [events, setEvents] = useState<AppEvent[]>([]);
+    const [settings, setSettings] = useState<AppSettings>(() => ({
+        plan: 'Free',
+        aiEnabled: true,
+        engagement: 'passive',
+        homeMode: 'checklist',
+        weeklySummaryEnabled: true,
+        quietHours: { start: 23, end: 7 },
+        invThresholds: { soon: 7, urgent: 3, critical: 1 },
+        seasonalDeckEnabled: true,
+        skinPackOwned: false,
+        skinMode: 'default',
+        photoTagAssist: true,
+        dayStartHour: 4,
+    }));
+    const [lastSeenAt, setLastSeenAt] = useState<string>(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+    // Load from localStorage (Local-first for demo mode)
+    useEffect(() => {
+        if (isDemo) {
+            try {
+                const savedTasks = localStorage.getItem('tasks');
+                if (savedTasks) setTasks(JSON.parse(savedTasks));
+                const savedLastSeen = localStorage.getItem('last_seen_at');
+                if (savedLastSeen) setLastSeenAt(savedLastSeen);
+            } catch (e) {
+                console.error("Failed to load state", e);
+            }
+        }
+    }, [isDemo]);
+
+    useEffect(() => {
+        if (isDemo && tasks.length > 0) {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+    }, [tasks, isDemo]);
+
+    useEffect(() => {
+        localStorage.setItem('last_seen_at', lastSeenAt);
+    }, [lastSeenAt]);
+
+    // Care task definitions (customizable) - use defaults from constants
+    const [careTaskDefs, setCareTaskDefs] = useState<CareTaskDef[]>(() => {
+        if (typeof window !== 'undefined' && isDemo) {
+            const saved = localStorage.getItem('careTaskDefs');
+            if (saved) return JSON.parse(saved);
+        }
+        // Use centralized defaults from constants
+        return DEFAULT_CARE_TASK_DEFS;
+    });
+
+    // Persist careTaskDefs
+    useEffect(() => {
+        if (isDemo && careTaskDefs.length > 0) {
+            localStorage.setItem('careTaskDefs', JSON.stringify(careTaskDefs));
+        }
+    }, [careTaskDefs, isDemo]);
+
+    // Persist noticeDefs
+    useEffect(() => {
+        if (isDemo) {
+            localStorage.setItem('noticeDefs', JSON.stringify(noticeDefs));
+        }
+    }, [noticeDefs, isDemo]);
+
+    // Persist inventory
+    useEffect(() => {
+        if (isDemo) {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        }
+    }, [inventory, isDemo]);
+
+    // CRUD: Care Tasks
+    const addCareTask = (title: string) => {
+        const id = `custom_${Date.now()}`;
+        const newTask: CareTaskDef = {
+            id,
+            title,
+            icon: 'Heart', // Default icon
+            frequency: 'once-daily',
+            timeOfDay: 'anytime',
+            mealSlots: ['morning'], // Default for once-daily
+            perCat: false,
+            enabled: true,
+        };
+        setCareTaskDefs(prev => [...prev, newTask]);
+    };
+    const updateCareTask = (id: string, updates: Partial<CareTaskDef>) => {
+        setCareTaskDefs(prev => prev.map(t => {
+            if (t.id !== id) return t;
+
+            const updated = { ...t, ...updates };
+
+            // Auto-update mealSlots when frequency changes (unless explicitly set)
+            if (updates.frequency && !updates.mealSlots) {
+                const getDefaultSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
+                    switch (freq) {
+                        case 'once-daily': return ['morning'];
+                        case 'twice-daily': return ['morning', 'evening'];
+                        case 'three-times-daily': return ['morning', 'noon', 'evening'];
+                        case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
+                        case 'as-needed': return [];
+                        default: return [];
+                    }
+                };
+                updated.mealSlots = getDefaultSlots(updates.frequency);
+            }
+
+            return updated;
+        }));
+    };
+    const deleteCareTask = (id: string) => {
+        setCareTaskDefs(prev => prev.filter(t => t.id !== id));
+    };
+
+    // CRUD: Notice Defs
+    const addNoticeDef = (title: string) => {
+        const id = `custom_n_${Date.now()}`;
+        const newNotice: NoticeDef = {
+            id,
+            title,
+            kind: 'notice',
+            cadence: 'daily',
+            due: 'any',
+            choices: ['いつも通り', 'ちょっと違う'],
+            enabled: true,
+            optional: false,
+            // Enhanced fields
+            inputType: 'ok-notice',
+            category: 'health',
+            required: false,
+        };
+        setNoticeDefs(prev => [...prev, newNotice]);
+    };
+    const updateNoticeDefFn = (id: string, updates: Partial<NoticeDef>) => {
+        setNoticeDefs(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+    };
+    const deleteNoticeDef = (id: string) => {
+        setNoticeDefs(prev => prev.filter(n => n.id !== id));
+    };
+
+    // CRUD: Inventory
+    const addInventoryItem = (label: string, minDays: number, maxDays: number) => {
+        const id = `inv_${Date.now()}`;
+        const newItem: InventoryItem = {
+            id,
+            label,
+            range: [minDays, maxDays],
+            last: 'まだある',
+            // Enhanced fields
+            stockLevel: 'full',
+            alertEnabled: true,
+        };
+        setInventory(prev => [...prev, newItem]);
+    };
+    const updateInventoryItemFn = (id: string, updates: Partial<InventoryItem>) => {
+        setInventory(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
+    };
+    const deleteInventoryItem = (id: string) => {
+        setInventory(prev => prev.filter(i => i.id !== id));
+    };
+
+    // Settings: Threshold
+    const updateInvThreshold = (key: 'soon' | 'urgent' | 'critical', value: number) => {
+        setSettings(s => ({
+            ...s,
+            invThresholds: { ...s.invThresholds, [key]: value }
+        }));
+    };
+
+    // Wrapper functions for Supabase operations
+    const addCareLog = async (type: string, slotOrCatId?: string, catId?: string) => {
+        if (isDemo) {
+            // Demo mode: update demoCareLogsDone state
+            const now = new Date().toISOString();
+            setDemoCareLogsDone(prev => ({ ...prev, [type]: now }));
+            return undefined;
+        }
+        // For now, slot is passed but not tracked separately in Supabase
+        // In the future, we can add slot field to care_logs table
+        return supabaseAddCareLog(type, catId || slotOrCatId);
+    };
+
+    const addObservation = async (type: string, value: string) => {
+        if (isDemo) {
+            // Demo mode: update local state
+            return undefined;
+        }
+        return supabaseAddObservation(type, value);
+    };
+
+    const value: AppState = {
+        isPro: settings.plan === 'Pro',
+        setIsPro: (v) => setSettings(s => ({ ...s, plan: v ? 'Pro' : 'Free' })),
+        aiEnabled: settings.aiEnabled,
+        setAiEnabled: (v) => setSettings(s => ({ ...s, aiEnabled: v })),
+        activeCatId, setActiveCatId,
+        cats,
+        catsLoading,
+        tasks, setTasks,
+        noticeDefs, setNoticeDefs,
+        noticeLogs, setNoticeLogs,
+        signalLogs, setSignalLogs,
+        inventory, setInventory,
+        memos, setMemos,
+        events, setEvents,
+        settings, setSettings,
+        lastSeenAt, setLastSeenAt,
+        householdId,
+        isDemo,
+        addCareLog,
+        addObservation,
+        careLogs,
+        demoCareLogsDone,
+        observations,
+        refetchCats,
+        // CRUD functions
+        careTaskDefs,
+        addCareTask,
+        updateCareTask,
+        deleteCareTask,
+        addNoticeDef,
+        updateNoticeDef: updateNoticeDefFn,
+        deleteNoticeDef,
+        addInventoryItem,
+        updateInventoryItem: updateInventoryItemFn,
+        deleteInventoryItem,
+        updateInvThreshold,
+        // Notification
+        fcmToken,
+        setFcmToken,
+    };
+
+    return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useAppState() {
+    const context = useContext(AppContext);
+    if (context === undefined) {
+        throw new Error('useAppState must be used within an AppProvider');
+    }
+    return context;
+}
