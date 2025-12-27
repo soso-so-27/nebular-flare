@@ -62,7 +62,7 @@ export function NotificationSettings() {
 
     const { preferences, loading: prefsLoading, updatePreference } = useNotificationPreferences();
 
-    const handleToggle = (key: 'care_reminder' | 'health_alert') => {
+    const handleToggle = (key: 'care_reminder' | 'health_alert' | 'inventory_alert') => {
         updatePreference(key, !preferences[key]);
     };
 
@@ -114,6 +114,36 @@ export function NotificationSettings() {
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
                             </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <span className="text-sm font-medium text-slate-800">在庫アラート</span>
+                                <p className="text-xs text-slate-500">フードや猫砂の補充タイミング</p>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('inventory_alert')}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.inventory_alert !== false ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
+                            </button>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <span className="text-sm font-medium text-slate-800">通知時間</span>
+                                    <p className="text-xs text-slate-500">毎日この時間にお知らせ</p>
+                                </div>
+                                <select
+                                    value={preferences.notification_hour ?? 20}
+                                    onChange={(e) => updatePreference('notification_hour', parseInt(e.target.value))}
+                                    className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg border-none focus:ring-2 focus:ring-emerald-500"
+                                >
+                                    <option value={8}>朝 8:00</option>
+                                    <option value={20}>夜 20:00</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 )}

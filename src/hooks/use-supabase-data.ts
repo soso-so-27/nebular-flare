@@ -359,7 +359,12 @@ export function usePushToken() {
 
 // Hook for notification preferences
 export function useNotificationPreferences() {
-    const [preferences, setPreferences] = useState({ care_reminder: true, health_alert: true });
+    const [preferences, setPreferences] = useState<{
+        care_reminder: boolean;
+        health_alert: boolean;
+        inventory_alert: boolean;
+        notification_hour: number;
+    }>({ care_reminder: true, health_alert: true, inventory_alert: true, notification_hour: 20 });
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 
@@ -388,7 +393,7 @@ export function useNotificationPreferences() {
         fetchPreferences();
     }, []);
 
-    const updatePreference = async (key: string, value: boolean) => {
+    const updatePreference = async (key: string, value: boolean | number) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 

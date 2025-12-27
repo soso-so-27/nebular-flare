@@ -42,15 +42,15 @@ const BAD_HEALTH_VALUES = [
 async function sendDailyAssistant() {
     console.log("Starting Daily Assistant Script...");
 
-    // Get today's date range in JST (approximate for script running at 20:00 JST)
-    // Actually, simple ISO string check against UTC is fine if we check "today"
+    // Get current time in JST
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
-    // 3. Fetch Users with Preferences and Tokens
-    // We need: users -> push_tokens, users -> household_id
+    // Get current hour in JST (TZ is set to Asia/Tokyo in GitHub Actions)
+    const currentHour = now.getHours();
+    console.log(`Current JST hour: ${currentHour}`);
 
-    // Step 3a: Get all tokens
+    // 3. Fetch Users with Preferences and Tokens
     const { data: tokens, error: tokenError } = await supabase
         .from('push_tokens')
         .select('user_id, token');
@@ -65,11 +65,11 @@ async function sendDailyAssistant() {
     console.log(`Processing ${userIds.length} users...`);
 
     for (const userId of userIds) {
-        await processUser(userId, tokens.filter(t => t.user_id === userId).map(t => t.token), todayStr);
+        await processUser(userId, tokens.filter(t => t.user_id === userId).map(t => t.token), todayStr, currentHour);
     }
 }
 
-async function processUser(userId, userTokens, todayStr) {
+async function processUser(userId, userTokens, todayStr, currentHour) {
     // 4. Fetch User Context (Household, Preferences)
     const { data: user, error: userError } = await supabase
         .from('users')
@@ -82,16 +82,19 @@ async function processUser(userId, userTokens, todayStr) {
         return;
     }
 
-    const prefs = user.notification_preferences || { care_reminder: true, health_alert: true };
+    const prefs = user.notification_preferences || { care_reminder: true, health_alert: true, inventory_alert: true, notification_hour: 20 };
+
+    // Check if current hour matches user's preferred notification time
+    const userHour = prefs.notification_hour ?? 20;
+    if (currentHour !== userHour) {
+        console.log(`Skipping user ${userId}: Notification hour is ${userHour}, current is ${currentHour}`);
+        return;
+    }
+
     const messages = [];
 
-    // 5. Health Alert Logic
+    // 5. Health Alert Logic (with cat names)
     if (prefs.health_alert) {
-        // Get all cats in household
-        // Then get today's observations for those cats
-        // We can do a join: observations -> cats -> filter by household_id
-        // But RLS might be tricky with service role. Service role bypasses RLS, so we can correct query.
-
         const { data: observations } = await supabase
             .from('observations')
             .select(`
@@ -104,12 +107,20 @@ async function processUser(userId, userTokens, todayStr) {
             .lt('recorded_at', `${todayStr}T23:59:59`);
 
         if (observations) {
-            const anomalies = observations.filter(obs => BAD_HEALTH_VALUES.includes(obs.value));
-            if (anomalies.length > 0) {
-                // Group by cat?
-                const catName = anomalies[0].cats.name;
-                const note = anomalies[0].value;
-                messages.push(`⚠️ ${catName}ちゃんの様子が「${note}」と記録されています。様子を見てあげてください。`);
+            const anomalies = observations.filter(obs => obs.cats && BAD_HEALTH_VALUES.includes(obs.value));
+
+            // Group anomalies by cat name
+            const catAnomalies = {};
+            for (const obs of anomalies) {
+                const catName = obs.cats.name;
+                if (!catAnomalies[catName]) catAnomalies[catName] = [];
+                catAnomalies[catName].push(obs.value);
+            }
+
+            // Create messages per cat
+            for (const [catName, values] of Object.entries(catAnomalies)) {
+                const uniqueValues = [...new Set(values)];
+                messages.push(`⚠️ ${catName}ちゃん: ${uniqueValues.join('、')}`);
             }
         }
     }
@@ -129,11 +140,39 @@ async function processUser(userId, userTokens, todayStr) {
         // Simple check for core tasks
         if (!logTypes.some(t => t.includes('朝ごはん'))) missing.push('朝ごはん');
         if (!logTypes.some(t => t.includes('夜ごはん') || t === 'food')) missing.push('夜ごはん');
-        // 'toilet' check might be loose
         if (!logTypes.some(t => t.includes('トイレ'))) missing.push('トイレ掃除');
 
         if (missing.length > 0) {
-            messages.push(`以下の記録がまだありません: ${missing.join('、')}`);
+            messages.push(`📝 未記録: ${missing.join('、')}`);
+        }
+    }
+
+    // 7. Inventory Alert Logic (date-based)
+    if (prefs.inventory_alert !== false) { // Default to true if not set
+        const { data: inventory } = await supabase
+            .from('inventory')
+            .select('label, last_bought, range_max')
+            .eq('household_id', user.household_id)
+            .is('deleted_at', null);
+
+        if (inventory) {
+            const today = new Date();
+            const lowStockItems = [];
+
+            for (const item of inventory) {
+                if (item.last_bought && item.range_max) {
+                    const lastBought = new Date(item.last_bought);
+                    const daysSince = Math.floor((today - lastBought) / (1000 * 60 * 60 * 24));
+
+                    if (daysSince >= item.range_max) {
+                        lowStockItems.push(item.label);
+                    }
+                }
+            }
+
+            if (lowStockItems.length > 0) {
+                messages.push(`🛒 そろそろ補充: ${lowStockItems.join('、')}`);
+            }
         }
     }
 
