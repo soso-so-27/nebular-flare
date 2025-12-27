@@ -284,7 +284,8 @@ export function getCatchUpItems({
         // Skip if alerts are disabled for this item
         if (it.alertEnabled === false) return;
 
-        const minDays = it.range[0];
+        const item = it as any;
+        const minDays = item.range_min ?? item.range?.[0] ?? 7;
         const { critical, urgent } = settings.invThresholds;
 
         // Also consider stockLevel if set
