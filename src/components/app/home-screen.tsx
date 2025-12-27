@@ -108,90 +108,98 @@ export function HomeScreen() {
 
     // ========== Household Care Logic ==========
     const careItems = useMemo(() => {
-        if (!careTaskDefs) return [];
-        return careTaskDefs
-            // Only show enabled tasks
-            .filter(def => def.enabled !== false)
-            .flatMap(def => {
-                // Determine if we should split by slots
-                const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&
-                    (def.frequency === 'twice-daily' || def.frequency === 'three-times-daily' || def.frequency === 'four-times-daily');
+        try {
+            if (!careTaskDefs) {
+                console.log('careTaskDefs is falsy');
+                return [];
+            }
+            return careTaskDefs
+                // Only show enabled tasks
+                .filter(def => def.enabled !== false)
+                .flatMap(def => {
+                    // Determine if we should split by slots
+                    const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&
+                        (def.frequency === 'twice-daily' || def.frequency === 'three-times-daily' || def.frequency === 'four-times-daily');
 
-                const slots = shouldSplit ? (def.mealSlots || []) : [null];
+                    const slots = shouldSplit ? (def.mealSlots || []) : [null];
 
-                return slots.map(slot => {
-                    const type = slot ? `${def.id}:${slot}` : def.id;
-                    const label = slot ? `${def.title}（${getSlotLabel(slot)}）` : def.title;
+                    return slots.map(slot => {
+                        const type = slot ? `${def.id}:${slot}` : def.id;
+                        const label = slot ? `${def.title}（${getSlotLabel(slot)}）` : def.title;
 
-                    let isDone = false;
-                    let doneBy: string | undefined;
-                    let doneAt: string | undefined;
+                        let isDone = false;
+                        let doneBy: string | undefined;
+                        let doneAt: string | undefined;
 
-                    // Filter logs specific to this type (exact match includes slot)
-                    // If task is per-cat, also filter by activeCatId
-                    const taskLogs = careLogs.filter(log => {
-                        const typeMatch = log.type === type;
-                        if (!typeMatch) return false;
-                        if (def.perCat) return log.cat_id === activeCatId;
-                        return true;
-                    });
+                        // Filter logs specific to this type (exact match includes slot)
+                        // If task is per-cat, also filter by activeCatId
+                        const taskLogs = careLogs.filter(log => {
+                            const typeMatch = log.type === type;
+                            if (!typeMatch) return false;
+                            if (def.perCat) return log.cat_id === activeCatId;
+                            return true;
+                        });
 
-                    if (taskLogs.length > 0) {
-                        if (isDemo) {
-                            // Demo mode
-                            isDone = true;
-                            doneBy = '家族';
-                            doneAt = new Date(taskLogs[0].done_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        } else {
-                            // Supabase mode
-                            const sortedLogs = [...taskLogs].sort((a, b) => new Date(b.done_at).getTime() - new Date(a.done_at).getTime());
-                            const lastLog = sortedLogs[0];
-                            const lastLogDate = new Date(lastLog.done_at);
-
-                            const adjustedLogDate = new Date(lastLogDate);
-                            adjustedLogDate.setHours(adjustedLogDate.getHours() - dayStartHour);
-                            const logDateStr = adjustedLogDate.toISOString().split('T')[0];
-
-                            if (def.frequency === 'weekly') {
-                                const now = new Date();
-                                now.setHours(now.getHours() - dayStartHour);
-                                const dayOfWeek = now.getDay();
-                                const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-                                const monday = new Date(now);
-                                monday.setDate(now.getDate() + diffToMon);
-                                monday.setHours(0, 0, 0, 0);
-                                isDone = adjustedLogDate >= monday;
-                            } else if (def.frequency === 'monthly') {
-                                const now = new Date();
-                                now.setHours(now.getHours() - dayStartHour);
-                                const currentMonth = now.toISOString().slice(0, 7);
-                                const logMonth = adjustedLogDate.toISOString().slice(0, 7);
-                                isDone = currentMonth === logMonth;
-                            } else {
-                                isDone = logDateStr === today;
-                            }
-
-                            if (isDone) {
+                        if (taskLogs.length > 0) {
+                            if (isDemo) {
+                                // Demo mode
+                                isDone = true;
                                 doneBy = '家族';
-                                doneAt = lastLogDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                doneAt = new Date(taskLogs[0].done_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            } else {
+                                // Supabase mode
+                                const sortedLogs = [...taskLogs].sort((a, b) => new Date(b.done_at).getTime() - new Date(a.done_at).getTime());
+                                const lastLog = sortedLogs[0];
+                                const lastLogDate = new Date(lastLog.done_at);
+
+                                const adjustedLogDate = new Date(lastLogDate);
+                                adjustedLogDate.setHours(adjustedLogDate.getHours() - dayStartHour);
+                                const logDateStr = adjustedLogDate.toISOString().split('T')[0];
+
+                                if (def.frequency === 'weekly') {
+                                    const now = new Date();
+                                    now.setHours(now.getHours() - dayStartHour);
+                                    const dayOfWeek = now.getDay();
+                                    const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                                    const monday = new Date(now);
+                                    monday.setDate(now.getDate() + diffToMon);
+                                    monday.setHours(0, 0, 0, 0);
+                                    isDone = adjustedLogDate >= monday;
+                                } else if (def.frequency === 'monthly') {
+                                    const now = new Date();
+                                    now.setHours(now.getHours() - dayStartHour);
+                                    const currentMonth = now.toISOString().slice(0, 7);
+                                    const logMonth = adjustedLogDate.toISOString().slice(0, 7);
+                                    isDone = currentMonth === logMonth;
+                                } else {
+                                    isDone = logDateStr === today;
+                                }
+
+                                if (isDone) {
+                                    doneBy = '家族';
+                                    doneAt = lastLogDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                }
                             }
                         }
-                    }
 
-                    return {
-                        id: type, // Unique ID per slot
-                        label,
-                        Icon: getIcon(def.icon),
-                        type,
-                        done: isDone,
-                        doneBy,
-                        doneAt,
-                        frequency: def.frequency,
-                        mealSlots: def.mealSlots,
-                        perCat: def.perCat
-                    };
+                        return {
+                            id: type, // Unique ID per slot
+                            label,
+                            Icon: getIcon(def.icon),
+                            type,
+                            done: isDone,
+                            doneBy,
+                            doneAt,
+                            frequency: def.frequency,
+                            mealSlots: def.mealSlots,
+                            perCat: def.perCat
+                        };
+                    });
                 });
-            });
+        } catch (e) {
+            console.error("Error in careItems:", e);
+            return [];
+        }
     }, [careTaskDefs, careLogs, today, isDemo, dayStartHour, tasks, activeCatId]);
 
     const careCompleted = careItems.filter(c => c.done).length;
@@ -209,46 +217,51 @@ export function HomeScreen() {
 
     // ========== Cat Observation Logic ==========
     const observationItems = useMemo(() => {
-        if (!noticeDefs) return [];
-        const catLogs = noticeLogs[activeCatId] || {};
+        try {
+            if (!noticeDefs) return [];
+            const catLogs = noticeLogs[activeCatId] || {};
 
-        return noticeDefs
-            .filter(n => n.enabled !== false && n.kind === 'notice')
-            .map(notice => {
-                const type = notice.title.includes('食欲') ? 'appetite' :
-                    notice.title.includes('トイレ') ? 'toilet' :
-                        notice.title.includes('吐') ? 'vomit' : 'other';
+            return noticeDefs
+                .filter(n => n.enabled !== false && n.kind === 'notice')
+                .map(notice => {
+                    const type = notice.title.includes('食欲') ? 'appetite' :
+                        notice.title.includes('トイレ') ? 'toilet' :
+                            notice.title.includes('吐') ? 'vomit' : 'other';
 
-                let isDone = false;
-                let value: string | undefined;
-                let isAbnormal = false;
+                    let isDone = false;
+                    let value: string | undefined;
+                    let isAbnormal = false;
 
-                if (isDemo) {
-                    const log = catLogs[notice.id];
-                    const isToday = log?.at?.startsWith(today);
-                    isDone = !!(isToday && log?.done);
-                    value = log?.value;
-                    isAbnormal = !!(log?.value && log.value !== "いつも通り" && log.value !== "なし" && log.value !== "記録した");
-                } else {
-                    const matchingObs = observations.find(o => o.type === type);
-                    isDone = !!matchingObs;
-                    value = matchingObs?.value;
-                    isAbnormal = !!(matchingObs?.value && matchingObs.value !== "いつも通り");
-                }
+                    if (isDemo) {
+                        const log = catLogs[notice.id];
+                        const isToday = log?.at?.startsWith(today);
+                        isDone = !!(isToday && log?.done);
+                        value = log?.value;
+                        isAbnormal = !!(log?.value && log.value !== "いつも通り" && log.value !== "なし" && log.value !== "記録した");
+                    } else {
+                        const matchingObs = observations.find(o => o.type === type);
+                        isDone = !!matchingObs;
+                        value = matchingObs?.value;
+                        isAbnormal = !!(matchingObs?.value && matchingObs.value !== "いつも通り");
+                    }
 
-                return {
-                    id: notice.id,
-                    label: notice.title,
-                    type,
-                    done: isDone,
-                    value,
-                    isAbnormal,
-                    inputType: notice.inputType || 'ok_notice',
-                    choices: notice.choices || [],
-                    category: notice.category || 'physical',
-                    required: notice.required || false
-                };
-            });
+                    return {
+                        id: notice.id,
+                        label: notice.title,
+                        type,
+                        done: isDone,
+                        value,
+                        isAbnormal,
+                        inputType: notice.inputType || 'ok_notice',
+                        choices: notice.choices || [],
+                        category: notice.category || 'physical',
+                        required: notice.required || false
+                    };
+                });
+        } catch (e) {
+            console.error("Error in observationItems:", e);
+            return [];
+        }
     }, [noticeDefs, noticeLogs, activeCatId, today, isDemo, observations]);
 
     const obsCompleted = observationItems.filter(o => o.done).length;
