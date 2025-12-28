@@ -65,6 +65,7 @@ type AppState = {
     // Cat Profile
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
+    householdUsers: any[];
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -117,6 +118,8 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         return {};
     });
 
+    const [householdUsers, setHouseholdUsers] = useState<any[]>([]);
+
     const supabase = createClient() as any;
 
     // Load initial settings data from Supabase
@@ -138,9 +141,11 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                     icon: t.icon,
                     frequency: t.frequency,
                     timeOfDay: t.time_of_day,
+                    targetCatIds: t.target_cat_ids,
                     mealSlots: t.meal_slots,
                     perCat: t.per_cat,
-                    enabled: t.enabled
+                    enabled: t.enabled,
+                    deletedAt: t.deleted_at
                 })) as CareTaskDef[]);
             }
 
@@ -177,6 +182,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             if (invData) {
                 setInventory(invData as InventoryItem[]);
             }
+
+            // Household Users
+            const { data: usersData } = await supabase
+                .from('users')
+                .select('id, display_name, avatar_url')
+                .eq('household_id', householdId);
+
+            if (usersData) {
+                setHouseholdUsers(usersData);
+            }
         };
 
         fetchData();
@@ -198,6 +213,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 done_at: doneAt,
                 date: doneAt.split('T')[0],
                 cat_id: null,
+                done_by: null
             }));
         }
         return supabaseCareLogs;
@@ -928,6 +944,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         // Cat Profile
         updateCat,
         addCatWeightRecord,
+        householdUsers,
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

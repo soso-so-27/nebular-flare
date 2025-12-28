@@ -24,6 +24,7 @@ interface ActivityItem {
     catName?: string;
     userName?: string;
     userId?: string;
+    userAvatar?: string;
     timestamp: string;
     icon?: string;
 }
@@ -34,7 +35,8 @@ export function ActivityFeed() {
         observations,
         cats,
         careTaskDefs,
-        noticeDefs
+        noticeDefs,
+        householdUsers
     } = useAppState();
 
     // Default collapsed
@@ -47,6 +49,16 @@ export function ActivityFeed() {
         // Helper: Check if string looks like a UUID
         const isUUID = (str: string) =>
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+        // Helper: Get user info
+        const getUserInfo = (userId?: string | null) => {
+            if (!userId) return { name: undefined, avatar: undefined };
+            const user = householdUsers.find((u: any) => u.id === userId);
+            return {
+                name: user?.display_name || undefined,
+                avatar: user?.avatar_url || undefined
+            };
+        };
 
         // Add care logs
         careLogs.forEach((log: any) => {
@@ -70,12 +82,16 @@ export function ActivityFeed() {
                 displayTitle = 'お世話';
             }
 
+            const userInfo = getUserInfo(log.done_by);
+
             items.push({
                 id: `care-${log.id}`,
                 type: 'care',
                 title: displayTitle,
                 catName: cat?.name,
                 userId: log.done_by,
+                userName: userInfo.name,
+                userAvatar: userInfo.avatar,
                 timestamp: log.done_at || new Date().toISOString(),
                 icon: taskDef?.icon
             });
@@ -90,14 +106,33 @@ export function ActivityFeed() {
             const baseTypeId = obsType.includes(':') ? obsType.split(':')[0] : obsType;
 
             // Try to find matching noticeDef
+            // 1. Direct ID match
             let noticeDef = noticeDefs.find(n => n.id === baseTypeId);
+
+            // 2. Fallback: try mapping category or legacy types
+            if (!noticeDef) {
+                // Try category match
+                noticeDef = noticeDefs.find(n => n.category === baseTypeId);
+
+                // Try legacy keyword match
+                if (!noticeDef) {
+                    if (baseTypeId === 'appetite') noticeDef = noticeDefs.find(n => n.title.includes('食欲'));
+                    else if (baseTypeId === 'water') noticeDef = noticeDefs.find(n => n.title.includes('水'));
+                    else if (baseTypeId === 'toilet') noticeDef = noticeDefs.find(n => n.title.includes('トイレ'));
+                    else if (baseTypeId === 'vomit') noticeDef = noticeDefs.find(n => n.title.includes('吐'));
+                }
+            }
 
             // Build display title - NEVER show UUIDs
             let displayTitle: string;
-            if (!isUUID(baseTypeId) && noticeDef?.title) {
+            if (noticeDef?.title) {
                 displayTitle = noticeDef.title.replace(/？$/, '');
             } else {
-                displayTitle = '様子確認';
+                // Fallback for completely unknown
+                displayTitle = baseTypeId === 'appetite' ? '食欲' :
+                    baseTypeId === 'water' ? 'お水' :
+                        baseTypeId === 'toilet' ? 'トイレ' :
+                            baseTypeId === 'vomit' ? '嘔吐' : '様子確認';
             }
 
             // Append value if present
@@ -105,12 +140,16 @@ export function ActivityFeed() {
                 displayTitle = `${displayTitle}: ${obs.value}`;
             }
 
+            const userInfo = getUserInfo(obs.recorded_by);
+
             items.push({
                 id: `obs-${obs.id}`,
                 type: 'observation',
                 title: displayTitle,
                 catName: cat?.name,
                 userId: obs.recorded_by,
+                userName: userInfo.name,
+                userAvatar: userInfo.avatar,
                 timestamp: obs.recorded_at || obs.created_at || new Date().toISOString()
             });
         });
@@ -122,7 +161,7 @@ export function ActivityFeed() {
 
         // Return only latest 10 items
         return items.slice(0, 10);
-    }, [careLogs, observations, cats, careTaskDefs, noticeDefs]);
+    }, [careLogs, observations, cats, careTaskDefs, noticeDefs, householdUsers]);
 
     if (activities.length === 0) {
         return null;
@@ -159,12 +198,11 @@ export function ActivityFeed() {
         }
     };
 
-    // Get initials from user ID (first 2 chars of UUID or fallback)
-    const getUserInitials = (userId?: string) => {
-        if (!userId) return null;
-        // For now, just show a generic user icon
-        // In the future, could fetch user display name
-        return userId.slice(0, 2).toUpperCase();
+    // Get initials from user name or ID
+    const getUserInitials = (item: ActivityItem) => {
+        if (item.userName) return item.userName.slice(0, 1);
+        if (item.userId) return item.userId.slice(0, 2).toUpperCase();
+        return '?';
     };
 
     return (
@@ -239,8 +277,17 @@ export function ActivityFeed() {
 
                                     {/* User indicator */}
                                     {item.userId && (
-                                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0" title={`User: ${item.userId}`}>
-                                            <User className="h-3 w-3 text-slate-400" />
+                                        <div
+                                            className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden"
+                                            title={item.userName || item.userId}
+                                        >
+                                            {item.userAvatar ? (
+                                                <img src={item.userAvatar} alt={item.userName} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-[10px] text-slate-500 font-bold">
+                                                    {getUserInitials(item)}
+                                                </span>
+                                            )}
                                         </div>
                                     )}
                                 </motion.div>
