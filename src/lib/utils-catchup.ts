@@ -188,12 +188,12 @@ export function getCatchUpItems({
                 let isDone = false;
 
                 if (def.perCat && cats.length > 0) {
-                    // Check per cat
+                    // Per-cat task
                     cats.forEach(cat => {
+                        const typeToCheck = slot ? `${def.id}:${slot}` : def.id;
                         const matchingLog = careLogs.find(log =>
-                            log.type === def.id &&
-                            log.cat_id === cat.id &&
-                            (log.slot === slot || !log.slot)
+                            log.type === typeToCheck &&
+                            log.cat_id === cat.id
                         );
 
                         if (!matchingLog) {
@@ -215,9 +215,9 @@ export function getCatchUpItems({
                     });
                 } else {
                     // Shared task
+                    const typeToCheck = slot ? `${def.id}:${slot}` : def.id;
                     const matchingLog = careLogs.find(log =>
-                        log.type === def.id &&
-                        (log.slot === slot || !log.slot)
+                        log.type === typeToCheck
                     );
 
                     if (!matchingLog) {
