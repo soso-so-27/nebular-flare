@@ -170,91 +170,71 @@ export function getCatchUpItems({
                 return;
             }
 
-            // Check if current slot is in this task's slots
-            if (!slots.includes(currentSlot)) {
-                // Not in current slot - check if previous slot was missed
-                const slotOrder = ['morning', 'noon', 'evening', 'night'];
-                const currentIdx = slotOrder.indexOf(currentSlot);
-                const prevSlot = currentIdx > 0 ? slotOrder[currentIdx - 1] : 'night';
+            // Check ALL valid slots up to current time
+            const slotOrder = ['morning', 'noon', 'evening', 'night'];
+            const currentSlotIndex = slotOrder.indexOf(currentSlot);
 
-                if (slots.includes(prevSlot as any)) {
-                    // Check if previous slot was completed
-                    const prevSlotLog = careLogs.find(log =>
-                        log.type === def.id &&
-                        log.slot === prevSlot
-                    );
+            for (const slot of slots) {
+                const slotIndex = slotOrder.indexOf(slot as any);
 
-                    if (!prevSlotLog) {
-                        // Previous slot missed - show with lower priority
-                        const slotLabel = getMealSlotLabel(prevSlot);
-                        items.push({
-                            id: `${def.id}_${prevSlot}`,
-                            type: 'task',
-                            severity: 75, // Lower than current slot
-                            title: `${def.title}（${slotLabel}）`,
-                            body: '前回の分が未完了です',
-                            at: now.toISOString(),
-                            status: 'warn',
-                            actionLabel: '済んだ',
-                            payload: { ...def, slot: prevSlot },
-                            meta: 'お世話（遅れ）',
-                            icon: def.icon,
-                        });
-                    }
-                }
-                return; // Not showing current slot items
-            }
+                // Skip future slots
+                if (slotIndex > currentSlotIndex) continue;
 
-            // Current slot - check if already done for this slot
-            const slotLabel = getMealSlotLabel(currentSlot);
+                // Check if this slot is done
+                const slotLabel = getMealSlotLabel(slot);
 
-            if (def.perCat && cats.length > 0) {
-                // Per-cat task
-                cats.forEach(cat => {
+                // Logic to check if done matches home-screen/check-section logic
+                // 1. Shared Task
+                let isDone = false;
+
+                if (def.perCat && cats.length > 0) {
+                    // Check per cat
+                    cats.forEach(cat => {
+                        const matchingLog = careLogs.find(log =>
+                            log.type === def.id &&
+                            log.cat_id === cat.id &&
+                            (log.slot === slot || !log.slot)
+                        );
+
+                        if (!matchingLog) {
+                            items.push({
+                                id: `${def.id}_${cat.id}_${slot}`,
+                                type: 'task',
+                                severity: slot === currentSlot ? 85 : 75, // Higher for current
+                                title: `${def.title}（${slotLabel}）`,
+                                body: slot === currentSlot ? `${cat.name}の${slotLabel}の分` : '前回の分が未完了です',
+                                at: now.toISOString(),
+                                status: slot === currentSlot ? 'warn' : 'info',
+                                actionLabel: '済んだ',
+                                payload: { ...def, catId: cat.id, slot: slot },
+                                meta: `${cat.name} ・ お世話`,
+                                icon: def.icon,
+                                catId: cat.id,
+                            });
+                        }
+                    });
+                } else {
+                    // Shared task
                     const matchingLog = careLogs.find(log =>
                         log.type === def.id &&
-                        log.cat_id === cat.id &&
-                        (log.slot === currentSlot || !log.slot) // Support old logs without slot
+                        (log.slot === slot || !log.slot)
                     );
 
                     if (!matchingLog) {
                         items.push({
-                            id: `${def.id}_${cat.id}_${currentSlot}`,
+                            id: `${def.id}_${slot}`,
                             type: 'task',
-                            severity: 85, // Current slot gets high priority
+                            severity: slot === currentSlot ? 85 : 75,
                             title: `${def.title}（${slotLabel}）`,
-                            body: `${cat.name}の${slotLabel}の分`,
+                            body: slot === currentSlot ? `${slotLabel}の分です` : '前回の分が未完了です',
                             at: now.toISOString(),
-                            status: 'warn',
+                            status: slot === currentSlot ? 'warn' : 'info',
                             actionLabel: '済んだ',
-                            payload: { ...def, catId: cat.id, slot: currentSlot },
-                            meta: `${cat.name} ・ お世話`,
+                            payload: { ...def, slot: slot },
+                            meta: 'お世話',
                             icon: def.icon,
-                            catId: cat.id,
                         });
                     }
-                });
-            } else {
-                // Shared task
-                const matchingLog = careLogs.find(log =>
-                    log.type === def.id &&
-                    (log.slot === currentSlot || !log.slot)
-                );
-
-                if (!matchingLog) {
-                    items.push({
-                        id: `${def.id}_${currentSlot}`,
-                        type: 'task',
-                        severity: 85,
-                        title: `${def.title}（${slotLabel}）`,
-                        body: `${slotLabel}の分です`,
-                        at: now.toISOString(),
-                        status: 'warn',
-                        actionLabel: '済んだ',
-                        payload: { ...def, slot: currentSlot },
-                        meta: 'お世話',
-                        icon: def.icon,
-                    });
                 }
             }
         });

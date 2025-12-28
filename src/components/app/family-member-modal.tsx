@@ -133,7 +133,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-5 space-y-5">
+                        <div className="p-5 pb-20 space-y-5">
                             {/* Member List */}
                             <div className="space-y-2">
                                 {members.map(member => (
