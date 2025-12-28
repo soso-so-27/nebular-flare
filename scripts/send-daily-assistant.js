@@ -127,23 +127,42 @@ async function processUser(userId, userTokens, todayStr, currentHour) {
 
     // 6. Care Reminder Logic
     if (prefs.care_reminder) {
-        const { data: logs } = await supabase
-            .from('care_logs')
-            .select('type')
+        // Fetch enabled care task definitions for this household
+        const { data: tasks } = await supabase
+            .from('care_task_defs')
+            .select('*')
             .eq('household_id', user.household_id)
-            .gte('done_at', `${todayStr}T00:00:00`)
-            .lt('done_at', `${todayStr}T23:59:59`);
+            .eq('enabled', true)
+            .is('deleted_at', null);
 
-        const logTypes = logs ? logs.map(l => l.type) : [];
-        const missing = [];
+        if (tasks && tasks.length > 0) {
+            const { data: logs } = await supabase
+                .from('care_logs')
+                .select('type')
+                .eq('household_id', user.household_id)
+                .gte('done_at', `${todayStr}T00:00:00`)
+                .lt('done_at', `${todayStr}T23:59:59`);
 
-        // Simple check for core tasks
-        if (!logTypes.some(t => t.includes('朝ごはん'))) missing.push('朝ごはん');
-        if (!logTypes.some(t => t.includes('夜ごはん') || t === 'food')) missing.push('夜ごはん');
-        if (!logTypes.some(t => t.includes('トイレ'))) missing.push('トイレ掃除');
+            const logTypes = logs ? logs.map(l => l.type) : [];
+            const missing = [];
 
-        if (missing.length > 0) {
-            messages.push(`📝 未記録: ${missing.join('、')}`);
+            for (const task of tasks) {
+                // Check if any log matches this task ID
+                // Care logs store "uuid" or "uuid:slot" (e.g. "uuid:morning")
+                // So we check if log.type starts with task.id
+                const isDone = logTypes.some(t => t.startsWith(task.id));
+
+                if (!isDone) {
+                    missing.push(task.title);
+                }
+            }
+
+            if (missing.length > 0) {
+                // Limit to first 3 missing items to avoid spam
+                const displayMissing = missing.slice(0, 3);
+                const suffix = missing.length > 3 ? '...ほか' : '';
+                messages.push(`📝 未記録: ${displayMissing.join('、')}${suffix}`);
+            }
         }
     }
 
