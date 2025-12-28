@@ -86,7 +86,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange }: Car
             careLogs,
             noticeDefs,
         });
-        return result.items.filter(item => item.type === 'task' || item.type === 'inventory');
+        return result.allItems.filter(item => item.type === 'task' || item.type === 'inventory');
     }, [tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
     // FAB will trigger swipe mode - removed auto-show

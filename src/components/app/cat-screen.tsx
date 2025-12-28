@@ -80,7 +80,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             careLogs,
             noticeDefs,
         });
-        return result.items.filter(item => item.type === 'notice' || item.type === 'unrecorded');
+        return result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded');
     }, [tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
     // FAB will trigger swipe mode - removed auto-show
