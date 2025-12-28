@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useAppState } from "@/store/app-store";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
     Activity,
     Heart,
     Eye,
     ShoppingCart,
-    User
+    User,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 import { getIcon } from "@/lib/icon-utils";
 
@@ -21,7 +23,7 @@ interface ActivityItem {
     title: string;
     catName?: string;
     userName?: string;
-    userAvatar?: string;
+    userId?: string;
     timestamp: string;
     icon?: string;
 }
@@ -35,36 +37,81 @@ export function ActivityFeed() {
         noticeDefs
     } = useAppState();
 
+    // Default collapsed
+    const [isExpanded, setIsExpanded] = useState(false);
+
     // Combine and sort all activities
     const activities: ActivityItem[] = useMemo(() => {
         const items: ActivityItem[] = [];
 
+        // Helper: Check if string looks like a UUID
+        const isUUID = (str: string) =>
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
         // Add care logs
-        careLogs.forEach(log => {
+        careLogs.forEach((log: any) => {
             const cat = cats.find(c => c.id === log.cat_id);
-            const taskDef = careTaskDefs.find(t => t.id === log.type);
+
+            // Extract base type ID (handle "uuid:timeOfDay" format)
+            const logType = log.type || '';
+            const baseTypeId = logType.includes(':') ? logType.split(':')[0] : logType;
+
+            const taskDef = careTaskDefs.find(t => t.id === baseTypeId);
+
+            // Build title - NEVER show UUIDs
+            let displayTitle: string;
+            if (!isUUID(baseTypeId) && taskDef?.title) {
+                displayTitle = taskDef.title;
+            } else if (isUUID(baseTypeId)) {
+                // Try to find in noticeDefs instead
+                const noticeDef = noticeDefs.find(n => n.id === baseTypeId);
+                displayTitle = noticeDef?.title?.replace(/？$/, '') || '様子確認';
+            } else {
+                displayTitle = 'お世話';
+            }
 
             items.push({
                 id: `care-${log.id}`,
                 type: 'care',
-                title: taskDef?.title || log.type,
+                title: displayTitle,
                 catName: cat?.name,
+                userId: log.done_by,
                 timestamp: log.done_at || new Date().toISOString(),
                 icon: taskDef?.icon
             });
         });
 
         // Add observations
-        observations.forEach(obs => {
-            const cat = cats.find(c => c.id === obs.catId);
-            const noticeDef = noticeDefs.find(n => n.id === obs.type);
+        observations.forEach((obs: any) => {
+            const cat = cats.find(c => c.id === obs.cat_id);
+
+            // Extract base type ID from composite type
+            const obsType = obs.type || '';
+            const baseTypeId = obsType.includes(':') ? obsType.split(':')[0] : obsType;
+
+            // Try to find matching noticeDef
+            let noticeDef = noticeDefs.find(n => n.id === baseTypeId);
+
+            // Build display title - NEVER show UUIDs
+            let displayTitle: string;
+            if (!isUUID(baseTypeId) && noticeDef?.title) {
+                displayTitle = noticeDef.title.replace(/？$/, '');
+            } else {
+                displayTitle = '様子確認';
+            }
+
+            // Append value if present
+            if (obs.value && obs.value !== displayTitle) {
+                displayTitle = `${displayTitle}: ${obs.value}`;
+            }
 
             items.push({
                 id: `obs-${obs.id}`,
                 type: 'observation',
-                title: `${noticeDef?.title || obs.type}: ${obs.value}`,
+                title: displayTitle,
                 catName: cat?.name,
-                timestamp: obs.createdAt
+                userId: obs.recorded_by,
+                timestamp: obs.recorded_at || obs.created_at || new Date().toISOString()
             });
         });
 
@@ -112,63 +159,96 @@ export function ActivityFeed() {
         }
     };
 
+    // Get initials from user ID (first 2 chars of UUID or fallback)
+    const getUserInitials = (userId?: string) => {
+        if (!userId) return null;
+        // For now, just show a generic user icon
+        // In the future, could fetch user display name
+        return userId.slice(0, 2).toUpperCase();
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-4"
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden"
         >
-            {/* Header */}
-            <div className="flex items-center gap-2 mb-3">
-                <Activity className="h-4 w-4 text-slate-400" />
-                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    最近のアクティビティ
-                </h3>
-            </div>
+            {/* Header - clickable to toggle expand */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+            >
+                <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-slate-400" />
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        最近のアクティビティ
+                    </h3>
+                    <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                        {activities.length}
+                    </span>
+                </div>
+                {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                )}
+            </button>
 
-            {/* Activity List */}
-            <div className="space-y-2">
-                {activities.map((item, index) => (
+            {/* Activity List - collapsible */}
+            <AnimatePresence>
+                {isExpanded && (
                     <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="flex items-center gap-3"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
                     >
-                        {/* Icon */}
-                        <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                            getActivityColor(item.type)
-                        )}>
-                            {getActivityIcon(item)}
-                        </div>
+                        <div className="space-y-2 px-4 pb-4">
+                            {activities.map((item, index) => (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.03 }}
+                                    className="flex items-center gap-3"
+                                >
+                                    {/* Icon */}
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                                        getActivityColor(item.type)
+                                    )}>
+                                        {getActivityIcon(item)}
+                                    </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm text-slate-700 dark:text-slate-200 truncate">
-                                <span className="font-medium">{item.title}</span>
-                                {item.catName && (
-                                    <span className="text-slate-400"> • {item.catName}</span>
-                                )}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                                {formatDistanceToNow(new Date(item.timestamp), {
-                                    addSuffix: true,
-                                    locale: ja
-                                })}
-                            </p>
-                        </div>
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm text-slate-700 dark:text-slate-200 truncate">
+                                            <span className="font-medium">{item.title}</span>
+                                            {item.catName && (
+                                                <span className="text-slate-400"> • {item.catName}</span>
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-slate-400">
+                                            {formatDistanceToNow(new Date(item.timestamp), {
+                                                addSuffix: true,
+                                                locale: ja
+                                            })}
+                                        </p>
+                                    </div>
 
-                        {/* User Avatar (placeholder for future) */}
-                        {item.userName && (
-                            <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                <User className="h-3 w-3 text-slate-400" />
-                            </div>
-                        )}
+                                    {/* User indicator */}
+                                    {item.userId && (
+                                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0" title={`User: ${item.userId}`}>
+                                            <User className="h-3 w-3 text-slate-400" />
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
                     </motion.div>
-                ))}
-            </div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
