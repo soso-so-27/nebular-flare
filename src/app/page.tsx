@@ -21,27 +21,29 @@ import { useAppState } from "@/store/app-store";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 
 import { NotificationModal } from "@/components/app/notification-modal";
+import { ObservationHistoryModal } from "@/components/app/observation-history-modal";
 
 function AppContent() {
   const [tab, setTab] = useState("home");
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   // Get catchup items for FAB badges
-  const { tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs } = useAppState();
+  const { tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs } = useAppState();
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
     noticeLogs,
     inventory,
-    memos: memos.items,
+
     lastSeenAt,
     settings,
     cats,
     careTaskDefs,
     careLogs,
     noticeDefs,
-  }), [tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
+  }), [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
   const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
   const catCount = catchup.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
@@ -69,10 +71,15 @@ function AppContent() {
           <TopBar
             onSettingsClick={() => setTab("settings")}
             onNotificationClick={() => setShowNotifications(true)}
+            onHistoryClick={() => setShowHistory(true)}
           />
           <NotificationModal
             isOpen={showNotifications}
             onClose={() => setShowNotifications(false)}
+          />
+          <ObservationHistoryModal
+            isOpen={showHistory}
+            onClose={() => setShowHistory(false)}
           />
 
           {tab === "home" && (

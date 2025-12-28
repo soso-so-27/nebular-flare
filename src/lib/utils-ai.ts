@@ -1,14 +1,13 @@
-import { Cat, NoticeDef, NoticeLog, Task, InventoryItem, Memo, AppSettings } from "@/types";
+import { Cat, NoticeDef, NoticeLog, Task, InventoryItem, AppSettings } from "@/types";
 
 export function buildWeeklyDigest({
-    cats, noticeDefs, noticeLogs, tasks, inventory, memos, settings
+    cats, noticeDefs, noticeLogs, tasks, inventory, settings
 }: {
     cats: Cat[];
     noticeDefs: NoticeDef[];
     noticeLogs: Record<string, Record<string, NoticeLog>>;
     tasks: Task[];
     inventory: InventoryItem[];
-    memos: Memo[];
     settings: AppSettings;
 }) {
     const abnormal = Object.values(noticeLogs).flatMap(catLogs =>
@@ -27,16 +26,14 @@ export function buildWeeklyDigest({
         abnormalCount: abnormal.length,
         lowStockCount: lowStock.length,
         openTasksCount: openTasks.length,
-        recentMemos: memos.slice(0, 3),
     };
 }
 
 export function aiVetOnePager({
-    catName, abnormal, memos
+    catName, abnormal
 }: {
     catName: string;
     abnormal: NoticeLog[];
-    memos: Memo[];
 }) {
     const lines = [
         `【直近7日まとめ（病院用） - ${catName}】`,
@@ -47,11 +44,6 @@ export function aiVetOnePager({
             ? abnormal.map(l => `- ${new Date(l.at).toLocaleDateString()}: ${l.value}`).join("\n")
             : "- 特になし",
         "",
-        "■ 家族のメモ",
-        memos.length > 0
-            ? memos.map(m => `- ${m.text}`).join("\n")
-            : "- なし",
-        "",
         "■ 獣医師への質問（自由記入）",
         "・",
         "",
@@ -59,3 +51,4 @@ export function aiVetOnePager({
     ];
     return lines.join("\n");
 }
+

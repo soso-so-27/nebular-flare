@@ -1,4 +1,4 @@
-import { Task, NoticeLog, InventoryItem, Memo, AppSettings, CareTaskDef, NoticeDef } from "@/types";
+import { Task, NoticeLog, InventoryItem, AppSettings, CareTaskDef, NoticeDef } from "@/types";
 import { bucketFor } from "./utils-date";
 
 export type CatchUpItem = {
@@ -22,7 +22,6 @@ export function getCatchUpItems({
     tasks,
     noticeLogs,
     inventory,
-    memos,
     lastSeenAt,
     settings,
     cats,
@@ -34,7 +33,7 @@ export function getCatchUpItems({
     tasks: Task[];
     noticeLogs: Record<string, Record<string, NoticeLog>>;
     inventory: InventoryItem[];
-    memos: Memo[];
+
     lastSeenAt: string;
     settings: AppSettings;
     cats: { id: string; name: string }[];
@@ -316,21 +315,7 @@ export function getCatchUpItems({
         }
     });
 
-    // 4. Memos (Score 20)
-    memos.forEach(m => {
-        if (new Date(m.at) > lastSeenDate) {
-            items.push({
-                id: `memo_${m.at}`,
-                type: 'memo',
-                severity: 20,
-                title: "家族からの共有",
-                body: m.text,
-                at: m.at,
-                status: 'info',
-                actionLabel: '既読',
-            });
-        }
-    });
+
 
     // Sort by severity
     const sorted = items.sort((a, b) => b.severity - a.severity);

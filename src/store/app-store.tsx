@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
-import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, Memo, CareTaskDef } from '@/types';
+import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
@@ -25,8 +25,7 @@ type AppState = {
     setSignalLogs: React.Dispatch<React.SetStateAction<Record<string, Record<string, SignalLog>>>>;
     inventory: InventoryItem[];
     setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
-    memos: { draft: string; items: Memo[] };
-    setMemos: React.Dispatch<React.SetStateAction<{ draft: string; items: Memo[] }>>;
+
     events: AppEvent[];
     setEvents: React.Dispatch<React.SetStateAction<AppEvent[]>>;
     settings: AppSettings;
@@ -321,10 +320,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         return DEFAULT_INVENTORY_ITEMS;
     });
 
-    const [memos, setMemos] = useState<{ draft: string; items: Memo[] }>({
-        draft: "",
-        items: [],
-    });
+
 
     const [events, setEvents] = useState<AppEvent[]>([]);
     const [settings, setSettings] = useState<AppSettings>(() => ({
@@ -898,7 +894,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         noticeLogs, setNoticeLogs,
         signalLogs, setSignalLogs,
         inventory, setInventory,
-        memos, setMemos,
+
         events, setEvents,
         settings, setSettings,
         lastSeenAt, setLastSeenAt,

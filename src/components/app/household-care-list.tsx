@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { Check, Clock, User, Utensils, Trash2, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,10 @@ const HOUSEHOLD_CARE_ITEMS = [
 export function HouseholdCareList() {
     const { careLogs, addCareLog, isDemo, tasks, setTasks } = useAppState();
 
-    const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const [today, setToday] = useState<string>("");
+    useEffect(() => {
+        setToday(new Date().toISOString().split('T')[0]);
+    }, []);
 
     // Get household care status from Supabase care_logs or local tasks
     const careItems: HouseholdCareItem[] = useMemo(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { AlertTriangle, X, CheckCircle, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,8 +10,13 @@ export function AnomalyAlertBanner() {
     const { noticeLogs, cats, activeCatId } = useAppState();
 
     // Find any abnormal notices from today
+    const [today, setToday] = useState<string>("");
+    useEffect(() => {
+        setToday(new Date().toISOString().split('T')[0]);
+    }, []);
+
     const anomalies = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
+        if (!today) return [];
         const results: { catName: string; value: string; at: string; catId: string }[] = [];
 
         Object.entries(noticeLogs).forEach(([catId, catLogs]) => {
@@ -36,7 +41,7 @@ export function AnomalyAlertBanner() {
         });
 
         return results;
-    }, [noticeLogs, cats]);
+    }, [noticeLogs, cats, today]);
 
     const [dismissed, setDismissed] = React.useState<string[]>([]);
 

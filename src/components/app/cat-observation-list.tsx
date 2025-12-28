@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,10 @@ export function CatObservationList() {
     } = useAppState();
     const activeCat = cats.find(c => c.id === activeCatId);
 
-    const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const [today, setToday] = useState<string>("");
+    useEffect(() => {
+        setToday(new Date().toISOString().split('T')[0]);
+    }, []);
 
     // Get per-cat observations (health checks)
     const observationItems: CatObservation[] = useMemo(() => {

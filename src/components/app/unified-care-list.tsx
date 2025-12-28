@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { Check, Clock, ChevronRight, AlertTriangle, Utensils, Droplets, Pill, CheckSquare, Package, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,10 @@ export function UnifiedCareList({ onItemTap, onCatchUpAll }: UnifiedCareListProp
     const { tasks, noticeDefs, noticeLogs, activeCatId, cats } = useAppState();
     const activeCat = cats.find(c => c.id === activeCatId);
 
-    const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const [today, setToday] = useState<string>("");
+    useEffect(() => {
+        setToday(new Date().toISOString().split('T')[0]);
+    }, []);
 
     // Combine notices and tasks into a unified list
     const careItems: CareListItem[] = useMemo(() => {

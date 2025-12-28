@@ -54,8 +54,7 @@ export function HomeScreen() {
         inventory,
         setInventory,
         settings,
-        memos,
-        setMemos,
+
         careLogs,
         addCareLog,
         observations,
@@ -75,7 +74,6 @@ export function HomeScreen() {
         updateInvThreshold
     } = useAppState();
 
-    const [memoDraft, setMemoDraft] = useState("");
     const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
     const [settingsMode, setSettingsMode] = useState(false);
     const [newItemInput, setNewItemInput] = useState('');
@@ -372,16 +370,7 @@ export function HomeScreen() {
         toast.success("補充を記録しました");
     }
 
-    // ========== Memo Logic ==========
-    function saveSharedMemo() {
-        if (!memoDraft.trim()) return;
-        setMemos(prev => ({
-            ...prev,
-            items: [{ text: memoDraft, at: new Date().toISOString() }, ...prev.items]
-        }));
-        setMemoDraft("");
-        toast.success("メモを共有しました");
-    }
+
 
     return (
         <div className="relative min-h-screen">
@@ -968,58 +957,7 @@ export function HomeScreen() {
                     )}
                 </AnimatePresence>
 
-                {/* Shared Memos - Compact */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-4"
-                >
-                    {/* Memo input - horizontal layout */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <Users className="h-4 w-4 text-slate-400" />
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">メモ</span>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="家族に共有..."
-                            className="flex-1 rounded-full px-4 py-2 text-sm bg-slate-100 border-none focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            value={memoDraft}
-                            onChange={(e) => setMemoDraft(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && saveSharedMemo()}
-                        />
-                        <button
-                            onClick={saveSharedMemo}
-                            className="w-9 h-9 rounded-full bg-slate-300 flex items-center justify-center hover:bg-slate-400 shrink-0"
-                        >
-                            <Send className="h-4 w-4 text-slate-600" />
-                        </button>
-                    </div>
 
-                    {/* Memo chips */}
-                    {memos.items.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                            {memos.items.slice(0, 3).map((m, idx) => (
-                                <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-xs text-slate-600 group">
-                                    <span className="max-w-[120px] truncate">{m.text}</span>
-                                    <button
-                                        onClick={() => {
-                                            setMemos(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
-                                            toast.info("削除しました");
-                                        }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <X className="h-3 w-3 text-slate-400 hover:text-slate-600" />
-                                    </button>
-                                </div>
-                            ))}
-                            {memos.items.length > 3 && (
-                                <span className="text-xs text-slate-400 py-1.5">+{memos.items.length - 3}</span>
-                            )}
-                        </div>
-                    )}
-                </motion.div>
 
                 {/* Activity Feed */}
                 <ActivityFeed />

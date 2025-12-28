@@ -9,9 +9,10 @@ import { useAppState } from "@/store/app-store";
 interface TopBarProps {
     onSettingsClick?: () => void;
     onNotificationClick?: () => void;
+    onHistoryClick?: () => void;
 }
 
-export function TopBar({ onSettingsClick, onNotificationClick }: TopBarProps) {
+export function TopBar({ onSettingsClick, onNotificationClick, onHistoryClick }: TopBarProps) {
     const { user } = useAuth();
     const { isDemo } = useAppState();
 
@@ -32,7 +33,7 @@ export function TopBar({ onSettingsClick, onNotificationClick }: TopBarProps) {
                 )}
             </div>
             <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={onHistoryClick}>
                     <History className="h-4 w-4 text-slate-500" />
                 </Button>
                 <Button

@@ -30,7 +30,7 @@ export type CatImage = {
   height?: number;
 };
 
-export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY' | 'MEMO';
+export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY';
 export type Cadence = 'daily' | 'weekly' | 'monthly' | 'once';
 export type DueTime = 'morning' | 'evening' | 'any' | 'weekend' | 'month';
 export type Frequency = 'once-daily' | 'twice-daily' | 'three-times-daily' | 'four-times-daily' | 'as-needed' | 'weekly' | 'monthly';
@@ -133,10 +133,6 @@ export type InventoryItem = {
   enabled?: boolean; // Optional, defaults to true
 };
 
-export type Memo = {
-  at: string;
-  text: string;
-};
 
 export type EventType = 'vet' | 'med' | 'other';
 

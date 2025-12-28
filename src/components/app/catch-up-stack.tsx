@@ -11,7 +11,7 @@ import { Cat } from "@/types";
 interface SwipeableCardProps {
     item: CatchUpItem;
     cat?: Cat;
-    onSwipe: (direction: 'left' | 'right') => void;
+    onSwipe: (direction: 'left' | 'right', memo?: string) => void;
     onVerticalSwipe?: (direction: 'up' | 'down') => void;
     onButtonAction?: (value: string) => void;
     isTop: boolean;
@@ -72,7 +72,8 @@ const SwipeableCard = ({ item, cat, onSwipe, onVerticalSwipe, onButtonAction, is
             if (shouldSwipeRight) {
                 onSwipe('right');
             } else if (shouldSwipeLeft) {
-                onSwipe('left');
+                // Pass memo content on left swipe
+                onSwipe('left', memoText.trim() || undefined);
             }
         } else if (isVertical && onVerticalSwipe) {
             const shouldSwipeUp =
@@ -94,16 +95,24 @@ const SwipeableCard = ({ item, cat, onSwipe, onVerticalSwipe, onButtonAction, is
     const hasImageAvatar = cat?.avatar && (cat.avatar.startsWith('http') || cat.avatar.startsWith('/'));
 
     if (!isTop) {
+        // Back card - visible stack effect
         return (
             <motion.div
                 style={{
-                    scale: useTransform(x, [-200, 0, 200], [1, 0.98, 1]),
-                    opacity: useTransform(x, [-200, 0, 200], [0.6, 0.4, 0.6]),
-                    y: useTransform(x, [-200, 0, 200], [0, 8, 0])
+                    scale: 0.95,
+                    y: 12,
+                    rotate: -2,
                 }}
                 className="absolute inset-0 pointer-events-none"
             >
-                <div className="w-full h-full bg-white dark:bg-slate-900 rounded-2xl shadow-lg" />
+                <div className="w-full h-full rounded-2xl shadow-2xl overflow-hidden">
+                    {/* Show actual next cat image if available */}
+                    {hasImageAvatar ? (
+                        <img src={cat!.avatar} alt="" className="w-full h-full object-cover opacity-70" />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700" />
+                    )}
+                </div>
             </motion.div>
         );
     }
@@ -174,78 +183,39 @@ const SwipeableCard = ({ item, cat, onSwipe, onVerticalSwipe, onButtonAction, is
                     {/* Main content area - with frosted glass effect for readability */}
                     <div className={cn(
                         "flex-1 p-6 overflow-y-auto flex flex-col justify-end",
-                        hasImageAvatar && "bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+                        hasImageAvatar && "bg-gradient-to-t from-black/70 via-black/30 to-transparent"
                     )}>
-                        {/* Title */}
+                        {/* Title - Large and prominent */}
                         <h3
                             className={cn(
-                                "text-xl font-bold leading-snug mb-3",
+                                "text-2xl sm:text-3xl font-black leading-tight mb-6",
                                 hasImageAvatar ? "text-white" : "text-slate-900 dark:text-white"
                             )}
-                            style={hasImageAvatar ? { textShadow: '0 2px 12px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,1)' } : {}}
+                            style={hasImageAvatar ? { textShadow: '0 2px 16px rgba(0,0,0,1), 0 1px 4px rgba(0,0,0,1)' } : {}}
                         >
                             {item.title}
                         </h3>
 
-                        {/* Body text */}
-                        <p
-                            className={cn(
-                                "text-base leading-relaxed",
-                                hasImageAvatar ? "text-white" : "text-slate-600 dark:text-slate-300"
-                            )}
-                            style={hasImageAvatar ? { textShadow: '0 1px 8px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)' } : {}}
-                        >
-                            {item.body}
-                        </p>
+                        {/* Body text removed - redundant with avatar badge info */}
 
-                        {/* Meta info if available */}
-                        {item.meta && (
-                            <p
-                                className={cn(
-                                    "mt-4 text-sm",
-                                    hasImageAvatar ? "text-white/80" : "text-slate-400"
-                                )}
-                                style={hasImageAvatar ? { textShadow: '0 1px 4px rgba(0,0,0,0.8)' } : {}}
-                            >
-                                {item.meta}
-                            </p>
-                        )}
-
-                        {/* Expanded memo input */}
-                        {(item.type === 'unrecorded' || item.type === 'notice') && onButtonAction && isExpanded && (
-                            <div className="mt-6 space-y-3">
-                                <textarea
+                        {/* Memo input - seamless glassmorphism design */}
+                        {(item.type === 'unrecorded' || item.type === 'notice') && (
+                            <div>
+                                <input
+                                    type="text"
                                     value={memoText}
                                     onChange={(e) => setMemoText(e.target.value)}
-                                    placeholder="何が違いましたか？"
-                                    className="w-full p-3 rounded-xl border border-white/30 bg-white/20 backdrop-blur text-white text-sm placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
-                                    rows={2}
+                                    placeholder="💬 メモを追加..."
+                                    className={cn(
+                                        "w-full px-5 py-3.5 rounded-2xl text-sm font-medium focus:outline-none transition-all",
+                                        hasImageAvatar
+                                            ? "bg-white/15 backdrop-blur-md border-0 text-white placeholder:text-white/50 focus:bg-white/25 focus:ring-2 focus:ring-white/30"
+                                            : "bg-slate-100/80 border-0 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/30"
+                                    )}
                                     onClick={(e) => e.stopPropagation()}
                                     onMouseDown={(e) => e.stopPropagation()}
                                     onTouchStart={(e) => e.stopPropagation()}
                                 />
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsExpanded(false);
-                                            setMemoText('');
-                                        }}
-                                        className="flex-1 py-3 px-4 rounded-full border border-white/30 text-white font-medium text-sm hover:bg-white/10 active:scale-95 transition-all"
-                                    >
-                                        戻る
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const value = memoText.trim() ? `ちょっと違う: ${memoText.trim()}` : 'ちょっと違う';
-                                            onButtonAction(value);
-                                        }}
-                                        className="flex-1 py-3 px-4 rounded-full bg-white text-slate-900 font-medium text-sm hover:bg-white/90 active:scale-95 transition-all"
-                                    >
-                                        記録する
-                                    </button>
-                                </div>
                             </div>
                         )}
                     </div>
@@ -264,10 +234,16 @@ export function CatchUpStack({
 }: CatchUpStackProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const handleSwipe = (direction: 'left' | 'right') => {
+    const handleSwipe = (direction: 'left' | 'right', memo?: string) => {
         const item = items[currentIndex];
         if (item) {
-            onAction(item, direction === 'right' ? 'done' : 'later');
+            // Right swipe = OK, Left swipe = Notice with optional memo
+            if (direction === 'right') {
+                onAction(item, 'done', 'いつも通り');
+            } else {
+                const value = memo ? `ちょっと違う: ${memo}` : 'ちょっと違う';
+                onAction(item, 'done', value);
+            }
             const nextIndex = currentIndex + 1;
             setCurrentIndex(nextIndex);
             if (onIndexChange) onIndexChange(nextIndex);

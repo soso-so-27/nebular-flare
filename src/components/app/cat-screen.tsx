@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cat as CatIcon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
+import { Cat as CatIcon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, RotateCcw } from "lucide-react";
 import { CatObservationList } from "./cat-observation-list";
 import { getCatchUpItems, CatchUpItem } from "@/lib/utils-catchup";
 import { CatchUpStack } from "./catch-up-stack";
@@ -25,7 +25,6 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
         noticeLogs,
         setNoticeLogs,
         inventory,
-        memos,
         lastSeenAt,
         settings,
         careTaskDefs,
@@ -72,7 +71,6 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             tasks,
             noticeLogs,
             inventory,
-            memos: memos.items,
             lastSeenAt,
             settings,
             cats,
@@ -81,7 +79,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             noticeDefs,
         });
         return result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded');
-    }, [tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
+    }, [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
     // FAB will trigger swipe mode - removed auto-show
 
@@ -225,7 +223,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                         className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-rose-600 to-pink-700 overflow-hidden overscroll-none"
                         style={{ touchAction: 'none' }}
                     >
-                        {/* Header: Back + count + Undo */}
+                        {/* Header: Back + count + Cat switch + Undo */}
                         <div className="flex items-center justify-between px-4 pt-4 pb-2">
                             <button
                                 onClick={() => setShowSwipeMode(false)}
@@ -236,44 +234,39 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                             <span className="text-white font-medium">
                                 残り {catchupItems.length - progressIndex} 件
                             </span>
-                            {/* Undo button - only show if there's a last action */}
-                            <button
-                                onClick={() => {
-                                    if (lastAction) {
-                                        setProgressIndex(lastAction.prevIndex);
-                                        setLastAction(null);
-                                    }
-                                }}
-                                className={cn(
-                                    "w-10 h-10 flex items-center justify-center transition-all",
-                                    lastAction ? "text-white/80 hover:text-white" : "text-white/20"
+                            <div className="flex items-center gap-1">
+                                {/* Cat switch button - compact */}
+                                {cats.length > 1 && (
+                                    <button
+                                        onClick={() => handleCatChange('down')}
+                                        className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white bg-white/10 rounded-full hover:bg-white/20 active:scale-95 transition-all"
+                                        title="次の猫へ"
+                                    >
+                                        <ChevronsUpDown className="h-5 w-5" />
+                                    </button>
                                 )}
-                                disabled={!lastAction}
-                            >
-                                <RotateCcw className="h-5 w-5" />
-                            </button>
+                                {/* Undo button */}
+                                <button
+                                    onClick={() => {
+                                        if (lastAction) {
+                                            setProgressIndex(lastAction.prevIndex);
+                                            setLastAction(null);
+                                        }
+                                    }}
+                                    className={cn(
+                                        "w-10 h-10 flex items-center justify-center transition-all",
+                                        lastAction ? "text-white/80 hover:text-white" : "text-white/20"
+                                    )}
+                                    disabled={!lastAction}
+                                >
+                                    <RotateCcw className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Cat switching indicator */}
-                        <div className="flex items-center justify-center gap-2 pb-2">
-                            <ChevronUp className="h-4 w-4 text-white/40" />
-                            <span className="text-xs text-white/60 font-medium">上下で猫を切り替え</span>
-                            <ChevronDown className="h-4 w-4 text-white/40" />
-                        </div>
 
-                        {/* Card area with swipe direction hints */}
+                        {/* Card area */}
                         <div className="flex-1 px-4 pb-4 relative" style={{ touchAction: 'none' }}>
-                            {/* Left swipe indicator */}
-                            <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-white/30 pointer-events-none">
-                                <ChevronLeft className="h-6 w-6" />
-                                <span className="text-xs font-medium">違う</span>
-                            </div>
-
-                            {/* Right swipe indicator */}
-                            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-white/30 pointer-events-none">
-                                <ChevronRight className="h-6 w-6" />
-                                <span className="text-xs font-medium">OK</span>
-                            </div>
 
                             <div className="w-full h-full relative" style={{ touchAction: 'none' }}>
                                 <CatchUpStack
@@ -290,19 +283,19 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                             </div>
                         </div>
 
-                        {/* Footer: Buttons OUTSIDE the card (Slack style) */}
+                        {/* Footer: Buttons OUTSIDE the card */}
                         <div className="px-4 pb-6 pt-2 flex gap-3">
                             <button
                                 onClick={() => {
                                     const currentItem = catchupItems[progressIndex];
                                     if (currentItem) {
-                                        setLastAction({ item: currentItem, action: 'later', prevIndex: progressIndex });
-                                        handleCatchupAction(currentItem, 'later');
+                                        setLastAction({ item: currentItem, action: 'done', prevIndex: progressIndex });
+                                        handleCatchupAction(currentItem, 'done', 'ちょっと違う');
                                     }
                                 }}
                                 className="flex-1 py-4 px-6 rounded-full border-2 border-white/30 text-white font-medium text-base hover:bg-white/10 active:scale-95 transition-all"
                             >
-                                ちょっと違う
+                                気になる
                             </button>
                             <button
                                 onClick={() => {

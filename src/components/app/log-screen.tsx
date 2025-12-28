@@ -10,7 +10,7 @@ import { buildWeeklyDigest, aiVetOnePager } from "@/lib/utils-ai";
 import { toast } from "sonner";
 
 export function LogScreen() {
-    const { cats, activeCatId, noticeDefs, noticeLogs, tasks, inventory, memos, settings, isPro } = useAppState();
+    const { cats, activeCatId, noticeDefs, noticeLogs, tasks, inventory, settings, isPro } = useAppState();
     const activeCat = cats.find(c => c.id === activeCatId);
 
     const digest = useMemo(() => buildWeeklyDigest({
@@ -19,9 +19,8 @@ export function LogScreen() {
         noticeLogs,
         tasks,
         inventory,
-        memos: memos.items,
         settings
-    }), [cats, noticeDefs, noticeLogs, tasks, inventory, memos, settings]);
+    }), [cats, noticeDefs, noticeLogs, tasks, inventory, settings]);
 
     const catAbnormal = useMemo(() => {
         const logs = noticeLogs[activeCatId] || {};
@@ -32,8 +31,7 @@ export function LogScreen() {
         if (!activeCat) return;
         const text = aiVetOnePager({
             catName: activeCat.name,
-            abnormal: catAbnormal,
-            memos: memos.items
+            abnormal: catAbnormal
         });
         navigator.clipboard.writeText(text);
         toast.success("病院用まとめをコピーしました");
