@@ -42,7 +42,7 @@ export function getCatchUpItems({
     careLogs?: any[];
     noticeDefs?: NoticeDef[];
     today?: string;
-}): { items: CatchUpItem[]; summary: string; remainingCount: number } {
+}): { items: CatchUpItem[]; allItems: CatchUpItem[]; summary: string; remainingCount: number } {
     const items: CatchUpItem[] = [];
     const lastSeenDate = new Date(lastSeenAt);
     const now = new Date();
@@ -351,5 +351,5 @@ export function getCatchUpItems({
         summary = parts.join(' ・ ');
     }
 
-    return { items: displayItems, summary, remainingCount };
+    return { items: displayItems, allItems: sorted, summary, remainingCount };
 }

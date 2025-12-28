@@ -43,8 +43,8 @@ function AppContent() {
     noticeDefs,
   }), [tasks, noticeLogs, inventory, memos, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
-  const careCount = catchup.items.filter(item => item.type === 'task' || item.type === 'inventory').length;
-  const catCount = catchup.items.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
+  const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
+  const catCount = catchup.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
 
   const tabItems = [
     { id: "home", label: "ホーム", Icon: HomeIcon },
