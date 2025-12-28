@@ -163,16 +163,15 @@ export function CalendarScreen() {
                     {events
                         .filter(e => isSameDay(new Date(e.at), selectedDate))
                         .map(e => (
-                            <Card key={e.id} className="rounded-2xl shadow-sm border-none bg-white p-3 border border-border/50 flex items-center gap-3">
-                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-bold border-orange-200 text-orange-700 bg-orange-50 shrink-0">
-                                    {e.type === 'vet' ? '通院' : e.type === 'med' ? 'お薬' : 'その他'}
+                            <Card key={e.id} className="rounded-xl shadow-none border-b border-slate-100 bg-white px-3 py-2 flex items-center gap-2 last:border-0">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 font-bold border-orange-200 text-orange-700 bg-orange-50 shrink-0">
+                                    {e.type === 'vet' ? '通院' : e.type === 'med' ? '薬' : '他'}
                                 </Badge>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-bold text-slate-800 truncate">{e.title}</p>
-                                    <p className="text-[10px] text-slate-400">
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                    <span className="text-[10px] font-mono text-slate-400">
                                         {format(new Date(e.at), 'HH:mm')}
-                                        {e.location && ` ・ ${e.location}`}
-                                    </p>
+                                    </span>
+                                    <p className="text-xs font-bold text-slate-700 truncate">{e.title}</p>
                                 </div>
                             </Card>
                         ))
@@ -180,27 +179,32 @@ export function CalendarScreen() {
 
                     {/* Past Records */}
                     {dayRecords.map(r => (
-                        <Card key={r.id} className="rounded-2xl shadow-sm border-none bg-white p-3 border border-border/50 flex items-center gap-3">
+                        <Card key={r.id} className="rounded-xl shadow-none border-b border-slate-100 bg-white px-3 py-2 flex items-center gap-2 last:border-0 hover:bg-slate-50 transition-colors group">
                             <div className={`
-                                w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                                w-6 h-6 rounded-full flex items-center justify-center shrink-0
                                 ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
                             `}>
-                                {r.sourceType === 'care' ? <Check className="w-4 h-4" /> : <Stethoscope className="w-4 h-4" />}
+                                {r.sourceType === 'care' ? <Check className="w-3 h-3" /> : <Stethoscope className="w-3 h-3" />}
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-sm font-bold text-slate-800 truncate">{r.title}</p>
-                                <p className="text-[10px] text-slate-400">
-                                    {format(new Date(r.time), 'HH:mm')} ・ {r.subtitle}
-                                    {r.isAcknowledged && <span className="ml-2 text-slate-300">(確認済)</span>}
+                            <div className="min-w-0 flex-1 flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-mono text-slate-400">
+                                        {format(new Date(r.time), 'HH:mm')}
+                                    </span>
+                                    <p className="text-xs font-bold text-slate-700 truncate">{r.title}</p>
+                                </div>
+                                <p className="text-[10px] text-slate-400 pl-[38px] -mt-1 truncate">
+                                    {r.subtitle}
+                                    {r.isAcknowledged && <span className="ml-1 text-emerald-500">✓</span>}
                                 </p>
                             </div>
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                className="h-6 w-6 rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => handleDelete(r.id, r.sourceType)}
                             >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3 h-3" />
                             </Button>
                         </Card>
                     ))}
