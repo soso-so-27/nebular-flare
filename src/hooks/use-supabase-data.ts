@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
-type Cat = Database['public']['Tables']['cats']['Row'];
+import type { Cat } from '@/types';
 type CareLog = Database['public']['Tables']['care_logs']['Row'];
 type Observation = Database['public']['Tables']['observations']['Row'];
 type Inventory = Database['public']['Tables']['inventory']['Row'];
@@ -26,15 +26,49 @@ export function useCats(householdId: string | null) {
 
         async function fetchCats() {
             setLoading(true);
-            const { data, error } = await supabase
+
+            // Fetch cats first (Critical data)
+            const { data: catsData, error: catsError } = await supabase
                 .from('cats')
-                .select('*')
+                .select('*, images:cat_images(*)')
                 .eq('household_id', householdId)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: true });
 
-            if (!error && data) {
-                setCats(data);
+            if (catsError) {
+                console.error('Error fetching cats:', catsError);
+                setLoading(false);
+                return;
+            }
+
+            // Fetch weight history safely (Non-critical)
+            let weightMap: Record<string, any[]> = {};
+            try {
+                const catIds = catsData.map((c: any) => c.id);
+                if (catIds.length > 0) {
+                    const { data: weights, error: weightError } = await supabase
+                        .from('cat_weight_history')
+                        .select('*')
+                        .in('cat_id', catIds)
+                        .order('recorded_at', { ascending: false }); // Latest first
+
+                    if (!weightError && weights) {
+                        weights.forEach((w: any) => {
+                            if (!weightMap[w.cat_id]) weightMap[w.cat_id] = [];
+                            weightMap[w.cat_id].push(w);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Weight history fetch failed, ignoring:', e);
+            }
+
+            if (catsData) {
+                const mergedCats = catsData.map((cat: any) => ({
+                    ...cat,
+                    weight_history: weightMap[cat.id] || []
+                }));
+                setCats(mergedCats);
             }
             setLoading(false);
         }

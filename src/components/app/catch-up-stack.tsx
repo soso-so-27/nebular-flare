@@ -6,9 +6,11 @@ import { CatchUpItem } from "@/lib/utils-catchup";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Cat } from "@/types";
 
 interface SwipeableCardProps {
     item: CatchUpItem;
+    cat?: Cat;
     onSwipe: (direction: 'left' | 'right') => void;
     onVerticalSwipe?: (direction: 'up' | 'down') => void;
     onButtonAction?: (value: string) => void;
@@ -17,12 +19,13 @@ interface SwipeableCardProps {
 
 interface CatchUpStackProps {
     items: CatchUpItem[];
+    cats?: Cat[];
     onAction: (item: CatchUpItem, action: 'done' | 'later', value?: string) => void;
     onIndexChange?: (index: number) => void;
     onVerticalSwipe?: (direction: 'up' | 'down') => void;
 }
 
-const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }: SwipeableCardProps) => {
+const SwipeableCard = ({ item, cat, onSwipe, onVerticalSwipe, onButtonAction, isTop }: SwipeableCardProps) => {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
@@ -42,32 +45,25 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
         const velocityY = info.velocity.y;
 
         // === Mobile-optimized Tinder/Slack-like settings ===
-        // Lower thresholds for touch - fingers move faster and with more intention
-        const positionThreshold = 80;  // Reduced from 150 - easier to trigger
-        // Lower velocity threshold for natural flick gestures
-        const velocityThreshold = 300;  // Reduced from 500 - responsive to quick flicks
-        // Combined score: position + velocity contribution
+        const positionThreshold = 80;
+        const velocityThreshold = 300;
         const combinedScore = Math.abs(offsetX) + Math.abs(velocityX) * 0.15;
-        const combinedThreshold = 100;  // Reduced from 160
+        const combinedThreshold = 100;
 
-        // Vertical swipe settings (for cat switching)
-        const verticalThreshold = 60;  // Reduced from 100
-        const verticalVelocityThreshold = 250;  // Reduced from 400
+        const verticalThreshold = 60;
+        const verticalVelocityThreshold = 250;
 
-        // Calculate primary gesture direction
         const absX = Math.abs(offsetX);
         const absY = Math.abs(offsetY);
         const isHorizontal = absX > absY * 1.5 || (absX > 40 && absY < 30);
         const isVertical = absY > absX * 1.5 || (absY > 40 && absX < 30);
 
         if (isHorizontal) {
-            // Right swipe = DONE (more generous detection for touch)
             const shouldSwipeRight =
                 offsetX > positionThreshold ||
                 velocityX > velocityThreshold ||
                 (offsetX > 30 && combinedScore > combinedThreshold);
 
-            // Left swipe = LATER
             const shouldSwipeLeft =
                 offsetX < -positionThreshold ||
                 velocityX < -velocityThreshold ||
@@ -79,7 +75,6 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
                 onSwipe('left');
             }
         } else if (isVertical && onVerticalSwipe) {
-            // Vertical swipe for cat switching
             const shouldSwipeUp =
                 offsetY < -verticalThreshold ||
                 velocityY < -verticalVelocityThreshold;
@@ -94,6 +89,9 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
             }
         }
     };
+
+    // Check if cat avatar is an image URL
+    const hasImageAvatar = cat?.avatar && (cat.avatar.startsWith('http') || cat.avatar.startsWith('/'));
 
     if (!isTop) {
         return (
@@ -115,10 +113,10 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
             style={{ x, y, rotate, opacity, scale: scaleOnDrag, zIndex: 10, willChange: "transform", touchAction: "none" }}
             drag
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={1}  // Maximum elasticity = card follows finger exactly
+            dragElastic={1}
             dragMomentum={true}
             dragTransition={{
-                bounceStiffness: 500,  // Snappier bounce back
+                bounceStiffness: 500,
                 bounceDamping: 25,
                 power: 0.2,
                 timeConstant: 150
@@ -134,64 +132,123 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
                 mass: 0.4
             }}
         >
-            {/* Card with content only - no buttons (Slack style: buttons outside card) */}
-            <div className="w-full h-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-                {/* Main content area */}
-                <div className="flex-1 p-6 overflow-y-auto flex flex-col justify-center">
-                    {/* Title */}
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-snug mb-3">
-                        {item.title}
-                    </h3>
+            {/* Card with background image */}
+            <div className="w-full h-full rounded-2xl shadow-xl overflow-hidden flex flex-col relative">
+                {/* Background Image - no overlay, just slight blur */}
+                {hasImageAvatar && (
+                    <img
+                        src={cat!.avatar}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                )}
+                {!hasImageAvatar && (
+                    <div className="absolute inset-0 bg-white dark:bg-slate-900" />
+                )}
 
-                    {/* Body text */}
-                    <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
-                        {item.body}
-                    </p>
-
-                    {/* Meta info if available */}
-                    {item.meta && (
-                        <p className="mt-4 text-sm text-slate-400">
-                            {item.meta}
-                        </p>
-                    )}
-
-                    {/* Expanded memo input - only shown inside card when needed */}
-                    {(item.type === 'unrecorded' || item.type === 'notice') && onButtonAction && isExpanded && (
-                        <div className="mt-6 space-y-3">
-                            <textarea
-                                value={memoText}
-                                onChange={(e) => setMemoText(e.target.value)}
-                                placeholder="何が違いましたか？"
-                                className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
-                                rows={2}
-                                onClick={(e) => e.stopPropagation()}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onTouchStart={(e) => e.stopPropagation()}
-                            />
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsExpanded(false);
-                                        setMemoText('');
-                                    }}
-                                    className="flex-1 py-3 px-4 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-sm hover:bg-slate-50 active:scale-95 transition-all"
-                                >
-                                    戻る
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        const value = memoText.trim() ? `ちょっと違う: ${memoText.trim()}` : 'ちょっと違う';
-                                        onButtonAction(value);
-                                    }}
-                                    className="flex-1 py-3 px-4 rounded-full bg-rose-500 text-white font-medium text-sm hover:bg-rose-600 active:scale-95 transition-all"
-                                >
-                                    記録する
-                                </button>
+                {/* Content overlay */}
+                <div className="relative z-10 flex-1 flex flex-col">
+                    {/* Cat Avatar Badge - smaller, top left */}
+                    {cat && (
+                        <div className="px-5 pt-5 flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-white/30 backdrop-blur-md border-2 border-white/50 flex items-center justify-center flex-shrink-0 shadow-lg">
+                                {hasImageAvatar ? (
+                                    <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-xl">{cat.avatar || "🐈"}</span>
+                                )}
+                            </div>
+                            <div>
+                                <p
+                                    className={cn("font-bold text-sm", hasImageAvatar ? "text-white" : "text-slate-900 dark:text-white")}
+                                    style={hasImageAvatar ? { textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.9)' } : {}}
+                                >{cat.name}</p>
+                                <p
+                                    className={cn("text-xs", hasImageAvatar ? "text-white" : "text-slate-500")}
+                                    style={hasImageAvatar ? { textShadow: '0 1px 4px rgba(0,0,0,0.8)' } : {}}
+                                >様子確認</p>
                             </div>
                         </div>
                     )}
+
+                    {/* Main content area - with frosted glass effect for readability */}
+                    <div className={cn(
+                        "flex-1 p-6 overflow-y-auto flex flex-col justify-end",
+                        hasImageAvatar && "bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+                    )}>
+                        {/* Title */}
+                        <h3
+                            className={cn(
+                                "text-xl font-bold leading-snug mb-3",
+                                hasImageAvatar ? "text-white" : "text-slate-900 dark:text-white"
+                            )}
+                            style={hasImageAvatar ? { textShadow: '0 2px 12px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,1)' } : {}}
+                        >
+                            {item.title}
+                        </h3>
+
+                        {/* Body text */}
+                        <p
+                            className={cn(
+                                "text-base leading-relaxed",
+                                hasImageAvatar ? "text-white" : "text-slate-600 dark:text-slate-300"
+                            )}
+                            style={hasImageAvatar ? { textShadow: '0 1px 8px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)' } : {}}
+                        >
+                            {item.body}
+                        </p>
+
+                        {/* Meta info if available */}
+                        {item.meta && (
+                            <p
+                                className={cn(
+                                    "mt-4 text-sm",
+                                    hasImageAvatar ? "text-white/80" : "text-slate-400"
+                                )}
+                                style={hasImageAvatar ? { textShadow: '0 1px 4px rgba(0,0,0,0.8)' } : {}}
+                            >
+                                {item.meta}
+                            </p>
+                        )}
+
+                        {/* Expanded memo input */}
+                        {(item.type === 'unrecorded' || item.type === 'notice') && onButtonAction && isExpanded && (
+                            <div className="mt-6 space-y-3">
+                                <textarea
+                                    value={memoText}
+                                    onChange={(e) => setMemoText(e.target.value)}
+                                    placeholder="何が違いましたか？"
+                                    className="w-full p-3 rounded-xl border border-white/30 bg-white/20 backdrop-blur text-white text-sm placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                                    rows={2}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onTouchStart={(e) => e.stopPropagation()}
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(false);
+                                            setMemoText('');
+                                        }}
+                                        className="flex-1 py-3 px-4 rounded-full border border-white/30 text-white font-medium text-sm hover:bg-white/10 active:scale-95 transition-all"
+                                    >
+                                        戻る
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const value = memoText.trim() ? `ちょっと違う: ${memoText.trim()}` : 'ちょっと違う';
+                                            onButtonAction(value);
+                                        }}
+                                        className="flex-1 py-3 px-4 rounded-full bg-white text-slate-900 font-medium text-sm hover:bg-white/90 active:scale-95 transition-all"
+                                    >
+                                        記録する
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -200,6 +257,7 @@ const SwipeableCard = ({ item, onSwipe, onVerticalSwipe, onButtonAction, isTop }
 
 export function CatchUpStack({
     items,
+    cats = [],
     onAction,
     onIndexChange,
     onVerticalSwipe
@@ -229,6 +287,10 @@ export function CatchUpStack({
     const currentItem = items[currentIndex];
     const nextItem = items[currentIndex + 1];
 
+    // Find cats for current and next items
+    const currentCat = currentItem?.catId ? cats.find(c => c.id === currentItem.catId) : undefined;
+    const nextCat = nextItem?.catId ? cats.find(c => c.id === nextItem.catId) : undefined;
+
     return (
         <div className="absolute inset-0">
             <AnimatePresence>
@@ -238,6 +300,7 @@ export function CatchUpStack({
                             <SwipeableCard
                                 key={nextItem.id + "_back"}
                                 item={nextItem}
+                                cat={nextCat}
                                 onSwipe={() => { }}
                                 isTop={false}
                             />
@@ -245,6 +308,7 @@ export function CatchUpStack({
                         <SwipeableCard
                             key={currentItem.id}
                             item={currentItem}
+                            cat={currentCat}
                             onSwipe={handleSwipe}
                             onVerticalSwipe={onVerticalSwipe}
                             onButtonAction={(currentItem.type === 'unrecorded' || currentItem.type === 'notice') ? handleButtonAction : undefined}

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
 import { getIcon } from "@/lib/icon-utils";
+import { createClient } from "@/lib/supabase";
 
 interface CheckItem {
     id: string;
@@ -42,6 +43,27 @@ export function CheckSection() {
     useEffect(() => {
         setCurrentHour(new Date().getHours());
     }, []);
+
+    // Random background image from active cat's gallery
+    const [bgImage, setBgImage] = useState<string | null>(null);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const activeCat = cats.find(c => c.id === activeCatId);
+            if (activeCat?.images && activeCat.images.length > 0) {
+                const randomImg = activeCat.images[Math.floor(Math.random() * activeCat.images.length)];
+                setBgImage(randomImg.storagePath);
+            } else {
+                setBgImage(null);
+            }
+        }
+    }, [activeCatId, cats]);
+
+    // Helper to get public URL
+    const getPublicUrl = (path: string) => {
+        const supabase = createClient();
+        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+        return data.publicUrl;
+    };
 
     // Meal slot utilities
     const getCurrentMealSlot = (hour: number): 'morning' | 'noon' | 'evening' | 'night' => {
@@ -81,7 +103,16 @@ export function CheckSection() {
         const slotOrder: ('morning' | 'noon' | 'evening' | 'night')[] = ['morning', 'noon', 'evening', 'night'];
         const currentSlotIndex = slotOrder.indexOf(currentSlot);
 
-        const enabledTasks = careTaskDefs.filter(def => def.enabled !== false);
+        const enabledTasks = careTaskDefs
+            .filter(def => def.enabled !== false)
+            .filter(def => {
+                // Filter by targetCatIds if set
+                if (def.perCat && def.targetCatIds && def.targetCatIds.length > 0) {
+                    return def.targetCatIds.includes(activeCatId);
+                }
+                return true;
+            });
+
         const items: CheckItem[] = [];
 
         enabledTasks.forEach(def => {
@@ -155,7 +186,7 @@ export function CheckSection() {
         });
 
         return items;
-    }, [careTaskDefs, careLogs, addCareLog, currentHour]);
+    }, [careTaskDefs, careLogs, addCareLog, currentHour, activeCatId]);
 
     // Get ABNORMAL observation items for active cat (items marked as "注意" today)
     const pendingObservationItems: CheckItem[] = useMemo(() => {
@@ -265,92 +296,105 @@ export function CheckSection() {
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
-            {/* Header Row - Compact */}
-            <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    ピックアップ
-                </h3>
-                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {totalCount}
-                </span>
-            </div>
+        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
+            {bgImage && (
+                <>
+                    <img
+                        src={getPublicUrl(bgImage)}
+                        alt="Background"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    />
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px]" />
+                </>
+            )}
 
-            {/* Items List - Compact */}
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {/* Care Items */}
-                {pendingCareItems.map(item => (
-                    <div
-                        key={item.id}
-                        className="flex items-center justify-between px-4 py-2.5"
-                    >
-                        <div className="flex items-center gap-2">
-                            {item.icon ? (
-                                React.createElement(getIcon(item.icon), { className: "h-3.5 w-3.5 text-primary" })
-                            ) : (
-                                <Heart className="h-3.5 w-3.5 text-primary" />
-                            )}
-                            <span className="text-sm text-slate-700 dark:text-slate-200">
-                                {item.label}
-                            </span>
-                        </div>
-                        <button
-                            onClick={item.onAction}
-                            className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
-                        >
-                            完了
-                        </button>
-                    </div>
-                ))}
+            <div className="relative z-10">
+                {/* Header Row - Compact */}
+                <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        ピックアップ
+                    </h3>
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {totalCount}
+                    </span>
+                </div>
 
-                {/* Observation Items */}
-                {pendingObservationItems.map(item => (
-                    <div
-                        key={item.id}
-                        className="flex items-center justify-between px-4 py-2.5"
-                    >
-                        <div className="flex items-center gap-2">
-                            <Cat className="h-3.5 w-3.5 text-primary" />
-                            <span className="text-sm text-slate-700 dark:text-slate-200">
-                                {item.label}
-                            </span>
-                            <span className="text-xs text-slate-400">({item.catName})</span>
-                        </div>
-                        <button
-                            onClick={item.onAction}
-                            className="text-xs font-bold px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:bg-emerald-300 active:scale-95 transition-all"
+                {/* Items List - Compact */}
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {/* Care Items */}
+                    {pendingCareItems.map(item => (
+                        <div
+                            key={item.id}
+                            className="flex items-center justify-between px-4 py-2.5"
                         >
-                            確認済
-                        </button>
-                    </div>
-                ))}
+                            <div className="flex items-center gap-2">
+                                {item.icon ? (
+                                    React.createElement(getIcon(item.icon), { className: "h-3.5 w-3.5 text-primary" })
+                                ) : (
+                                    <Heart className="h-3.5 w-3.5 text-primary" />
+                                )}
+                                <span className="text-sm text-slate-700 dark:text-slate-200">
+                                    {item.label}
+                                </span>
+                            </div>
+                            <button
+                                onClick={item.onAction}
+                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
+                            >
+                                完了
+                            </button>
+                        </div>
+                    ))}
 
-                {/* Inventory Items */}
-                {urgentInventoryItems.map(item => (
-                    <div
-                        key={item.id}
-                        className="flex items-center justify-between px-4 py-2.5"
-                    >
-                        <div className="flex items-center gap-2">
-                            <ShoppingCart className="h-3.5 w-3.5 text-primary" />
-                            <span className="text-sm text-slate-700 dark:text-slate-200">
-                                {item.label}
-                            </span>
-                            <span className={cn(
-                                "text-xs px-1.5 py-0.5 rounded-full font-medium",
-                                item.stockLevel === 'empty' ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
-                            )}>
-                                {item.stockLevel === 'empty' ? 'なし' : '少ない'}
-                            </span>
-                        </div>
-                        <button
-                            onClick={item.onAction}
-                            className="text-xs font-bold px-4 py-1.5 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 active:bg-amber-300 active:scale-95 transition-all"
+                    {/* Observation Items */}
+                    {pendingObservationItems.map(item => (
+                        <div
+                            key={item.id}
+                            className="flex items-center justify-between px-4 py-2.5"
                         >
-                            補充済み
-                        </button>
-                    </div>
-                ))}
+                            <div className="flex items-center gap-2">
+                                <Cat className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-sm text-slate-700 dark:text-slate-200">
+                                    {item.label}
+                                </span>
+                                <span className="text-xs text-slate-400">({item.catName})</span>
+                            </div>
+                            <button
+                                onClick={item.onAction}
+                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:bg-emerald-300 active:scale-95 transition-all"
+                            >
+                                確認済
+                            </button>
+                        </div>
+                    ))}
+
+                    {/* Inventory Items */}
+                    {urgentInventoryItems.map(item => (
+                        <div
+                            key={item.id}
+                            className="flex items-center justify-between px-4 py-2.5"
+                        >
+                            <div className="flex items-center gap-2">
+                                <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-sm text-slate-700 dark:text-slate-200">
+                                    {item.label}
+                                </span>
+                                <span className={cn(
+                                    "text-xs px-1.5 py-0.5 rounded-full font-medium",
+                                    item.stockLevel === 'empty' ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                                )}>
+                                    {item.stockLevel === 'empty' ? 'なし' : '少ない'}
+                                </span>
+                            </div>
+                            <button
+                                onClick={item.onAction}
+                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 active:bg-amber-300 active:scale-95 transition-all"
+                            >
+                                補充済み
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

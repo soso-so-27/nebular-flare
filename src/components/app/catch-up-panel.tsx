@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { CatchUpStack } from "./catch-up-stack";
 import { cn } from "@/lib/utils";
 
+import { Cat } from "@/types";
+
 interface CatchUpPanelProps {
     summary: string;
     items: CatchUpItem[];
     remainingCount: number;
+    cats?: Cat[];
     onAction: (item: CatchUpItem, action: 'done' | 'later') => void;
     onClearAll: () => void;
     onSeeMore: () => void;
@@ -22,6 +25,7 @@ type TabType = 'status' | 'care';
 export function CatchUpPanel({
     summary,
     items,
+    cats = [],
     onAction,
     onClearAll,
     onSeeMore,
@@ -144,6 +148,7 @@ export function CatchUpPanel({
                     <CatchUpStack
                         key={activeTab} // Reset stack when tab changes
                         items={currentItems}
+                        cats={cats}
                         onAction={onAction}
                         onIndexChange={(idx) => {
                             setProgressIndex(idx);

@@ -169,8 +169,11 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                 ? "bg-amber-500 text-white shadow-lg"
                                 : "bg-white text-slate-700 border border-slate-200"
                                 }`}
-                        >
+                        >{(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
+                            <img src={cat.avatar} alt={cat.name} className="w-6 h-6 rounded-full object-cover" />
+                        ) : (
                             <span className="text-lg">{cat.avatar || "🐈"}</span>
+                        )}
                             <span className="font-bold text-sm">{cat.name}</span>
                         </button>
                     ))}
@@ -181,8 +184,12 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     <Card className="rounded-3xl shadow-sm border-none bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
                         <CardContent className="p-5">
                             <div className="flex items-center gap-4">
-                                <div className="h-16 w-16 rounded-2xl bg-white shadow-inner flex items-center justify-center">
-                                    <span className="text-3xl">{selectedCat.avatar || "🐈"}</span>
+                                <div className="h-16 w-16 rounded-2xl bg-white shadow-inner flex items-center justify-center overflow-hidden">
+                                    {(selectedCat.avatar?.startsWith('http') || selectedCat.avatar?.startsWith('/')) ? (
+                                        <img src={selectedCat.avatar} alt={selectedCat.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-3xl">{selectedCat.avatar || "🐈"}</span>
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                     <h2 className="text-lg font-bold text-slate-900">{selectedCat.name}</h2>
@@ -271,6 +278,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                             <div className="w-full h-full relative" style={{ touchAction: 'none' }}>
                                 <CatchUpStack
                                     items={catchupItems}
+                                    cats={cats}
                                     onAction={(item, action, value) => {
                                         // Save for undo
                                         setLastAction({ item, action, prevIndex: progressIndex });

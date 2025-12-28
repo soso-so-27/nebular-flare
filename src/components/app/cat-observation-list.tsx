@@ -178,8 +178,11 @@ export function CatObservationList() {
                                     ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
                                     : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200"
                             )}
-                        >
+                        >{(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
+                            <img src={cat.avatar} alt={cat.name} className="w-4 h-4 rounded-full object-cover" />
+                        ) : (
                             <span className="text-sm">{cat.avatar || "🐈"}</span>
+                        )}
                             {cat.name}
                         </button>
                     ))}

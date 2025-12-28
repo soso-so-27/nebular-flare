@@ -267,6 +267,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange }: Car
                             <div className="w-full h-full relative" style={{ touchAction: 'none' }}>
                                 <CatchUpStack
                                     items={catchupItems}
+                                    cats={cats}
                                     onAction={(item, action) => {
                                         setLastAction({ item, action, prevIndex: progressIndex });
                                         handleCatchupAction(item, action);

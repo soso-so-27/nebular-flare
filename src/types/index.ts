@@ -1,3 +1,11 @@
+export type CatWeightRecord = {
+  id: string;
+  cat_id: string;
+  weight: number;
+  recorded_at: string;
+  notes?: string;
+};
+
 export type Cat = {
   id: string;
   name: string;
@@ -5,6 +13,21 @@ export type Cat = {
   sex: string;
   avatar?: string;
   birthday?: string;
+  weight?: number; // Weight in kg
+  microchip_id?: string; // Microchip ID
+  notes?: string; // Additional notes
+  images?: CatImage[];
+  weightHistory?: CatWeightRecord[];
+};
+
+export type CatImage = {
+  id: string;
+  catId: string;
+  storagePath: string;
+  createdAt: string;
+  isFavorite: boolean;
+  width?: number;
+  height?: number;
 };
 
 export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY' | 'MEMO';

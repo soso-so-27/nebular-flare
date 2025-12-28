@@ -36,6 +36,10 @@ import { getIcon } from "@/lib/icon-utils";
 import { CareSettingsModal } from "./care-settings-modal";
 import { NoticeSettingsModal } from "./notice-settings-modal";
 import { InventorySettingsModal } from "./inventory-settings-modal";
+import { CatGalleryModal } from "./cat-gallery-modal";
+import { QuickActionBar } from "./quick-action-bar";
+import { ActivityFeed } from "./activity-feed";
+import { Image as ImageIcon } from "lucide-react";
 
 export function HomeScreen() {
     const {
@@ -82,6 +86,7 @@ export function HomeScreen() {
     const [isCareSettingsOpen, setIsCareSettingsOpen] = useState(false);
     const [isNoticeSettingsOpen, setIsNoticeSettingsOpen] = useState(false);
     const [isInventorySettingsOpen, setIsInventorySettingsOpen] = useState(false);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     const [obsValues, setObsValues] = useState<Record<string, string>>({}); // For count inputs
     const activeCat = cats.find(c => c.id === activeCatId);
     const { dayStartHour } = settings;
@@ -391,6 +396,15 @@ export function HomeScreen() {
                     transition={{ delay: 0.1 }}
                 >
                     <CheckSection />
+                </motion.div>
+
+                {/* Quick Action Bar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                >
+                    <QuickActionBar />
                 </motion.div>
 
                 {/* Section Boxes - Clickable */}
@@ -1006,12 +1020,21 @@ export function HomeScreen() {
                         </div>
                     )}
                 </motion.div>
+
+                {/* Activity Feed */}
+                <ActivityFeed />
             </div>
 
             {/* Settings Modals */}
             <CareSettingsModal isOpen={isCareSettingsOpen} onClose={() => setIsCareSettingsOpen(false)} />
             <NoticeSettingsModal isOpen={isNoticeSettingsOpen} onClose={() => setIsNoticeSettingsOpen(false)} />
             <InventorySettingsModal isOpen={isInventorySettingsOpen} onClose={() => setIsInventorySettingsOpen(false)} />
+            <CatGalleryModal
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                catId={activeCatId}
+                catName={activeCat?.name || '猫'}
+            />
         </div>
     );
 }

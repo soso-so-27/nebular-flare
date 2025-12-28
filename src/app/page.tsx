@@ -14,7 +14,7 @@ import { MoreScreen } from "@/components/app/more-screen";
 import { LoginScreen } from "@/components/app/login-screen";
 import { OnboardingScreen } from "@/components/app/onboarding-screen";
 import { Toaster } from "@/components/ui/sonner";
-import { Home as HomeIcon, Heart, Cat, Image } from "lucide-react";
+import { Home as HomeIcon, Heart, Cat, Image, Activity } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { TwinFAB } from "@/components/app/twin-fab";
 import { useAppState } from "@/store/app-store";
@@ -48,7 +48,7 @@ function AppContent() {
 
   const tabItems = [
     { id: "home", label: "ホーム", Icon: HomeIcon },
-    { id: "gallery", label: "ギャラリー", Icon: Image },
+    { id: "gallery", label: "猫", Icon: Cat },
   ];
 
   // Handle FAB clicks - show swipe overlay on home
@@ -64,7 +64,7 @@ function AppContent() {
 
   return (
     <>
-      <main className="min-h-dvh bg-background dark:bg-slate-950 pb-24">
+      <main className="min-h-dvh bg-background dark:bg-slate-950 pb-32 pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto p-4 space-y-4">
           <TopBar
             onSettingsClick={() => setTab("settings")}
@@ -93,37 +93,81 @@ function AppContent() {
         </div>
       </main>
 
-      {/* Twin FAB - outside main */}
-      <TwinFAB
-        careCount={careCount}
-        catCount={catCount}
-        onCareClick={handleCareFABClick}
-        onCatClick={handleCatFABClick}
-      />
-
-      {/* Navigation - outside main, fixed at very bottom */}
+      {/* Navigation - fixed at very bottom */}
       <nav
-        className="fixed bottom-0 inset-x-0 backdrop-blur-xl border-t border-black/5 flex items-center justify-center gap-16 z-50"
+        className="fixed bottom-0 inset-x-0 backdrop-blur-xl border-t border-black/5 flex items-center justify-around z-50"
         style={{
-          backgroundColor: 'rgba(245, 240, 230, 0.85)',
+          backgroundColor: 'rgba(245, 240, 230, 0.95)',
           paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
-          paddingTop: '10px',
-          height: 'calc(60px + env(safe-area-inset-bottom, 0px))'
+          paddingTop: '12px',
+          height: 'calc(64px + env(safe-area-inset-bottom, 0px))'
         }}
       >
-        {tabItems.map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex flex-col items-center gap-1 transition-all duration-200 ${tab === id ? "text-primary scale-110" : "text-muted-foreground opacity-60 hover:opacity-100"
-              }`}
-          >
-            <div className={`p-2 rounded-2xl ${tab === id ? "bg-primary/10" : ""}`}>
-              <Icon className="h-5 w-5" />
-            </div>
-            <span className={`text-[10px] font-bold ${tab === id ? "" : "font-medium"}`}>{label}</span>
-          </button>
-        ))}
+        {/* Home */}
+        <button
+          onClick={() => {
+            setTab("home");
+            setCareSwipeMode(false);
+            setCatSwipeMode(false);
+          }}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+        >
+          <HomeIcon className="h-6 w-6" />
+          <span className="text-[10px] font-bold">ホーム</span>
+        </button>
+
+        {/* Care (Overlay) */}
+        <button
+          onClick={() => {
+            setTab("home");
+            setCatSwipeMode(false);
+            setCareSwipeMode(true);
+          }}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${careSwipeMode ? "text-amber-500 scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+        >
+          <div className="relative">
+            <Heart className="h-6 w-6" />
+            {careCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center border border-white">
+                {careCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-bold">お世話</span>
+        </button>
+
+        {/* Health (Overlay) - renamed from "Record" */}
+        <button
+          onClick={() => {
+            setTab("home");
+            setCareSwipeMode(false);
+            setCatSwipeMode(true);
+          }}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${catSwipeMode ? "text-amber-500 scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+        >
+          <div className="relative">
+            <Activity className="h-6 w-6" />
+            {catCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center border border-white">
+                {catCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-bold">体調</span>
+        </button>
+
+        {/* Album (Gallery) - renamed from "Cat" */}
+        <button
+          onClick={() => {
+            setTab("gallery");
+            setCareSwipeMode(false);
+            setCatSwipeMode(false);
+          }}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "gallery" ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+        >
+          <Cat className="h-6 w-6" />
+          <span className="text-[10px] font-bold">猫</span>
+        </button>
       </nav>
     </>
   );

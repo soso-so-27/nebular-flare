@@ -60,6 +60,9 @@ export interface Database {
                     avatar: string | null;
                     sex: string | null;
                     birthday: string | null;
+                    weight: number | null;
+                    microchip_id: string | null;
+                    notes: string | null;
                     created_at: string;
                     deleted_at: string | null;
                     created_by: string | null;
@@ -71,6 +74,9 @@ export interface Database {
                     avatar?: string | null;
                     sex?: string | null;
                     birthday?: string | null;
+                    weight?: number | null;
+                    microchip_id?: string | null;
+                    notes?: string | null;
                     created_at?: string;
                     deleted_at?: string | null;
                     created_by?: string | null;
@@ -82,6 +88,9 @@ export interface Database {
                     avatar?: string | null;
                     sex?: string | null;
                     birthday?: string | null;
+                    weight?: number | null;
+                    microchip_id?: string | null;
+                    notes?: string | null;
                     created_at?: string;
                     deleted_at?: string | null;
                     created_by?: string | null;
@@ -154,6 +163,8 @@ export interface Database {
                     range_min: number;
                     range_max: number;
                     deleted_at: string | null;
+                    stock_level: string;
+                    alert_enabled: boolean;
                 };
                 Insert: {
                     id?: string;
@@ -163,6 +174,8 @@ export interface Database {
                     range_min?: number;
                     range_max?: number;
                     deleted_at?: string | null;
+                    stock_level?: string;
+                    alert_enabled?: boolean;
                 };
                 Update: {
                     id?: string;
@@ -171,6 +184,148 @@ export interface Database {
                     last_bought?: string | null;
                     range_min?: number;
                     range_max?: number;
+                    deleted_at?: string | null;
+                    stock_level?: string;
+                    alert_enabled?: boolean;
+                };
+            };
+            cat_weight_history: {
+                Row: {
+                    id: string;
+                    cat_id: string;
+                    weight: number;
+                    recorded_at: string;
+                    notes: string | null;
+                    created_by: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    cat_id: string;
+                    weight: number;
+                    recorded_at?: string;
+                    notes?: string | null;
+                    created_by?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    cat_id?: string;
+                    weight?: number;
+                    recorded_at?: string;
+                    notes?: string | null;
+                    created_by?: string | null;
+                };
+            };
+            cat_images: {
+                Row: {
+                    id: string;
+                    cat_id: string;
+                    storage_path: string;
+                    created_at: string;
+                    is_favorite: boolean;
+                };
+                Insert: {
+                    id?: string;
+                    cat_id: string;
+                    storage_path: string;
+                    created_at?: string;
+                    is_favorite?: boolean;
+                };
+                Update: {
+                    id?: string;
+                    cat_id?: string;
+                    storage_path?: string;
+                    created_at?: string;
+                    is_favorite?: boolean;
+                };
+            };
+            care_task_defs: {
+                Row: {
+                    id: string;
+                    household_id: string;
+                    title: string;
+                    icon: string;
+                    frequency: string;
+                    time_of_day: string | null;
+                    meal_slots: Json | null;
+                    per_cat: boolean | null;
+                    enabled: boolean | null;
+                    created_at: string;
+                    deleted_at: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    household_id: string;
+                    title: string;
+                    icon: string;
+                    frequency: string;
+                    time_of_day?: string | null;
+                    meal_slots?: Json | null;
+                    per_cat?: boolean | null;
+                    enabled?: boolean | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    household_id?: string;
+                    title?: string;
+                    icon?: string;
+                    frequency?: string;
+                    time_of_day?: string | null;
+                    meal_slots?: Json | null;
+                    per_cat?: boolean | null;
+                    enabled?: boolean | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                };
+            };
+            notice_defs: {
+                Row: {
+                    id: string;
+                    household_id: string;
+                    title: string;
+                    kind: string | null;
+                    cadence: string | null;
+                    due: string | null;
+                    choices: string[] | null;
+                    input_type: string | null;
+                    category: string | null;
+                    required: boolean | null;
+                    enabled: boolean | null;
+                    optional: boolean | null;
+                    created_at: string;
+                    deleted_at: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    household_id: string;
+                    title: string;
+                    kind?: string | null;
+                    cadence?: string | null;
+                    due?: string | null;
+                    choices?: string[] | null;
+                    input_type?: string | null;
+                    category?: string | null;
+                    required?: boolean | null;
+                    enabled?: boolean | null;
+                    optional?: boolean | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    household_id?: string;
+                    title?: string;
+                    kind?: string | null;
+                    cadence?: string | null;
+                    due?: string | null;
+                    choices?: string[] | null;
+                    input_type?: string | null;
+                    category?: string | null;
+                    required?: boolean | null;
+                    enabled?: boolean | null;
+                    optional?: boolean | null;
+                    created_at?: string;
                     deleted_at?: string | null;
                 };
             };

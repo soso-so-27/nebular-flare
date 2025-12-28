@@ -9,6 +9,7 @@ import { Settings as SettingsIcon, Sparkles, User, Info, Cat, LogOut } from "luc
 import { useAppState } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { CatSettingsModal } from "./cat-settings-modal";
+import { FamilyMemberModal } from "./family-member-modal";
 import { toast } from "sonner";
 
 export function MoreScreen() {
@@ -16,6 +17,7 @@ export function MoreScreen() {
     const { user, signOut } = useAuth();
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
 
     const handleLogout = async () => {
         if (isDemo) {
@@ -134,24 +136,19 @@ export function MoreScreen() {
             <div className="grid grid-cols-2 gap-3">
                 <Button
                     variant="outline"
-                    onClick={() => setIsCatModalOpen(true)}
+                    onClick={() => setIsFamilyModalOpen(true)}
                     className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700"
                 >
-                    <Cat className="h-4 w-4 text-primary" />
-                    猫を管理
-                    <span className="text-[10px] text-muted-foreground font-normal">{cats.length}匹登録中</span>
-                </Button>
-                <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700">
                     <User className="h-4 w-4 text-slate-400" />
                     家族を招待
                 </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700">
                     <Sparkles className="h-4 w-4 text-slate-400" />
                     スキン
                 </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700">
                     <Info className="h-4 w-4 text-slate-400" />
                     使い方
@@ -214,6 +211,9 @@ export function MoreScreen() {
 
             {/* Cat Settings Modal */}
             <CatSettingsModal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} />
+
+            {/* Family Member Modal */}
+            <FamilyMemberModal isOpen={isFamilyModalOpen} onClose={() => setIsFamilyModalOpen(false)} />
 
         </div>
     );

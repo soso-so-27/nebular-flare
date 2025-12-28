@@ -59,6 +59,13 @@ type AppState = {
     setFcmToken: (token: string | null) => void;
     // Defaults
     initializeDefaults: () => Promise<void>;
+    // Cat Gallery
+    uploadCatImage: (catId: string, file: File, skipRefetch?: boolean) => Promise<{ error?: any; data?: any }>;
+    updateCatImage: (imageId: string, updates: Partial<any>) => Promise<{ error?: any }>;
+    deleteCatImage: (imageId: string, storagePath: string) => Promise<{ error?: any }>;
+    // Cat Profile
+    updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
+    addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -74,10 +81,10 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [aiEnabled, setAiEnabled] = useState(true);
     const [activeCatId, setActiveCatId] = useState('');
 
-    // Demo mode: use hardcoded cats
+    // Demo mode: use hardcoded cats with real images
     const demoCats: Cat[] = useMemo(() => [
-        { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "🐈" },
-        { id: "c2", name: "雨", age: "2才", sex: "オス", avatar: "🐈‍⬛" },
+        { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png" },
+        { id: "c2", name: "雨", age: "2才", sex: "オス", avatar: "/demo-cat-2.png" },
     ], []);
 
     // Use Supabase cats or demo cats based on mode
@@ -210,6 +217,22 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             sex: c.sex || 'オス',
             avatar: c.avatar || '🐈',
             birthday: c.birthday || undefined,
+            images: (c as any).images?.map((img: any) => ({
+                id: img.id,
+                storagePath: img.storage_path,
+                createdAt: img.created_at,
+                isFavorite: img.is_favorite,
+            })) || [],
+            weightHistory: (c as any).weight_history?.map((wh: any) => ({
+                id: wh.id,
+                weight: wh.weight,
+                recorded_at: wh.recorded_at,
+                notes: wh.notes
+            })) || [],
+            // Map new profile fields
+            weight: (c as any).weight,
+            microchip_id: (c as any).microchip_id,
+            notes: (c as any).notes,
         }));
     }, [isDemo, supabaseCats, demoCats]);
 
@@ -691,6 +714,177 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         }
     };
 
+    const uploadCatImage = async (catId: string, file: File, skipRefetch = false) => {
+        if (isDemo) return { error: null }; // Mock success
+
+        try {
+            // 1. Upload to Storage
+            const ext = file.name.split('.').pop();
+            const fileName = `${catId}/${crypto.randomUUID()}.${ext}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+            // 3. Insert into DB
+            const { data: dbData, error: dbError } = await supabase
+                .from('cat_images')
+                .insert({
+                    cat_id: catId,
+                    storage_path: fileName,
+                })
+                .select()
+                .single();
+
+            if (dbError) throw dbError;
+
+            // 4. Update Cat Avatar if it's currently default
+            const currentCat = cats.find(c => c.id === catId);
+            const isDefaultAvatar = currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar);
+
+            if (isDefaultAvatar) {
+                await supabase.from('cats').update({ avatar: publicUrl }).eq('id', catId);
+            }
+
+            // 5. Refresh cats to update UI
+            if (!skipRefetch && !isDefaultAvatar) {
+                // Only refetch if not skipping AND not already updating avatar (avatar update triggers realtime)
+                refetchCats();
+            } else if (isDefaultAvatar) {
+                // If we updated avatar, realtime handles it? 
+                // Wait, realtime "cats" table update triggers fetchCats(). 
+                // So we can skip manual refetch even if skipRefetch is false.
+                // But let's be safe. If skipRefetch is true, we assume caller handles it.
+            }
+
+            // Simplified logic:
+            if (!skipRefetch) {
+                refetchCats();
+            }
+
+            return { data: dbData };
+
+        } catch (e: any) {
+            console.error(e);
+            return { error: e.message };
+        }
+    };
+
+    const deleteCatImage = async (imageId: string, storagePath: string) => {
+        if (isDemo) return { error: null };
+
+        try {
+            // 1. Delete from Storage
+            const { error: storageError } = await supabase.storage
+                .from('avatars')
+                .remove([storagePath]);
+
+            if (storageError) console.warn("Storage delete failed", storageError);
+
+            // 2. Delete from DB
+            const { error: dbError } = await supabase
+                .from('cat_images')
+                .delete()
+                .eq('id', imageId);
+
+            if (dbError) throw dbError;
+
+            refetchCats();
+            return {};
+        } catch (e: any) {
+            return { error: e.message };
+        }
+    };
+
+    // Update Cat Image (e.g. reassign cat_id)
+    const updateCatImage = async (imageId: string, updates: Partial<any>): Promise<{ error?: any }> => {
+        if (isDemo) return { error: null };
+
+        try {
+            const supabase = createClient() as any;
+            const { error } = await supabase
+                .from('cat_images')
+                .update(updates)
+                .eq('id', imageId);
+
+            if (error) throw error;
+
+            refetchCats();
+            return {};
+        } catch (e: any) {
+            return { error: e.message };
+        }
+    };
+
+    // Update Cat Profile
+    // Update Cat Profile
+    // Update Cat Profile
+    const updateCat = async (catId: string, updates: Partial<Cat>): Promise<{ error?: any }> => {
+        if (isDemo) {
+            return {};
+        }
+
+        try {
+            const supabase = createClient() as any;
+            const { error } = await supabase
+                .from('cats')
+                .update(updates)
+                .eq('id', catId);
+
+            if (error) {
+                console.error('Error updating cat:', error);
+                return { error };
+            }
+
+            // Refetch cats to update local state
+            await refetchCats?.();
+            return {};
+        } catch (e: any) {
+            return { error: e.message };
+        }
+    };
+
+    // Add Cat Weight Record
+    const addCatWeightRecord = async (catId: string, weight: number, notes?: string): Promise<{ error?: any }> => {
+        if (isDemo) {
+            return {};
+        }
+
+        try {
+            const supabase = createClient() as any;
+
+            // 1. Insert into history
+            const { error: historyError } = await supabase
+                .from('cat_weight_history')
+                .insert({
+                    cat_id: catId,
+                    weight: weight,
+                    notes: notes,
+                    recorded_at: new Date().toISOString()
+                });
+
+            if (historyError) throw historyError;
+
+            // 2. Update current weight on cat profile
+            const { error: updateError } = await supabase
+                .from('cats')
+                .update({ weight })
+                .eq('id', catId);
+
+            if (updateError) throw updateError;
+
+            // Update local state
+            refetchCats();
+            return {};
+        } catch (e: any) {
+            return { error: e.message };
+        }
+    };
+
     const value: AppState = {
         isPro: settings.plan === 'Pro',
         setIsPro: (v) => setSettings(s => ({ ...s, plan: v ? 'Pro' : 'Free' })),
@@ -732,6 +926,12 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         fcmToken,
         setFcmToken,
         initializeDefaults,
+        uploadCatImage,
+        updateCatImage,
+        deleteCatImage,
+        // Cat Profile
+        updateCat,
+        addCatWeightRecord,
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
