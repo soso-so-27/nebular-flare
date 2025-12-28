@@ -21,14 +21,14 @@ import { useAppState } from "@/store/app-store";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 
 import { NotificationModal } from "@/components/app/notification-modal";
-import { ObservationHistoryModal } from "@/components/app/observation-history-modal";
+import { CalendarModal } from "@/components/app/calendar-modal";
 
 function AppContent() {
   const [tab, setTab] = useState("home");
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Get catchup items for FAB badges
   const { tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs } = useAppState();
@@ -71,15 +71,15 @@ function AppContent() {
           <TopBar
             onSettingsClick={() => setTab("settings")}
             onNotificationClick={() => setShowNotifications(true)}
-            onHistoryClick={() => setShowHistory(true)}
+            onHistoryClick={() => setShowCalendar(true)}
           />
           <NotificationModal
             isOpen={showNotifications}
             onClose={() => setShowNotifications(false)}
           />
-          <ObservationHistoryModal
-            isOpen={showHistory}
-            onClose={() => setShowHistory(false)}
+          <CalendarModal
+            isOpen={showCalendar}
+            onClose={() => setShowCalendar(false)}
           />
 
           {tab === "home" && (

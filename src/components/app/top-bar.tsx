@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Settings, Bell, History, User } from "lucide-react";
+import { Settings, Bell, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppState } from "@/store/app-store";
@@ -34,7 +34,7 @@ export function TopBar({ onSettingsClick, onNotificationClick, onHistoryClick }:
             </div>
             <div className="flex items-center gap-1">
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={onHistoryClick}>
-                    <History className="h-4 w-4 text-slate-500" />
+                    <Calendar className="h-4 w-4 text-slate-500" />
                 </Button>
                 <Button
                     variant="ghost"
