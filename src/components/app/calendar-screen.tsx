@@ -163,40 +163,38 @@ export function CalendarScreen() {
                     {events
                         .filter(e => isSameDay(new Date(e.at), selectedDate))
                         .map(e => (
-                            <Card key={e.id} className="rounded-xl shadow-none border-b border-slate-100 bg-white px-3 py-2 flex items-center gap-2 last:border-0">
+                            <div key={e.id} className="rounded-xl shadow-none border border-slate-100 bg-white px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0">
                                 <Badge variant="outline" className="text-[10px] h-4 px-1 font-bold border-orange-200 text-orange-700 bg-orange-50 shrink-0">
                                     {e.type === 'vet' ? '通院' : e.type === 'med' ? '薬' : '他'}
                                 </Badge>
-                                <div className="min-w-0 flex-1 flex items-center gap-2">
-                                    <span className="text-[10px] font-mono text-slate-400">
+                                <div className="min-w-0 flex-1 flex flex-row items-center gap-2">
+                                    <span className="text-[10px] font-mono text-slate-400 shrink-0">
                                         {format(new Date(e.at), 'HH:mm')}
                                     </span>
                                     <p className="text-xs font-bold text-slate-700 truncate">{e.title}</p>
                                 </div>
-                            </Card>
+                            </div>
                         ))
                     }
 
                     {/* Past Records */}
                     {dayRecords.map(r => (
-                        <Card key={r.id} className="rounded-xl shadow-none border-b border-slate-100 bg-white px-3 py-2 flex items-center gap-2 last:border-0 hover:bg-slate-50 transition-colors group">
+                        <div key={r.id} className="rounded-xl shadow-none border border-slate-100 bg-white px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0 hover:bg-slate-50 transition-colors group">
                             <div className={`
-                                w-6 h-6 rounded-full flex items-center justify-center shrink-0
+                                w-5 h-5 rounded-full flex items-center justify-center shrink-0
                                 ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
                             `}>
                                 {r.sourceType === 'care' ? <Check className="w-3 h-3" /> : <Stethoscope className="w-3 h-3" />}
                             </div>
-                            <div className="min-w-0 flex-1 flex flex-col">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-mono text-slate-400">
-                                        {format(new Date(r.time), 'HH:mm')}
-                                    </span>
-                                    <p className="text-xs font-bold text-slate-700 truncate">{r.title}</p>
-                                </div>
-                                <p className="text-[10px] text-slate-400 pl-[38px] -mt-1 truncate">
+                            <div className="min-w-0 flex-1 flex flex-row items-center gap-2 overflow-hidden">
+                                <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                    {format(new Date(r.time), 'HH:mm')}
+                                </span>
+                                <p className="text-xs font-bold text-slate-700 truncate">{r.title}</p>
+                                <span className="text-[10px] text-slate-400 truncate flex-1 text-right">
                                     {r.subtitle}
-                                    {r.isAcknowledged && <span className="ml-1 text-emerald-500">✓</span>}
-                                </p>
+                                </span>
+                                {r.isAcknowledged && <span className="text-emerald-500 text-[10px]">✓</span>}
                             </div>
                             <Button
                                 variant="ghost"
@@ -206,7 +204,7 @@ export function CalendarScreen() {
                             >
                                 <Trash2 className="w-3 h-3" />
                             </Button>
-                        </Card>
+                        </div>
                     ))}
 
                     {/* Empty State */}
