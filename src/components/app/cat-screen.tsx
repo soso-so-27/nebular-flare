@@ -29,7 +29,11 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
         settings,
         careTaskDefs,
         careLogs,
-        noticeDefs
+        noticeDefs,
+        observations,
+        isDemo,
+        addObservation,
+        acknowledgeObservation
     } = useAppState();
     const selectedCat = cats.find(c => c.id === activeCatId) || cats[0];
 
@@ -77,46 +81,60 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             careTaskDefs,
             careLogs,
             noticeDefs,
+            observations,
         });
         return result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded');
-    }, [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
+    }, [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs, observations]);
 
     // FAB will trigger swipe mode - removed auto-show
 
-    function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later', value?: string) {
+    async function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later', value?: string) {
         if (action === 'done' && item.catId) {
             if (item.type === 'notice') {
-                setNoticeLogs(prev => ({
-                    ...prev,
-                    [item.catId!]: {
-                        ...prev[item.catId!],
-                        [item.id]: {
-                            ...item.payload,
-                            done: true,
-                            later: false
-                        }
-                    }
-                }));
-            } else if (item.type === 'unrecorded') {
-                // Use provided value or default to "いつも通り"
-                const noticeId = item.payload?.noticeId;
-                const recordValue = value || 'いつも通り';
-                if (noticeId) {
+                if (isDemo) {
                     setNoticeLogs(prev => ({
                         ...prev,
                         [item.catId!]: {
                             ...prev[item.catId!],
-                            [noticeId]: {
-                                id: `${item.catId}_${noticeId}_${Date.now()}`,
-                                catId: item.catId,
-                                noticeId: noticeId,
-                                value: recordValue,
-                                at: new Date().toISOString(),
+                            [item.id]: {
+                                ...item.payload,
                                 done: true,
                                 later: false
                             }
                         }
                     }));
+                } else {
+                    // Supabase mode: Dismissing an abnormal observation
+                    await acknowledgeObservation(item.id);
+                    // toast.info("確認しました");
+                }
+            } else if (item.type === 'unrecorded') {
+                // Use provided value or default to "いつも通り"
+                const noticeId = item.payload?.noticeId;
+                const recordValue = value || 'いつも通り';
+
+                if (noticeId) {
+                    if (isDemo) {
+                        setNoticeLogs(prev => ({
+                            ...prev,
+                            [item.catId!]: {
+                                ...prev[item.catId!],
+                                [noticeId]: {
+                                    id: `${item.catId}_${noticeId}_${Date.now()}`,
+                                    catId: item.catId,
+                                    noticeId: noticeId,
+                                    value: recordValue,
+                                    at: new Date().toISOString(),
+                                    done: true,
+                                    later: false
+                                }
+                            }
+                        }));
+                    } else {
+                        // Supabase mode: Record observation
+                        await addObservation(item.catId, noticeId, recordValue);
+                        toast.success("記録しました");
+                    }
                 }
             }
         } else {

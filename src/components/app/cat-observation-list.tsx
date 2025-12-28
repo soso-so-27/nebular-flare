@@ -90,16 +90,8 @@ export function CatObservationList() {
                         log.value !== "記録した");
                 } else {
                     // Supabase mode: check observations
-                    // Note: In Supabase mode, we might need to map category to type or use ID matching
-                    // For now, assuming title mapping or existing type logic remains relevant for backend
-                    // BUT for UI display, we use the new category logic.
-                    // Real implementation might need to match by notice_id if backend supports it.
-                    // Falling back to existing type mapping for Supabase compatibility if needed:
-                    const legacyType = notice.title.includes('食欲') ? 'appetite' :
-                        notice.title.includes('トイレ') ? 'toilet' :
-                            notice.title.includes('吐') ? 'vomit' : 'other';
-
-                    const matchingObs = observations.find(o => o.type === legacyType);
+                    // Use UUID directly
+                    const matchingObs = observations.find(o => o.cat_id === activeCatId && o.type === notice.id);
                     isDone = !!matchingObs;
                     value = matchingObs?.value;
                     isAbnormal = !!(matchingObs?.value &&
@@ -144,8 +136,8 @@ export function CatObservationList() {
             toast.success(`${obs.label}: ${value}`);
         } else {
             // Supabase mode: add observation
-            // Use obs.id (which is the UUID from noticeDefs) instead of obs.type (category)
-            const result = await addObservation(obs.id, value);
+            // Use obs.id (which is the UUID from noticeDefs)
+            const result = await addObservation(activeCatId, obs.id, value);
             if (result?.error) {
                 toast.error("記録に失敗しました");
             } else {

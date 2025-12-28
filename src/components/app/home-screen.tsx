@@ -295,7 +295,7 @@ export function HomeScreen() {
             }));
             toast.success(`${label}: ${value}`);
         } else {
-            const result = await addObservation(type, value);
+            const result = await addObservation(activeCatId, type, value);
             if (result?.error) {
                 toast.error("記録に失敗しました");
             } else {

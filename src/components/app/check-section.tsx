@@ -204,11 +204,8 @@ export function CheckSection() {
                     // Show only if recorded as abnormal today (includes memo-appended values)
                     return isToday && log?.done && (log?.value?.startsWith('ちょっと違う') || log?.value === '注意');
                 } else {
-                    const type = notice.title.includes('食欲') ? 'appetite' :
-                        notice.title.includes('トイレ') ? 'toilet' :
-                            notice.title.includes('吐') ? 'vomit' : 'other';
-                    // Show only abnormal observations (includes memo-appended values)
-                    const obs = observations.find(o => o.type === type);
+                    // Filter observations for active cat and matching notice ID (UUID)
+                    const obs = observations.find(o => o.cat_id === activeCatId && o.type === notice.id);
                     return obs && (obs.value?.startsWith('ちょっと違う') || obs.value === '注意');
                 }
             })
@@ -238,22 +235,8 @@ export function CheckSection() {
                         }));
                         toast.success(`${notice.title}: 状態を確認しました`);
                     } else {
-                        // Supabase
-                        // Find matching notice def ID
-                        let typeId = notice.id; // Default to ID if available
-
-                        // If notice.id matches our hardcoded check items, we should find the REAL noticeDef
-                        // stored in supbabase by category/title match
-                        // However, 'notice' here comes from 'urgentNoticeItems' which maps from noticeDefs.
-                        // So notice.id SHOULD be the correct UUID from Supabase if noticeDefs is populated correctly.
-
-                        // The issue was:
-                        // const type = notice.title.includes('食欲') ? 'appetite' : ...
-                        // This was explicitly OVERWRITING the UUID with a hardcoded string.
-
-                        // Fix: Use the ID directly.
-                        // Fallback to category/type logic only if needed (shouldn't be for Supabase data)
-                        const result = await addObservation(notice.id, 'いつも通り');
+                        // Supabase - use UUID directly
+                        const result = await addObservation(activeCatId, notice.id, 'いつも通り');
 
                         if (result?.error) {
                             toast.error("記録に失敗しました");

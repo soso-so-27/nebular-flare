@@ -29,6 +29,7 @@ export function getCatchUpItems({
     careLogs,
     noticeDefs,
     today,
+    observations,
 }: {
     tasks: Task[];
     noticeLogs: Record<string, Record<string, NoticeLog>>;
@@ -41,6 +42,7 @@ export function getCatchUpItems({
     careLogs?: any[];
     noticeDefs?: NoticeDef[];
     today?: string;
+    observations?: any[];
 }): { items: CatchUpItem[]; allItems: CatchUpItem[]; summary: string; remainingCount: number } {
     const items: CatchUpItem[] = [];
     const lastSeenDate = new Date(lastSeenAt);
@@ -51,9 +53,9 @@ export function getCatchUpItems({
     const enabledNoticeIds = noticeDefs?.filter(n => n.enabled).map(n => n.id) || [];
     const enabledNoticeDefs = noticeDefs?.filter(n => n.enabled && n.kind === 'notice') || [];
 
+    // Local Logs (Demo)
     Object.values(noticeLogs).forEach(catLogs => {
         Object.values(catLogs).forEach(log => {
-            // Skip if noticeDefs provided and this notice is not enabled
             if (noticeDefs && !enabledNoticeIds.includes(log.noticeId)) return;
 
             const isNew = new Date(log.at) > lastSeenDate;
@@ -76,6 +78,35 @@ export function getCatchUpItems({
         });
     });
 
+    // Supabase Observations
+    if (observations) {
+        observations.forEach(obs => {
+            // Filter by enabled noticeDefs (obs.type should be the noticeDef ID)
+            if (noticeDefs && !enabledNoticeIds.includes(obs.type)) return;
+
+            const isNew = new Date(obs.created_at || obs.recorded_at) > lastSeenDate; // Check available date field
+            const isAbnormal = obs.value !== "いつも通り" && obs.value !== "なし" && obs.value !== "記録した";
+
+            // Only add if not already added and not acknowledged
+            if (isAbnormal && isNew && !obs.acknowledged_at) {
+                const noticeDef = noticeDefs?.find(n => n.id === obs.type);
+                items.push({
+                    id: obs.id,
+                    type: 'notice',
+                    severity: 100,
+                    title: noticeDef?.title || "いつもと違う様子",
+                    body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}`,
+                    at: obs.created_at || obs.recorded_at,
+                    status: 'danger',
+                    actionLabel: 'OK',
+                    catId: obs.cat_id,
+                    payload: obs,
+                    meta: `${cats.find(c => c.id === obs.cat_id)?.name} ・ 体調`,
+                });
+            }
+        });
+    }
+
     // 1.5 Unrecorded Observations (Score 70) - Show observations not yet recorded today
     if (noticeDefs && cats.length > 0) {
         cats.forEach(cat => {
@@ -85,7 +116,14 @@ export function getCatchUpItems({
                 const existingLog = catLogs[def.id];
                 const isRecordedToday = existingLog?.at?.startsWith(todayStr);
 
-                if (!isRecordedToday) {
+                // Check Supabase observations
+                const isRecordedSupabase = observations?.some(o =>
+                    o.cat_id === cat.id &&
+                    o.type === def.id && // UUID match
+                    (o.recorded_at || '').startsWith(todayStr)
+                );
+
+                if (!isRecordedToday && !isRecordedSupabase) {
                     // Required items get higher priority
                     const baseSeverity = def.required ? 75 : 70;
 

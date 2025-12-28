@@ -4,21 +4,22 @@ import React, { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin, MessageSquare, AlertCircle, Syringe, Pill, Stethoscope } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin, MessageSquare, AlertCircle, Syringe, Pill, Stethoscope, Trash2, Check } from "lucide-react";
 import { useAppState } from "@/store/app-store";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useCalendarData } from "@/hooks/use-calendar-data";
-import { useUserProfile } from "@/hooks/use-supabase-data";
+import { useUserProfile, useDateLogs } from "@/hooks/use-supabase-data";
 import { ActivityFeed } from "./activity-feed";
 
 export function CalendarScreen() {
-    const { events } = useAppState();
+    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats } = useAppState();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     const { data: monthData, loading } = useCalendarData(profile?.householdId || null, currentMonth);
+    const { careLogs: dayCareLogs, observations: dayObservations, refetch: refetchDayLogs } = useDateLogs(profile?.householdId || null, selectedDate);
 
     const calendarDays = useMemo(() => {
         const start = startOfMonth(currentMonth);
@@ -35,23 +36,48 @@ export function CalendarScreen() {
     const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
     const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
 
-    // Filter events for selected date for the "Upcoming" section reuse or just show ActivityFeed
-    // Actually, ActivityFeed shows today's log by default. We might want to pass a date prop to ActivityFeed
-    // BUT ActivityFeed currently uses useTodayCareLogs which is hardcoded to Today.
-    // For V1, let's just show a simple list of Events for that day using our hook data + local events state.
-
-    // Actually, detailed logs for past dates are hard without refactoring ActivityFeed.
-    // For now, let's show the "Events" for that day (from calendar_events)
-    // AND a summary of "Health Status" based on the hook data.
-
-    // Wait, the user wants "Care Logs" history.
-    // Ideally ActivityFeed should accept a `date` prop.
-    // Refactoring ActivityFeed is risky but cleaner.
-    // Alternative: Just rely on the indicators for now, and only list "Events" (future/past).
-
-    // Let's implement the Calendar Grid first.
-
     const selectedDayData = monthData[format(selectedDate, 'yyyy-MM-dd')];
+
+    // Combine logs for list
+    const dayRecords = useMemo(() => {
+        const records: any[] = [];
+
+        dayCareLogs.forEach(l => {
+            const def = careTaskDefs.find(t => t.id === l.type) || careTaskDefs.find(t => l.type?.startsWith(t.id));
+            const cat = cats.find(c => c.id === l.cat_id);
+            records.push({
+                id: l.id,
+                sourceType: 'care',
+                title: def?.title || 'お世話',
+                subtitle: cat?.name || '不明な猫',
+                time: l.done_at,
+                catId: l.cat_id
+            });
+        });
+
+        dayObservations.forEach(o => {
+            const def = noticeDefs.find(n => n.id === o.type);
+            const cat = cats.find(c => c.id === o.cat_id);
+            records.push({
+                id: o.id,
+                sourceType: 'observation',
+                title: def?.title || '様子',
+                subtitle: `${cat?.name || ''} ${o.value}`,
+                time: o.recorded_at,
+                catId: o.cat_id,
+                isAcknowledged: !!(o as any).acknowledged_at
+            });
+        });
+
+        return records.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    }, [dayCareLogs, dayObservations, careTaskDefs, noticeDefs, cats]);
+
+    const handleDelete = async (id: string, type: 'care' | 'observation') => {
+        if (!confirm("削除しますか？")) return;
+        if (type === 'care') await deleteCareLog(id);
+        else await deleteObservation(id);
+        refetchDayLogs();
+    };
 
     return (
         <div className="space-y-6 pb-20">
@@ -115,18 +141,9 @@ export function CalendarScreen() {
 
                                 {/* Indicators */}
                                 <div className="flex items-center gap-0.5 mt-1">
-                                    {/* Care: Green Dot */}
-                                    {dayData?.hasCare && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                    )}
-                                    {/* Event: Orange Dot */}
-                                    {dayData?.hasEvent && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-                                    )}
-                                    {/* Crisis: Red Alert or Dot */}
-                                    {dayData?.hasCrisis && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                    )}
+                                    {dayData?.hasCare && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                                    {dayData?.hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
+                                    {dayData?.hasCrisis && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
                                 </div>
                             </button>
                         );
@@ -140,37 +157,9 @@ export function CalendarScreen() {
                     {format(selectedDate, 'M月d日 (EB)', { locale: ja })} の記録
                 </h3>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                    {/* Care Status */}
-                    <div className={`p-4 rounded-2xl border flex items-center gap-3 ${selectedDayData?.hasCare ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`p-2 rounded-full ${selectedDayData?.hasCare ? 'bg-emerald-200 text-emerald-700' : 'bg-slate-200 text-slate-400'}`}>
-                            <CalendarDays className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-500">お世話</p>
-                            <p className={`text-sm font-bold ${selectedDayData?.hasCare ? 'text-emerald-700' : 'text-slate-400'}`}>
-                                {selectedDayData?.hasCare ? '完了' : '記録なし'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Health Status */}
-                    <div className={`p-4 rounded-2xl border flex items-center gap-3 ${selectedDayData?.hasCrisis ? 'bg-red-50 border-red-100' : selectedDayData?.hasObservation ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`p-2 rounded-full ${selectedDayData?.hasCrisis ? 'bg-red-200 text-red-700' : selectedDayData?.hasObservation ? 'bg-blue-200 text-blue-700' : 'bg-slate-200 text-slate-400'}`}>
-                            {selectedDayData?.hasCrisis ? <AlertCircle className="w-4 h-4" /> : <Stethoscope className="w-4 h-4" />}
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-500">体調</p>
-                            <p className={`text-sm font-bold ${selectedDayData?.hasCrisis ? 'text-red-700' : selectedDayData?.hasObservation ? 'text-blue-700' : 'text-slate-400'}`}>
-                                {selectedDayData?.hasCrisis ? '要注意' : selectedDayData?.hasObservation ? '記録あり' : '記録なし'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Events List */}
+                {/* Events & Records List */}
                 <div className="space-y-2">
+                    {/* Future Events */}
                     {events
                         .filter(e => isSameDay(new Date(e.at), selectedDate))
                         .map(e => (
@@ -178,7 +167,7 @@ export function CalendarScreen() {
                                 <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-bold border-orange-200 text-orange-700 bg-orange-50 shrink-0">
                                     {e.type === 'vet' ? '通院' : e.type === 'med' ? 'お薬' : 'その他'}
                                 </Badge>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm font-bold text-slate-800 truncate">{e.title}</p>
                                     <p className="text-[10px] text-slate-400">
                                         {format(new Date(e.at), 'HH:mm')}
@@ -188,10 +177,38 @@ export function CalendarScreen() {
                             </Card>
                         ))
                     }
-                    {/* Empty Events Msg */}
-                    {events.filter(e => isSameDay(new Date(e.at), selectedDate)).length === 0 && (
+
+                    {/* Past Records */}
+                    {dayRecords.map(r => (
+                        <Card key={r.id} className="rounded-2xl shadow-sm border-none bg-white p-3 border border-border/50 flex items-center gap-3">
+                            <div className={`
+                                w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                                ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
+                            `}>
+                                {r.sourceType === 'care' ? <Check className="w-4 h-4" /> : <Stethoscope className="w-4 h-4" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-slate-800 truncate">{r.title}</p>
+                                <p className="text-[10px] text-slate-400">
+                                    {format(new Date(r.time), 'HH:mm')} ・ {r.subtitle}
+                                    {r.isAcknowledged && <span className="ml-2 text-slate-300">(確認済)</span>}
+                                </p>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => handleDelete(r.id, r.sourceType)}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </Card>
+                    ))}
+
+                    {/* Empty State */}
+                    {events.filter(e => isSameDay(new Date(e.at), selectedDate)).length === 0 && dayRecords.length === 0 && (
                         <div className="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <p className="text-xs text-slate-400">予定はありません</p>
+                            <p className="text-xs text-slate-400">記録はありません</p>
                         </div>
                     )}
                 </div>

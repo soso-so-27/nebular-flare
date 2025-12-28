@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
-import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations } from '@/hooks/use-supabase-data';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
 
 type AppState = {
@@ -35,8 +35,11 @@ type AppState = {
     householdId: string | null;
     isDemo: boolean;
     // Supabase functions
-    addCareLog: (type: string, slotOrCatId?: string, catId?: string) => Promise<{ error: any } | undefined>;
-    addObservation: (type: string, value: string) => Promise<{ error: any } | undefined>;
+    addCareLog: (type: string, slotOrCatId?: string, catId?: string) => Promise<{ error?: any } | undefined>;
+    deleteCareLog: (id: string) => Promise<{ error?: any } | undefined>;
+    addObservation: (catId: string, type: string, value: string) => Promise<{ error?: any } | undefined>;
+    acknowledgeObservation: (id: string) => Promise<{ error?: any } | undefined>;
+    deleteObservation: (id: string) => Promise<{ error?: any } | undefined>;
     careLogs: { type: string; done_at: string; slot?: string; date?: string; id?: string; cat_id?: string | null }[];
     demoCareLogsDone: Record<string, string>; // taskId -> doneAt ISO string
     observations: any[];
@@ -94,7 +97,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [fcmToken, setFcmToken] = useState<string | null>(null);
 
     // Use Supabase care logs
-    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog } = useTodayCareLogs(isDemo ? null : householdId);
+    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog, deleteCareLog: supabaseDeleteCareLog } = useTodayCareLogs(isDemo ? null : householdId);
 
     // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
     const today = new Date().toISOString().split('T')[0];
@@ -219,8 +222,8 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         return supabaseCareLogs;
     }, [isDemo, demoCareLogsDone, supabaseCareLogs]);
 
-    // Use Supabase observations for active cat
-    const { observations, addObservation: supabaseAddObservation } = useTodayObservations(isDemo ? null : activeCatId);
+    // Use Supabase observations for household (all cats)
+    const { observations, addObservation: supabaseAddObservation, acknowledgeObservation: supabaseAcknowledgeObservation, deleteObservation: supabaseDeleteObservation } = useTodayHouseholdObservations(isDemo ? null : householdId);
 
     // Convert Supabase cats to local Cat type - memoize to avoid infinite loops
     const cats: Cat[] = useMemo(() => {
@@ -259,8 +262,108 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (cats.length > 0 && !activeCatId) {
             setActiveCatId(cats[0].id);
         }
-    }, [catIds]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [catIds, activeCatId]);
 
+    // Actions
+    const addCareLog = async (type: string, catId?: string) => {
+        if (isDemo) {
+            const now = new Date().toISOString();
+            setDemoCareLogsDone(prev => ({ ...prev, [type]: now }));
+            return {};
+        }
+        return await supabaseAddCareLog(type, catId);
+    };
+
+    const addObservation = async (catId: string, type: string, value: string) => {
+        // Validation for missing catId
+        if (!catId) return { error: { message: "猫が選択されていません" } };
+
+        if (isDemo) {
+            // Local state update for demo
+            setNoticeLogs(prev => ({
+                ...prev,
+                [catId]: {
+                    ...prev[catId],
+                    [type]: {
+                        id: `${catId}_${type}_${Date.now()}`,
+                        catId,
+                        noticeId: type,
+                        value,
+                        at: new Date().toISOString(),
+                        done: true,
+                        later: false
+                    }
+                }
+            }));
+            return {};
+        }
+        return await supabaseAddObservation(catId, type, value);
+    };
+
+    const deleteCareLog = async (id: string) => {
+        if (isDemo) {
+            // Demo logic: If id starts with demo_, parse it to find key in demoCareLogsDone?
+            // ID format: `demo_${type}_${doneAt}`
+            if (id.startsWith('demo_')) {
+                const parts = id.split('_');
+                // parts[0] = demo
+                // parts[1] = type (might contain underscores? No, usually task ID)
+                // parts[2] = doneAt (ISO string components?)
+                // Actually safer to iterate demoCareLogsDone and reconstruct IDs to match
+                // Simple approach:
+                setDemoCareLogsDone(prev => {
+                    const next = { ...prev };
+                    const keyToDelete = Object.keys(next).find(k => `demo_${k}_${next[k]}` === id);
+                    if (keyToDelete) {
+                        delete next[keyToDelete];
+                    }
+                    return next;
+                });
+            }
+            return {};
+        }
+        return await supabaseDeleteCareLog(id);
+    };
+
+    const acknowledgeObservation = async (id: string) => {
+        if (isDemo) {
+            setNoticeLogs(prev => {
+                const next = { ...prev };
+                let found = false;
+                for (const cId in next) {
+                    for (const nId in next[cId]) {
+                        if (next[cId][nId].id === id) {
+                            next[cId][nId] = { ...next[cId][nId], done: true };
+                            found = true;
+                        }
+                    }
+                }
+                return found ? { ...next } : prev;
+            });
+            return {};
+        }
+        return await supabaseAcknowledgeObservation(id);
+    };
+
+    const deleteObservation = async (id: string) => {
+        if (isDemo) {
+            setNoticeLogs(prev => {
+                const next = { ...prev };
+                let changed = false;
+                for (const cId in next) {
+                    for (const nId in next[cId]) {
+                        if (next[cId][nId].id === id) {
+                            delete next[cId][nId];
+                            changed = true;
+                        }
+                    }
+                }
+                return changed ? { ...next } : prev;
+            });
+            return {};
+        }
+        return await supabaseDeleteObservation(id);
+    };
     const [tasks, setTasks] = useState<Task[]>([]);
 
     // Update tasks when cats change
@@ -640,25 +743,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     };
 
     // Wrapper functions for Supabase operations
-    const addCareLog = async (type: string, slotOrCatId?: string, catId?: string) => {
-        if (isDemo) {
-            // Demo mode: update demoCareLogsDone state
-            const now = new Date().toISOString();
-            setDemoCareLogsDone(prev => ({ ...prev, [type]: now }));
-            return undefined;
-        }
-        // For now, slot is passed but not tracked separately in Supabase
-        // In the future, we can add slot field to care_logs table
-        return supabaseAddCareLog(type, catId || slotOrCatId);
-    };
 
-    const addObservation = async (type: string, value: string) => {
-        if (isDemo) {
-            // Demo mode: update local state
-            return undefined;
-        }
-        return supabaseAddObservation(type, value);
-    };
 
     const initializeDefaults = async () => {
         if (isDemo || !householdId) return;
@@ -944,6 +1029,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         // Cat Profile
         updateCat,
         addCatWeightRecord,
+        deleteCareLog,
+        acknowledgeObservation,
+        deleteObservation,
         householdUsers,
     };
 
