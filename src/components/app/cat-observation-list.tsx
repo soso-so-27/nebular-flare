@@ -144,7 +144,8 @@ export function CatObservationList() {
             toast.success(`${obs.label}: ${value}`);
         } else {
             // Supabase mode: add observation
-            const result = await addObservation(obs.type, value);
+            // Use obs.id (which is the UUID from noticeDefs) instead of obs.type (category)
+            const result = await addObservation(obs.id, value);
             if (result?.error) {
                 toast.error("記録に失敗しました");
             } else {
