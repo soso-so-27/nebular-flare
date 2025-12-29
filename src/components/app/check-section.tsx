@@ -304,22 +304,6 @@ export function CheckSection({ filter = 'all' }: CheckSectionProps) {
     const showObservationItems = filter === 'all' || filter === 'observation';
     const showInventoryItems = filter === 'all';
 
-    if (totalCount === 0 && filter !== 'all') {
-        // Show empty state for filtered view
-        return (
-            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden p-6 text-center">
-                <span className="text-3xl">✨</span>
-                <p className="text-sm text-slate-500 mt-2">
-                    {filter === 'care' ? 'お世話は完了しています！' : '今日の様子は記録済みです！'}
-                </p>
-            </div>
-        );
-    }
-
-    if (totalCount === 0) {
-        return null; // Don't show anything when all done
-    }
-
     return (
         <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
             {bgImage && (
@@ -341,86 +325,102 @@ export function CheckSection({ filter = 'all' }: CheckSectionProps) {
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                         ピックアップ
                     </h3>
-                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                         {totalCount}
                     </span>
                 </div>
 
                 {/* Items List - Compact */}
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {/* Care Items */}
-                    {showCareItems && pendingCareItems.map(item => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between px-4 py-2.5"
-                        >
-                            <div className="flex items-center gap-2">
-                                {item.icon ? (
-                                    React.createElement(getIcon(item.icon), { className: "h-3.5 w-3.5 text-primary" })
-                                ) : (
-                                    <Heart className="h-3.5 w-3.5 text-primary" />
-                                )}
-                                <span className="text-sm text-slate-700 dark:text-slate-200">
-                                    {item.label}
-                                </span>
+                    {totalCount === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-6 text-center px-4">
+                            <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 rounded-full p-2 mb-2">
+                                <Check className="h-5 w-5" />
                             </div>
-                            <button
-                                onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
-                            >
-                                完了
-                            </button>
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                すべて完了しています！
+                            </p>
+                            <p className="text-xs text-slate-400 mt-1">
+                                {filter === 'care' ? 'お世話は完了しています' : '今日のタスクはすべて終わりました'}
+                            </p>
                         </div>
-                    ))}
+                    ) : (
+                        <>
+                            {/* Care Items */}
+                            {showCareItems && pendingCareItems.map(item => (
+                                <div
+                                    key={item.id}
+                                    className="flex items-center justify-between px-4 py-2.5"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {item.icon ? (
+                                            React.createElement(getIcon(item.icon), { className: "h-3.5 w-3.5 text-primary" })
+                                        ) : (
+                                            <Heart className="h-3.5 w-3.5 text-primary" />
+                                        )}
+                                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={item.onAction}
+                                        className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
+                                    >
+                                        完了
+                                    </button>
+                                </div>
+                            ))}
 
-                    {/* Observation Items */}
-                    {showObservationItems && pendingObservationItems.map(item => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between px-4 py-2.5"
-                        >
-                            <div className="flex items-center gap-2">
-                                <Cat className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-sm text-slate-700 dark:text-slate-200">
-                                    {item.label}
-                                </span>
-                                <span className="text-xs text-slate-400">({item.catName})</span>
-                            </div>
-                            <button
-                                onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:bg-emerald-300 active:scale-95 transition-all"
-                            >
-                                確認済
-                            </button>
-                        </div>
-                    ))}
+                            {/* Observation Items */}
+                            {showObservationItems && pendingObservationItems.map(item => (
+                                <div
+                                    key={item.id}
+                                    className="flex items-center justify-between px-4 py-2.5"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Cat className="h-3.5 w-3.5 text-primary" />
+                                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                                            {item.label}
+                                        </span>
+                                        <span className="text-xs text-slate-400">({item.catName})</span>
+                                    </div>
+                                    <button
+                                        onClick={item.onAction}
+                                        className="text-xs font-bold px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 active:bg-emerald-300 active:scale-95 transition-all"
+                                    >
+                                        確認済
+                                    </button>
+                                </div>
+                            ))}
 
-                    {/* Inventory Items */}
-                    {showInventoryItems && urgentInventoryItems.map(item => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between px-4 py-2.5"
-                        >
-                            <div className="flex items-center gap-2">
-                                <ShoppingCart className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-sm text-slate-700 dark:text-slate-200">
-                                    {item.label}
-                                </span>
-                                <span className={cn(
-                                    "text-xs px-1.5 py-0.5 rounded-full font-medium",
-                                    item.stockLevel === 'empty' ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
-                                )}>
-                                    {item.stockLevel === 'empty' ? 'なし' : '少ない'}
-                                </span>
-                            </div>
-                            <button
-                                onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 active:bg-amber-300 active:scale-95 transition-all"
-                            >
-                                補充済み
-                            </button>
-                        </div>
-                    ))}
+                            {/* Inventory Items */}
+                            {showInventoryItems && urgentInventoryItems.map(item => (
+                                <div
+                                    key={item.id}
+                                    className="flex items-center justify-between px-4 py-2.5"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                                            {item.label}
+                                        </span>
+                                        <span className={cn(
+                                            "text-xs px-1.5 py-0.5 rounded-full font-medium",
+                                            item.stockLevel === 'empty' ? "bg-red-100 dark:bg-red-900/30 text-red-600" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600"
+                                        )}>
+                                            {item.stockLevel === 'empty' ? 'なし' : '少ない'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={item.onAction}
+                                        className="text-xs font-bold px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 active:bg-amber-300 active:scale-95 transition-all"
+                                    >
+                                        補充済み
+                                    </button>
+                                </div>
+                            ))}
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -198,10 +198,6 @@ export function ActivityFeed() {
         return data.publicUrl;
     };
 
-    if (activities.length === 0) {
-        return null;
-    }
-
     const getActivityIcon = (item: ActivityItem) => {
         if (item.icon) {
             const IconComponent = getIcon(item.icon);
@@ -291,59 +287,70 @@ export function ActivityFeed() {
                             className="overflow-hidden"
                         >
                             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {activities.map((item, index) => (
-                                    <motion.div
-                                        key={item.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.03 }}
-                                        className="flex items-center gap-3 px-4 py-2.5"
-                                    >
-                                        {/* Icon */}
-                                        <div className={cn(
-                                            "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0",
-                                            getActivityColor(item.type)
-                                        )}>
-                                            {getActivityIcon(item)}
+                                {activities.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-6 text-center px-4">
+                                        <div className="bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-full p-2 mb-2">
+                                            <Activity className="h-5 w-5" />
                                         </div>
-
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-baseline justify-between">
-                                                <p className="text-sm text-slate-700 dark:text-slate-200 truncate font-medium">
-                                                    {item.title}
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
-                                                    {formatDistanceToNow(new Date(item.timestamp), {
-                                                        addSuffix: true,
-                                                        locale: ja
-                                                    })}
-                                                </p>
+                                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                            まだアクティビティはありません
+                                        </p>
+                                    </div>
+                                ) : (
+                                    activities.map((item, index) => (
+                                        <motion.div
+                                            key={item.id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.03 }}
+                                            className="flex items-center gap-3 px-4 py-2.5"
+                                        >
+                                            {/* Icon */}
+                                            <div className={cn(
+                                                "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0",
+                                                getActivityColor(item.type)
+                                            )}>
+                                                {getActivityIcon(item)}
                                             </div>
-                                            {item.catName && (
-                                                <p className="text-xs text-slate-400 truncate">
-                                                    {item.catName}
-                                                </p>
-                                            )}
-                                        </div>
 
-                                        {/* User indicator - smaller */}
-                                        {item.userId && (
-                                            <div
-                                                className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden"
-                                                title={item.userName || item.userId}
-                                            >
-                                                {item.userAvatar ? (
-                                                    <Image src={item.userAvatar} alt={item.userName || ''} width={20} height={20} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-[9px] text-slate-500 font-bold">
-                                                        {getUserInitials(item)}
-                                                    </span>
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-baseline justify-between">
+                                                    <p className="text-sm text-slate-700 dark:text-slate-200 truncate font-medium">
+                                                        {item.title}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
+                                                        {formatDistanceToNow(new Date(item.timestamp), {
+                                                            addSuffix: true,
+                                                            locale: ja
+                                                        })}
+                                                    </p>
+                                                </div>
+                                                {item.catName && (
+                                                    <p className="text-xs text-slate-400 truncate">
+                                                        {item.catName}
+                                                    </p>
                                                 )}
                                             </div>
-                                        )}
-                                    </motion.div>
-                                ))}
+
+                                            {/* User indicator - smaller */}
+                                            {item.userId && (
+                                                <div
+                                                    className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden"
+                                                    title={item.userName || item.userId}
+                                                >
+                                                    {item.userAvatar ? (
+                                                        <Image src={item.userAvatar} alt={item.userName || ''} width={20} height={20} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-[9px] text-slate-500 font-bold">
+                                                            {getUserInitials(item)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    ))
+                                )}
                             </div>
                         </motion.div>
                     )}
