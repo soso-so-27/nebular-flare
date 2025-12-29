@@ -67,3 +67,21 @@ export function humanDue(d: Date): string {
         minute: "2-digit",
     });
 }
+
+// Get date string (YYYY-MM-DD) relative to a specific start hour of the day
+export function getAdjustedDateString(date: Date, startHour: number = 0): string {
+    const d = new Date(date);
+    d.setHours(d.getHours() - startHour);
+
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+export function getAdjustedDate(date: Date, startHour: number = 0): Date {
+    const d = new Date(date);
+    d.setHours(d.getHours() - startHour);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}

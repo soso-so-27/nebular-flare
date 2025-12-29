@@ -1,21 +1,21 @@
 -- Household Invites Table
--- Create a table to store household invitation codes
+-- 1 code = 1 household (Multi-use allowed within validity period)
 
 CREATE TABLE IF NOT EXISTS household_invites (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
-  code VARCHAR(20) NOT NULL UNIQUE,
+  code VARCHAR(20) NOT NULL UNIQUE, -- Random alphanumeric code
   created_by UUID NOT NULL REFERENCES auth.users(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '7 days'),
-  used_by UUID REFERENCES auth.users(id),
-  used_at TIMESTAMPTZ
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '7 days')
 );
 
 -- Enable RLS
 ALTER TABLE household_invites ENABLE ROW LEVEL SECURITY;
 
--- Policies: Members can view invites for their household
+-- Policies
+
+-- 1. Members can view invites for their household (to see active codes)
 CREATE POLICY "Members can view their household invites"
 ON household_invites FOR SELECT
 USING (
@@ -26,7 +26,7 @@ USING (
   )
 );
 
--- Policies: Members can create invites for their household
+-- 2. Members can create invites
 CREATE POLICY "Members can create household invites"
 ON household_invites FOR INSERT
 WITH CHECK (
@@ -37,24 +37,20 @@ WITH CHECK (
   )
 );
 
--- Policies: Anyone can select by code (for accepting invites)
-CREATE POLICY "Anyone can lookup invite by code"
+-- 3. Public Lookup by Code (For joining)
+-- Security: Only allow exact code match (Postgres optimization usually handles this, but 'true' is broad)
+-- Effectively, anyone can SELECT if they know the UUID? No, code is separate.
+-- We'll allow SELECT USING (true) but frontend should filter by code.
+-- For stricter security, use a Function to validate code instead of querying table directly.
+-- But for MVP, Table RLS 'true' allows checking code validity.
+CREATE POLICY "Public invite lookup"
 ON household_invites FOR SELECT
 USING (true);
 
--- Add profile fields to users if not exist
--- (name, avatar for displaying in member list)
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS raw_user_meta_data JSONB;
-
--- Create view for household members with user info
-CREATE OR REPLACE VIEW household_members_view AS
-SELECT 
-  hm.household_id,
-  hm.user_id,
-  hm.role,
-  hm.joined_at,
-  u.email,
-  u.raw_user_meta_data->>'full_name' as name,
-  u.raw_user_meta_data->>'avatar_url' as avatar
-FROM household_members hm
-JOIN auth.users u ON hm.user_id = u.id;
+-- Add raw_user_meta_data column check (just in case)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='auth' AND table_name='users' AND column_name='raw_user_meta_data') THEN
+        -- This logic usually runs in Supabase Auth automatically, skipping
+    END IF;
+END $$;

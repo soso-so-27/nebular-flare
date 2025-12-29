@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
-import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations } from '@/hooks/use-supabase-data';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
 
 type AppState = {
@@ -84,6 +84,38 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [aiEnabled, setAiEnabled] = useState(true);
     const [activeCatId, setActiveCatId] = useState('');
 
+    const [settings, setSettings] = useState<AppSettings>(() => ({
+        plan: 'Free',
+        aiEnabled: true,
+        engagement: 'passive',
+        homeMode: 'checklist',
+        weeklySummaryEnabled: true,
+        quietHours: { start: 23, end: 7 },
+        invThresholds: { soon: 7, urgent: 3, critical: 1 },
+        seasonalDeckEnabled: true,
+        skinPackOwned: false,
+        skinMode: 'default',
+        photoTagAssist: true,
+        dayStartHour: 4,
+    }));
+
+    // Notification Preferences (DB Sync)
+    const { preferences, updatePreference } = useNotificationPreferences();
+
+    // Sync DB -> State (Initial Load)
+    useEffect(() => {
+        if (preferences?.day_start_hour !== undefined) {
+            setSettings(s => ({ ...s, dayStartHour: preferences.day_start_hour }));
+        }
+    }, [preferences?.day_start_hour]);
+
+    // Sync State -> DB (User Change)
+    useEffect(() => {
+        if (settings.dayStartHour !== undefined && settings.dayStartHour !== (preferences?.day_start_hour || 0)) {
+            updatePreference('day_start_hour', settings.dayStartHour);
+        }
+    }, [settings.dayStartHour]);
+
     // Demo mode: use hardcoded cats with real images
     const demoCats: Cat[] = useMemo(() => [
         { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png" },
@@ -96,8 +128,11 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     // Notification State
     const [fcmToken, setFcmToken] = useState<string | null>(null);
 
-    // Use Supabase care logs
-    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog, deleteCareLog: supabaseDeleteCareLog } = useTodayCareLogs(isDemo ? null : householdId);
+    // Use Supabase care logs (with Day Start adjustment)
+    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog, deleteCareLog: supabaseDeleteCareLog } = useTodayCareLogs(
+        isDemo ? null : householdId,
+        settings.dayStartHour
+    );
 
     // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
     const today = new Date().toISOString().split('T')[0];
@@ -223,7 +258,10 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     }, [isDemo, demoCareLogsDone, supabaseCareLogs]);
 
     // Use Supabase observations for household (all cats)
-    const { observations, addObservation: supabaseAddObservation, acknowledgeObservation: supabaseAcknowledgeObservation, deleteObservation: supabaseDeleteObservation } = useTodayHouseholdObservations(isDemo ? null : householdId);
+    const { observations, addObservation: supabaseAddObservation, acknowledgeObservation: supabaseAcknowledgeObservation, deleteObservation: supabaseDeleteObservation } = useTodayHouseholdObservations(
+        isDemo ? null : householdId,
+        settings.dayStartHour
+    );
 
     // Convert Supabase cats to local Cat type - memoize to avoid infinite loops
     const cats: Cat[] = useMemo(() => {
@@ -442,20 +480,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
 
     const [events, setEvents] = useState<AppEvent[]>([]);
-    const [settings, setSettings] = useState<AppSettings>(() => ({
-        plan: 'Free',
-        aiEnabled: true,
-        engagement: 'passive',
-        homeMode: 'checklist',
-        weeklySummaryEnabled: true,
-        quietHours: { start: 23, end: 7 },
-        invThresholds: { soon: 7, urgent: 3, critical: 1 },
-        seasonalDeckEnabled: true,
-        skinPackOwned: false,
-        skinMode: 'default',
-        photoTagAssist: true,
-        dayStartHour: 4,
-    }));
+    // Settings state moved to top
     const [lastSeenAt, setLastSeenAt] = useState<string>(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     // Load from localStorage (Local-first for demo mode)

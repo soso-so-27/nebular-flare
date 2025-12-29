@@ -83,10 +83,10 @@ export function MoreScreen() {
                 <CardContent className="space-y-0 p-0">
                     <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold">プラン</span>
+                            <span className="text-xs font-bold">プラン <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
                             <span className="text-[10px] text-muted-foreground">{isPro ? 'Proを利用中' : 'Freeプラン'}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 opacity-50 pointer-events-none">
                             <Badge variant={isPro ? "secondary" : "outline"} className="text-[10px]">{isPro ? 'Pro' : 'Free'}</Badge>
                             <Switch checked={isPro} onCheckedChange={setIsPro} />
                         </div>
@@ -102,10 +102,11 @@ export function MoreScreen() {
 
                     <div className="px-4 py-3 flex items-center justify-between">
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold">週1まとめ通知</span>
+                            <span className="text-xs font-bold">週1まとめ通知 <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
                             <span className="text-[10px] text-muted-foreground">日曜 18:00に配信</span>
                         </div>
                         <Switch
+                            disabled
                             checked={settings.weeklySummaryEnabled}
                             onCheckedChange={(v) => setSettings(s => ({ ...s, weeklySummaryEnabled: v }))}
                         />
@@ -142,9 +143,9 @@ export function MoreScreen() {
                     <User className="h-4 w-4 text-slate-400" />
                     家族を招待
                 </Button>
-                <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700">
+                <Button variant="outline" disabled className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700 opacity-50">
                     <Sparkles className="h-4 w-4 text-slate-400" />
-                    スキン
+                    スキン (準備中)
                 </Button>
             </div>
 

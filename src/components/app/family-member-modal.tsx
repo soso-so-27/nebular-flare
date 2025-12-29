@@ -15,6 +15,8 @@ import {
     Crown,
     Trash2
 } from "lucide-react";
+import { createClient } from "@/lib/supabase";
+import { useAuth } from "@/providers/auth-provider";
 
 interface FamilyMember {
     id: string;
@@ -32,9 +34,11 @@ interface FamilyMemberModalProps {
 
 export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const { householdId, isDemo } = useAppState();
+    const { user } = useAuth();
     const [inviteUrl, setInviteUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [members, setMembers] = useState<FamilyMember[]>([]);
 
     // Demo data for preview
     const demoMembers: FamilyMember[] = [
@@ -42,10 +46,38 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         { id: '2', name: 'パートナー', email: 'partner@example.com', avatar: '👩', role: 'member', joinedAt: '2024-06-15' },
     ];
 
-    const members = demoMembers; // TODO: Replace with real data fetch
+    // Fetch members on mount
+    React.useEffect(() => {
+        if (isDemo || !householdId) {
+            setMembers(demoMembers);
+            return;
+        }
+
+        const fetchMembers = async () => {
+            const supabase = createClient();
+            const { data, error } = await (supabase.rpc as any)('get_household_members', {
+                lookup_household_id: householdId
+            });
+
+            if (data) {
+                setMembers(data.map((m: any) => ({
+                    id: m.user_id,
+                    name: m.name || 'メンバー',
+                    email: m.email || '',
+                    avatar: m.avatar,
+                    role: m.role || 'member',
+                    joinedAt: m.joined_at,
+                })));
+            }
+        };
+
+        fetchMembers();
+    }, [householdId, isDemo]);
 
     const generateInviteLink = async () => {
         setLoading(true);
+
+        const supabase = createClient();
 
         if (isDemo) {
             // Demo mode: generate fake link
@@ -54,22 +86,28 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
             setInviteUrl(`https://catup.app/invite/${code}`);
             toast.success("招待リンクを作成しました");
         } else {
-            // Real mode: call API
+            // Real mode: Create invite code
             try {
-                const response = await fetch('/api/invite/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ householdId })
-                });
-                const data = await response.json();
-                if (data.url) {
-                    setInviteUrl(data.url);
-                    toast.success("招待リンクを作成しました");
-                } else {
-                    toast.error("作成に失敗しました");
-                }
+                // Generate 6-char code
+                const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+                // Insert into household_invites
+                const { error } = await (supabase
+                    .from('household_invites' as any) as any)
+                    .insert({
+                        household_id: householdId,
+                        code: code,
+                        created_by: user?.id,
+                    });
+
+                if (error) throw error;
+
+                // Construct URL (Assuming /join route will be handled)
+                setInviteUrl(`${window.location.origin}/join?code=${code}`);
+                toast.success("招待リンクを作成しました");
             } catch (error) {
-                toast.error("エラーが発生しました");
+                console.error(error);
+                toast.error("作成に失敗しました");
             }
         }
 

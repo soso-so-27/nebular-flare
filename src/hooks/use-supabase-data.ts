@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import { getAdjustedDateString } from "@/lib/utils-date";
 import type { Database } from '@/types/database';
 
 import type { Cat } from '@/types';
 type CareLog = Database['public']['Tables']['care_logs']['Row'];
 type Observation = Database['public']['Tables']['observations']['Row'];
+type CatObservation = Observation; // Alias for compat
 type Inventory = Database['public']['Tables']['inventory']['Row'];
 
 
@@ -101,12 +103,17 @@ export function useCats(householdId: string | null) {
 
 
 // Hook for today's care logs
-export function useTodayCareLogs(householdId: string | null) {
+export function useTodayCareLogs(householdId: string | null, dayStartHour: number = 0) {
     const [careLogs, setCareLogs] = useState<CareLog[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 
-    const today = new Date().toISOString().split('T')[0];
+    // Calculate 'Business Day' range
+    const todayStr = getAdjustedDateString(new Date(), dayStartHour);
+    const startDt = new Date(todayStr);
+    startDt.setHours(dayStartHour, 0, 0, 0);
+    const endDt = new Date(startDt);
+    endDt.setDate(endDt.getDate() + 1);
 
     useEffect(() => {
         if (!householdId) {
@@ -119,8 +126,8 @@ export function useTodayCareLogs(householdId: string | null) {
                 .from('care_logs')
                 .select('*')
                 .eq('household_id', householdId)
-                .gte('done_at', `${today}T00:00:00`)
-                .lt('done_at', `${today}T23:59:59`)
+                .gte('done_at', startDt.toISOString())
+                .lt('done_at', endDt.toISOString())
                 .is('deleted_at', null);
 
             if (!error && data) {
@@ -149,7 +156,7 @@ export function useTodayCareLogs(householdId: string | null) {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [householdId, today]);
+    }, [householdId, todayStr, dayStartHour]);
 
     // Add care log
     async function addCareLog(type: string, catId?: string) {
@@ -180,12 +187,16 @@ export function useTodayCareLogs(householdId: string | null) {
 }
 
 // Hook for today's observations (House-wide)
-export function useTodayHouseholdObservations(householdId: string | null) {
-    const [observations, setObservations] = useState<Observation[]>([]);
+export function useTodayHouseholdObservations(householdId: string | null, dayStartHour: number = 0) {
+    const [observations, setObservations] = useState<CatObservation[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = getAdjustedDateString(new Date(), dayStartHour);
+    const startDt = new Date(todayStr);
+    startDt.setHours(dayStartHour, 0, 0, 0);
+    const endDt = new Date(startDt);
+    endDt.setDate(endDt.getDate() + 1);
 
     useEffect(() => {
         if (!householdId) {
@@ -197,11 +208,14 @@ export function useTodayHouseholdObservations(householdId: string | null) {
             // Join with cats table to filter by household_id
             const { data, error } = await supabase
                 .from('observations')
-                .select('*, cats!inner(household_id)')
-                .eq('cats.household_id', householdId)
-                .gte('recorded_at', `${today}T00:00:00`)
-                .lt('recorded_at', `${today}T23:59:59`)
-                .is('deleted_at', null);
+                .select(`
+    *,
+    cats(name)
+        `)
+                .eq('household_id', householdId)
+                .gte('created_at', startDt.toISOString())
+                .lt('created_at', endDt.toISOString())
+                .order('created_at', { ascending: false });
 
             if (!error && data) {
                 setObservations(data);
@@ -234,7 +248,7 @@ export function useTodayHouseholdObservations(householdId: string | null) {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [householdId, today]);
+    }, [householdId, todayStr, dayStartHour]);
 
     async function addObservation(catId: string, type: string, value: string) {
         if (!householdId) return;
@@ -314,7 +328,7 @@ export function useInventory(householdId: string | null) {
         const channel = supabase
             .channel('inventory-changes')
             .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'inventory', filter: `household_id=eq.${householdId}` },
+                { event: '*', schema: 'public', table: 'inventory', filter: `household_id = eq.${householdId} ` },
                 (payload: any) => {
                     if (payload.eventType === 'INSERT') {
                         setInventory(prev => [...prev, payload.new as Inventory]);
@@ -441,7 +455,8 @@ export function useNotificationPreferences() {
         health_alert: boolean;
         inventory_alert: boolean;
         notification_hour: number;
-    }>({ care_reminder: true, health_alert: true, inventory_alert: true, notification_hour: 20 });
+        day_start_hour: number;
+    }>({ care_reminder: true, health_alert: true, inventory_alert: true, notification_hour: 20, day_start_hour: 0 });
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 
