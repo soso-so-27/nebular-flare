@@ -70,20 +70,27 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
     }, [showSwipeMode]);
 
     // Get catchup items and filter for cat-related types (notice)
-    const catchupItems = useMemo(() => {
-        const result = getCatchUpItems({
-            tasks,
-            noticeLogs,
-            inventory,
-            lastSeenAt,
-            settings,
-            cats,
-            careTaskDefs,
-            careLogs,
-            noticeDefs,
-            observations,
-        });
-        return result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded');
+    // Defer heavy calculation to unblock navigation
+    const [catchupItems, setCatchupItems] = useState<CatchUpItem[]>([]);
+
+    useEffect(() => {
+        // Run in next tick to allow immediate render
+        const timer = setTimeout(() => {
+            const result = getCatchUpItems({
+                tasks,
+                noticeLogs,
+                inventory,
+                lastSeenAt,
+                settings,
+                cats,
+                careTaskDefs,
+                careLogs,
+                noticeDefs,
+                observations,
+            });
+            setCatchupItems(result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded'));
+        }, 10);
+        return () => clearTimeout(timer);
     }, [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs, observations]);
 
     // FAB will trigger swipe mode - removed auto-show
