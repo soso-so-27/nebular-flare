@@ -8,11 +8,10 @@ import { useUserProfile } from "@/hooks/use-supabase-data";
 import { TopBar } from "@/components/app/top-bar";
 import { HomeScreen } from "@/components/app/home-screen";
 import { WidgetHomeScreen } from "@/components/app/widget-home-screen";
-import { BentoGridHomeScreen } from "@/components/app/bento-grid-home";
+import { FullscreenHeroHomeScreen } from "@/components/app/fullscreen-hero-home";
 import { CareScreen } from "@/components/app/care-screen";
 import { CatScreen } from "@/components/app/cat-screen";
 import { GalleryScreen } from "@/components/app/gallery-screen";
-import { CalendarScreen } from "@/components/app/calendar-screen";
 import { MoreScreen } from "@/components/app/more-screen";
 import { LoginScreen } from "@/components/app/login-screen";
 import { OnboardingScreen } from "@/components/app/onboarding-screen";
@@ -42,25 +41,11 @@ function AppContent() {
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
 
   // Get data and functions for quick actions
-  // Get data and functions for quick actions
   const {
-    tasks, noticeLogs, inventory, lastSeenAt, settings, cats, catsLoading,
+    tasks, noticeLogs, inventory, lastSeenAt, settings, cats,
     careTaskDefs, careLogs, noticeDefs, activeCatId,
     addCareLog, addObservation, setInventory, isDemo
   } = useAppState();
-
-  // Manage app ready state for splash screen
-  const [isAppReady, setIsAppReady] = useState(false);
-
-  useEffect(() => {
-    if (!catsLoading) {
-      // Add a small delay to ensure rendering is complete and images start loading
-      const timer = setTimeout(() => {
-        setIsAppReady(true);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [catsLoading]);
 
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
@@ -173,8 +158,6 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
 
-      {!isAppReady && <SplashScreen />}
-
       <main className="min-h-dvh bg-background dark:bg-slate-950 pb-32 pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto p-4 space-y-4">
           <NotificationModal
@@ -188,22 +171,8 @@ function AppContent() {
 
           {tab === "home" && (
             <>
-              {/* Bento Grid Layout */}
-              <BentoGridHomeScreen
-                onCareClick={() => setCareSwipeMode(true)}
-                onObservationClick={() => setCatSwipeMode(true)}
-                careCount={careCount}
-                observationCount={catCount}
-              />
-
-              {/* HomeScreen is hidden but rendered for overlay functionality */}
-              {openSection && (
-                <HomeScreen
-                  externalOpenSection={openSection}
-                  onOpenSectionChange={setOpenSection}
-                />
-              )}
-
+              {/* Fullscreen Hero Preview - Temporary */}
+              <FullscreenHeroHomeScreen onOpenSection={setOpenSection} />
               {/* Care Swipe Overlay */}
               {careSwipeMode && (
                 <CareScreen externalSwipeMode={careSwipeMode} onSwipeModeChange={setCareSwipeMode} />
@@ -215,7 +184,6 @@ function AppContent() {
             </>
           )}
           {tab === "gallery" && <GalleryScreen />}
-          {tab === "calendar" && <CalendarScreen />}
           {tab === "settings" && <MoreScreen />}
         </div>
       </main>
@@ -237,9 +205,6 @@ function AppContent() {
             setTab("home");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
-            setShowCalendar(false);
-            setOpenSection(null);
-            setShowSidebar(false);
           }}
           className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
@@ -261,17 +226,13 @@ function AppContent() {
           <span className="text-[10px] font-bold">ねこ</span>
         </button>
 
-        {/* Calendar - Tab */}
+        {/* Calendar */}
         <button
           onClick={() => {
             haptics.impactLight();
-            setTab("calendar");
-            setCareSwipeMode(false);
-            setCatSwipeMode(false);
-            setOpenSection(null);
-            setShowSidebar(false);
+            setShowCalendar(true);
           }}
-          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "calendar" ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+          className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
         >
           <Calendar className="h-6 w-6" />
           <span className="text-[10px] font-bold">カレンダー</span>

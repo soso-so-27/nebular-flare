@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronUp, Heart, Cat } from "lucide-react";
@@ -48,17 +47,15 @@ function FullscreenHero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="relative w-full"
-            style={{ height: 'calc(50vh - env(safe-area-inset-top))' }}
+            style={{ height: 'calc(80vh - env(safe-area-inset-top))' }}
         >
             {/* Full Photo */}
             <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
                 {activeCat.avatar ? (
-                    <Image
+                    <img
                         src={activeCat.avatar}
                         alt={activeCat.name}
-                        fill
-                        className="object-cover"
-                        priority
+                        className="w-full h-full object-cover"
                     />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 flex items-center justify-center">
@@ -83,9 +80,20 @@ function FullscreenHero() {
                     {daysTogetherCount && (
                         <p className="text-base opacity-80 mt-2 flex items-center gap-2">
                             <span className="text-xl">🧡</span>
-                            と一緒に {daysTogetherCount}日目
+                            一緒に {daysTogetherCount}日目
                         </p>
                     )}
+                </motion.div>
+
+                {/* Swipe indicator */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-6 flex flex-col items-center"
+                >
+                    <ChevronUp className="w-6 h-6 animate-bounce" />
+                    <span className="text-xs opacity-70">スワイプで詳細</span>
                 </motion.div>
             </div>
 
@@ -147,26 +155,14 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
                 className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
             >
                 <Cat className="w-5 h-5 text-amber-600" />
-                <span>様子</span>
+                <span>観察</span>
             </button>
         </motion.div>
     );
 }
 
 // Main Fullscreen Hero Home Screen
-interface FullscreenHeroHomeScreenProps {
-    onCareClick: () => void;
-    onObservationClick: () => void;
-    careCount?: number;
-    observationCount?: number;
-}
-
-export function FullscreenHeroHomeScreen({
-    onCareClick,
-    onObservationClick,
-    careCount = 0,
-    observationCount = 0
-}: FullscreenHeroHomeScreenProps) {
+export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (section: 'care' | 'cat' | 'inventory') => void }) {
     return (
         <div className="relative -mx-4 -mt-4">
             {/* Fullscreen Hero - Takes 80% of viewport */}
@@ -177,39 +173,6 @@ export function FullscreenHeroHomeScreen({
                 {/* Anomaly Alert */}
                 <AnomalyAlertBanner />
 
-                {/* Action Buttons - Open Swipe Cards */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="grid grid-cols-2 gap-3"
-                >
-                    <button
-                        onClick={onCareClick}
-                        className="relative flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
-                    >
-                        <Heart className="w-5 h-5 text-amber-600" />
-                        <span>お世話</span>
-                        {careCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white">
-                                {careCount}
-                            </span>
-                        )}
-                    </button>
-                    <button
-                        onClick={onObservationClick}
-                        className="relative flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
-                    >
-                        <Cat className="w-5 h-5 text-amber-600" />
-                        <span>様子</span>
-                        {observationCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white">
-                                {observationCount}
-                            </span>
-                        )}
-                    </button>
-                </motion.div>
-
                 {/* Pickup Cards */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -218,6 +181,9 @@ export function FullscreenHeroHomeScreen({
                 >
                     <CheckSection />
                 </motion.div>
+
+                {/* Action Buttons */}
+                <ActionButtons onOpenSection={onOpenSection} />
 
                 {/* Activity Feed */}
                 <motion.div
