@@ -8,7 +8,7 @@ import { useUserProfile } from "@/hooks/use-supabase-data";
 import { TopBar } from "@/components/app/top-bar";
 import { HomeScreen } from "@/components/app/home-screen";
 import { WidgetHomeScreen } from "@/components/app/widget-home-screen";
-import { FullscreenHeroHomeScreen } from "@/components/app/fullscreen-hero-home";
+import { BentoGridHomeScreen } from "@/components/app/bento-grid-home";
 import { CareScreen } from "@/components/app/care-screen";
 import { CatScreen } from "@/components/app/cat-screen";
 import { GalleryScreen } from "@/components/app/gallery-screen";
@@ -188,8 +188,8 @@ function AppContent() {
 
           {tab === "home" && (
             <>
-              {/* Fullscreen Hero Layout */}
-              <FullscreenHeroHomeScreen
+              {/* Bento Grid Layout */}
+              <BentoGridHomeScreen
                 onCareClick={() => setCareSwipeMode(true)}
                 onObservationClick={() => setCatSwipeMode(true)}
                 careCount={careCount}
