@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronUp, Heart, Cat } from "lucide-react";
@@ -52,10 +53,12 @@ function FullscreenHero() {
             {/* Full Photo */}
             <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
                 {activeCat.avatar ? (
-                    <img
+                    <Image
                         src={activeCat.avatar}
                         alt={activeCat.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        priority
                     />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 flex items-center justify-center">

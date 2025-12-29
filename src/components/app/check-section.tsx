@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
 import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -323,10 +324,12 @@ export function CheckSection({ filter = 'all' }: CheckSectionProps) {
         <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
             {bgImage && (
                 <>
-                    <img
+                    <Image
                         src={getPublicUrl(bgImage)}
                         alt="Background"
-                        className="absolute inset-0 w-full h-full object-cover opacity-60"
+                        fill
+                        className="object-cover opacity-60"
+                        role="presentation"
                     />
                     <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px]" />
                 </>
