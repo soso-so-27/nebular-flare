@@ -134,7 +134,7 @@ export function CalendarScreen() {
                             >
                                 <span className={`
                                     text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full
-                                    ${isTodayDate ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700'}
+                                    ${isTodayDate ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-700'}
                                 `}>
                                     {format(day, 'd')}
                                 </span>

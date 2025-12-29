@@ -27,9 +27,9 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 z-10 shrink-0">
-                            <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                                📅 カレンダー
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 z-10 shrink-0">
+                            <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                カレンダー
                             </h3>
                             <button
                                 onClick={onClose}
