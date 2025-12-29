@@ -168,9 +168,16 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
 interface FullscreenHeroHomeScreenProps {
     onCareClick: () => void;
     onObservationClick: () => void;
+    careCount?: number;
+    observationCount?: number;
 }
 
-export function FullscreenHeroHomeScreen({ onCareClick, onObservationClick }: FullscreenHeroHomeScreenProps) {
+export function FullscreenHeroHomeScreen({
+    onCareClick,
+    onObservationClick,
+    careCount = 0,
+    observationCount = 0
+}: FullscreenHeroHomeScreenProps) {
     return (
         <div className="relative -mx-4 -mt-4">
             {/* Fullscreen Hero - Takes 80% of viewport */}
@@ -190,17 +197,27 @@ export function FullscreenHeroHomeScreen({ onCareClick, onObservationClick }: Fu
                 >
                     <button
                         onClick={onCareClick}
-                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                        className="relative flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
                         <Heart className="w-5 h-5 text-amber-600" />
                         <span>お世話</span>
+                        {careCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white">
+                                {careCount}
+                            </span>
+                        )}
                     </button>
                     <button
                         onClick={onObservationClick}
-                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                        className="relative flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
                         <Cat className="w-5 h-5 text-amber-600" />
                         <span>様子</span>
+                        {observationCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white">
+                                {observationCount}
+                            </span>
+                        )}
                     </button>
                 </motion.div>
 

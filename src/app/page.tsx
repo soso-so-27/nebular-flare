@@ -42,11 +42,25 @@ function AppContent() {
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
 
   // Get data and functions for quick actions
+  // Get data and functions for quick actions
   const {
-    tasks, noticeLogs, inventory, lastSeenAt, settings, cats,
+    tasks, noticeLogs, inventory, lastSeenAt, settings, cats, catsLoading,
     careTaskDefs, careLogs, noticeDefs, activeCatId,
     addCareLog, addObservation, setInventory, isDemo
   } = useAppState();
+
+  // Manage app ready state for splash screen
+  const [isAppReady, setIsAppReady] = useState(false);
+
+  useEffect(() => {
+    if (!catsLoading) {
+      // Add a small delay to ensure rendering is complete and images start loading
+      const timer = setTimeout(() => {
+        setIsAppReady(true);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [catsLoading]);
 
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
@@ -159,6 +173,8 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
 
+      {!isAppReady && <SplashScreen />}
+
       <main className="min-h-dvh bg-background dark:bg-slate-950 pb-32 pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto p-4 space-y-4">
           <NotificationModal
@@ -176,6 +192,8 @@ function AppContent() {
               <FullscreenHeroHomeScreen
                 onCareClick={() => setCareSwipeMode(true)}
                 onObservationClick={() => setCatSwipeMode(true)}
+                careCount={careCount}
+                observationCount={catCount}
               />
 
               {/* HomeScreen is hidden but rendered for overlay functionality */}
