@@ -23,6 +23,9 @@ import { getCatchUpItems } from "@/lib/utils-catchup";
 import { NotificationModal } from "@/components/app/notification-modal";
 import { CalendarModal } from "@/components/app/calendar-modal";
 
+import { haptics } from "@/lib/haptics";
+import { SplashScreen } from "@/components/app/splash-screen";
+
 function AppContent() {
   const [tab, setTab] = useState("home");
   const [careSwipeMode, setCareSwipeMode] = useState(false);
@@ -113,6 +116,7 @@ function AppContent() {
         {/* Home */}
         <button
           onClick={() => {
+            haptics.impactLight();
             setTab("home");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
@@ -126,6 +130,7 @@ function AppContent() {
         {/* Care (Overlay) */}
         <button
           onClick={() => {
+            haptics.impactLight();
             setTab("home");
             setCatSwipeMode(false);
             setCareSwipeMode(true);
@@ -146,6 +151,7 @@ function AppContent() {
         {/* Health (Overlay) - renamed from "Record" */}
         <button
           onClick={() => {
+            haptics.impactLight();
             setTab("home");
             setCareSwipeMode(false);
             setCatSwipeMode(true);
@@ -166,6 +172,7 @@ function AppContent() {
         {/* Album (Gallery) - renamed from "Cat" */}
         <button
           onClick={() => {
+            haptics.impactLight();
             setTab("gallery");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
@@ -202,11 +209,7 @@ function AuthenticatedAppWithProfile() {
   }, [profile, profileLoading, onboardingDone]);
 
   if (profileLoading || !checkComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (needsOnboarding && !onboardingDone) {
@@ -241,11 +244,7 @@ function AuthenticatedApp() {
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   // Show login if not authenticated and not demo mode
@@ -269,11 +268,7 @@ function AuthenticatedApp() {
 
 export default function Home() {
   return (
-    <React.Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-      </div>
-    }>
+    <React.Suspense fallback={<SplashScreen />}>
       <AuthenticatedApp />
     </React.Suspense>
   );

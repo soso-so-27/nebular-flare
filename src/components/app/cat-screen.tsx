@@ -10,6 +10,7 @@ import { CatchUpStack } from "./catch-up-stack";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { haptics } from "@/lib/haptics";
 
 interface CatScreenProps {
     externalSwipeMode?: boolean;
@@ -97,6 +98,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
 
     async function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later', value?: string) {
         if (action === 'done' && item.catId) {
+            haptics.success();
             if (item.type === 'notice') {
                 if (isDemo) {
                     setNoticeLogs(prev => ({
