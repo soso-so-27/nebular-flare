@@ -39,9 +39,15 @@ import { InventorySettingsModal } from "./inventory-settings-modal";
 import { CatGalleryModal } from "./cat-gallery-modal";
 import { QuickActionBar } from "./quick-action-bar";
 import { ActivityFeed } from "./activity-feed";
+import { HeroSection } from "./hero-section";
 import { Image as ImageIcon } from "lucide-react";
 
-export function HomeScreen() {
+interface HomeScreenProps {
+    externalOpenSection?: 'care' | 'cat' | 'inventory' | null;
+    onOpenSectionChange?: (section: 'care' | 'cat' | 'inventory' | null) => void;
+}
+
+export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScreenProps = {}) {
     const {
         cats,
         activeCatId,
@@ -74,7 +80,10 @@ export function HomeScreen() {
         updateInvThreshold
     } = useAppState();
 
-    const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
+    // Use external control if provided, otherwise use local state
+    const [localOpenSection, setLocalOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
+    const openSection = externalOpenSection !== undefined ? externalOpenSection : localOpenSection;
+    const setOpenSection = onOpenSectionChange || setLocalOpenSection;
     const [settingsMode, setSettingsMode] = useState(false);
     const [newItemInput, setNewItemInput] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -375,6 +384,9 @@ export function HomeScreen() {
     return (
         <div className="relative min-h-screen">
             <div className="space-y-4 pb-20">
+                {/* Hero Section - First */}
+                <HeroSection />
+
                 {/* Anomaly Alert Banner */}
                 <AnomalyAlertBanner />
 
@@ -387,112 +399,26 @@ export function HomeScreen() {
                     <CheckSection />
                 </motion.div>
 
-                {/* Quick Action Bar */}
+                {/* Action Buttons - Unified Design */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
+                    className="grid grid-cols-2 gap-3"
                 >
-                    <QuickActionBar />
-                </motion.div>
-
-                {/* Section Boxes - Clickable */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="grid grid-cols-3 gap-3"
-                >
-                    {/* Care Box with Progress Ring */}
                     <button
                         onClick={() => setOpenSection('care')}
-                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
-                        <div className="relative w-12 h-12">
-                            {/* Progress Ring */}
-                            <svg className="w-12 h-12 -rotate-90">
-                                <circle
-                                    cx="24" cy="24" r="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    className="text-slate-100"
-                                />
-                                <circle
-                                    cx="24" cy="24" r="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    className={careCompleted === careItems.length ? "text-primary" : "text-primary/60"}
-                                    strokeDasharray={`${(careCompleted / Math.max(careItems.length, 1)) * 125.6} 125.6`}
-                                />
-                            </svg>
-                            {/* Icon */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Heart className="h-5 w-5 text-primary" />
-                            </div>
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">お世話</span>
-                        <span className="text-xs text-slate-400">
-                            {careCompleted}/{careItems.length}
-                        </span>
+                        <Heart className="w-5 h-5 text-amber-600" />
+                        <span>お世話</span>
                     </button>
-
-                    {/* Cat Box with Progress Ring */}
                     <button
                         onClick={() => setOpenSection('cat')}
-                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
-                        <div className="relative w-12 h-12">
-                            {/* Progress Ring */}
-                            <svg className="w-12 h-12 -rotate-90">
-                                <circle
-                                    cx="24" cy="24" r="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    className="text-slate-100"
-                                />
-                                <circle
-                                    cx="24" cy="24" r="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    className={obsCompleted === observationItems.length ? "text-primary" : "text-primary/60"}
-                                    strokeDasharray={`${(obsCompleted / Math.max(observationItems.length, 1)) * 125.6} 125.6`}
-                                />
-                            </svg>
-                            {/* Icon */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Cat className="h-5 w-5 text-primary" />
-                            </div>
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">猫の様子</span>
-                        <span className="text-xs text-slate-400">
-                            {obsCompleted}/{observationItems.length}
-                        </span>
-                    </button>
-
-                    {/* Inventory Box - Alert count with indicator */}
-                    <button
-                        onClick={() => setOpenSection('inventory')}
-                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors"
-                    >
-                        <div className="relative w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center">
-                            <ShoppingCart className="h-5 w-5 text-slate-500" />
-                            {/* Alert badge */}
-                            {urgentCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-slate-400 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                                    {urgentCount}
-                                </span>
-                            )}
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">在庫</span>
-                        <span className="text-xs text-slate-400">
-                            {urgentCount > 0 ? `${urgentCount}件アラート` : "OK"}
-                        </span>
+                        <Cat className="w-5 h-5 text-amber-600" />
+                        <span>観察</span>
                     </button>
                 </motion.div>
 

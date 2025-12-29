@@ -7,6 +7,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { useUserProfile } from "@/hooks/use-supabase-data";
 import { TopBar } from "@/components/app/top-bar";
 import { HomeScreen } from "@/components/app/home-screen";
+import { WidgetHomeScreen } from "@/components/app/widget-home-screen";
+import { FullscreenHeroHomeScreen } from "@/components/app/fullscreen-hero-home";
 import { CareScreen } from "@/components/app/care-screen";
 import { CatScreen } from "@/components/app/cat-screen";
 import { GalleryScreen } from "@/components/app/gallery-screen";
@@ -14,7 +16,8 @@ import { MoreScreen } from "@/components/app/more-screen";
 import { LoginScreen } from "@/components/app/login-screen";
 import { OnboardingScreen } from "@/components/app/onboarding-screen";
 import { Toaster } from "@/components/ui/sonner";
-import { Home as HomeIcon, Heart, Cat, Image, Activity } from "lucide-react";
+import { toast } from "sonner";
+import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { TwinFAB } from "@/components/app/twin-fab";
 import { useAppState } from "@/store/app-store";
@@ -25,6 +28,7 @@ import { CalendarModal } from "@/components/app/calendar-modal";
 
 import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/splash-screen";
+import { SidebarMenu } from "@/components/app/sidebar-menu";
 
 function AppContent() {
   const [tab, setTab] = useState("home");
@@ -32,14 +36,21 @@ function AppContent() {
   const [catSwipeMode, setCatSwipeMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
 
-  // Get catchup items for FAB badges
-  const { tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs } = useAppState();
+  // Get data and functions for quick actions
+  const {
+    tasks, noticeLogs, inventory, lastSeenAt, settings, cats,
+    careTaskDefs, careLogs, noticeDefs, activeCatId,
+    addCareLog, addObservation, setInventory, isDemo
+  } = useAppState();
+
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
     noticeLogs,
     inventory,
-
     lastSeenAt,
     settings,
     cats,
@@ -50,32 +61,105 @@ function AppContent() {
 
   const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
   const catCount = catchup.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
+  const totalCount = careCount + catCount;
 
-  const tabItems = [
-    { id: "home", label: "ホーム", Icon: HomeIcon },
-    { id: "gallery", label: "猫", Icon: Cat },
-  ];
+  // Quick action handler for sidebar - immediate completion
+  const handleQuickAction = async (section: string, itemId: string) => {
+    haptics.impactLight();
 
-  // Handle FAB clicks - show swipe overlay on home
-  const handleCareFABClick = () => {
-    setTab("home");
-    setCareSwipeMode(true);
+    if (section === 'care') {
+      // Map sidebar items to care task types
+      const careTypeMap: Record<string, string> = {
+        'morning-food': 'food:morning',
+        'evening-food': 'food:evening',
+        'water': 'water',
+        'toilet': 'toilet',
+        'medicine': 'medicine'
+      };
+      const careType = careTypeMap[itemId];
+      if (careType) {
+        const result = await addCareLog(careType);
+        if (!result?.error) {
+          toast.success(`完了しました！`);
+        } else {
+          toast.error('記録に失敗しました');
+        }
+      }
+    } else if (section === 'observation') {
+      // Map sidebar items to observation types
+      const obsTypeMap: Record<string, string> = {
+        'appetite': 'appetite',
+        'energy': 'energy',
+        'toilet-check': 'toilet',
+        'weight': 'weight'
+      };
+      const obsType = obsTypeMap[itemId];
+      if (obsType && activeCatId) {
+        // For observations, default to "いつも通り" for quick action
+        const result = await addObservation(activeCatId, obsType, 'いつも通り');
+        if (!result?.error) {
+          toast.success(`記録しました！`);
+        } else {
+          toast.error('記録に失敗しました');
+        }
+      }
+    } else if (section === 'inventory') {
+      // For inventory, open the overlay for detailed input
+      setTab("home");
+      setOpenSection('inventory');
+    }
   };
 
-  const handleCatFABClick = () => {
-    setTab("home");
-    setCatSwipeMode(true);
+  // Handle sidebar navigation
+  const handleSidebarNavigate = (section: string, item?: string) => {
+    if (section === 'calendar') {
+      setShowCalendar(true);
+    } else if (section === 'notifications') {
+      setShowNotifications(true);
+    } else if (section === 'settings') {
+      setShowSettings(true);
+      setTab("settings");
+    } else if (item) {
+      // Quick action for specific item
+      handleQuickAction(section, item);
+    } else {
+      // Open overlay for category header
+      if (section === 'care') {
+        setTab("home");
+        setOpenSection('care');
+      } else if (section === 'observation') {
+        setTab("home");
+        setOpenSection('cat');
+      } else if (section === 'inventory') {
+        setTab("home");
+        setOpenSection('inventory');
+      }
+    }
+  };
+
+  // Combined swipe mode handler
+  const handleSwipeClick = () => {
+    haptics.impactLight();
+    if (careCount > 0) {
+      setCareSwipeMode(true);
+    } else if (catCount > 0) {
+      setCatSwipeMode(true);
+    } else {
+      // Open care swipe anyway if nothing pending
+      setCareSwipeMode(true);
+    }
   };
 
   return (
     <>
+      <SidebarMenu
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        onNavigate={handleSidebarNavigate}
+      />
+
       <main className="min-h-dvh bg-background dark:bg-slate-950 pb-32 pt-[env(safe-area-inset-top)]">
         <div className="max-w-md mx-auto p-4 space-y-4">
-          <TopBar
-            onSettingsClick={() => setTab("settings")}
-            onNotificationClick={() => setShowNotifications(true)}
-            onHistoryClick={() => setShowCalendar(true)}
-          />
           <NotificationModal
             isOpen={showNotifications}
             onClose={() => setShowNotifications(false)}
@@ -87,7 +171,8 @@ function AppContent() {
 
           {tab === "home" && (
             <>
-              <HomeScreen />
+              {/* Fullscreen Hero Preview - Temporary */}
+              <FullscreenHeroHomeScreen onOpenSection={setOpenSection} />
               {/* Care Swipe Overlay */}
               {careSwipeMode && (
                 <CareScreen externalSwipeMode={careSwipeMode} onSwipeModeChange={setCareSwipeMode} />
@@ -103,7 +188,7 @@ function AppContent() {
         </div>
       </main>
 
-      {/* Navigation - fixed at very bottom */}
+      {/* Navigation - fixed at very bottom, 2 tabs only */}
       <nav
         className="fixed bottom-0 inset-x-0 backdrop-blur-xl border-t border-black/5 flex items-center justify-around z-50"
         style={{
@@ -127,49 +212,7 @@ function AppContent() {
           <span className="text-[10px] font-bold">ホーム</span>
         </button>
 
-        {/* Care (Overlay) */}
-        <button
-          onClick={() => {
-            haptics.impactLight();
-            setTab("home");
-            setCatSwipeMode(false);
-            setCareSwipeMode(true);
-          }}
-          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${careSwipeMode ? "text-amber-500 scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
-        >
-          <div className="relative">
-            <Heart className="h-6 w-6" />
-            {careCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center border border-white">
-                {careCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-bold">お世話</span>
-        </button>
-
-        {/* Health (Overlay) - renamed from "Record" */}
-        <button
-          onClick={() => {
-            haptics.impactLight();
-            setTab("home");
-            setCareSwipeMode(false);
-            setCatSwipeMode(true);
-          }}
-          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${catSwipeMode ? "text-amber-500 scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
-        >
-          <div className="relative">
-            <Activity className="h-6 w-6" />
-            {catCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center border border-white">
-                {catCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-bold">体調</span>
-        </button>
-
-        {/* Album (Gallery) - renamed from "Cat" */}
+        {/* Cat/Gallery */}
         <button
           onClick={() => {
             haptics.impactLight();
@@ -180,12 +223,37 @@ function AppContent() {
           className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "gallery" ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
           <Cat className="h-6 w-6" />
-          <span className="text-[10px] font-bold">猫</span>
+          <span className="text-[10px] font-bold">ねこ</span>
+        </button>
+
+        {/* Calendar */}
+        <button
+          onClick={() => {
+            haptics.impactLight();
+            setShowCalendar(true);
+          }}
+          className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
+        >
+          <Calendar className="h-6 w-6" />
+          <span className="text-[10px] font-bold">カレンダー</span>
+        </button>
+
+        {/* Menu (opens sidebar) */}
+        <button
+          onClick={() => {
+            haptics.impactLight();
+            setShowSidebar(true);
+          }}
+          className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
+        >
+          <MoreHorizontal className="h-6 w-6" />
+          <span className="text-[10px] font-bold">その他</span>
         </button>
       </nav>
     </>
   );
 }
+
 
 
 function AuthenticatedAppWithProfile() {
