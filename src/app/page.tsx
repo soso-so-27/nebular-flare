@@ -12,6 +12,7 @@ import { FullscreenHeroHomeScreen } from "@/components/app/fullscreen-hero-home"
 import { CareScreen } from "@/components/app/care-screen";
 import { CatScreen } from "@/components/app/cat-screen";
 import { GalleryScreen } from "@/components/app/gallery-screen";
+import { CalendarScreen } from "@/components/app/calendar-screen";
 import { MoreScreen } from "@/components/app/more-screen";
 import { LoginScreen } from "@/components/app/login-screen";
 import { OnboardingScreen } from "@/components/app/onboarding-screen";
@@ -193,6 +194,7 @@ function AppContent() {
             </>
           )}
           {tab === "gallery" && <GalleryScreen />}
+          {tab === "calendar" && <CalendarScreen />}
           {tab === "settings" && <MoreScreen />}
         </div>
       </main>
@@ -238,13 +240,17 @@ function AppContent() {
           <span className="text-[10px] font-bold">ねこ</span>
         </button>
 
-        {/* Calendar */}
+        {/* Calendar - Tab */}
         <button
           onClick={() => {
             haptics.impactLight();
-            setShowCalendar(true);
+            setTab("calendar");
+            setCareSwipeMode(false);
+            setCatSwipeMode(false);
+            setOpenSection(null);
+            setShowSidebar(false);
           }}
-          className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "calendar" ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
           <Calendar className="h-6 w-6" />
           <span className="text-[10px] font-bold">カレンダー</span>
