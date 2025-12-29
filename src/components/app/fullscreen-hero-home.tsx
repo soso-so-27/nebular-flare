@@ -162,7 +162,12 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
 }
 
 // Main Fullscreen Hero Home Screen
-export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (section: 'care' | 'cat' | 'inventory') => void }) {
+interface FullscreenHeroHomeScreenProps {
+    onCareClick: () => void;
+    onObservationClick: () => void;
+}
+
+export function FullscreenHeroHomeScreen({ onCareClick, onObservationClick }: FullscreenHeroHomeScreenProps) {
     return (
         <div className="relative -mx-4 -mt-4">
             {/* Fullscreen Hero - Takes 80% of viewport */}
@@ -173,7 +178,7 @@ export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (se
                 {/* Anomaly Alert */}
                 <AnomalyAlertBanner />
 
-                {/* Action Buttons - Open Overlays */}
+                {/* Action Buttons - Open Swipe Cards */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -181,14 +186,14 @@ export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (se
                     className="grid grid-cols-2 gap-3"
                 >
                     <button
-                        onClick={() => onOpenSection('care')}
+                        onClick={onCareClick}
                         className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
                         <Heart className="w-5 h-5 text-amber-600" />
                         <span>お世話</span>
                     </button>
                     <button
-                        onClick={() => onOpenSection('cat')}
+                        onClick={onObservationClick}
                         className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
                     >
                         <Cat className="w-5 h-5 text-amber-600" />
