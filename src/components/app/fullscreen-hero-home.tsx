@@ -48,7 +48,7 @@ function FullscreenHero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="relative w-full"
-            style={{ height: 'calc(80vh - env(safe-area-inset-top))' }}
+            style={{ height: 'calc(50vh - env(safe-area-inset-top))' }}
         >
             {/* Full Photo */}
             <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
@@ -83,20 +83,9 @@ function FullscreenHero() {
                     {daysTogetherCount && (
                         <p className="text-base opacity-80 mt-2 flex items-center gap-2">
                             <span className="text-xl">🧡</span>
-                            一緒に {daysTogetherCount}日目
+                            と一緒に {daysTogetherCount}日目
                         </p>
                     )}
-                </motion.div>
-
-                {/* Swipe indicator */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-6 flex flex-col items-center"
-                >
-                    <ChevronUp className="w-6 h-6 animate-bounce" />
-                    <span className="text-xs opacity-70">スワイプで詳細</span>
                 </motion.div>
             </div>
 
