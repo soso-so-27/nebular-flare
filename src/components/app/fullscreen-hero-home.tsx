@@ -155,7 +155,7 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
                 className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
             >
                 <Cat className="w-5 h-5 text-amber-600" />
-                <span>観察</span>
+                <span>様子</span>
             </button>
         </motion.div>
     );

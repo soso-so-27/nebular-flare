@@ -45,6 +45,16 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                                 <CalendarScreen />
                             </div>
                         </div>
+
+                        {/* Footer with Close Button */}
+                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+                            <button
+                                onClick={onClose}
+                                className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors"
+                            >
+                                閉じる
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             )}

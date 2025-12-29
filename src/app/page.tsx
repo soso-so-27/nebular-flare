@@ -171,8 +171,17 @@ function AppContent() {
 
           {tab === "home" && (
             <>
-              {/* Fullscreen Hero Preview - Temporary */}
+              {/* Fullscreen Hero Layout */}
               <FullscreenHeroHomeScreen onOpenSection={setOpenSection} />
+
+              {/* HomeScreen is hidden but rendered for overlay functionality */}
+              {openSection && (
+                <HomeScreen
+                  externalOpenSection={openSection}
+                  onOpenSectionChange={setOpenSection}
+                />
+              )}
+
               {/* Care Swipe Overlay */}
               {careSwipeMode && (
                 <CareScreen externalSwipeMode={careSwipeMode} onSwipeModeChange={setCareSwipeMode} />
