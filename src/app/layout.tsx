@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "CatUp",
   },
   formatDetection: {
@@ -34,7 +34,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#fff9f5',
+  themeColor: '#F5F0E6',
 };
 
 export default function RootLayout({

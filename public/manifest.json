@@ -3,8 +3,8 @@
   "short_name": "CatUp",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fff9f5",
-  "theme_color": "#fff9f5",
+  "background_color": "#F5F0E6",
+  "theme_color": "#F5F0E6",
   "icons": [
     {
       "src": "/icon.svg",
