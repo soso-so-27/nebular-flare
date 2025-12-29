@@ -214,6 +214,9 @@ function AppContent() {
             setTab("home");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
+            setShowCalendar(false);
+            setOpenSection(null);
+            setShowSidebar(false);
           }}
           className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >

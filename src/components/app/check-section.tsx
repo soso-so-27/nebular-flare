@@ -23,7 +23,11 @@ interface CheckItem {
     onSecondaryAction?: () => void;
 }
 
-export function CheckSection() {
+interface CheckSectionProps {
+    filter?: 'care' | 'observation' | 'all';
+}
+
+export function CheckSection({ filter = 'all' }: CheckSectionProps) {
     const {
         tasks, setTasks,
         noticeDefs, noticeLogs, setNoticeLogs,
@@ -285,7 +289,31 @@ export function CheckSection() {
     }, [inventory, setInventory]);
 
     const allItems = [...pendingCareItems, ...pendingObservationItems, ...urgentInventoryItems];
-    const totalCount = allItems.length;
+
+    // Apply filter
+    const filteredItems = filter === 'all'
+        ? allItems
+        : filter === 'care'
+            ? pendingCareItems
+            : pendingObservationItems;
+    const totalCount = filteredItems.length;
+
+    // Show care items based on filter
+    const showCareItems = filter === 'all' || filter === 'care';
+    const showObservationItems = filter === 'all' || filter === 'observation';
+    const showInventoryItems = filter === 'all';
+
+    if (totalCount === 0 && filter !== 'all') {
+        // Show empty state for filtered view
+        return (
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden p-6 text-center">
+                <span className="text-3xl">✨</span>
+                <p className="text-sm text-slate-500 mt-2">
+                    {filter === 'care' ? 'お世話は完了しています！' : '今日の様子は記録済みです！'}
+                </p>
+            </div>
+        );
+    }
 
     if (totalCount === 0) {
         return null; // Don't show anything when all done
@@ -318,7 +346,7 @@ export function CheckSection() {
                 {/* Items List - Compact */}
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {/* Care Items */}
-                    {pendingCareItems.map(item => (
+                    {showCareItems && pendingCareItems.map(item => (
                         <div
                             key={item.id}
                             className="flex items-center justify-between px-4 py-2.5"
@@ -343,7 +371,7 @@ export function CheckSection() {
                     ))}
 
                     {/* Observation Items */}
-                    {pendingObservationItems.map(item => (
+                    {showObservationItems && pendingObservationItems.map(item => (
                         <div
                             key={item.id}
                             className="flex items-center justify-between px-4 py-2.5"
@@ -365,7 +393,7 @@ export function CheckSection() {
                     ))}
 
                     {/* Inventory Items */}
-                    {urgentInventoryItems.map(item => (
+                    {showInventoryItems && urgentInventoryItems.map(item => (
                         <div
                             key={item.id}
                             className="flex items-center justify-between px-4 py-2.5"
