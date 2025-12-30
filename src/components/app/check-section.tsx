@@ -287,22 +287,11 @@ export function CheckSection() {
     const allItems = [...pendingCareItems, ...pendingObservationItems, ...urgentInventoryItems];
     const totalCount = allItems.length;
 
-    if (totalCount === 0) {
-        return null; // Don't show anything when all done
-    }
+    // if (totalCount === 0) return null; // Always show
 
     return (
-        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden">
-            {bgImage && (
-                <>
-                    <img
-                        src={getPublicUrl(bgImage)}
-                        alt="Background"
-                        className="absolute inset-0 w-full h-full object-cover opacity-60"
-                    />
-                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px]" />
-                </>
-            )}
+        <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+
 
             <div className="relative z-10">
                 {/* Header Row - Compact */}
@@ -317,6 +306,13 @@ export function CheckSection() {
 
                 {/* Items List - Compact */}
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {totalCount === 0 && (
+                        <div className="px-4 py-8 text-center">
+                            <span className="text-sm text-slate-400 font-medium bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-full">
+                                全て完了しています
+                            </span>
+                        </div>
+                    )}
                     {/* Care Items */}
                     {pendingCareItems.map(item => (
                         <div

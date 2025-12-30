@@ -240,20 +240,9 @@ export function ActivityFeed() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm overflow-hidden"
+            className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
         >
-            {bgImage && (
-                <>
-                    <Image
-                        src={getPublicUrl(bgImage)}
-                        alt="Background"
-                        fill
-                        className="object-cover opacity-60"
-                        role="presentation"
-                    />
-                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-[1px]" />
-                </>
-            )}
+
 
             <div className="relative z-10">
                 {/* Header - clickable to toggle expand (Styled like CheckSection) */}

@@ -15,6 +15,8 @@ type AppState = {
     setActiveCatId: (v: string) => void;
     cats: Cat[];
     catsLoading: boolean;
+    isHeroImageLoaded: boolean;
+    setIsHeroImageLoaded: (v: boolean) => void;
     tasks: Task[];
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
     noticeDefs: NoticeDef[];
@@ -83,6 +85,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [isPro, setIsPro] = useState(true);
     const [aiEnabled, setAiEnabled] = useState(true);
     const [activeCatId, setActiveCatId] = useState('');
+    const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
 
     const [settings, setSettings] = useState<AppSettings>(() => ({
         plan: 'Free',
@@ -1015,6 +1018,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         activeCatId, setActiveCatId,
         cats,
         catsLoading,
+        isHeroImageLoaded, setIsHeroImageLoaded,
         tasks, setTasks,
         noticeDefs, setNoticeDefs,
         noticeLogs, setNoticeLogs,

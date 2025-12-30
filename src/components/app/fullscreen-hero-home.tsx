@@ -11,8 +11,15 @@ import { ActivityFeed } from "./activity-feed";
 
 // Fullscreen Hero Component
 function FullscreenHero() {
-    const { cats, activeCatId, setActiveCatId } = useAppState();
+    const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded } = useAppState();
     const activeCat = cats.find(c => c.id === activeCatId);
+
+    // Fallback if no avatar (gradient) - set loaded immediately
+    React.useEffect(() => {
+        if (activeCat && !activeCat.avatar) {
+            setIsHeroImageLoaded(true);
+        }
+    }, [activeCat, setIsHeroImageLoaded]);
 
     const daysTogetherCount = React.useMemo(() => {
         if (!activeCat?.birthday) return null;
@@ -56,6 +63,8 @@ function FullscreenHero() {
                         src={activeCat.avatar}
                         alt={activeCat.name}
                         className="w-full h-full object-cover"
+                        onLoad={() => setIsHeroImageLoaded(true)}
+                        onError={() => setIsHeroImageLoaded(true)} // Fallback on error
                     />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 flex items-center justify-center">
@@ -135,7 +144,15 @@ function FullscreenHero() {
 }
 
 // Action Buttons
-function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'cat' | 'inventory') => void }) {
+function ActionButtons({
+    onOpenSection,
+    careCount = 0,
+    observationCount = 0
+}: {
+    onOpenSection: (section: 'care' | 'cat' | 'inventory') => void;
+    careCount?: number;
+    observationCount?: number;
+}) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -145,24 +162,40 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
         >
             <button
                 onClick={() => onOpenSection('care')}
-                className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all active:scale-95"
             >
-                <Heart className="w-5 h-5 text-amber-600" />
-                <span>お世話</span>
+                <div className="p-2 rounded-full bg-orange-100 text-orange-600">
+                    <Heart className="w-5 h-5" />
+                </div>
+                <span>お世話
+                    {careCount > 0 && <span className="ml-1 text-xs opacity-60">({careCount})</span>}
+                </span>
             </button>
             <button
                 onClick={() => onOpenSection('cat')}
-                className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all active:scale-95"
             >
-                <Cat className="w-5 h-5 text-amber-600" />
-                <span>観察</span>
+                <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                    <Cat className="w-5 h-5" />
+                </div>
+                <span>様子
+                    {observationCount > 0 && <span className="ml-1 text-xs opacity-60">({observationCount})</span>}
+                </span>
             </button>
         </motion.div>
     );
 }
 
 // Main Fullscreen Hero Home Screen
-export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (section: 'care' | 'cat' | 'inventory') => void }) {
+export function FullscreenHeroHomeScreen({
+    onOpenSection,
+    careCount,
+    observationCount,
+}: {
+    onOpenSection: (section: 'care' | 'cat' | 'inventory') => void;
+    careCount?: number;
+    observationCount?: number;
+}) {
     return (
         <div className="relative -mx-4 -mt-4">
             {/* Fullscreen Hero - Takes 80% of viewport */}
@@ -183,7 +216,11 @@ export function FullscreenHeroHomeScreen({ onOpenSection }: { onOpenSection: (se
                 </motion.div>
 
                 {/* Action Buttons */}
-                <ActionButtons onOpenSection={onOpenSection} />
+                <ActionButtons
+                    onOpenSection={onOpenSection}
+                    careCount={careCount}
+                    observationCount={observationCount}
+                />
 
                 {/* Activity Feed */}
                 <motion.div

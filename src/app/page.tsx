@@ -150,8 +150,29 @@ function AppContent() {
     }
   };
 
+  // Force layout re-calculation for mobile viewport height hack
+  useEffect(() => {
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    return () => window.removeEventListener('resize', setVh);
+  }, []);
+
+  // Use isHeroImageLoaded to control Splash Screen
+  const { isHeroImageLoaded } = useAppState();
+
   return (
     <>
+      {/* Smart Splash Screen - Waits for Hero Image */}
+      {!isHeroImageLoaded && (
+        <div className="fixed inset-0 z-[9999]">
+          <SplashScreen />
+        </div>
+      )}
+
       <SidebarMenu
         isOpen={showSidebar}
         onClose={() => setShowSidebar(false)}
@@ -172,7 +193,11 @@ function AppContent() {
           {tab === "home" && (
             <>
               {/* Fullscreen Hero Preview - Temporary */}
-              <FullscreenHeroHomeScreen onOpenSection={setOpenSection} />
+              <FullscreenHeroHomeScreen
+                onOpenSection={setOpenSection}
+                careCount={careCount}
+                observationCount={catCount}
+              />
               {/* Care Swipe Overlay */}
               {careSwipeMode && (
                 <CareScreen externalSwipeMode={careSwipeMode} onSwipeModeChange={setCareSwipeMode} />
@@ -205,8 +230,10 @@ function AppContent() {
             setTab("home");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
+            setShowCalendar(false);
+            setShowSidebar(false);
           }}
-          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode && !showCalendar && !showSidebar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
           <HomeIcon className="h-6 w-6" />
           <span className="text-[10px] font-bold">ホーム</span>
@@ -219,8 +246,10 @@ function AppContent() {
             setTab("gallery");
             setCareSwipeMode(false);
             setCatSwipeMode(false);
+            setShowCalendar(false);
+            setShowSidebar(false);
           }}
-          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "gallery" ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "gallery" && !showCalendar && !showSidebar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
           <Cat className="h-6 w-6" />
           <span className="text-[10px] font-bold">ねこ</span>
@@ -230,13 +259,17 @@ function AppContent() {
         <button
           onClick={() => {
             haptics.impactLight();
-            setShowCalendar(true);
+            setShowCalendar(!showCalendar);
+            setShowSidebar(false);
+            setCareSwipeMode(false);
+            setCatSwipeMode(false);
           }}
-          className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
+          className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${showCalendar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
         >
           <Calendar className="h-6 w-6" />
           <span className="text-[10px] font-bold">カレンダー</span>
         </button>
+
 
         {/* Menu (opens sidebar) */}
         <button
@@ -249,7 +282,7 @@ function AppContent() {
           <MoreHorizontal className="h-6 w-6" />
           <span className="text-[10px] font-bold">その他</span>
         </button>
-      </nav>
+      </nav >
     </>
   );
 }

@@ -31,12 +31,7 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                             <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 カレンダー
                             </h3>
-                            <button
-                                onClick={onClose}
-                                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+
                         </div>
 
                         {/* Content */}
