@@ -128,6 +128,39 @@ export function MoreScreen() {
                         </select>
                     </div>
 
+                    <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold">猫の切り替え</span>
+                            <span className="text-[10px] text-muted-foreground">ホーム画面の表示スタイル</span>
+                        </div>
+                        <select
+                            value={settings.homeDisplayMode}
+                            onChange={(e) => setSettings(s => ({ ...s, homeDisplayMode: e.target.value as any }))}
+                            className="text-xs border rounded p-1 bg-slate-50"
+                        >
+                            <option value="story">ストーリー</option>
+                            <option value="parallax">パララックス</option>
+                            <option value="avatars">アイコン</option>
+                        </select>
+                    </div>
+
+                    <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold">操作メニュー</span>
+                            <span className="text-[10px] text-muted-foreground">ボタン配置と操作感</span>
+                        </div>
+                        <select
+                            value={settings.homeInterfaceMode || 'bubble'}
+                            onChange={(e) => setSettings(s => ({ ...s, homeInterfaceMode: e.target.value as any }))}
+                            className="text-xs border rounded p-1 bg-slate-50"
+                        >
+                            <option value="bubble">Magic Bubble (推奨)</option>
+                            <option value="zen">Zen Gestures</option>
+                            <option value="editorial">Editorial Corners</option>
+                            <option value="classic">クラシック</option>
+                        </select>
+                    </div>
+
                     <p className="px-4 py-2 text-[10px] text-slate-400">
                         ※ お世話・猫の様子・在庫の設定は各カードの⚙️から
                     </p>

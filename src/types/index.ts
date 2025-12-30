@@ -151,7 +151,9 @@ export type AppSettings = {
   plan: 'Free' | 'Pro';
   aiEnabled: boolean;
   engagement: 'passive' | 'daily';
-  homeMode: 'checklist' | 'cards';
+  homeMode: 'checklist' | 'cards' | 'immersive';
+  homeDisplayMode: 'story' | 'parallax' | 'avatars'; // Content presentation
+  homeInterfaceMode: 'bubble' | 'zen' | 'editorial' | 'classic'; // UI controls
   weeklySummaryEnabled: boolean;
   quietHours: { start: number; end: number };
   invThresholds: { soon: number; urgent: number; critical: number };
