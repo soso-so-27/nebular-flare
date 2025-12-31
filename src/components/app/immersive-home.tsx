@@ -262,15 +262,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 />
             )}
 
-            {settings.homeInterfaceMode === 'zen' && (
-                <ZenGestures
-                    onOpenPickup={() => setShowPickup(true)}
-                    onOpenCalendar={() => onOpenCalendar?.()}
-                    onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('settings')}
-                    onOpenActivity={() => setShowActivity(true)}
-                />
-            )}
+            {/* Zen Mode Removed as per request */}
 
             {settings.homeInterfaceMode === 'editorial' && (
                 <EditorialCorners
@@ -282,8 +274,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 />
             )}
 
-            {/* Legacy/Classic Mode (Fallback logic) */}
-            {(settings.homeInterfaceMode === 'classic' || !settings.homeInterfaceMode) && (
+            {/* Legacy/Classic Mode (Fallback logic & Zen Fallback) */}
+            {(settings.homeInterfaceMode === 'classic' || settings.homeInterfaceMode === 'zen' || !settings.homeInterfaceMode) && (
                 <motion.div
                     initial={{ opacity: 1 }}
                     animate={{ opacity: uiVisible ? 1 : 0 }}
@@ -400,7 +392,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 </button>
                             </div>
                             <div className="overflow-y-auto max-h-[calc(70vh-60px)]">
-                                <CheckSection />
+                                <CheckSection onOpenSettings={() => onNavigate?.('settings')} />
                             </div>
                         </motion.div>
                     </motion.div>

@@ -32,27 +32,16 @@ export function EditorialCorners({ onOpenPickup, onOpenCalendar, onOpenGallery, 
                     </div>
                 </button>
 
-                {/* Activity & Settings */}
-                <div className="flex items-start gap-6">
-                    <button
-                        onClick={onOpenActivity}
-                        className="text-right group"
-                    >
-                        <div className="text-white/70 text-xs tracking-widest font-light uppercase">Recent</div>
-                        <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
-                            Logs
-                        </div>
-                    </button>
-                    <button
-                        onClick={onOpenSettings}
-                        className="text-right group"
-                    >
-                        <div className="text-white/70 text-xs tracking-widest font-light uppercase">App</div>
-                        <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
-                            Menu
-                        </div>
-                    </button>
-                </div>
+                {/* Activity */}
+                <button
+                    onClick={onOpenActivity}
+                    className="text-right group"
+                >
+                    <div className="text-white/70 text-xs tracking-widest font-light uppercase">Recent</div>
+                    <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
+                        Logs
+                    </div>
+                </button>
             </div>
 
             {/* Bottom Row */}
