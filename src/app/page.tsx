@@ -228,7 +228,7 @@ function AppContent() {
             {tab === "gallery" && (
               <motion.div
                 key="gallery-screen"
-                className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl"
+                className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
                 initial={{ opacity: 0, y: "100%" }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: "100%" }}
@@ -241,7 +241,7 @@ function AppContent() {
             {tab === "settings" && (
               <motion.div
                 key="settings-screen"
-                className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
+                className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
