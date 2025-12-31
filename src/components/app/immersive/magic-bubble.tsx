@@ -94,43 +94,16 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 >
                     {isOpen ? <Plus className="w-8 h-8 rotate-45" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
                 </motion.button>
+                {/* Glow Effect behind Orb */}
+                {!isOpen && (
+                    <motion.div
+                        className="absolute inset-0 bg-white/20 blur-xl rounded-full -z-10"
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                    />
+                )}
             </div>
         </div>
-    );
-
-    {/* Main Orb Button */ }
-    <motion.button
-        onClick={toggleOpen}
-        whileTap={{ scale: 0.9 }}
-        animate={{
-            scale: isOpen ? 0.9 : 1,
-            rotate: isOpen ? 45 : 0
-        }}
-        className={`
-                        w-16 h-16 rounded-full 
-                        bg-gradient-to-br from-white/40 to-white/10 
-                        backdrop-blur-md border border-white/30 
-                        shadow-[0_0_20px_rgba(255,255,255,0.3)]
-                        flex items-center justify-center text-white
-                        transition-all duration-300
-                        ${isOpen ? 'bg-white/20' : 'hover:bg-white/30'}
-                    `}
-    >
-        {isOpen ? <Plus className="w-8 h-8 rotate-45" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
-    </motion.button>
-
-    {/* Glow Effect behind Orb */ }
-    {
-        !isOpen && (
-            <motion.div
-                className="absolute inset-0 bg-white/20 blur-xl rounded-full -z-10"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-            />
-        )
-    }
-            </div >
-        </div >
     );
 }
 
