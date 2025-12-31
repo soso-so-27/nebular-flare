@@ -257,7 +257,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('settings')}
+                    onOpenCare={() => onOpenSidebar?.()}
                     onOpenActivity={() => setShowActivity(true)}
                 />
             )}
@@ -269,7 +269,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('settings')}
+                    onOpenCare={() => onOpenSidebar?.()}
                     onOpenActivity={() => setShowActivity(true)}
                 />
             )}
@@ -392,7 +392,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 </button>
                             </div>
                             <div className="overflow-y-auto max-h-[calc(70vh-60px)]">
-                                <CheckSection onOpenSettings={() => onNavigate?.('settings')} />
+                                <CheckSection />
                             </div>
                         </motion.div>
                     </motion.div>

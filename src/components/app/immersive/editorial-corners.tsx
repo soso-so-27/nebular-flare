@@ -8,11 +8,11 @@ interface EditorialCornersProps {
     onOpenPickup: () => void;
     onOpenCalendar: () => void;
     onOpenGallery: () => void;
-    onOpenSettings: () => void;
+    onOpenCare: () => void;
     onOpenActivity: () => void;
 }
 
-export function EditorialCorners({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings, onOpenActivity }: EditorialCornersProps) {
+export function EditorialCorners({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity }: EditorialCornersProps) {
     const today = new Date();
     const dateStr = format(today, "MMM d", { locale: ja }); // e.g., Oct 31
     const dayStr = format(today, "EEE", { locale: ja }); // e.g., Sat
@@ -32,16 +32,27 @@ export function EditorialCorners({ onOpenPickup, onOpenCalendar, onOpenGallery, 
                     </div>
                 </button>
 
-                {/* Activity */}
-                <button
-                    onClick={onOpenActivity}
-                    className="text-right group"
-                >
-                    <div className="text-white/70 text-xs tracking-widest font-light uppercase">Recent</div>
-                    <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
-                        Logs
-                    </div>
-                </button>
+                {/* Activity & Care */}
+                <div className="flex items-start gap-6">
+                    <button
+                        onClick={onOpenActivity}
+                        className="text-right group"
+                    >
+                        <div className="text-white/70 text-xs tracking-widest font-light uppercase">Recent</div>
+                        <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
+                            Logs
+                        </div>
+                    </button>
+                    <button
+                        onClick={onOpenCare}
+                        className="text-right group"
+                    >
+                        <div className="text-white/70 text-xs tracking-widest font-light uppercase">App</div>
+                        <div className="text-white text-sm font-serif group-hover:underline decoration-white/50 underline-offset-4">
+                            Care
+                        </div>
+                    </button>
+                </div>
             </div>
 
             {/* Bottom Row */}
@@ -60,9 +71,9 @@ export function EditorialCorners({ onOpenPickup, onOpenCalendar, onOpenGallery, 
                     onClick={onOpenPickup}
                     className="text-right group"
                 >
-                    <div className="text-white/70 text-xs tracking-widest font-light uppercase">Action</div>
+                    <div className="text-white/70 text-xs tracking-widest font-light uppercase">Daily</div>
                     <div className="text-white text-4xl font-thin font-serif italic tracking-wider group-active:scale-95 transition-transform drop-shadow-md">
-                        CARE
+                        PICKUP
                     </div>
                 </button>
             </div>

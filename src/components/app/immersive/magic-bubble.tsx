@@ -2,17 +2,17 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Calendar, Cat, Settings, X, Plus, Activity } from "lucide-react";
+import { LayoutGrid, Calendar, Cat, X, Plus, Activity, Menu } from "lucide-react";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
     onOpenCalendar: () => void;
     onOpenGallery: () => void;
-    onOpenSettings: () => void;
+    onOpenCare: () => void;
     onOpenActivity: () => void;
 }
 
-export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings, onOpenActivity }: MagicBubbleProps) {
+export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity }: MagicBubbleProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleOpen = () => setIsOpen(!isOpen);
@@ -20,8 +20,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const menuItems = [
         { icon: Cat, label: "猫", action: onOpenGallery, color: "text-emerald-400", delay: 0 },
         { icon: Activity, label: "活動", action: onOpenActivity, color: "text-rose-400", delay: 0.05 },
-        { icon: LayoutGrid, label: "お世話", action: onOpenPickup, color: "text-amber-400", isMain: true, delay: 0.1 },
+        { icon: LayoutGrid, label: "Pick Up", action: onOpenPickup, color: "text-amber-400", isMain: true, delay: 0.1 },
         { icon: Calendar, label: "予定", action: onOpenCalendar, color: "text-blue-400", delay: 0.15 },
+        { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-100", delay: 0.2 },
     ];
 
     return (

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle, Settings } from "lucide-react";
+import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -23,11 +23,7 @@ interface CheckItem {
     onSecondaryAction?: () => void;
 }
 
-interface CheckSectionProps {
-    onOpenSettings?: () => void;
-}
-
-export function CheckSection({ onOpenSettings }: CheckSectionProps) {
+export function CheckSection() {
     const {
         tasks, setTasks,
         noticeDefs, noticeLogs, setNoticeLogs,
@@ -303,19 +299,9 @@ export function CheckSection({ onOpenSettings }: CheckSectionProps) {
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                         ピックアップ
                     </h3>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                            {totalCount}
-                        </span>
-                        {onOpenSettings && (
-                            <button
-                                onClick={onOpenSettings}
-                                className="p-1.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                            >
-                                <Settings className="w-4 h-4" />
-                            </button>
-                        )}
-                    </div>
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {totalCount}
+                    </span>
                 </div>
 
                 {/* Items List - Compact */}
