@@ -20,9 +20,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const menuItems = [
         { icon: Cat, label: "猫", action: onOpenGallery, color: "text-emerald-400", delay: 0 },
         { icon: Activity, label: "活動", action: onOpenActivity, color: "text-rose-400", delay: 0.05 },
-        { icon: LayoutGrid, label: "Pick Up", action: onOpenPickup, color: "text-amber-400", isMain: true, delay: 0.1 },
+        { icon: LayoutGrid, label: "Pick Up", action: onOpenPickup, color: "text-amber-400", delay: 0.1 },
         { icon: Calendar, label: "予定", action: onOpenCalendar, color: "text-blue-400", delay: 0.15 },
-        { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-100", delay: 0.2 },
+        { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-200", delay: 0.2 },
     ];
 
     return (
@@ -43,7 +43,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             />
 
                             {/* Menu Row */}
-                            <div className="absolute bottom-20 flex gap-6 items-end justify-center">
+                            <div className="absolute bottom-20 flex gap-4 items-end justify-center mb-4">
                                 {menuItems.map((item, index) => (
                                     <motion.button
                                         key={index}
@@ -55,24 +55,16 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                         animate={{
                                             opacity: 1,
                                             y: 0,
-                                            scale: item.isMain ? 1.1 : 1,
+                                            scale: 1,
                                             transition: { delay: item.delay, type: "spring", stiffness: 300, damping: 20 }
                                         }}
                                         exit={{ opacity: 0, y: 10, scale: 0.5 }}
                                         className="flex flex-col items-center gap-2 group"
                                     >
-                                        <div className={`
-                                            flex items-center justify-center rounded-2xl shadow-lg border border-white/20 backdrop-blur-md transition-all active:scale-95
-                                            ${item.isMain
-                                                ? 'w-16 h-16 bg-white/20'
-                                                : 'w-14 h-14 bg-white/10 hover:bg-white/20'}
-                                        `}>
-                                            <item.icon className={`
-                                                ${item.isMain ? 'w-8 h-8' : 'w-6 h-6'} 
-                                                ${item.color} drop-shadow-sm
-                                            `} />
+                                        <div className={`p-4 rounded-full shadow-lg border border-white/20 backdrop-blur-md bg-white/10 hover:bg-white/20 transition-all active:scale-95`}>
+                                            <item.icon className={`w-6 h-6 ${item.color} drop-shadow-sm`} />
                                         </div>
-                                        <span className="text-white text-xs font-bold drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/40 px-2 py-0.5 rounded-full">
+                                        <span className="text-white text-[10px] font-bold drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/40 px-2 py-0.5 rounded-full">
                                             {item.label}
                                         </span>
                                     </motion.button>
@@ -102,17 +94,43 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 >
                     {isOpen ? <Plus className="w-8 h-8 rotate-45" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
                 </motion.button>
-
-                {/* Glow Effect behind Orb */}
-                {!isOpen && (
-                    <motion.div
-                        className="absolute inset-0 bg-white/20 blur-xl rounded-full -z-10"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                    />
-                )}
             </div>
         </div>
+    );
+
+    {/* Main Orb Button */ }
+    <motion.button
+        onClick={toggleOpen}
+        whileTap={{ scale: 0.9 }}
+        animate={{
+            scale: isOpen ? 0.9 : 1,
+            rotate: isOpen ? 45 : 0
+        }}
+        className={`
+                        w-16 h-16 rounded-full 
+                        bg-gradient-to-br from-white/40 to-white/10 
+                        backdrop-blur-md border border-white/30 
+                        shadow-[0_0_20px_rgba(255,255,255,0.3)]
+                        flex items-center justify-center text-white
+                        transition-all duration-300
+                        ${isOpen ? 'bg-white/20' : 'hover:bg-white/30'}
+                    `}
+    >
+        {isOpen ? <Plus className="w-8 h-8 rotate-45" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
+    </motion.button>
+
+    {/* Glow Effect behind Orb */ }
+    {
+        !isOpen && (
+            <motion.div
+                className="absolute inset-0 bg-white/20 blur-xl rounded-full -z-10"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+            />
+        )
+    }
+            </div >
+        </div >
     );
 }
 

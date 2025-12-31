@@ -178,7 +178,6 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                                 className="text-xs border rounded p-1 bg-slate-50"
                             >
                                 <option value="bubble">Magic Bubble (推奨)</option>
-                                <option value="zen">Zen Gestures</option>
                                 <option value="editorial">Editorial Corners</option>
                                 <option value="classic">クラシック</option>
                             </select>
