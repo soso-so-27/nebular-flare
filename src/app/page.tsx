@@ -206,7 +206,6 @@ function AppContent() {
       {/* Navigation - hidden on immersive home */}
       {/* Footer navigation has been removed for full immersive experience */}
     </>
-    </>
   );
 }
 
