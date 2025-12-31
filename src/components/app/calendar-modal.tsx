@@ -23,11 +23,11 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="bg-slate-50 dark:bg-slate-950 w-full h-full md:h-full md:max-h-[800px] md:max-w-md md:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 w-full h-full md:h-full md:max-h-[800px] md:max-w-md md:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 z-10 shrink-0">
+                        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-transparent z-10 shrink-0">
                             <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 カレンダー
                             </h3>

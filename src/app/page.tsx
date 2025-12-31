@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppProvider } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { useUserProfile } from "@/hooks/use-supabase-data";
@@ -17,7 +18,7 @@ import { LoginScreen } from "@/components/app/login-screen";
 import { OnboardingScreen } from "@/components/app/onboarding-screen";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal } from "lucide-react";
+import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal, X } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { TwinFAB } from "@/components/app/twin-fab";
 import { useAppState } from "@/store/app-store";
@@ -191,15 +192,65 @@ function AppContent() {
             onClose={() => setShowCalendar(false)}
           />
 
-          {tab === "home" && (
-            <ImmersiveHome
-              onOpenSidebar={() => setShowSidebar(true)}
-              onNavigate={(t) => setTab(t)}
-              onOpenCalendar={() => setShowCalendar(true)}
-            />
-          )}
-          {tab === "gallery" && <GalleryScreen onClose={() => setTab("home")} />}
-          {tab === "settings" && <MoreScreen onClose={() => setTab("home")} />}
+          {/* Immersive Home - Always mounted for background context */}
+          <ImmersiveHome
+            onOpenSidebar={() => setShowSidebar(true)}
+            onNavigate={(t) => setTab(t)}
+            onOpenCalendar={() => setShowCalendar(true)}
+            onCatClick={() => setTab("cat")}
+          />
+
+          {/* Overlays */}
+          <AnimatePresence>
+            {tab === "cat" && (
+              <motion.div
+                key="cat-screen"
+                className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.4, type: "spring", damping: 25, stiffness: 300 }}
+              >
+                <div className="absolute top-4 right-4 z-50">
+                  <button
+                    onClick={() => setTab("home")}
+                    className="p-2 rounded-full bg-white/40 backdrop-blur-md shadow-sm border border-white/20 text-slate-800 dark:text-white hover:bg-white/60"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <div className="h-full overflow-y-auto pt-16 px-4 pb-24">
+                  <CatScreen />
+                </div>
+              </motion.div>
+            )}
+
+            {tab === "gallery" && (
+              <motion.div
+                key="gallery-screen"
+                className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl"
+                initial={{ opacity: 0, y: "100%" }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: "100%" }}
+                transition={{ duration: 0.3, ease: "circOut" }}
+              >
+                <GalleryScreen onClose={() => setTab("home")} />
+              </motion.div>
+            )}
+
+            {tab === "settings" && (
+              <motion.div
+                key="settings-screen"
+                className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <MoreScreen onClose={() => setTab("home")} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 

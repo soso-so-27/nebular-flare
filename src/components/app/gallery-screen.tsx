@@ -15,15 +15,15 @@ import { PhotoSortModal } from "./photo-sort-modal";
 // Unified Header Component
 function ScreenHeader({ title, onClose }: { title: string; onClose?: () => void }) {
     return (
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 h-14 flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
+        <div className="sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/10 px-4 h-14 flex items-center justify-between">
+            <h2 className="text-base font-bold text-white">{title}</h2>
             <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-full hover:bg-white/10"
             >
-                <X className="h-5 w-5 text-slate-500" />
+                <X className="h-5 w-5 text-slate-300" />
             </Button>
         </div>
     );
@@ -245,7 +245,7 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
 
     // Main View - iOS Card Style
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+        <div className="min-h-screen bg-transparent pb-20">
             <ScreenHeader title="ギャラリー" onClose={onClose} />
             <div className="p-4 space-y-4">
                 {/* All Photos Card - iOS style rounded rect */}
@@ -256,8 +256,8 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                     {allImages[0] ? (
                         <img src={getPublicUrl(allImages[0].storagePath)} alt="" className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                            <ImageIcon className="h-8 w-8 text-slate-400" />
+                        <div className="w-full h-full bg-slate-900 border border-white/10 flex items-center justify-center">
+                            <ImageIcon className="h-8 w-8 text-slate-600" />
                         </div>
                     )}
                     {/* Gradient overlay with text */}
@@ -293,7 +293,7 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                             <div key={cat.id}>
                                 {/* Image - tap to open gallery */}
                                 <div
-                                    className="aspect-square rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 relative cursor-pointer active:scale-95 transition-transform"
+                                    className="aspect-square rounded-xl overflow-hidden bg-slate-900 border border-white/10 relative cursor-pointer active:scale-95 transition-transform"
                                     onClick={() => setSelectedCatId(cat.id)}
                                 >
                                     {hasAvatar ? (
@@ -301,7 +301,7 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                                     ) : hasImage ? (
                                         <img src={getPublicUrl(cat.images![0].storagePath)} alt={cat.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-3xl bg-slate-100 dark:bg-slate-800">
+                                        <div className="w-full h-full flex items-center justify-center text-3xl bg-slate-800">
                                             {cat.avatar || "🐈"}
                                         </div>
                                     )}
@@ -313,8 +313,8 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                                     onClick={() => setProfileCatId(cat.id)}
                                     className="w-full text-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg py-1 mt-1 transition-colors"
                                 >
-                                    <p className="text-[13px] font-medium text-slate-800 dark:text-white truncate">{cat.name}</p>
-                                    <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                                    <p className="text-[13px] font-medium text-white truncate">{cat.name}</p>
+                                    <p className="text-[11px] text-white/50">
                                         タップして詳細
                                     </p>
                                 </button>
@@ -327,10 +327,10 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                         className="cursor-pointer active:scale-95 transition-transform"
                         onClick={() => setIsCatSettingsOpen(true)}
                     >
-                        <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center">
-                            <Plus className="h-8 w-8 text-slate-400" />
+                        <div className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 border-dashed flex items-center justify-center">
+                            <Plus className="h-8 w-8 text-white/30" />
                         </div>
-                        <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 text-center">新しい猫を追加</p>
+                        <p className="text-[13px] font-medium text-white/50 mt-1.5 text-center">新しい猫を追加</p>
                     </div>
                 </div>
 

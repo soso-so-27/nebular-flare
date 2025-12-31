@@ -185,14 +185,14 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                 showSwipeMode && catchupItems.length > 0 && "blur-xl scale-[0.98] pointer-events-none opacity-50"
             )}>
                 {/* Cat Selector */}
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {cats.map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setActiveCatId(cat.id)}
-                            className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all ${activeCatId === cat.id
-                                ? "bg-amber-500 text-white shadow-lg"
-                                : "bg-white text-slate-700 border border-slate-200"
+                            className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all border ${activeCatId === cat.id
+                                ? "bg-amber-500 border-amber-500 text-white shadow-lg"
+                                : "bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-white/30 text-slate-800 dark:text-white"
                                 }`}
                         >{(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
                             <img src={cat.avatar} alt={cat.name} className="w-6 h-6 rounded-full object-cover" />
@@ -206,10 +206,10 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
 
                 {/* Cat Profile Card with Swipe Button */}
                 {selectedCat && (
-                    <Card className="rounded-3xl shadow-sm border-none bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
+                    <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                         <CardContent className="p-5">
                             <div className="flex items-center gap-4">
-                                <div className="h-16 w-16 rounded-2xl bg-white shadow-inner flex items-center justify-center overflow-hidden">
+                                <div className="h-16 w-16 rounded-2xl bg-white/50 backdrop-blur shadow-inner border border-white/20 flex items-center justify-center overflow-hidden">
                                     {(selectedCat.avatar?.startsWith('http') || selectedCat.avatar?.startsWith('/')) ? (
                                         <img src={selectedCat.avatar} alt={selectedCat.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -217,8 +217,8 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <h2 className="text-lg font-bold text-slate-900">{selectedCat.name}</h2>
-                                    <p className="text-sm text-slate-500">
+                                    <h2 className="text-lg font-bold text-slate-800 dark:text-white drop-shadow-sm">{selectedCat.name}</h2>
+                                    <p className="text-sm text-slate-600 dark:text-slate-200">
                                         {selectedCat.sex === 'オス' ? '♂ オス' : selectedCat.sex === 'メス' ? '♀ メス' : selectedCat.sex || '性別未設定'}
                                         {selectedCat.age && ` • ${selectedCat.age}`}
                                     </p>
@@ -226,7 +226,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                 {catchupItems.length > 0 && !showSwipeMode && (
                                     <button
                                         onClick={() => setShowSwipeMode(true)}
-                                        className="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-200"
+                                        className="text-xs font-bold text-white bg-rose-500/90 shadow-md px-3 py-1.5 rounded-full border border-rose-400"
                                     >
                                         変化あり ({catchupItems.length})
                                     </button>

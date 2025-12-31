@@ -15,15 +15,15 @@ import { toast } from "sonner";
 // Unified Header Component
 function ScreenHeader({ title, onClose }: { title: string; onClose?: () => void }) {
     return (
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 h-14 flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
+        <div className="sticky top-0 z-50 bg-white/10 dark:bg-slate-900/30 backdrop-blur-md border-b border-white/20 px-4 h-14 flex items-center justify-between shadow-sm">
+            <h2 className="text-base font-bold text-slate-800 dark:text-white drop-shadow-sm">{title}</h2>
             <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-full hover:bg-white/20"
             >
-                <X className="h-5 w-5 text-slate-500" />
+                <X className="h-5 w-5 text-slate-600 dark:text-slate-200" />
             </Button>
         </div>
     );
@@ -59,11 +59,11 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+        <div className="min-h-screen bg-transparent pb-20">
             <ScreenHeader title="設定" onClose={onClose} />
             <div className="p-4 space-y-6">
                 {/* Account Section */}
-                <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
+                <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-bold flex items-center gap-2">
                             <User className="h-4 w-4 text-slate-500" />
@@ -96,7 +96,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
+                <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-bold flex items-center gap-2">
                             <SettingsIcon className="h-4 w-4 text-slate-500" />
@@ -194,19 +194,19 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                     <Button
                         variant="outline"
                         onClick={() => setIsFamilyModalOpen(true)}
-                        className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700"
+                        className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200"
                     >
                         <User className="h-4 w-4 text-slate-400" />
                         家族を招待
                     </Button>
-                    <Button variant="outline" disabled className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700 opacity-50">
+                    <Button variant="outline" disabled className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200 opacity-50">
                         <Sparkles className="h-4 w-4 text-slate-400" />
                         スキン (準備中)
                     </Button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border-none bg-white shadow-sm font-bold text-xs text-slate-700">
+                    <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200">
                         <Info className="h-4 w-4 text-slate-400" />
                         使い方
                     </Button>
@@ -216,7 +216,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                 {!isDemo && (
                     <div className="space-y-4">
                         <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">システム</h3>
-                        <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
+                        <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                             <button
                                 type="button"
                                 onClick={async () => {
@@ -250,7 +250,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
 
                 <div className="space-y-4">
                     <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">サポート</h3>
-                    <Card className="rounded-3xl shadow-sm border-none bg-white overflow-hidden">
+                    <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 cursor-pointer">
                             <span className="text-xs font-medium">使い方ガイド</span>
                             <Info className="h-4 w-4 text-slate-300" />

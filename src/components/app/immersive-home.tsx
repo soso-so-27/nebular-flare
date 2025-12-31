@@ -20,9 +20,10 @@ interface ImmersiveHomeProps {
     onOpenSidebar?: () => void;
     onNavigate?: (tab: string) => void;
     onOpenCalendar?: () => void;
+    onCatClick?: () => void;
 }
 
-export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: ImmersiveHomeProps) {
+export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
     const [showActivity, setShowActivity] = useState(false);
@@ -150,11 +151,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                                     repeat: Infinity,
                                     repeatType: "reverse"
                                 }}
-                                onLoad={() => setIsHeroImageLoaded(true)}
-                                onError={() => setIsHeroImageLoaded(true)}
+                                onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
                             />
                         ) : (
-                            <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                            <div
+                                className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                            >
                                 <Cat className="w-32 h-32 text-slate-200" />
                             </div>
                         )}
