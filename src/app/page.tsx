@@ -204,77 +204,8 @@ function AppContent() {
       </main>
 
       {/* Navigation - hidden on immersive home */}
-      {tab !== "home" && (
-        <nav
-          className="fixed bottom-0 inset-x-0 backdrop-blur-xl border-t border-black/5 flex items-center justify-around z-50"
-          style={{
-            backgroundColor: 'rgba(245, 240, 230, 0.95)',
-            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
-            paddingTop: '12px',
-            height: 'calc(64px + env(safe-area-inset-bottom, 0px))'
-          }}
-        >
-          {/* Home */}
-          <button
-            onClick={() => {
-              haptics.impactLight();
-              setTab("home");
-              setCareSwipeMode(false);
-              setCatSwipeMode(false);
-              setShowCalendar(false);
-              setShowSidebar(false);
-            }}
-            className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "home" && !careSwipeMode && !catSwipeMode && !showCalendar && !showSidebar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
-          >
-            <HomeIcon className="h-6 w-6" />
-            <span className="text-[10px] font-bold">ホーム</span>
-          </button>
-
-          {/* Cat/Gallery */}
-          <button
-            onClick={() => {
-              haptics.impactLight();
-              setTab("gallery");
-              setCareSwipeMode(false);
-              setCatSwipeMode(false);
-              setShowCalendar(false);
-              setShowSidebar(false);
-            }}
-            className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${tab === "gallery" && !showCalendar && !showSidebar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
-          >
-            <Cat className="h-6 w-6" />
-            <span className="text-[10px] font-bold">ねこ</span>
-          </button>
-
-          {/* Calendar */}
-          <button
-            onClick={() => {
-              haptics.impactLight();
-              setShowCalendar(!showCalendar);
-              setShowSidebar(false);
-              setCareSwipeMode(false);
-              setCatSwipeMode(false);
-            }}
-            className={`relative flex flex-col items-center gap-1 transition-all duration-200 ${showCalendar ? "text-primary scale-105" : "text-muted-foreground opacity-70 hover:opacity-100"}`}
-          >
-            <Calendar className="h-6 w-6" />
-            <span className="text-[10px] font-bold">カレンダー</span>
-          </button>
-
-
-          {/* Menu (opens sidebar) */}
-          <button
-            onClick={() => {
-              haptics.impactLight();
-              setShowSidebar(true);
-            }}
-            className="relative flex flex-col items-center gap-1 transition-all duration-200 text-muted-foreground opacity-70 hover:opacity-100"
-          >
-            <MoreHorizontal className="h-6 w-6" />
-            <span className="text-[10px] font-bold">その他</span>
-          </button>
-        </nav>
-      )}
+      {/* Footer navigation has been removed for full immersive experience */}
+    </>
     </>
   );
 }

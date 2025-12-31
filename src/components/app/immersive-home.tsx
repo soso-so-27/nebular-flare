@@ -248,7 +248,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('menu')}
+                    onOpenSettings={() => onNavigate?.('settings')}
                 />
             )}
 
@@ -257,7 +257,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('menu')}
+                    onOpenSettings={() => onNavigate?.('settings')}
                 />
             )}
 
@@ -266,7 +266,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenSettings={() => onNavigate?.('menu')}
+                    onOpenSettings={() => onNavigate?.('settings')}
                 />
             )}
 
