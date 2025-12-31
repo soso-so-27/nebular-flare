@@ -9,9 +9,10 @@ interface ZenGesturesProps {
     onOpenCalendar: () => void;
     onOpenGallery: () => void;
     onOpenSettings: () => void;
+    onOpenActivity: () => void;
 }
 
-export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings }: ZenGesturesProps) {
+export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings, onOpenActivity }: ZenGesturesProps) {
     const [showGuide, setShowGuide] = useState(true);
 
     // Fade out guide after 3 seconds
@@ -20,32 +21,8 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         return () => clearTimeout(timer);
     }, []);
 
-    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        const { offset, velocity } = info;
-        const swipeThreshold = 50;
-
-        // Vertical Swipes (Primary Actions)
-        if (Math.abs(offset.y) > Math.abs(offset.x)) {
-            if (offset.y < -swipeThreshold) {
-                // Swipe Up -> Primary Action (Pickup)
-                onOpenPickup();
-            } else if (offset.y > swipeThreshold) {
-                // Swipe Down -> History/Calendar
-                onOpenCalendar();
-            }
-        }
-        // Horizontal Swipes (Secondary Actions - handled by carousel mostly, but we can add edge gestures)
-        // Note: Horizontal swipes in center are reserved for cat switching.
-    };
-
     return (
         <div className="absolute inset-0 z-40 pointer-events-none">
-            {/* Full screen gesture area - allowing clicks on background to pass through, but capturing drags? 
-                Actually, to capture swipes, we need a transparent overlay that might block clicks.
-                However, for Zen mode, 'clicks' on the background usually just toggle UI visibility or do nothing.
-                We'll place discrete gesture zones or a full overlay.
-            */}
-
             {/* Bottom Swipe Zone (for Pickup) */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-auto"
@@ -55,7 +32,6 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                     if (info.offset.y < -30) onOpenPickup();
                 }}
             >
-                {/* Visual Cue */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50">
                     {showGuide && (
                         <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
@@ -65,13 +41,13 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 </div>
             </motion.div>
 
-            {/* Top Swipe Zone (for Settings/Menu) */}
+            {/* Top Swipe Zone (for Calendar) */}
             <motion.div
                 className="absolute top-0 left-0 right-0 h-24 pointer-events-auto"
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
                 onDragEnd={(e, info) => {
-                    if (info.offset.y > 30) onOpenSettings();
+                    if (info.offset.y > 30) onOpenCalendar();
                 }}
             >
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50">
@@ -83,7 +59,49 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 </div>
             </motion.div>
 
-            {/* Central Tap Zone (Optional - maybe toggle guide?) */}
+            {/* Right Edge Zone (Activity) */}
+            <motion.div
+                className="absolute top-24 bottom-32 right-0 w-12 pointer-events-auto"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(e, info) => {
+                    if (info.offset.x < -30) onOpenActivity();
+                }}
+            >
+                <div className="absolute top-1/2 right-2 -translate-y-1/2 flex flex-col items-center opacity-50">
+                    {showGuide && (
+                        <motion.div animate={{ x: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                            <ChevronLeft className="text-white w-6 h-6" />
+                        </motion.div>
+                    )}
+                </div>
+            </motion.div>
+
+            {/* Left Edge Zone (Gallery) */}
+            <motion.div
+                className="absolute top-24 bottom-32 left-0 w-12 pointer-events-auto"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(e, info) => {
+                    if (info.offset.x > 30) onOpenGallery();
+                }}
+            >
+                <div className="absolute top-1/2 left-2 -translate-y-1/2 flex flex-col items-center opacity-50">
+                    {showGuide && (
+                        <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                            <ChevronRight className="text-white w-6 h-6" />
+                        </motion.div>
+                    )}
+                </div>
+            </motion.div>
+
+            {/* Config Corner (Top Right) */}
+            <div
+                className="absolute top-0 right-0 w-16 h-16 pointer-events-auto"
+                onClick={onOpenSettings}
+            />
+
+            {/* Center Tap Guide */}
             <div
                 className="absolute inset-0 z-[-1] pointer-events-auto"
                 onClick={() => setShowGuide(true)}

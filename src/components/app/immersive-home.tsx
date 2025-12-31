@@ -258,6 +258,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
                     onOpenSettings={() => onNavigate?.('settings')}
+                    onOpenActivity={() => setShowActivity(true)}
                 />
             )}
 
@@ -267,6 +268,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
                     onOpenSettings={() => onNavigate?.('settings')}
+                    onOpenActivity={() => setShowActivity(true)}
                 />
             )}
 
@@ -276,6 +278,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
                     onOpenSettings={() => onNavigate?.('settings')}
+                    onOpenActivity={() => setShowActivity(true)}
                 />
             )}
 
