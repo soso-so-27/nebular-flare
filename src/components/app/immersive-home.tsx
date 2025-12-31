@@ -322,14 +322,14 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
 
             {/* Always visible: Story Indicators (If Story Mode) */}
             {settings.homeDisplayMode === 'story' && settings.homeInterfaceMode !== 'zen' && (
-                <div className="absolute top-0 left-0 right-0 z-30 flex gap-1 px-2 pt-2 pointer-events-none">
+                <div className="absolute top-0 left-0 right-0 z-30 flex gap-2 px-3 pt-3 pointer-events-none">
                     {cats.map((cat, index) => (
-                        <div key={cat.id} className="h-1 flex-1 rounded-full overflow-hidden bg-white/30 backdrop-blur-sm">
+                        <div key={cat.id} className="h-1 flex-1 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm">
                             <motion.div
-                                className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                                initial={{ width: "0%" }}
-                                animate={{ width: index === currentIndex ? "100%" : (index < currentIndex ? "100%" : "0%") }}
-                                transition={{ duration: index === currentIndex ? 5 : 0 }}
+                                className="h-full bg-white shadow-[0_0_4px_rgba(255,255,255,0.5)]"
+                                initial={false}
+                                animate={{ opacity: index === currentIndex ? 1 : (index < currentIndex ? 0.5 : 0) }}
+                                transition={{ duration: 0.3 }}
                             />
                         </div>
                     ))}
@@ -339,19 +339,19 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
             {/* Always visible: Floating Avatars (If Avatars Mode and partially visible in other modes) */}
             {settings.homeDisplayMode === 'avatars' && settings.homeInterfaceMode !== 'bubble' && (
                 <div
-                    className="absolute bottom-28 left-0 right-0 z-30 flex items-center justify-center gap-4 pointer-events-auto px-4 overflow-x-auto no-scrollbar"
+                    className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
                 >
                     {cats.map((cat, index) => (
                         <motion.button
                             key={cat.id}
                             onClick={() => setActiveCatId(cat.id)}
                             animate={{
-                                scale: index === currentIndex ? 1.2 : 1,
+                                scale: index === currentIndex ? 1.3 : 1,
                                 y: index === currentIndex ? -10 : 0
                             }}
-                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-lg transition-all ${index === currentIndex
-                                ? 'border-white ring-2 ring-white/50'
-                                : 'border-white/50 opacity-70 hover:opacity-100 hover:scale-110'
+                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
+                                ? 'border-white ring-4 ring-white/30'
+                                : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
                                 }`}
                         >
                             <img src={cat.avatar} className="w-full h-full object-cover" alt="" />

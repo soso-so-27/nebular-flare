@@ -198,8 +198,8 @@ function AppContent() {
               onOpenCalendar={() => setShowCalendar(true)}
             />
           )}
-          {tab === "gallery" && <GalleryScreen />}
-          {tab === "settings" && <MoreScreen />}
+          {tab === "gallery" && <GalleryScreen onClose={() => setTab("home")} />}
+          {tab === "settings" && <MoreScreen onClose={() => setTab("home")} />}
         </div>
       </main>
 

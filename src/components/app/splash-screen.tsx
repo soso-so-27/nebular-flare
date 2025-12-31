@@ -1,15 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Cat, PawPrint } from "lucide-react";
-export function SplashScreen() {
+import { Cat } from "lucide-react";
 
+export function SplashScreen() {
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white select-none">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 text-slate-900 select-none">
             <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
                 className="relative"
             >
                 {/* Brand Logo Animation */}
@@ -23,12 +20,12 @@ export function SplashScreen() {
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
-                    className="w-24 h-24 bg-white dark:bg-slate-900 rounded-3xl shadow-xl flex items-center justify-center relative overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800"
+                    className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center relative overflow-hidden ring-1 ring-slate-100"
                 >
-                    <div className="absolute -right-4 -top-4 w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full opacity-50" />
-                    <div className="absolute -left-4 -bottom-4 w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full opacity-50" />
+                    <div className="absolute -right-4 -top-4 w-12 h-12 bg-slate-100 rounded-full opacity-50" />
+                    <div className="absolute -left-4 -bottom-4 w-16 h-16 bg-slate-100 rounded-full opacity-50" />
 
-                    <Cat className="w-12 h-12 text-slate-900 dark:text-white relative z-10" />
+                    <Cat className="w-12 h-12 text-slate-900 relative z-10" />
                 </motion.div>
 
             </motion.div>
@@ -39,7 +36,7 @@ export function SplashScreen() {
                 transition={{ delay: 0.2 }}
                 className="mt-8 text-center"
             >
-                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                <h1 className="text-2xl font-black tracking-tight text-slate-900">
                     CatUp
                 </h1>
                 <div className="flex justify-center gap-1 mt-3">
