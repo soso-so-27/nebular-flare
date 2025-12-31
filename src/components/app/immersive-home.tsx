@@ -154,15 +154,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                                 onError={() => setIsHeroImageLoaded(true)}
                             />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center">
-                                <span className="text-8xl">🐱</span>
+                            <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                                <Cat className="w-32 h-32 text-slate-200" />
                             </div>
                         )}
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none transition-opacity duration-1000" style={{ opacity: uiVisible ? 1 : 0 }} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none transition-opacity duration-1000" style={{ opacity: uiVisible ? 1 : 0 }} />
 
                         {isNight && (
-                            <div className="absolute inset-0 bg-orange-900/20 mix-blend-overlay pointer-events-none z-10" />
+                            <div className="absolute inset-0 bg-orange-900/10 mix-blend-overlay pointer-events-none z-10" />
                         )}
                     </motion.div>
                 </AnimatePresence>
@@ -221,7 +221,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar }: Imm
                                         transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-8xl">🐱</div>
+                                    <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                                        <Cat className="w-32 h-32 text-slate-200" />
+                                    </div>
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                                 <div className="absolute bottom-8 left-6">
