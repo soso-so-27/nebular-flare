@@ -140,11 +140,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             <motion.img
                                 src={activeCat.avatar}
                                 alt={activeCat.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover cursor-pointer"
                                 animate={{
                                     scale: [1, 1.15],
                                     x: [0, 20, -20, 0]
                                 }}
+                                whileTap={{ scale: 0.95 }}
                                 transition={{
                                     duration: 20,
                                     ease: "linear",
@@ -154,12 +155,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
                             />
                         ) : (
-                            <div
+                            <motion.div
                                 className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
+                                whileTap={{ scale: 0.9 }}
                                 onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
                             >
                                 <Cat className="w-32 h-32 text-slate-200" />
-                            </div>
+                            </motion.div>
                         )}
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none transition-opacity duration-1000" style={{ opacity: uiVisible ? 1 : 0 }} />
@@ -214,13 +216,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 drag="x"
                                 dragConstraints={{ left: 0, right: 0 }}
                                 onDragEnd={handleSwipe}
-                                className="w-full h-full max-h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative bg-slate-900"
+                                onClick={() => onCatClick?.()}
+                                className="w-full h-full max-h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative bg-slate-900 cursor-pointer"
                             >
                                 {activeCat?.avatar ? (
                                     <motion.img
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover"
                                         animate={{ scale: [1, 1.1] }}
+                                        whileTap={{ scale: 0.95 }}
                                         transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
                                     />
                                 ) : (
