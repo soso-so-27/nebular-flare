@@ -208,53 +208,59 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/50 z-[100]"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[100]"
                     />
 
-                    {/* Sidebar */}
+                    {/* Floating Sidebar */}
                     <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed top-0 right-0 bottom-0 w-[320px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-l border-white/20 z-[101] shadow-2xl flex flex-col"
+                        initial={{ x: 100, opacity: 0, scale: 0.95 }}
+                        animate={{ x: 0, opacity: 1, scale: 1 }}
+                        exit={{ x: 100, opacity: 0, scale: 0.95 }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 350 }}
+                        className="fixed top-4 right-4 bottom-4 w-[340px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/40 dark:border-slate-800 z-[101] shadow-2xl rounded-[32px] flex flex-col overflow-hidden ring-1 ring-black/5"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                                    <Cat className="w-5 h-5 text-amber-600" />
+                        <div className="flex items-center justify-between p-6 pb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center shadow-inner">
+                                    <Cat className="w-6 h-6 text-rose-500" />
                                 </div>
-                                <span className="font-medium text-gray-800">{userName}</span>
+                                <div>
+                                    <span className="block text-lg font-bold text-slate-800 dark:text-slate-100">{userName}</span>
+                                    <span className="text-xs text-rose-400 font-medium">ねこと暮らす</span>
+                                </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
                             >
-                                <X className="w-5 h-5 text-gray-500" />
+                                <X className="w-6 h-6 text-slate-400" />
                             </button>
                         </div>
 
                         {/* Menu Content */}
-                        <div className="flex-1 overflow-y-auto">
-
+                        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
 
                             {/* Care Section */}
-                            <div className="border-b border-gray-100">
+                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
                                 <button
                                     onClick={() => toggleSection('care')}
-                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Heart className="w-5 h-5 text-amber-500" />
-                                        <span className="font-medium text-gray-800">お世話を記録</span>
-                                        <span className="text-xs text-gray-400">{careCompleted}/{careItems.length}</span>
+                                        <div className="p-2 rounded-lg bg-rose-100/80 text-rose-500">
+                                            <Heart className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">お世話を記録</span>
+                                            <span className="text-xs text-slate-400">{careCompleted}/{careItems.length} 完了</span>
+                                        </div>
                                     </div>
                                     {expandedSection === 'care' ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-400" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-400" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -263,28 +269,30 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
                                         >
-                                            <div className="py-2">
+                                            <div className="p-2 space-y-1">
                                                 {careItems.map(item => {
                                                     const Icon = getIcon(item.icon);
                                                     return (
                                                         <div
                                                             key={item.id}
-                                                            className="flex items-center justify-between px-6 py-2.5"
+                                                            className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <Icon className={cn("w-4 h-4", item.done ? "text-gray-300" : "text-gray-500")} />
-                                                                <span className={cn("text-sm", item.done ? "text-gray-400 line-through" : "text-gray-700")}>
+                                                                <Icon className={cn("w-4 h-4", item.done ? "text-slate-300" : "text-slate-500")} />
+                                                                <span className={cn("text-sm font-medium", item.done ? "text-slate-300 line-through" : "text-slate-600 dark:text-slate-300")}>
                                                                     {item.label}
                                                                 </span>
                                                             </div>
                                                             {item.done ? (
-                                                                <Check className="w-5 h-5 text-emerald-500" />
+                                                                <div className="bg-emerald-100 text-emerald-500 p-1 rounded-full">
+                                                                    <Check className="w-3.5 h-3.5" />
+                                                                </div>
                                                             ) : (
                                                                 <button
                                                                     onClick={() => handleCareComplete(item.type, item.label)}
-                                                                    className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 text-white hover:bg-amber-600"
+                                                                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-sm shadow-rose-200"
                                                                 >
                                                                     完了
                                                                 </button>
@@ -299,20 +307,24 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Observation Section */}
-                            <div className="border-b border-gray-100">
+                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
                                 <button
                                     onClick={() => toggleSection('observation')}
-                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Cat className="w-5 h-5 text-amber-500" />
-                                        <span className="font-medium text-gray-800">猫の様子</span>
-                                        <span className="text-xs text-gray-400">{obsCompleted}/{observationItems.length}</span>
+                                        <div className="p-2 rounded-lg bg-amber-100/80 text-amber-500">
+                                            <Cat className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">猫の様子</span>
+                                            <span className="text-xs text-slate-400">{obsCompleted}/{observationItems.length} 確認済</span>
+                                        </div>
                                     </div>
                                     {expandedSection === 'observation' ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-400" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-400" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -321,26 +333,25 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
                                         >
-                                            <div className="py-2">
+                                            <div className="p-2 space-y-1">
                                                 {observationItems.map(item => (
                                                     <div
                                                         key={item.id}
-                                                        className="flex items-center justify-between px-6 py-2.5"
+                                                        className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
                                                     >
-                                                        <span className={cn("text-sm", item.done ? "text-gray-400 line-through" : "text-gray-700")}>
+                                                        <span className={cn("text-sm font-medium", item.done ? "text-slate-300" : "text-slate-600 dark:text-slate-300")}>
                                                             {item.label}
                                                         </span>
                                                         {item.done ? (
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-xs text-emerald-600">{item.value}</span>
-                                                                <Check className="w-5 h-5 text-emerald-500" />
+                                                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">{item.value}</span>
                                                             </div>
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleObservationComplete(item.id, item.label)}
-                                                                className="text-xs font-bold px-3 py-1 rounded-full bg-primary text-white hover:bg-primary/90"
+                                                                className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-200"
                                                             >
                                                                 OK
                                                             </button>
@@ -354,24 +365,28 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Inventory Section */}
-                            <div className="border-b border-gray-100">
+                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
                                 <button
                                     onClick={() => toggleSection('inventory')}
-                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <ShoppingCart className="w-5 h-5 text-amber-500" />
-                                        <span className="font-medium text-gray-800">在庫管理</span>
-                                        {urgentCount > 0 && (
-                                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                                                {urgentCount}件
-                                            </span>
-                                        )}
+                                        <div className="p-2 rounded-lg bg-blue-100/80 text-blue-500">
+                                            <ShoppingCart className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">在庫管理</span>
+                                            {urgentCount > 0 ? (
+                                                <span className="text-xs font-bold text-rose-500">あと{urgentCount}件が少なめ</span>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">すべて充足</span>
+                                            )}
+                                        </div>
                                     </div>
                                     {expandedSection === 'inventory' ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-400" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-400" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -380,28 +395,28 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
                                         >
-                                            <div className="py-2">
+                                            <div className="p-2 space-y-1">
                                                 {inventoryItems.map(item => (
                                                     <div
                                                         key={item.id}
-                                                        className="flex items-center justify-between px-6 py-2.5"
+                                                        className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <span className={cn(
-                                                                "text-xs font-bold px-2 py-0.5 rounded-full",
-                                                                item.status === 'danger' ? "bg-red-100 text-red-600" :
+                                                                "text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-tighter",
+                                                                item.status === 'danger' ? "bg-rose-100 text-rose-600" :
                                                                     item.status === 'warn' ? "bg-amber-100 text-amber-600" :
-                                                                        "bg-gray-100 text-gray-500"
+                                                                        "bg-slate-200/50 text-slate-500"
                                                             )}>
-                                                                あと{item.daysLeft}日
+                                                                残{item.daysLeft}日
                                                             </span>
-                                                            <span className="text-sm text-gray-700">{item.label}</span>
+                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
                                                         </div>
                                                         <button
                                                             onClick={() => handleInventoryRefill(item.id, item.label)}
-                                                            className="text-xs font-bold px-3 py-1 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 bg-white"
                                                         >
                                                             購入
                                                         </button>
@@ -414,19 +429,24 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Activity Section */}
-                            <div className="border-b border-gray-100">
+                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
                                 <button
                                     onClick={() => toggleSection('activity')}
-                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Activity className="w-5 h-5 text-amber-500" />
-                                        <span className="font-medium text-gray-800">アクティビティ</span>
+                                        <div className="p-2 rounded-lg bg-indigo-100/80 text-indigo-500">
+                                            <Activity className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">アクティビティ</span>
+                                            <span className="text-xs text-slate-400">活動ログを確認</span>
+                                        </div>
                                     </div>
                                     {expandedSection === 'activity' ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-400" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-400" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -435,9 +455,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
                                         >
-                                            <div className="py-2">
+                                            <div className="p-2">
                                                 <ActivityFeed embedded />
                                             </div>
                                         </motion.div>
@@ -447,28 +467,26 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 p-2">
-                            {/* ... Keep Footer ... */}
-
+                        <div className="p-4 flex gap-2">
                             <button
                                 onClick={() => {
                                     onNavigate('notifications');
                                     onClose();
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-amber-50 transition-colors rounded-lg"
+                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-rose-500 group"
                             >
-                                <Bell className="w-5 h-5 text-gray-400" />
-                                <span className="text-gray-700">通知設定</span>
+                                <Bell className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold">通知</span>
                             </button>
                             <button
                                 onClick={() => {
                                     onNavigate('settings');
                                     onClose();
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-amber-50 transition-colors rounded-lg"
+                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 group"
                             >
-                                <Settings className="w-5 h-5 text-gray-400" />
-                                <span className="text-gray-700">設定</span>
+                                <Settings className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold">設定</span>
                             </button>
                         </div>
                     </motion.div>

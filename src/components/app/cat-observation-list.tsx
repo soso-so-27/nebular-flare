@@ -147,166 +147,169 @@ export function CatObservationList() {
     }
 
     return (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/30 rounded-3xl shadow-lg overflow-hidden">
-            {/* Header Row */}
-            <div className="px-5 py-4 flex items-center justify-between">
+        <div className="space-y-4">
+            {/* Header / Stats */}
+            <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                        <Cat className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center shadow-sm">
+                        <Cat className="h-5 w-5 text-rose-500" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                        {activeCat?.name}の様子
-                    </h3>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                            {activeCat?.name}の様子
+                        </h3>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-slate-500">
+                                {completedCount}/{totalCount} 完了
+                            </span>
+                            {/* Mini Progress Bars */}
+                            <div className="flex gap-0.5 h-1.5 w-24 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                {observationItems.map((obs) => (
+                                    <div
+                                        key={obs.id}
+                                        className={cn(
+                                            "flex-1 transition-all duration-500",
+                                            obs.done
+                                                ? obs.isAbnormal
+                                                    ? "bg-amber-400"
+                                                    : "bg-rose-400"
+                                                : "bg-transparent"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <span className="text-slate-400">›</span>
+
+                {/* Cat Switcher (Compact) */}
+                {cats.length > 1 && (
+                    <div className="flex -space-x-2">
+                        {cats.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCatId(cat.id)}
+                                className={cn(
+                                    "w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden transition-transform",
+                                    cat.id === activeCatId ? "z-10 scale-110 ring-2 ring-rose-400" : "opacity-60 hover:opacity-100 hover:scale-105"
+                                )}
+                            >
+                                {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
+                                    <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-xs">
+                                        {cat.avatar || "🐈"}
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Cat Switcher */}
-            {cats.length > 1 && (
-                <div className="px-5 pb-3 flex gap-2">
-                    {cats.map(cat => (
-                        <button
-                            key={cat.id}
-                            onClick={() => setActiveCatId(cat.id)}
-                            className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all",
-                                cat.id === activeCatId
-                                    ? "bg-rose-500 text-white shadow-md"
-                                    : "bg-white/30 dark:bg-slate-800/30 text-slate-600 dark:text-slate-300 hover:bg-white/50 border border-white/10"
-                            )}
-                        >{(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
-                            <img src={cat.avatar} alt={cat.name} className="w-4 h-4 rounded-full object-cover" />
-                        ) : (
-                            <span className="text-sm">{cat.avatar || "🐈"}</span>
-                        )}
-                            {cat.name}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            {/* Stats Row */}
-            <div className="px-5 pb-4 flex items-end gap-6">
-                <div>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-slate-900 dark:text-white">{completedCount}</span>
-                        <span className="text-sm text-slate-400">/{totalCount}</span>
-                    </div>
-                    <span className="text-xs text-slate-400">確認済み</span>
-                </div>
-
-                {/* Mini Progress Bars */}
-                <div className="flex-1 flex items-end gap-1 h-10">
-                    {observationItems.map((obs) => (
-                        <div
-                            key={obs.id}
-                            className={cn(
-                                "flex-1 rounded-sm transition-all",
-                                obs.done
-                                    ? obs.isAbnormal
-                                        ? "bg-amber-400"
-                                        : "bg-rose-400 dark:bg-rose-500"
-                                    : "bg-slate-200 dark:bg-slate-700"
-                            )}
-                            style={{ height: obs.done ? '100%' : '40%' }}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Observation Items - Compact */}
-            <div className="px-5 pb-4 space-y-2">
+            {/* Observation Grid */}
+            <div className="grid grid-cols-2 gap-3">
                 {observationItems.map((obs) => (
                     <div
                         key={obs.id}
                         className={cn(
-                            "flex items-center justify-between px-3 py-2.5 rounded-xl border border-white/10",
-                            obs.isAbnormal
-                                ? "bg-amber-500/10 dark:bg-amber-900/20"
-                                : obs.done
-                                    ? "bg-white/20 dark:bg-slate-800/20"
-                                    : "bg-white/40 dark:bg-slate-800/40"
+                            "relative overflow-hidden rounded-3xl p-4 transition-all duration-300 border backdrop-blur-md flex flex-col justify-between min-h-[140px]",
+                            obs.done
+                                ? obs.isAbnormal
+                                    ? "bg-amber-50/80 border-amber-200/50 shadow-inner" // Done & Abnormal
+                                    : "bg-white/40 border-white/20 opacity-80 grayscale-[0.3]" // Done & Normal
+                                : "bg-white/70 dark:bg-slate-800/60 border-white/40 dark:border-slate-700 shadow-lg shadow-slate-200/50 hover:scale-[1.02] active:scale-[0.98]" // Pending
                         )}
                     >
-                        <div className="flex items-center gap-2.5">
-                            <obs.Icon className={cn(
-                                "h-4 w-4",
-                                obs.done ? "text-slate-400" : "text-slate-600 dark:text-slate-300"
-                            )} />
-                            <span className={cn(
-                                "text-sm font-medium",
-                                obs.done ? "text-slate-400" : "text-slate-700 dark:text-slate-200"
+                        {/* Header: Icon & Label */}
+                        <div className="flex items-start justify-between">
+                            <div className={cn(
+                                "p-2.5 rounded-2xl",
+                                obs.done
+                                    ? "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                                    : obs.isAbnormal
+                                        ? "bg-amber-100 text-amber-600"
+                                        : "bg-gradient-to-br from-rose-100 to-orange-50 text-rose-500"
                             )}>
-                                {obs.label}
-                            </span>
-                            {obs.isAbnormal && (
-                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                <obs.Icon className="w-5 h-5" />
+                            </div>
+                            {obs.done && (
+                                <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full">
+                                    <Check className="w-4 h-4" />
+                                </div>
                             )}
                         </div>
 
-                        {obs.done ? (
-                            <div className="flex items-center gap-2">
-                                <span className={cn(
-                                    "text-xs font-medium px-2 py-0.5 rounded-full",
-                                    obs.isAbnormal
-                                        ? "bg-amber-200 text-amber-700"
-                                        : "bg-emerald-100 text-emerald-600"
-                                )}>
-                                    {obs.value}
-                                </span>
-                                <Check className={cn(
-                                    "h-4 w-4",
-                                    obs.isAbnormal ? "text-amber-500" : "text-emerald-500"
-                                )} />
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                {obs.inputType === 'choice' ? (
-                                    <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
-                                        {getChoicesForObservation(obs, noticeDefs).map((choice: string) => (
-                                            <button
-                                                key={choice}
-                                                onClick={() => handleQuickRecord(obs, choice)}
-                                                className="text-[10px] font-bold px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-colors"
-                                            >
-                                                {choice}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : obs.inputType === 'count' ? (
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={() => {
-                                                const val = prompt('数値を入力', '1');
-                                                if (val) handleQuickRecord(obs, val);
-                                            }}
-                                            className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300"
-                                        >
-                                            記録
-                                        </button>
+                        <div>
+                            <span className={cn(
+                                "block text-sm font-bold mb-1",
+                                obs.done ? "text-slate-500" : "text-slate-800 dark:text-slate-100"
+                            )}>
+                                {obs.label}
+                            </span>
+
+                            {/* Actions / Status */}
+                            <div className="mt-2">
+                                {obs.done ? (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={cn(
+                                            "text-xs font-bold px-2 py-0.5 rounded-md",
+                                            obs.isAbnormal
+                                                ? "bg-amber-200/50 text-amber-700"
+                                                : "bg-slate-200/50 text-slate-500"
+                                        )}>
+                                            {obs.value}
+                                        </span>
+                                        {/* Undo/Edit trigger could go here */}
                                     </div>
                                 ) : (
-                                    <>
-                                        <button
-                                            onClick={() => handleQuickRecord(obs, 'いつも通り')}
-                                            className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all shadow-sm"
-                                        >
-                                            ✓ OK
-                                        </button>
-                                        <button
-                                            onClick={() => handleQuickRecord(obs, 'ちょっと違う')}
-                                            className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 active:scale-95 transition-all"
-                                        >
-                                            ⚠ 注意
-                                        </button>
-                                    </>
+                                    <div className="flex gap-2">
+                                        {obs.inputType === 'choice' ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {getChoicesForObservation(obs, noticeDefs).slice(0, 2).map((choice) => (
+                                                    <button
+                                                        key={choice}
+                                                        onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, choice); }}
+                                                        className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-white/80 border border-slate-100 shadow-sm hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                                                    >
+                                                        {choice}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : obs.inputType === 'count' ? (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const val = prompt('数値を入力', '1');
+                                                    if (val) handleQuickRecord(obs, val);
+                                                }}
+                                                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
+                                            >
+                                                入力
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'いつも通り'); }}
+                                                    className="flex-1 text-xs font-bold py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md shadow-emerald-200 hover:opacity-90 active:scale-95 transition-all"
+                                                >
+                                                    OK
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
+                                                    className="w-8 flex items-center justify-center rounded-xl bg-amber-100 text-amber-600 hover:bg-amber-200 active:scale-95 transition-all"
+                                                >
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                 )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 ))}
             </div>
-
         </div>
     );
 }
