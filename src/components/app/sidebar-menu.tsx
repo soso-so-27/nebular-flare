@@ -208,27 +208,27 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[100]"
+                        className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100]"
                     />
 
                     {/* Floating Sidebar */}
                     <motion.div
-                        initial={{ x: 100, opacity: 0, scale: 0.95 }}
+                        initial={{ x: 60, opacity: 0, scale: 0.98 }}
                         animate={{ x: 0, opacity: 1, scale: 1 }}
-                        exit={{ x: 100, opacity: 0, scale: 0.95 }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 350 }}
-                        className="fixed top-4 right-4 bottom-4 w-[340px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/40 dark:border-slate-800 z-[101] shadow-2xl rounded-[32px] flex flex-col overflow-hidden ring-1 ring-black/5"
+                        exit={{ x: 60, opacity: 0, scale: 0.98 }}
+                        transition={{ type: 'spring', damping: 40, stiffness: 400 }}
+                        className="fixed top-4 right-4 bottom-4 w-[340px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/40 dark:border-slate-800 z-[101] shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-[32px] flex flex-col overflow-hidden ring-1 ring-black/5"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 pb-4">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center shadow-inner">
-                                    <Cat className="w-6 h-6 text-rose-500" />
+                                <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700">
+                                    <Cat className="w-6 h-6 text-slate-400" />
                                 </div>
                                 <div>
-                                    <span className="block text-lg font-bold text-slate-800 dark:text-slate-100">{userName}</span>
-                                    <span className="text-xs text-rose-400 font-medium">ねこと暮らす</span>
+                                    <span className="block text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">{userName}</span>
+                                    <span className="text-xs text-slate-400 font-medium">ねこと暮らす</span>
                                 </div>
                             </div>
                             <button
@@ -240,16 +240,16 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         </div>
 
                         {/* Menu Content */}
-                        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
+                        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
 
                             {/* Care Section */}
-                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
                                 <button
                                     onClick={() => toggleSection('care')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-rose-100/80 text-rose-500">
+                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
                                             <Heart className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-col items-start">
@@ -258,9 +258,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         </div>
                                     </div>
                                     {expandedSection === 'care' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-300" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -269,7 +269,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
+                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
                                         >
                                             <div className="p-2 space-y-1">
                                                 {careItems.map(item => {
@@ -280,19 +280,19 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                             className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <Icon className={cn("w-4 h-4", item.done ? "text-slate-300" : "text-slate-500")} />
+                                                                <Icon className={cn("w-4 h-4", item.done ? "text-slate-300" : "text-slate-400")} />
                                                                 <span className={cn("text-sm font-medium", item.done ? "text-slate-300 line-through" : "text-slate-600 dark:text-slate-300")}>
                                                                     {item.label}
                                                                 </span>
                                                             </div>
                                                             {item.done ? (
-                                                                <div className="bg-emerald-100 text-emerald-500 p-1 rounded-full">
+                                                                <div className="bg-slate-100 text-slate-400 p-1 rounded-full">
                                                                     <Check className="w-3.5 h-3.5" />
                                                                 </div>
                                                             ) : (
                                                                 <button
                                                                     onClick={() => handleCareComplete(item.type, item.label)}
-                                                                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-sm shadow-rose-200"
+                                                                    className="text-xs font-bold px-4 py-1.5 rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-sm shadow-rose-100 transition-all active:scale-95"
                                                                 >
                                                                     完了
                                                                 </button>
@@ -307,13 +307,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Observation Section */}
-                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
                                 <button
                                     onClick={() => toggleSection('observation')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-amber-100/80 text-amber-500">
+                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
                                             <Cat className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-col items-start">
@@ -322,9 +322,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         </div>
                                     </div>
                                     {expandedSection === 'observation' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-300" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -333,7 +333,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
+                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
                                         >
                                             <div className="p-2 space-y-1">
                                                 {observationItems.map(item => (
@@ -346,12 +346,12 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                         </span>
                                                         {item.done ? (
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">{item.value}</span>
+                                                                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">{item.value}</span>
                                                             </div>
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleObservationComplete(item.id, item.label)}
-                                                                className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-200"
+                                                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-slate-800 text-white hover:bg-slate-700 shadow-sm shadow-slate-200 transition-all active:scale-95"
                                                             >
                                                                 OK
                                                             </button>
@@ -365,28 +365,28 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Inventory Section */}
-                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
                                 <button
                                     onClick={() => toggleSection('inventory')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-blue-100/80 text-blue-500">
+                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
                                             <ShoppingCart className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-col items-start">
                                             <span className="font-bold text-slate-700 dark:text-slate-200">在庫管理</span>
                                             {urgentCount > 0 ? (
-                                                <span className="text-xs font-bold text-rose-500">あと{urgentCount}件が少なめ</span>
+                                                <span className="text-xs font-bold text-rose-500">あと{urgentCount}件が在庫薄</span>
                                             ) : (
                                                 <span className="text-xs text-slate-400">すべて充足</span>
                                             )}
                                         </div>
                                     </div>
                                     {expandedSection === 'inventory' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-300" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -395,7 +395,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
+                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
                                         >
                                             <div className="p-2 space-y-1">
                                                 {inventoryItems.map(item => (
@@ -405,10 +405,10 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <span className={cn(
-                                                                "text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-tighter",
-                                                                item.status === 'danger' ? "bg-rose-100 text-rose-600" :
-                                                                    item.status === 'warn' ? "bg-amber-100 text-amber-600" :
-                                                                        "bg-slate-200/50 text-slate-500"
+                                                                "text-[10px] font-bold px-2 py-0.5 rounded-full tracking-tight",
+                                                                item.status === 'danger' ? "bg-rose-50 text-rose-500 border border-rose-100" :
+                                                                    item.status === 'warn' ? "bg-amber-50 text-amber-500 border border-amber-100" :
+                                                                        "bg-slate-100 text-slate-400"
                                                             )}>
                                                                 残{item.daysLeft}日
                                                             </span>
@@ -416,7 +416,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                         </div>
                                                         <button
                                                             onClick={() => handleInventoryRefill(item.id, item.label)}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 bg-white"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 bg-white shadow-sm"
                                                         >
                                                             購入
                                                         </button>
@@ -429,13 +429,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             </div>
 
                             {/* Activity Section */}
-                            <div className="bg-white/50 dark:bg-slate-800/30 rounded-2xl border border-white/40 dark:border-slate-800/50 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
                                 <button
                                     onClick={() => toggleSection('activity')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-indigo-100/80 text-indigo-500">
+                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
                                             <Activity className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-col items-start">
@@ -444,9 +444,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         </div>
                                     </div>
                                     {expandedSection === 'activity' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                                        <ChevronDown className="w-5 h-5 text-slate-300" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300" />
                                     )}
                                 </button>
                                 <AnimatePresence>
@@ -455,7 +455,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/50 dark:bg-slate-900/30"
+                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
                                         >
                                             <div className="p-2">
                                                 <ActivityFeed embedded />
@@ -473,7 +473,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     onNavigate('notifications');
                                     onClose();
                                 }}
-                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-rose-500 group"
+                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600 group"
                             >
                                 <Bell className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-bold">通知</span>
@@ -483,7 +483,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     onNavigate('settings');
                                     onClose();
                                 }}
-                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 group"
+                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600 group"
                             >
                                 <Settings className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-bold">設定</span>

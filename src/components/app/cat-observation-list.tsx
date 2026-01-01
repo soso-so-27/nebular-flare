@@ -151,8 +151,8 @@ export function CatObservationList() {
             {/* Header / Stats */}
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center shadow-sm">
-                        <Cat className="h-5 w-5 text-rose-500" />
+                    <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700">
+                        <Cat className="h-5 w-5 text-slate-400" />
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
@@ -172,7 +172,7 @@ export function CatObservationList() {
                                             obs.done
                                                 ? obs.isAbnormal
                                                     ? "bg-amber-400"
-                                                    : "bg-rose-400"
+                                                    : "bg-slate-400"
                                                 : "bg-transparent"
                                         )}
                                     />
@@ -191,7 +191,7 @@ export function CatObservationList() {
                                 onClick={() => setActiveCatId(cat.id)}
                                 className={cn(
                                     "w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden transition-transform",
-                                    cat.id === activeCatId ? "z-10 scale-110 ring-2 ring-rose-400" : "opacity-60 hover:opacity-100 hover:scale-105"
+                                    cat.id === activeCatId ? "z-10 scale-110 ring-2 ring-slate-400" : "opacity-60 hover:opacity-100 hover:scale-105"
                                 )}
                             >
                                 {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
@@ -216,61 +216,53 @@ export function CatObservationList() {
                             "relative overflow-hidden rounded-3xl p-4 transition-all duration-300 border backdrop-blur-md flex flex-col justify-between min-h-[140px]",
                             obs.done
                                 ? obs.isAbnormal
-                                    ? "bg-amber-50/80 border-amber-200/50 shadow-inner" // Done & Abnormal
-                                    : "bg-white/40 border-white/20 opacity-80 grayscale-[0.3]" // Done & Normal
-                                : "bg-white/70 dark:bg-slate-800/60 border-white/40 dark:border-slate-700 shadow-lg shadow-slate-200/50 hover:scale-[1.02] active:scale-[0.98]" // Pending
+                                    ? "bg-amber-50/90 border-amber-200/50" // Done & Abnormal
+                                    : "bg-white/60 border-white/40 opacity-70" // Done & Normal
+                                : "bg-white/90 dark:bg-slate-800/80 border-white/50 dark:border-slate-700 shadow-sm hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.98]" // Pending
                         )}
                     >
                         {/* Header: Icon & Label */}
                         <div className="flex items-start justify-between">
                             <div className={cn(
-                                "p-2.5 rounded-2xl",
+                                "p-2.5 rounded-2xl transition-colors",
                                 obs.done
                                     ? "bg-slate-100 dark:bg-slate-700 text-slate-400"
                                     : obs.isAbnormal
                                         ? "bg-amber-100 text-amber-600"
-                                        : "bg-gradient-to-br from-rose-100 to-orange-50 text-rose-500"
+                                        : "bg-slate-50 dark:bg-slate-700 text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100"
                             )}>
                                 <obs.Icon className="w-5 h-5" />
                             </div>
                             {obs.done && (
-                                <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full">
-                                    <Check className="w-4 h-4" />
+                                <div className={cn(
+                                    "p-1.5 rounded-full flex items-center gap-1",
+                                    obs.isAbnormal ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400"
+                                )}>
+                                    <span className="text-[10px] font-bold px-1">{obs.value}</span>
+                                    <Check className="w-3.5 h-3.5" />
                                 </div>
                             )}
                         </div>
 
                         <div>
                             <span className={cn(
-                                "block text-sm font-bold mb-1",
-                                obs.done ? "text-slate-500" : "text-slate-800 dark:text-slate-100"
+                                "block text-sm font-bold mb-3 transition-colors",
+                                obs.done ? "text-slate-400" : "text-slate-700 dark:text-slate-200"
                             )}>
                                 {obs.label}
                             </span>
 
                             {/* Actions / Status */}
-                            <div className="mt-2">
-                                {obs.done ? (
-                                    <div className="flex items-center gap-1.5">
-                                        <span className={cn(
-                                            "text-xs font-bold px-2 py-0.5 rounded-md",
-                                            obs.isAbnormal
-                                                ? "bg-amber-200/50 text-amber-700"
-                                                : "bg-slate-200/50 text-slate-500"
-                                        )}>
-                                            {obs.value}
-                                        </span>
-                                        {/* Undo/Edit trigger could go here */}
-                                    </div>
-                                ) : (
+                            <div className="mt-auto">
+                                {!obs.done && (
                                     <div className="flex gap-2">
                                         {obs.inputType === 'choice' ? (
-                                            <div className="flex flex-wrap gap-1">
+                                            <div className="flex flex-wrap gap-1.5 w-full">
                                                 {getChoicesForObservation(obs, noticeDefs).slice(0, 2).map((choice) => (
                                                     <button
                                                         key={choice}
                                                         onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, choice); }}
-                                                        className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-white/80 border border-slate-100 shadow-sm hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                                                        className="flex-1 text-[10px] font-bold py-2 rounded-lg bg-white border border-slate-200 text-slate-600 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
                                                     >
                                                         {choice}
                                                     </button>
@@ -283,21 +275,21 @@ export function CatObservationList() {
                                                     const val = prompt('数値を入力', '1');
                                                     if (val) handleQuickRecord(obs, val);
                                                 }}
-                                                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
+                                                className="w-full text-xs font-bold py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                                             >
-                                                入力
+                                                数値を入力
                                             </button>
                                         ) : (
                                             <>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'いつも通り'); }}
-                                                    className="flex-1 text-xs font-bold py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md shadow-emerald-200 hover:opacity-90 active:scale-95 transition-all"
+                                                    className="flex-1 text-xs font-bold py-2 rounded-xl bg-slate-800 text-white shadow-sm hover:bg-slate-700 active:scale-95 transition-all"
                                                 >
                                                     OK
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
-                                                    className="w-8 flex items-center justify-center rounded-xl bg-amber-100 text-amber-600 hover:bg-amber-200 active:scale-95 transition-all"
+                                                    className="w-10 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all"
                                                 >
                                                     <AlertTriangle className="w-4 h-4" />
                                                 </button>
