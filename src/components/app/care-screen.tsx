@@ -23,9 +23,10 @@ const careTypeConfig: Record<string, { icon: React.ReactNode; label: string; col
 interface CareScreenProps {
     externalSwipeMode?: boolean;
     onSwipeModeChange?: (show: boolean) => void;
+    onClose?: () => void;
 }
 
-export function CareScreen({ externalSwipeMode = false, onSwipeModeChange }: CareScreenProps) {
+export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClose }: CareScreenProps) {
     const {
         careLogs,
         cats,
@@ -144,10 +145,15 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange }: Car
                 showSwipeMode && catchupItems.length > 0 && "blur-xl scale-[0.98] pointer-events-none opacity-50"
             )}>
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-4 px-2">
                     <div className="flex items-center gap-2">
+                        {onClose && (
+                            <button onClick={onClose} className="p-2 -ml-2 rounded-full hover:bg-white/20 transition-colors">
+                                <ChevronLeft className="h-6 w-6 text-slate-800 dark:text-white" />
+                            </button>
+                        )}
                         <Heart className="h-5 w-5 text-rose-500" />
-                        <h2 className="text-lg font-bold text-slate-900">お世話</h2>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">お世話・活動記録</h2>
                     </div>
                     {catchupItems.length > 0 && !showSwipeMode && (
                         <button
@@ -171,7 +177,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange }: Car
                         {Object.entries(groupedLogs).map(([date, logs]) => (
                             <div key={date} className="space-y-2">
                                 <p className="text-xs text-slate-400 px-1">{date}</p>
-                                <Card className="rounded-2xl shadow-sm border-none bg-white overflow-hidden">
+                                <Card className="rounded-2xl shadow-sm border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
                                     <CardContent className="p-0">
                                         <div className="divide-y divide-slate-100">
                                             {(logs as typeof careLogs).map((log) => {

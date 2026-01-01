@@ -240,7 +240,7 @@ export function ActivityFeed() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+            className="relative bg-transparent rounded-2xl overflow-hidden"
         >
 
 

@@ -15,6 +15,7 @@ import { ActivityFeed } from "./activity-feed";
 import { MagicBubble } from "./immersive/magic-bubble";
 import { ZenGestures } from "./immersive/zen-gestures";
 import { EditorialCorners } from "./immersive/editorial-corners";
+import { BubblePickupList } from "./immersive/bubble-pickup-list";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: () => void;
@@ -371,30 +372,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
-                        onClick={() => setShowPickup(false)}
+                        className="fixed inset-0 z-40 pointer-events-none"
                     >
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl max-h-[70vh] overflow-hidden"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <h3 className="font-bold text-slate-900 dark:text-white">ピックアップ</h3>
-                                <button
-                                    onClick={() => setShowPickup(false)}
-                                    className="text-slate-400 hover:text-slate-600"
-                                >
-                                    閉じる
-                                </button>
-                            </div>
-                            <div className="overflow-y-auto max-h-[calc(70vh-60px)]">
-                                <CheckSection />
-                            </div>
-                        </motion.div>
+                        <BubblePickupList onClose={() => setShowPickup(false)} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -414,10 +394,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl max-h-[70vh] overflow-hidden"
+                            className="w-full max-w-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/20 rounded-t-3xl max-h-[70vh] overflow-hidden"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="p-4 border-b border-white/10 flex items-center justify-between">
                                 <h3 className="font-bold text-slate-900 dark:text-white">最近のアクティビティ</h3>
                                 <button
                                     onClick={() => setShowActivity(false)}

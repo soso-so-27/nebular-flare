@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Calendar, Cat, X, Plus, Activity, Menu } from "lucide-react";
+import { BubblePickupList } from "./bubble-pickup-list";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
@@ -20,9 +21,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const menuItems = [
         { icon: Cat, label: "猫", action: onOpenGallery, color: "text-emerald-400", delay: 0 },
         { icon: Activity, label: "活動", action: onOpenActivity, color: "text-rose-400", delay: 0.05 },
-        { icon: LayoutGrid, label: "Pick Up", action: onOpenPickup, color: "text-amber-400", delay: 0.1 },
-        { icon: Calendar, label: "予定", action: onOpenCalendar, color: "text-blue-400", delay: 0.15 },
-        { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-200", delay: 0.2 },
+        { icon: Calendar, label: "予定", action: onOpenCalendar, color: "text-blue-400", delay: 0.1 },
+        { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-200", delay: 0.15 },
     ];
 
     return (
@@ -42,8 +42,11 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 onClick={() => setIsOpen(false)}
                             />
 
+                            {/* Auto-Open Pickup List */}
+                            <BubblePickupList onClose={() => setIsOpen(false)} />
+
                             {/* Menu Row */}
-                            <div className="absolute bottom-20 flex gap-4 items-end justify-center mb-4">
+                            <div className="absolute bottom-20 z-50 flex gap-4 items-end justify-center mb-4">
                                 {menuItems.map((item, index) => (
                                     <motion.button
                                         key={index}
@@ -80,7 +83,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                     whileTap={{ scale: 0.9 }}
                     animate={{
                         scale: isOpen ? 0.9 : 1,
-                        rotate: isOpen ? 45 : 0
+                        rotate: isOpen ? 90 : 0 // Rotate X effect
                     }}
                     className={`
                         w-16 h-16 rounded-full 
@@ -92,7 +95,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         ${isOpen ? 'bg-white/20' : 'hover:bg-white/30'}
                     `}
                 >
-                    {isOpen ? <Plus className="w-8 h-8 rotate-45" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
+                    {isOpen ? <X className="w-8 h-8 stroke-[1.5]" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
                 </motion.button>
                 {/* Glow Effect behind Orb */}
                 {!isOpen && (

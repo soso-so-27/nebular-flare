@@ -211,7 +211,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed top-0 left-0 bottom-0 w-[320px] bg-white z-[101] shadow-2xl flex flex-col"
+                        className="fixed top-0 left-0 bottom-0 w-[320px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/20 z-[101] shadow-2xl flex flex-col"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         {/* Header */}
@@ -255,7 +255,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-gray-50"
+                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
                                         >
                                             <div className="py-2">
                                                 {careItems.map(item => {
@@ -313,7 +313,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-gray-50"
+                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
                                         >
                                             <div className="py-2">
                                                 {observationItems.map(item => (
@@ -372,7 +372,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-gray-50"
+                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
                                         >
                                             <div className="py-2">
                                                 {inventoryItems.map(item => (

@@ -206,9 +206,9 @@ function AppContent() {
               <motion.div
                 key="cat-screen"
                 className="fixed inset-0 z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
                 transition={{ duration: 0.4, type: "spring", damping: 25, stiffness: 300 }}
               >
                 <div className="absolute top-4 right-4 z-50">
