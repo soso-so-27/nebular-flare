@@ -316,9 +316,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             <button onClick={onOpenCalendar} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
                                 <Calendar className="w-6 h-6" />
                             </button>
-                            <button onClick={() => onOpenSidebar?.('activity')} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
-                                <Activity className="w-6 h-6" />
-                            </button>
+
                         </div>
                     </div>
                 </motion.div>

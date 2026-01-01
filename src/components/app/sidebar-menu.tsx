@@ -238,37 +238,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
                         {/* Menu Content */}
                         <div className="flex-1 overflow-y-auto">
-                            {/* Activity Section */}
-                            <div className="border-b border-gray-100">
-                                <button
-                                    onClick={() => toggleSection('activity')}
-                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Activity className="w-5 h-5 text-amber-500" />
-                                        <span className="font-medium text-gray-800">アクティビティ</span>
-                                    </div>
-                                    {expandedSection === 'activity' ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
-                                    ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                                    )}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedSection === 'activity' && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
-                                        >
-                                            <div className="py-2">
-                                                <ActivityFeed embedded />
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+
 
                             {/* Care Section */}
                             <div className="border-b border-gray-100">
@@ -437,6 +407,38 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                         </button>
                                                     </div>
                                                 ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Activity Section */}
+                            <div className="border-b border-gray-100">
+                                <button
+                                    onClick={() => toggleSection('activity')}
+                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Activity className="w-5 h-5 text-amber-500" />
+                                        <span className="font-medium text-gray-800">アクティビティ</span>
+                                    </div>
+                                    {expandedSection === 'activity' ? (
+                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                    ) : (
+                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                    )}
+                                </button>
+                                <AnimatePresence>
+                                    {expandedSection === 'activity' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                        >
+                                            <div className="py-2">
+                                                <ActivityFeed embedded />
                                             </div>
                                         </motion.div>
                                     )}
