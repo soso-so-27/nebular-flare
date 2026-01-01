@@ -31,7 +31,7 @@ interface ActivityItem {
     icon?: string;
 }
 
-export function ActivityFeed() {
+export function ActivityFeed({ embedded = false }: { embedded?: boolean }) {
     const {
         careLogs,
         observations,
@@ -41,8 +41,8 @@ export function ActivityFeed() {
         householdUsers
     } = useAppState();
 
-    // Default collapsed
-    const [isExpanded, setIsExpanded] = useState(false);
+    // Default collapsed, unless embedded
+    const [isExpanded, setIsExpanded] = useState(embedded);
 
     // Combine and sort all activities
     const activities: ActivityItem[] = useMemo(() => {
@@ -245,31 +245,33 @@ export function ActivityFeed() {
 
 
             <div className="relative z-10">
-                {/* Header - clickable to toggle expand (Styled like CheckSection) */}
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 transition-colors"
-                >
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                            最近のアクティビティ
-                        </h3>
-                        <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                            {activities.length}
-                        </span>
-                    </div>
-                    {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                    ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                    )}
-                </button>
+                {/* Header - clickable to toggle expand (Styled like CheckSection) - Hidden if embedded */}
+                {!embedded && (
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="w-full flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                最近のアクティビティ
+                            </h3>
+                            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                {activities.length}
+                            </span>
+                        </div>
+                        {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-slate-400" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-400" />
+                        )}
+                    </button>
+                )}
 
                 {/* Activity List - collapsible */}
                 <AnimatePresence>
-                    {isExpanded && (
+                    {(isExpanded || embedded) && (
                         <motion.div
-                            initial={{ height: 0, opacity: 0 }}
+                            initial={embedded ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}

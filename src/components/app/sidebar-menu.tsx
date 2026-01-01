@@ -1,10 +1,8 @@
-"use client";
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     X, Bell, Settings, ChevronDown, ChevronRight, Check,
-    Heart, Cat, ShoppingCart, Plus, Calendar
+    Heart, Cat, ShoppingCart, Plus, Calendar, Activity
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppState } from "@/store/app-store";
@@ -12,18 +10,26 @@ import { getIcon } from "@/lib/icon-utils";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from '@/lib/supabase';
+import { ActivityFeed } from "./activity-feed";
 
 interface SidebarMenuProps {
     isOpen: boolean;
     onClose: () => void;
     onNavigate: (section: string, item?: string) => void;
+    defaultSection?: 'care' | 'observation' | 'inventory' | 'activity';
 }
 
-export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
+export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: SidebarMenuProps) {
     const { user } = useAuth();
     const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'ユーザー';
 
-    const [expandedSection, setExpandedSection] = useState<'care' | 'observation' | 'inventory' | null>(null);
+    const [expandedSection, setExpandedSection] = useState<'care' | 'observation' | 'inventory' | 'activity' | null>(null);
+
+    useEffect(() => {
+        if (isOpen && defaultSection) {
+            setExpandedSection(defaultSection);
+        }
+    }, [isOpen, defaultSection]);
 
     const {
         cats,
@@ -188,7 +194,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
         toast.success(`${label} 補充しました！`);
     }
 
-    const toggleSection = (section: 'care' | 'observation' | 'inventory') => {
+    const toggleSection = (section: 'care' | 'observation' | 'inventory' | 'activity') => {
         setExpandedSection(prev => prev === section ? null : section);
     };
 
@@ -207,11 +213,11 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
 
                     {/* Sidebar */}
                     <motion.div
-                        initial={{ x: '-100%' }}
+                        initial={{ x: '100%' }}
                         animate={{ x: 0 }}
-                        exit={{ x: '-100%' }}
+                        exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed top-0 left-0 bottom-0 w-[320px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/20 z-[101] shadow-2xl flex flex-col"
+                        className="fixed top-0 right-0 bottom-0 w-[320px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-l border-white/20 z-[101] shadow-2xl flex flex-col"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         {/* Header */}
@@ -232,6 +238,38 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
 
                         {/* Menu Content */}
                         <div className="flex-1 overflow-y-auto">
+                            {/* Activity Section */}
+                            <div className="border-b border-gray-100">
+                                <button
+                                    onClick={() => toggleSection('activity')}
+                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Activity className="w-5 h-5 text-amber-500" />
+                                        <span className="font-medium text-gray-800">アクティビティ</span>
+                                    </div>
+                                    {expandedSection === 'activity' ? (
+                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                    ) : (
+                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                    )}
+                                </button>
+                                <AnimatePresence>
+                                    {expandedSection === 'activity' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden bg-black/5 dark:bg-white/5"
+                                        >
+                                            <div className="py-2">
+                                                <ActivityFeed embedded />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
                             {/* Care Section */}
                             <div className="border-b border-gray-100">
                                 <button
@@ -408,6 +446,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate }: SidebarMenuProps) {
 
                         {/* Footer */}
                         <div className="border-t border-gray-100 p-2">
+                            {/* ... Keep Footer ... */}
+
                             <button
                                 onClick={() => {
                                     onNavigate('notifications');

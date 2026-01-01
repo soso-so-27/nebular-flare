@@ -18,7 +18,7 @@ import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
 
 interface ImmersiveHomeProps {
-    onOpenSidebar?: () => void;
+    onOpenSidebar?: (section?: 'care' | 'activity') => void;
     onNavigate?: (tab: string) => void;
     onOpenCalendar?: () => void;
     onCatClick?: () => void;
@@ -27,7 +27,6 @@ interface ImmersiveHomeProps {
 export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
-    const [showActivity, setShowActivity] = useState(false);
     const [direction, setDirection] = useState(0);
 
     // Feature 1: Auto-hide UI
@@ -57,11 +56,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         hideTimerRef.current = setTimeout(() => {
             // Only hide if no modals are open
-            if (!showPickup && !showActivity) {
+            if (!showPickup) {
                 setUiVisible(false);
             }
         }, 3000); // Hide after 3 seconds
-    }, [showPickup, showActivity]);
+    }, [showPickup]);
 
     // Setup Interaction Listeners
     useEffect(() => {
@@ -258,8 +257,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => onOpenSidebar?.()}
-                    onOpenActivity={() => setShowActivity(true)}
+                    onOpenCare={() => onOpenSidebar?.('care')}
+                    onOpenActivity={() => onOpenSidebar?.('activity')}
                 />
             )}
 
@@ -270,8 +269,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenPickup={() => setShowPickup(true)}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => onOpenSidebar?.()}
-                    onOpenActivity={() => setShowActivity(true)}
+                    onOpenCare={() => onOpenSidebar?.('care')}
+                    onOpenActivity={() => onOpenSidebar?.('activity')}
                 />
             )}
 
@@ -290,7 +289,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         <button
-                            onClick={onOpenSidebar}
+                            onClick={() => onOpenSidebar?.('care')}
                             className="p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/90 hover:bg-black/30 transition-all shadow-lg"
                         >
                             <Menu className="w-5 h-5" />
@@ -317,7 +316,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             <button onClick={onOpenCalendar} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
                                 <Calendar className="w-6 h-6" />
                             </button>
-                            <button onClick={() => setShowActivity(true)} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
+                            <button onClick={() => onOpenSidebar?.('activity')} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
                                 <Activity className="w-6 h-6" />
                             </button>
                         </div>
@@ -379,40 +378,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 )}
             </AnimatePresence>
 
-            {/* Activity Modal Overlay */}
-            <AnimatePresence>
-                {showActivity && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
-                        onClick={() => setShowActivity(false)}
-                    >
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="w-full max-w-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/20 rounded-t-3xl max-h-[70vh] overflow-hidden"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-                                <h3 className="font-bold text-slate-900 dark:text-white">最近のアクティビティ</h3>
-                                <button
-                                    onClick={() => setShowActivity(false)}
-                                    className="text-slate-400 hover:text-slate-600"
-                                >
-                                    閉じる
-                                </button>
-                            </div>
-                            <div className="overflow-y-auto max-h-[calc(70vh-60px)] p-4">
-                                <ActivityFeed />
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
