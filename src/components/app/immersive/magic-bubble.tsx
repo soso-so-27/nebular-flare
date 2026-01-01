@@ -20,7 +20,6 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
     const menuItems = [
         { icon: Cat, label: "猫", action: onOpenGallery, color: "text-emerald-400", delay: 0 },
-        { icon: Activity, label: "活動", action: onOpenActivity, color: "text-rose-400", delay: 0.05 },
         { icon: Calendar, label: "予定", action: onOpenCalendar, color: "text-blue-400", delay: 0.1 },
         { icon: Menu, label: "お世話", action: onOpenCare, color: "text-slate-200", delay: 0.15 },
     ];
