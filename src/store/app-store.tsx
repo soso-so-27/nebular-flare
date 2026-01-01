@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
@@ -5,6 +6,7 @@ import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, Inv
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
+import { toast } from "sonner";
 
 type AppState = {
     isPro: boolean;
@@ -64,8 +66,10 @@ type AppState = {
     // Defaults
     initializeDefaults: () => Promise<void>;
     // Cat Gallery
+    // Cat Gallery
+    // Cat Gallery
     uploadCatImage: (catId: string, file: File, skipRefetch?: boolean) => Promise<{ error?: any; data?: any }>;
-    updateCatImage: (imageId: string, updates: Partial<any>) => Promise<{ error?: any }>;
+    updateCatImage: (imageId: string, updates: Record<string, any>) => Promise<{ error?: any }>;
     deleteCatImage: (imageId: string, storagePath: string) => Promise<{ error?: any }>;
     // Cat Profile
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
@@ -227,17 +231,206 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             }
 
             // Household Users
-            const { data: usersData } = await supabase
-                .from('users')
-                .select('id, display_name, avatar_url')
-                .eq('household_id', householdId);
+            const { data: membersData } = await supabase.rpc('get_household_members', {
+                lookup_household_id: householdId
+            });
 
-            if (usersData) {
-                setHouseholdUsers(usersData);
+            if (membersData) {
+                setHouseholdUsers(membersData.map((m: any) => ({
+                    id: m.user_id,
+                    display_name: m.name, // Map for compatibility with ActivityFeed
+                    avatar_url: m.avatar,
+                    role: m.role,
+                    joined_at: m.joined_at
+                })));
+            } else {
+                // Fallback for direct query if RPC fails (e.g. during migration)
+                const { data: usersData } = await supabase
+                    .from('users')
+                    .select('id, display_name, avatar_url')
+                    .eq('household_id', householdId);
+
+                if (usersData) {
+                    setHouseholdUsers(usersData);
+                }
             }
         };
 
         fetchData();
+    }, [householdId, isDemo]);
+
+    // Real-time synchronization for Settings (Care Tasks, Notices, Inventory)
+    useEffect(() => {
+        if (!householdId || isDemo) return;
+
+        const channel = supabase.channel('settings-changes')
+            // Care Tasks
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'care_task_defs', filter: `household_id=eq.${householdId}` },
+                (payload: any) => {
+                    toast.info("ケアタスクが更新されました");
+                    if (payload.eventType === 'INSERT') {
+                        setCareTaskDefs(prev => {
+                            if (prev.some(p => p.id === payload.new.id)) return prev;
+                            const newDef: CareTaskDef = {
+                                id: payload.new.id,
+                                title: payload.new.title,
+                                icon: payload.new.icon,
+                                frequency: payload.new.frequency,
+                                timeOfDay: payload.new.time_of_day,
+                                mealSlots: payload.new.meal_slots,
+                                perCat: payload.new.per_cat,
+                                targetCatIds: payload.new.target_cat_ids,
+                                enabled: payload.new.enabled,
+                                deletedAt: payload.new.deleted_at
+                            };
+                            return [...prev, newDef];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        if (payload.new.deleted_at) {
+                            setCareTaskDefs(prev => prev.filter(t => t.id !== payload.new.id));
+                        } else {
+                            setCareTaskDefs(prev => prev.map(t => t.id === payload.new.id ? {
+                                ...t,
+                                title: payload.new.title,
+                                icon: payload.new.icon,
+                                frequency: payload.new.frequency,
+                                timeOfDay: payload.new.time_of_day,
+                                mealSlots: payload.new.meal_slots,
+                                perCat: payload.new.per_cat,
+                                targetCatIds: payload.new.target_cat_ids,
+                                enabled: payload.new.enabled,
+                                deletedAt: payload.new.deleted_at
+                            } : t));
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        setCareTaskDefs(prev => prev.filter(t => t.id !== payload.old.id));
+                    }
+                }
+            )
+            // Notice Defs
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'notice_defs', filter: `household_id=eq.${householdId}` },
+                (payload: any) => {
+                    toast.info("記録項目が更新されました");
+                    if (payload.eventType === 'INSERT') {
+                        setNoticeDefs(prev => {
+                            if (prev.some(p => p.id === payload.new.id)) return prev;
+                            const newDef: NoticeDef = {
+                                id: payload.new.id,
+                                title: payload.new.title,
+                                kind: payload.new.kind,
+                                cadence: payload.new.cadence,
+                                due: payload.new.due,
+                                choices: payload.new.choices,
+                                enabled: payload.new.enabled,
+                                optional: payload.new.optional,
+                                inputType: payload.new.input_type || 'ok-notice',
+                                category: payload.new.category || 'physical',
+                                required: payload.new.required || false
+                            };
+                            return [...prev, newDef];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        if (payload.new.deleted_at) {
+                            setNoticeDefs(prev => prev.filter(n => n.id !== payload.new.id));
+                        } else {
+                            setNoticeDefs(prev => prev.map(n => n.id === payload.new.id ? {
+                                ...n,
+                                title: payload.new.title,
+                                kind: payload.new.kind,
+                                cadence: payload.new.cadence,
+                                due: payload.new.due,
+                                choices: payload.new.choices,
+                                enabled: payload.new.enabled,
+                                optional: payload.new.optional,
+                                inputType: payload.new.input_type,
+                                category: payload.new.category,
+                                required: payload.new.required
+                            } : n));
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        setNoticeDefs(prev => prev.filter(n => n.id !== payload.old.id));
+                    }
+                }
+            )
+            // Inventory
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'inventory', filter: `household_id=eq.${householdId}` },
+                (payload: any) => {
+                    toast.info("在庫リストが更新されました");
+                    if (payload.eventType === 'INSERT') {
+                        setInventory(prev => {
+                            if (prev.some(p => p.id === payload.new.id)) return prev;
+                            const newItem: InventoryItem = {
+                                id: payload.new.id,
+                                label: payload.new.label,
+                                range: [payload.new.range_min || 7, payload.new.range_max || 30],
+                                last: 'まだある', // Default or derived?
+                                last_bought: payload.new.last_bought,
+                                stockLevel: payload.new.stock_level || 'full',
+                                alertEnabled: payload.new.alert_enabled ?? true
+                            };
+                            return [...prev, newItem];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        if (payload.new.deleted_at) {
+                            setInventory(prev => prev.filter(i => i.id !== payload.new.id));
+                        } else {
+                            setInventory(prev => prev.map(i => i.id === payload.new.id ? {
+                                ...i,
+                                label: payload.new.label,
+                                range: [payload.new.range_min || i.range?.[0] || 7, payload.new.range_max || i.range?.[1] || 30],
+                                last_bought: payload.new.last_bought,
+                                stockLevel: payload.new.stock_level,
+                                alertEnabled: payload.new.alert_enabled
+                            } : i));
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        setInventory(prev => prev.filter(i => i.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [householdId, isDemo]);
+
+    // Real-time Members Sync
+    useEffect(() => {
+        if (!householdId || isDemo) return;
+
+        const fetchMembers = async () => {
+            const { data: membersData } = await supabase.rpc('get_household_members', {
+                lookup_household_id: householdId
+            });
+
+            if (membersData) {
+                setHouseholdUsers(membersData.map((m: any) => ({
+                    id: m.user_id,
+                    display_name: m.name,
+                    avatar_url: m.avatar,
+                    role: m.role,
+                    joined_at: m.joined_at
+                })));
+            }
+        };
+
+        const channel = supabase.channel('members-changes')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'household_members', filter: `household_id=eq.${householdId}` },
+                () => {
+                    fetchMembers();
+                    toast.info("家族メンバーが更新されました");
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [householdId, isDemo]);
 
     // Persist demoCareLogsDone

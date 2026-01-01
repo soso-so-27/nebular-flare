@@ -94,10 +94,11 @@ export function GalleryScreen({ onClose }: GalleryScreenProps) {
                 // Upload to first cat temporarily, will be reassigned
                 const { data, error } = await uploadCatImage(cats[0].id, file);
                 if (!error && data) {
+                    const typedData = data as any;
                     const supabase = createClient();
-                    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(data.storagePath);
+                    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(typedData.storagePath);
                     uploadedPhotos.push({
-                        id: data.id,
+                        id: typedData.id,
                         url: urlData.publicUrl
                     });
                 }

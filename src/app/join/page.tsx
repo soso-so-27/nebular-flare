@@ -1,0 +1,20 @@
+import React, { Suspense } from 'react';
+import { JoinScreen } from '@/components/app/join-screen';
+import { Loader2 } from 'lucide-react';
+
+export const metadata = {
+    title: '家族に参加 - CatUp',
+    description: 'CatUpの招待を受け取る',
+};
+
+export default function JoinPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+            </div>
+        }>
+            <JoinScreen />
+        </Suspense>
+    );
+}

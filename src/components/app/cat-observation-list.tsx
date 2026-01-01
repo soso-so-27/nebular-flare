@@ -2,10 +2,11 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat } from "lucide-react";
+import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { LucideIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CatObservation {
     id: string;
@@ -65,6 +66,9 @@ export function CatObservationList() {
         setToday(new Date().toISOString().split('T')[0]);
     }, []);
 
+    // Optimistic UI State: Map of noticeId -> value
+    const [optimisticLogs, setOptimisticLogs] = useState<Record<string, string>>({});
+
     // Get per-cat observations (health checks)
     const observationItems: CatObservation[] = useMemo(() => {
         const catLogs = noticeLogs[activeCatId] || {};
@@ -77,20 +81,28 @@ export function CatObservationList() {
                 let value: string | undefined;
                 let isAbnormal = false;
 
-                if (isDemo) {
-                    // Demo mode: check local noticeLogs
+                // Check optimistic state first (Priority 1)
+                const optimisticVal = optimisticLogs[notice.id];
+
+                // If optimistic value exists, use it immediately
+                if (optimisticVal) {
+                    isDone = true;
+                    value = optimisticVal;
+                    isAbnormal = (optimisticVal !== "いつも通り" && optimisticVal !== "なし");
+                }
+                // Fallback to real data (Priority 2)
+                else if (isDemo) {
+                    // Demo mode
                     const log = catLogs[notice.id];
                     const isToday = log?.at?.startsWith(today);
                     isDone = !!(isToday && log?.done);
                     value = log?.value;
-                    // Check logic based on input type if needed, but keeping simple for now
                     isAbnormal = !!(log?.value &&
                         log.value !== "いつも通り" &&
                         log.value !== "なし" &&
                         log.value !== "記録した");
                 } else {
-                    // Supabase mode: check observations
-                    // Use UUID directly
+                    // Supabase mode
                     const matchingObs = observations.find(o => o.cat_id === activeCatId && o.type === notice.id);
                     isDone = !!matchingObs;
                     value = matchingObs?.value;
@@ -110,12 +122,15 @@ export function CatObservationList() {
                     isAbnormal,
                 };
             });
-    }, [noticeDefs, noticeLogs, activeCatId, today, isDemo, observations]);
+    }, [noticeDefs, noticeLogs, activeCatId, today, isDemo, observations, optimisticLogs]);
 
     const completedCount = observationItems.filter(o => o.done).length;
     const totalCount = observationItems.length;
 
     async function handleQuickRecord(obs: CatObservation, value: string) {
+        // 1. Optimistic Update (Immediate Feedback)
+        setOptimisticLogs(prev => ({ ...prev, [obs.id]: value }));
+
         if (isDemo) {
             // Demo mode: update local state
             setNoticeLogs(prev => ({
@@ -136,170 +151,182 @@ export function CatObservationList() {
             toast.success(`${obs.label}: ${value}`);
         } else {
             // Supabase mode: add observation
-            // Use obs.id (which is the UUID from noticeDefs)
-            const result = await addObservation(activeCatId, obs.id, value);
-            if (result?.error) {
-                toast.error("記録に失敗しました");
-            } else {
+            try {
+                const result = await addObservation(activeCatId, obs.id, value);
+                if (result?.error) {
+                    throw new Error(result.error.message);
+                }
                 toast.success(`${obs.label}: ${value}`);
+                // Note: We don't clear optimistic log here immediately.
+                // We wait for the real-time subscription to update `observations`.
+            } catch (e: any) {
+                // Revert optimistic update on error
+                setOptimisticLogs(prev => {
+                    const next = { ...prev };
+                    delete next[obs.id];
+                    return next;
+                });
+                toast.error("記録に失敗しました");
             }
         }
     }
 
+    // Clean up optimistic logs when real data arrives
+    useEffect(() => {
+        if (Object.keys(optimisticLogs).length > 0) {
+            setOptimisticLogs(prev => {
+                const next = { ...prev };
+                let changed = false;
+                // Check if any optimistic log is now present in real observations
+                Object.keys(next).forEach(noticeId => {
+                    const existsInReal = observations.some(o => o.cat_id === activeCatId && o.type === noticeId);
+                    if (existsInReal) {
+                        delete next[noticeId];
+                        changed = true;
+                    }
+                });
+                return changed ? next : prev;
+            });
+        }
+    }, [observations, activeCatId]);
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* Header / Stats */}
             <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700">
-                        <Cat className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-                            {activeCat?.name}の様子
-                        </h3>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-slate-500">
-                                {completedCount}/{totalCount} 完了
-                            </span>
-                            {/* Mini Progress Bars */}
-                            <div className="flex gap-0.5 h-1.5 w-24 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                {observationItems.map((obs) => (
-                                    <div
-                                        key={obs.id}
-                                        className={cn(
-                                            "flex-1 transition-all duration-500",
-                                            obs.done
-                                                ? obs.isAbnormal
-                                                    ? "bg-amber-400"
-                                                    : "bg-slate-400"
-                                                : "bg-transparent"
-                                        )}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight mb-1">
+                        今日の様子
+                    </h3>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {completedCount}/{totalCount} 項目完了
+                    </p>
                 </div>
 
-                {/* Cat Switcher (Compact) */}
-                {cats.length > 1 && (
-                    <div className="flex -space-x-2">
-                        {cats.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCatId(cat.id)}
-                                className={cn(
-                                    "w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden transition-transform",
-                                    cat.id === activeCatId ? "z-10 scale-110 ring-2 ring-slate-400" : "opacity-60 hover:opacity-100 hover:scale-105"
-                                )}
-                            >
-                                {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
-                                    <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-xs">
-                                        {cat.avatar || "🐈"}
-                                    </div>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {/* Progress Circle or Bar */}
+                <div className="flex gap-1">
+                    {observationItems.map((obs, i) => (
+                        <div
+                            key={obs.id}
+                            className={cn(
+                                "h-2 w-2 rounded-full transition-all duration-500",
+                                obs.done
+                                    ? obs.isAbnormal
+                                        ? "bg-amber-500 scale-125"
+                                        : "bg-slate-300 dark:bg-slate-700"
+                                    : "bg-slate-200 dark:bg-slate-800"
+                            )}
+                        />
+                    ))}
+                </div>
             </div>
 
             {/* Observation Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
                 {observationItems.map((obs) => (
-                    <div
+                    <motion.div
+                        layout
                         key={obs.id}
+                        initial={false}
+                        animate={obs.done ? "done" : "idle"}
                         className={cn(
-                            "relative overflow-hidden rounded-3xl p-4 transition-all duration-300 border backdrop-blur-md flex flex-col justify-between min-h-[140px]",
+                            "relative overflow-hidden rounded-3xl p-5 transition-all duration-300 flex flex-col justify-between min-h-[160px] shadow-sm",
                             obs.done
                                 ? obs.isAbnormal
-                                    ? "bg-amber-50/90 border-amber-200/50" // Done & Abnormal
-                                    : "bg-white/60 border-white/40 opacity-70" // Done & Normal
-                                : "bg-white/90 dark:bg-slate-800/80 border-white/50 dark:border-slate-700 shadow-sm hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.98]" // Pending
+                                    ? "bg-amber-50 border-2 border-amber-200" // Done & Abnormal
+                                    : "bg-emerald-50/50 border border-emerald-100/50 opacity-90 dark:bg-emerald-900/10 dark:border-emerald-900/30" // Done & Normal
+                                : "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-lg hover:border-slate-200 dark:hover:border-slate-700 active:scale-[0.98]" // Pending
                         )}
                     >
                         {/* Header: Icon & Label */}
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between mb-4">
                             <div className={cn(
-                                "p-2.5 rounded-2xl transition-colors",
+                                "p-3 rounded-2xl transition-colors",
                                 obs.done
-                                    ? "bg-slate-100 dark:bg-slate-700 text-slate-400"
-                                    : obs.isAbnormal
+                                    ? obs.isAbnormal
                                         ? "bg-amber-100 text-amber-600"
-                                        : "bg-slate-50 dark:bg-slate-700 text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100"
+                                        : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400"
+                                    : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                             )}>
-                                <obs.Icon className="w-5 h-5" />
+                                <obs.Icon className="w-6 h-6" />
                             </div>
                             {obs.done && (
-                                <div className={cn(
-                                    "p-1.5 rounded-full flex items-center gap-1",
-                                    obs.isAbnormal ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400"
-                                )}>
-                                    <span className="text-[10px] font-bold px-1">{obs.value}</span>
-                                    <Check className="w-3.5 h-3.5" />
-                                </div>
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className={cn(
+                                        "px-2 py-1 rounded-full flex items-center gap-1",
+                                        obs.isAbnormal ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                                    )}>
+                                    <span className="text-[10px] font-bold">{obs.value}</span>
+                                    {obs.isAbnormal ? <AlertTriangle className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                                </motion.div>
                             )}
                         </div>
 
                         <div>
                             <span className={cn(
-                                "block text-sm font-bold mb-3 transition-colors",
-                                obs.done ? "text-slate-400" : "text-slate-700 dark:text-slate-200"
+                                "block text-base font-bold mb-4 transition-colors leading-tight",
+                                obs.done ? "text-slate-400 dark:text-slate-600" : "text-slate-800 dark:text-slate-200"
                             )}>
                                 {obs.label}
                             </span>
 
                             {/* Actions / Status */}
-                            <div className="mt-auto">
-                                {!obs.done && (
-                                    <div className="flex gap-2">
-                                        {obs.inputType === 'choice' ? (
-                                            <div className="flex flex-wrap gap-1.5 w-full">
-                                                {getChoicesForObservation(obs, noticeDefs).slice(0, 2).map((choice) => (
+                            <div className="mt-auto relative z-10">
+                                <AnimatePresence mode="wait">
+                                    {!obs.done && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            className="flex gap-2"
+                                        >
+                                            {obs.inputType === 'choice' ? (
+                                                <div className="flex flex-wrap gap-2 w-full">
+                                                    {getChoicesForObservation(obs, noticeDefs).slice(0, 2).map((choice) => (
+                                                        <button
+                                                            key={choice}
+                                                            onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, choice); }}
+                                                            className="flex-1 text-xs font-bold py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                                                        >
+                                                            {choice}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : obs.inputType === 'count' ? (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const val = prompt('数値を入力', '1');
+                                                        if (val) handleQuickRecord(obs, val);
+                                                    }}
+                                                    className="w-full text-xs font-bold py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                                                >
+                                                    数値を入力
+                                                </button>
+                                            ) : (
+                                                <>
                                                     <button
-                                                        key={choice}
-                                                        onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, choice); }}
-                                                        className="flex-1 text-[10px] font-bold py-2 rounded-lg bg-white border border-slate-200 text-slate-600 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                                                        onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'いつも通り'); }}
+                                                        className="flex-1 text-xs font-bold py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 shadow-sm hover:bg-emerald-100 active:scale-95 transition-all dark:bg-emerald-900/20 dark:border-emerald-900/50 dark:text-emerald-400"
                                                     >
-                                                        {choice}
+                                                        OK
                                                     </button>
-                                                ))}
-                                            </div>
-                                        ) : obs.inputType === 'count' ? (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const val = prompt('数値を入力', '1');
-                                                    if (val) handleQuickRecord(obs, val);
-                                                }}
-                                                className="w-full text-xs font-bold py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                                            >
-                                                数値を入力
-                                            </button>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'いつも通り'); }}
-                                                    className="flex-1 text-xs font-bold py-2 rounded-xl bg-slate-800 text-white shadow-sm hover:bg-slate-700 active:scale-95 transition-all"
-                                                >
-                                                    OK
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
-                                                    className="w-10 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all"
-                                                >
-                                                    <AlertTriangle className="w-4 h-4" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
+                                                        className="w-12 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all dark:bg-amber-900/20 dark:border-amber-900/50"
+                                                    >
+                                                        <AlertTriangle className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>

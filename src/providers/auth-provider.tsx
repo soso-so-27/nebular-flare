@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -11,6 +12,7 @@ interface AuthContextType {
     signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
     signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
     signOut: () => Promise<void>;
+    updateProfile: (displayName: string, avatarUrl?: string) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,6 +71,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
     };
 
+    const updateProfile = async (displayName: string, avatarUrl?: string) => {
+        const updates: { data: { display_name: string; avatar_url?: string } } = {
+            data: { display_name: displayName }
+        };
+        if (avatarUrl !== undefined) {
+            updates.data.avatar_url = avatarUrl;
+        }
+
+        // 1. Update Auth User
+        const { data: { user }, error } = await supabase.auth.updateUser(updates);
+
+        if (error) return { error };
+
+        // 2. Update Public Users Table
+        if (user) {
+            const publicUpdates: { display_name: string; updated_at: string; avatar_url?: string } = {
+                display_name: displayName,
+                updated_at: new Date().toISOString(),
+            };
+            if (avatarUrl !== undefined) {
+                publicUpdates.avatar_url = avatarUrl;
+            }
+
+            const { error: dbError } = await supabase
+                .from('users')
+                .update(publicUpdates)
+                .eq('id', user.id);
+
+            if (dbError) {
+                console.error("Failed to update public user profile", dbError);
+                // We don't fail the whole operation if just the public sync fails, but it's bad.
+            }
+
+            // Manually update local state if needed (auth listener usually handles it)
+            setUser(user);
+        }
+
+        return { error: null };
+    };
+
     const signOut = async () => {
         await supabase.auth.signOut();
     };
@@ -81,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             signInWithEmail,
             signUpWithEmail,
             signOut,
+            updateProfile,
         }}>
             {children}
         </AuthContext.Provider>

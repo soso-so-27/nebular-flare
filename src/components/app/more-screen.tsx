@@ -10,6 +10,7 @@ import { useAppState } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { CatSettingsModal } from "./cat-settings-modal";
 import { FamilyMemberModal } from "./family-member-modal";
+import { ProfileSettingsModal } from "./profile-settings-modal";
 import { toast } from "sonner";
 
 // Unified Header Component
@@ -39,6 +40,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     const handleLogout = async () => {
         if (isDemo) {
@@ -81,16 +83,26 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                                 </span>
                             </div>
                             {!isDemo && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleLogout}
-                                    disabled={isLoggingOut}
-                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                >
-                                    <LogOut className="h-4 w-4 mr-1" />
-                                    ログアウト
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsProfileModalOpen(true)}
+                                        className="h-8 text-[10px]"
+                                    >
+                                        編集
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleLogout}
+                                        disabled={isLoggingOut}
+                                        className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 text-[10px]"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-1" />
+                                        ログアウト
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     </CardContent>
@@ -270,6 +282,9 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
 
                 {/* Family Member Modal */}
                 <FamilyMemberModal isOpen={isFamilyModalOpen} onClose={() => setIsFamilyModalOpen(false)} />
+
+                {/* Profile Settings Modal */}
+                <ProfileSettingsModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
 
             </div>
         </div>

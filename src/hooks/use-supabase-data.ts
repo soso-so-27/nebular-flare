@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -83,8 +84,12 @@ export function useCats(householdId: string | null) {
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'cats', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
-                    // Optimistic update or just refetch?
-                    // Refetch is safer for consistency
+                    fetchCats();
+                }
+            )
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'cat_weight_history' },
+                (payload: any) => {
                     fetchCats();
                 }
             )
