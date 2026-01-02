@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,10 +19,37 @@ interface ProfileSettingsModalProps {
 
 export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
     const { user, updateProfile } = useAuth();
-    const { householdUsers } = useAppState();
+    const { uploadUserImage } = useAppState();
     const [displayName, setDisplayName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        try {
+            // Show loading state or optimized feeling?
+            // Just upload immediately
+            const toastId = toast.loading("画像をアップロード中...");
+            const { publicUrl, error } = await uploadUserImage(user.id, file);
+
+            if (error) {
+                toast.error("アップロード失敗: " + error, { id: toastId });
+                return;
+            }
+
+            if (publicUrl) {
+                setAvatarUrl(publicUrl);
+                toast.success("完了しました", { id: toastId });
+            }
+        } catch (e) {
+            toast.error("エラーが発生しました");
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     // Derived from householdUsers for latest data if possible, or fallback to user metadata
     // Ideally we rely on `user` object from auth, but `householdUsers` might have the synced public URL.
@@ -80,7 +107,7 @@ export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalPr
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Avatar Section */}
                     <div className="flex flex-col items-center gap-4">
-                        <div className="relative group cursor-pointer" onClick={generateRandomAvatar}>
+                        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                             <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-700 shadow-lg">
                                 {avatarUrl ? (
                                     <Image src={avatarUrl} alt="Avatar" width={96} height={96} className="w-full h-full object-cover" />
@@ -91,12 +118,17 @@ export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalPr
                             <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Camera className="h-6 w-6 text-white" />
                             </div>
-                            <div className="absolute bottom-0 right-0 bg-amber-500 rounded-full p-1.5 border-2 border-white shadow-sm">
-                                <SparklesIcon className="h-3 w-3 text-white" />
-                            </div>
+                            {/* Hidden file input */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                            />
                         </div>
                         <p className="text-xs text-slate-400">
-                            タップでアイコンをランダム変更
+                            タップして写真を変更
                         </p>
                     </div>
 

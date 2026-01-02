@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Calendar, Cat, X, Plus, Activity, Menu } from "lucide-react";
 import { BubblePickupList } from "./bubble-pickup-list";
@@ -15,8 +16,28 @@ interface MagicBubbleProps {
 
 export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity }: MagicBubbleProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const { careLogs, careTaskDefs, activeCatId, cats } = useAppState();
+
+    // Calculate Progress
+    const remainingItemsCount = useMemo(() => {
+        const careRemaining = careTaskDefs.filter(def => {
+            return !careLogs.some(l => l.type.startsWith(def.id) && (!def.perCat || l.cat_id === activeCatId));
+        }).length;
+
+        return careRemaining;
+    }, [careTaskDefs, careLogs, activeCatId]);
+
+    const progress = Math.max(0, Math.min(1, 1 - (remainingItemsCount / 5))); // Assume 5 tasks max for visual scale
+
+    // Progress Ring Logic
+    const radius = 22; // Smaller for the side indicator
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (progress * circumference);
 
     const toggleOpen = () => setIsOpen(!isOpen);
+
+    // Get Active Cat for Avatar
+    const activeCat = cats.find(c => c.id === activeCatId);
 
     const menuItems = [
         { icon: Cat, label: "猫", action: onOpenGallery, color: "text-emerald-400", delay: 0 },
@@ -25,7 +46,64 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     ];
 
     return (
-        <div className="absolute inset-0 pointer-events-none z-50 flex items-end justify-center pb-8">
+        <div className="absolute inset-0 pointer-events-none z-50 flex items-end justify-center pb-12">
+            {/* 
+              === HUD STATUS DISPLAY (Top Left) === 
+              Moved to Root for correct Top-Left positioning relative to Viewport.
+            */}
+            {/* 
+                  === HUD STATUS DISPLAY (Top Left) === 
+                  Restored Ring Style. Label updated to "お世話".
+                */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="absolute top-8 left-6 z-40 pointer-events-none flex items-center gap-3"
+            >
+                {/* Ring Container */}
+                <div className="relative w-10 h-10">
+                    {/* Background Track */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
+                        <circle
+                            cx="30" cy="30" r={26}
+                            fill="none"
+                            stroke="rgba(255,255,255,0.15)"
+                            strokeWidth="4"
+                        />
+                        <motion.circle
+                            cx="30" cy="30" r={26}
+                            fill="none"
+                            stroke={progress >= 1 ? "#10b981" : "#fbbf24"}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
+                            animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))" }}
+                        />
+                    </svg>
+
+                    {/* Center Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                        <Cat className="w-4 h-4 drop-shadow-md" />
+                    </div>
+                </div>
+
+                {/* Text Data */}
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-bold tracking-wider text-white/60 drop-shadow-md">
+                        お世話
+                    </span>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-md">
+                            {Math.round(progress * 100)}
+                        </span>
+                        <span className="text-sm text-white/60 font-medium">%</span>
+                    </div>
+                </div>
+            </motion.div>
+
             <div className="relative flex items-center justify-center pointer-events-auto">
 
                 {/* Expanded Menu Actions */}
@@ -45,7 +123,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             <BubblePickupList onClose={() => setIsOpen(false)} />
 
                             {/* Menu Row */}
-                            <div className="absolute bottom-20 z-50 flex gap-4 items-end justify-center mb-4">
+                            <div className="absolute bottom-24 z-50 flex gap-4 items-end justify-center mb-4">
                                 {menuItems.map((item, index) => (
                                     <motion.button
                                         key={index}
@@ -76,36 +154,54 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                     )}
                 </AnimatePresence>
 
-                {/* Main Orb Button */}
-                <motion.button
-                    onClick={toggleOpen}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{
-                        scale: isOpen ? 0.9 : 1,
-                        rotate: isOpen ? 90 : 0 // Rotate X effect
-                    }}
-                    className={`
-                        w-16 h-16 rounded-full 
-                        bg-gradient-to-br from-white/40 to-white/10 
-                        backdrop-blur-md border border-white/30 
-                        shadow-[0_0_20px_rgba(255,255,255,0.3)]
-                        flex items-center justify-center text-white
-                        transition-all duration-300
-                        ${isOpen ? 'bg-white/20' : 'hover:bg-white/30'}
-                    `}
-                >
-                    {isOpen ? <X className="w-8 h-8 stroke-[1.5]" /> : <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
-                </motion.button>
-                {/* Glow Effect behind Orb */}
-                {!isOpen && (
+                {/* 
+                  === SEPARATE PROGRESS INDICATOR === 
+                  Positioned to the RIGHT of the main button.
+                */}
+                {/* 
+                  === HUD MOVED TO TOP === 
+                */}
+
+
+                {/* 
+                  === MAIN BUTTON (Restored) === 
+                  Simple White Orb
+                */}
+                <div className="relative w-20 h-20 flex items-center justify-center">
+
+                    {/* Glow */}
                     <motion.div
-                        className="absolute inset-0 bg-white/20 blur-xl rounded-full -z-10"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                        className="absolute inset-0 bg-white/20 blur-xl rounded-full"
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
                         transition={{ duration: 3, repeat: Infinity }}
                     />
-                )}
+
+                    <motion.button
+                        onClick={toggleOpen}
+                        whileTap={{ scale: 0.9 }}
+                        animate={{
+                            scale: isOpen ? 0.9 : 1,
+                            rotate: isOpen ? 90 : 0
+                        }}
+                        className={`
+                            relative z-10 w-16 h-16 rounded-full 
+                            bg-gradient-to-br from-white/40 to-white/10 
+                            backdrop-blur-md border border-white/30 
+                            shadow-[0_0_20px_rgba(255,255,255,0.3)]
+                            flex items-center justify-center text-white
+                            transition-all duration-300
+                            ${isOpen ? 'bg-white/20' : 'hover:bg-white/30'}
+                        `}
+                    >
+                        {isOpen ? (
+                            <X className="w-8 h-8 stroke-[1.5]" />
+                        ) : (
+                            // Original Simple Center Dot
+                            <div className="w-6 h-6 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                        )}
+                    </motion.button>
+                </div>
             </div>
         </div>
     );
 }
-

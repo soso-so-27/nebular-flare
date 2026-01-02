@@ -74,13 +74,24 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="px-4 py-3 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold">
-                                    {isDemo ? "デモユーザー" : (user?.email || "未ログイン")}
-                                </span>
-                                <span className="text-[10px] text-muted-foreground">
-                                    {isDemo ? "ログインするとデータが保存されます" : "ログイン中"}
-                                </span>
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 flex-shrink-0">
+                                    {user?.user_metadata?.avatar_url ? (
+                                        <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <User className="h-5 w-5 text-slate-300" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                        {isDemo ? "デモユーザー" : (user?.user_metadata?.display_name || "名無しさん")}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">
+                                        {isDemo ? "ログインするとデータが保存されます" : user?.email}
+                                    </span>
+                                </div>
                             </div>
                             {!isDemo && (
                                 <div className="flex items-center gap-2">

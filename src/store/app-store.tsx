@@ -75,6 +75,7 @@ type AppState = {
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
     householdUsers: any[];
+    uploadUserImage: (userId: string, file: File) => Promise<{ error?: any; publicUrl?: string }>;
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -1094,6 +1095,26 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         }
     };
 
+    const uploadUserImage = async (userId: string, file: File) => {
+        if (isDemo) return { publicUrl: "https://api.dicebear.com/7.x/notionists/svg?seed=demo" };
+
+        try {
+            const ext = file.name.split('.').pop();
+            const fileName = `users/${userId}/${crypto.randomUUID()}.${ext}`;
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+            return { publicUrl };
+        } catch (e: any) {
+            console.error("Upload failed", e);
+            return { error: e.message };
+        }
+    };
+
     const deleteCatImage = async (imageId: string, storagePath: string) => {
         if (isDemo) return { error: null };
 
@@ -1248,6 +1269,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         setFcmToken,
         initializeDefaults,
         uploadCatImage,
+        uploadUserImage,
         updateCatImage,
         deleteCatImage,
         // Cat Profile

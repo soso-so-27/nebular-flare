@@ -8,7 +8,8 @@ import {
     Activity,
     Menu,
     Cat,
-    Calendar
+    Calendar,
+    Settings
 } from "lucide-react";
 import { CheckSection } from "./check-section";
 import { ActivityFeed } from "./activity-feed";
@@ -134,35 +135,56 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={0.2}
                         onDragEnd={handleSwipe}
-                        className="absolute inset-0"
+                        className="absolute inset-0 overflow-hidden"
                     >
-                        {activeCat?.avatar ? (
-                            <motion.img
-                                src={activeCat.avatar}
-                                alt={activeCat.name}
-                                className="w-full h-full object-cover cursor-pointer"
-                                animate={{
-                                    scale: [1, 1.15],
-                                    x: [0, 20, -20, 0]
-                                }}
-                                whileTap={{ scale: 0.95 }}
-                                transition={{
-                                    duration: 20,
-                                    ease: "linear",
-                                    repeat: Infinity,
-                                    repeatType: "reverse"
-                                }}
-                                onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
-                            />
-                        ) : (
-                            <motion.div
-                                className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
-                                whileTap={{ scale: 0.9 }}
-                                onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
-                            >
-                                <Cat className="w-32 h-32 text-slate-200" />
-                            </motion.div>
-                        )}
+                        {/* Breathing Container */}
+                        <motion.div
+                            className="w-full h-full relative"
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            {activeCat?.avatar ? (
+                                <motion.img
+                                    src={activeCat.avatar}
+                                    alt={activeCat.name}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                />
+                            ) : (
+                                <motion.div
+                                    className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
+                                    onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                >
+                                    <Cat className="w-32 h-32 text-slate-200" />
+                                </motion.div>
+                            )}
+
+                            {/* Magic Dust Particles */}
+                            {[...Array(8)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute rounded-full bg-white blur-[1px] pointer-events-none"
+                                    style={{
+                                        width: Math.random() * 3 + 1 + "px",
+                                        height: Math.random() * 3 + 1 + "px",
+                                        left: Math.random() * 100 + "%",
+                                        top: Math.random() * 100 + "%",
+                                        opacity: Math.random() * 0.5 + 0.2,
+                                    }}
+                                    animate={{
+                                        y: [0, -100],
+                                        opacity: [0, 0.8, 0],
+                                        scale: [0.5, 1.2, 0.5]
+                                    }}
+                                    transition={{
+                                        duration: Math.random() * 5 + 5,
+                                        repeat: Infinity,
+                                        ease: "easeInOut",
+                                        delay: Math.random() * 5
+                                    }}
+                                />
+                            ))}
+                        </motion.div>
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none transition-opacity duration-1000" style={{ opacity: uiVisible ? 1 : 0 }} />
 
@@ -322,20 +344,33 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </motion.div>
             )}
 
-            {/* Always visible: Story Indicators (If Story Mode) */}
+            {/* Always visible: Story Indicators (If Story Mode) - Changed to Dots */}
             {settings.homeDisplayMode === 'story' && settings.homeInterfaceMode !== 'zen' && (
-                <div className="absolute top-0 left-0 right-0 z-30 flex gap-2 px-3 pt-3 pointer-events-none">
+                <div className="absolute top-4 left-0 right-0 z-30 flex justify-center gap-2 px-3 pt-3 pointer-events-none">
                     {cats.map((cat, index) => (
-                        <div key={cat.id} className="h-1 flex-1 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm">
-                            <motion.div
-                                className="h-full bg-white shadow-[0_0_4px_rgba(255,255,255,0.5)]"
-                                initial={false}
-                                animate={{ opacity: index === currentIndex ? 1 : (index < currentIndex ? 0.5 : 0) }}
-                                transition={{ duration: 0.3 }}
-                            />
-                        </div>
+                        <motion.div
+                            key={cat.id}
+                            initial={false}
+                            animate={{
+                                opacity: index === currentIndex ? 1 : 0.4,
+                                scale: index === currentIndex ? 1.2 : 1,
+                                backgroundColor: "#FFF"
+                            }}
+                            className="w-2 h-2 rounded-full bg-white shadow-[0_0_4px_rgba(0,0,0,0.3)] backdrop-blur-sm"
+                            transition={{ duration: 0.3 }}
+                        />
                     ))}
                 </div>
+            )}
+
+            {/* Top Right Settings Button (Mirrors HUD position) */}
+            {settings.homeInterfaceMode !== 'classic' && settings.homeInterfaceMode !== 'zen' && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onNavigate?.('settings'); }}
+                    className="absolute top-8 right-6 z-40 w-10 h-10 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/90 hover:bg-black/30 transition-all shadow-lg active:scale-95"
+                >
+                    <Settings className="w-5 h-5 drop-shadow-md" />
+                </button>
             )}
 
             {/* Always visible: Floating Avatars (If Avatars Mode and partially visible in other modes) */}
