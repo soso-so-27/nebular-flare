@@ -211,13 +211,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100]"
                     />
 
-                    {/* Floating Sidebar */}
+                    {/* Floating Sidebar -> Right Drawer */}
                     <motion.div
-                        initial={{ x: 60, opacity: 0, scale: 0.98 }}
-                        animate={{ x: 0, opacity: 1, scale: 1 }}
-                        exit={{ x: 60, opacity: 0, scale: 0.98 }}
-                        transition={{ type: 'spring', damping: 40, stiffness: 400 }}
-                        className="fixed top-4 right-4 bottom-4 w-[340px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/40 dark:border-slate-800 z-[101] shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-[32px] flex flex-col overflow-hidden ring-1 ring-black/5"
+                        initial={{ x: '100%', opacity: 0.5 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: '100%', opacity: 0.5 }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+                        className="fixed top-0 right-0 bottom-0 w-full max-w-[360px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/40 dark:border-slate-800 z-[101] shadow-2xl shadow-black/20 flex flex-col overflow-hidden rounded-l-[32px]"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         {/* Header */}

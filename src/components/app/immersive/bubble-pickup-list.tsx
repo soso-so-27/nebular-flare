@@ -206,9 +206,9 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 {/* Header */}
                 <div className="flex items-baseline justify-between mb-4 px-2">
                     <h2 className="text-white text-3xl font-serif font-bold tracking-wide drop-shadow-md">
-                        今日のやること
+                        ピックアップ
                     </h2>
-                    <span className="text-white/80 text-[10px] font-bold opacity-80">未完了のタスク</span>
+                    <span className="text-white/80 text-[10px] font-bold opacity-80">現在のタスク</span>
                 </div>
 
                 {/* Grid List */}
@@ -223,7 +223,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                             >
                                 <Check className="w-10 h-10 text-emerald-400 mb-3 opacity-80" />
                                 <p className="text-lg font-bold text-white/90">完了</p>
-                                <p className="text-[10px] text-white/50">すべて完了しました</p>
+                                <p className="text-[10px] text-white/50">今のタスクはありません</p>
                             </motion.div>
                         ) : (
                             <div className="flex flex-col gap-3">
