@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import { Cat, Mail, Lock, User, Loader2 } from "lucide-react";
+import { translateAuthError } from "@/lib/error-utils";
 
 export function LoginScreen() {
     const { signInWithEmail, signUpWithEmail, loading } = useAuth();
@@ -22,10 +23,10 @@ export function LoginScreen() {
         try {
             if (isSignUp) {
                 const { error } = await signUpWithEmail(email, password, displayName);
-                if (error) setError(error.message);
+                if (error) setError(translateAuthError(error.message));
             } else {
                 const { error } = await signInWithEmail(email, password);
-                if (error) setError(error.message);
+                if (error) setError(translateAuthError(error.message));
             }
         } finally {
             setIsSubmitting(false);

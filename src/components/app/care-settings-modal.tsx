@@ -247,7 +247,16 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                                                 </div>
                                                 <p className="text-xs text-slate-500">
                                                     {task.frequency} • {task.timeOfDay}
-                                                    {task.perCat && " • 猫ごと"}
+                                                    {task.perCat && (
+                                                        <>
+                                                            <span className="mx-1">•</span>
+                                                            <span>
+                                                                {task.targetCatIds
+                                                                    ? cats.filter(c => task.targetCatIds?.includes(c.id)).map(c => c.name).join(", ")
+                                                                    : "猫ごと"}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>

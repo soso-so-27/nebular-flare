@@ -140,7 +140,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                     {catName}
                                 </h2>
                                 <span className="text-[10px] text-slate-500">
-                                    {images.length} Photos
+                                    {images.length} 枚の写真
                                 </span>
                             </div>
 
@@ -167,8 +167,8 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                     <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
                                         <ImageIcon className="h-8 w-8 opacity-40" />
                                     </div>
-                                    <p className="text-base font-bold text-slate-600 dark:text-slate-300">No Photos Yet</p>
-                                    <p className="text-xs mt-1">Add your first photo to personalize the app</p>
+                                    <p className="text-base font-bold text-slate-600 dark:text-slate-300">写真がありません</p>
+                                    <p className="text-xs mt-1">最初の写真を追加してアルバムを作りましょう</p>
                                 </div>
                             ) : (
                                 <div className="p-0.5 space-y-6">
@@ -256,7 +256,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                         ) : (
                                             <>
                                                 <Plus className="h-5 w-5" />
-                                                Add Photos
+                                                写真を追加
                                             </>
                                         )}
                                     </button>

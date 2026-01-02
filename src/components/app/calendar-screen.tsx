@@ -95,7 +95,7 @@ export function CalendarScreen() {
                     </Button>
                     <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1 border-orange-200 text-orange-700 ml-2">
                         <Plus className="h-3 w-3" />
-                        予定
+                        予定を追加
                     </Button>
                 </div>
             </div>
@@ -165,7 +165,7 @@ export function CalendarScreen() {
                         .map(e => (
                             <div key={e.id} className="rounded-xl shadow-none border border-slate-100 bg-white px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0">
                                 <Badge variant="outline" className="text-[10px] h-4 px-1 font-bold border-orange-200 text-orange-700 bg-orange-50 shrink-0">
-                                    {e.type === 'vet' ? '通院' : e.type === 'med' ? '薬' : '他'}
+                                    {e.type === 'vet' ? '通院' : e.type === 'med' ? '薬' : 'その他'}
                                 </Badge>
                                 <div className="min-w-0 flex-1 flex flex-row items-center gap-2">
                                     <span className="text-[10px] font-mono text-slate-400 shrink-0">

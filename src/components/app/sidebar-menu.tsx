@@ -317,7 +317,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                             <Cat className="w-5 h-5" />
                                         </div>
                                         <div className="flex flex-col items-start">
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">猫の様子</span>
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                {cats.find(c => c.id === activeCatId)?.name || '猫'}の様子
+                                            </span>
                                             <span className="text-xs text-slate-400">{obsCompleted}/{observationItems.length} 確認済</span>
                                         </div>
                                     </div>

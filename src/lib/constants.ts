@@ -103,7 +103,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "ok-notice",
         category: "eating",
         required: true,
-        alertLabel: "食欲に注意",
+        alertLabel: "食欲：回復確認",
     },
     {
         id: "n_water",
@@ -117,7 +117,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "choice",
         category: "eating",
         required: false,
-        alertLabel: "飲水量に注意",
+        alertLabel: "飲水：回復確認",
     },
 
     // ========== トイレカテゴリ ==========
@@ -133,7 +133,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "ok-notice",
         category: "toilet",
         required: true,
-        alertLabel: "トイレに注意",
+        alertLabel: "トイレ：回復確認",
     },
     {
         id: "n_poop",
@@ -147,7 +147,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "choice",
         category: "toilet",
         required: false,
-        alertLabel: "うんちの状態に注意",
+        alertLabel: "うんち：状態確認",
     },
     {
         id: "n_pee",
@@ -161,7 +161,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "choice",
         category: "toilet",
         required: false,
-        alertLabel: "おしっこに注意",
+        alertLabel: "おしっこ：状態確認",
     },
 
     // ========== 健康カテゴリ ==========
@@ -177,7 +177,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "count",
         category: "health",
         required: false,
-        alertLabel: "嘔吐あり",
+        alertLabel: "嘔吐：その後の様子",
     },
     {
         id: "n_energy",
@@ -191,7 +191,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "choice",
         category: "health",
         required: true,
-        alertLabel: "元気がない",
+        alertLabel: "元気：回復確認",
     },
     {
         id: "n_weight",
@@ -220,7 +220,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "choice",
         category: "behavior",
         required: false,
-        alertLabel: "行動の変化",
+        alertLabel: "行動：様子見",
     },
     {
         id: "n_scratch",
@@ -234,7 +234,7 @@ export const DEFAULT_NOTICE_DEFS: NoticeDef[] = [
         inputType: "ok-notice",
         category: "behavior",
         required: false,
-        alertLabel: "かゆがり・グルーミング",
+        alertLabel: "皮膚：様子見",
     },
 
     // ========== モーメント（写真） ==========

@@ -115,7 +115,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                 <label className="block space-y-2">
                                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
                                         <Cake className="w-3.5 h-3.5" />
-                                        Birthday
+                                        誕生日
                                     </span>
                                     <input
                                         type="date"
@@ -128,7 +128,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                 <label className="block space-y-2">
                                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
                                         <Cpu className="w-3.5 h-3.5" />
-                                        Microchip ID
+                                        マイクロチップID
                                     </span>
                                     <input
                                         type="text"
@@ -142,7 +142,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                 <label className="block space-y-2">
                                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
                                         <FileText className="w-3.5 h-3.5" />
-                                        Notes
+                                        メモ
                                     </span>
                                     <textarea
                                         value={editData.notes}

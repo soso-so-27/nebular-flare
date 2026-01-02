@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Cat, Home, Loader2, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
-import { LoginScreen } from "./login-screen"; // Reuse login screen if needed
+import { translateAuthError } from "@/lib/error-utils";
 
 export function JoinScreen() {
     const searchParams = useSearchParams();
@@ -118,7 +118,7 @@ export function JoinScreen() {
                 }, 1000);
             } else {
                 setStatus('invalid');
-                setErrorMsg(e.message || "参加に失敗しました");
+                setErrorMsg(translateAuthError(e.message || "参加に失敗しました"));
             }
         }
     };

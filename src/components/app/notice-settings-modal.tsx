@@ -158,7 +158,7 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                                                         type="text"
                                                         value={newChoice}
                                                         onChange={(e) => setNewChoice(e.target.value)}
-                                                        placeholder="選択肢を追加"
+                                                        placeholder="選択肢を入力 (例: 軟便)"
                                                         className="flex-1 px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                                                         onKeyDown={(e) => {
                                                             if (e.key === 'Enter') {

@@ -156,8 +156,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
             >
                 {/* Header */}
                 <div className="flex items-baseline justify-between mb-4 px-2">
-                    <h2 className="text-white text-3xl font-serif italic tracking-wide drop-shadow-md">Today's Pickup</h2>
-                    <span className="text-white/80 text-[10px] uppercase tracking-[0.2em] font-medium">PRIORITY TASKS</span>
+                    <h2 className="text-white text-3xl font-serif font-bold tracking-wide drop-shadow-md">
+                        {cats.find(c => c.id === activeCatId)?.name || ''}のやること
+                    </h2>
+                    <span className="text-white/80 text-[10px] font-bold opacity-80">未完了のタスク</span>
                 </div>
 
                 {/* Grid List */}
@@ -171,8 +173,8 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                                 className="flex flex-col items-center justify-center py-8 bg-black/40 backdrop-blur-md rounded-3xl border border-white/10"
                             >
                                 <Check className="w-10 h-10 text-emerald-400 mb-3 opacity-80" />
-                                <p className="text-lg font-serif italic text-white/90">All Clear</p>
-                                <p className="text-[10px] tracking-widest uppercase text-white/50">NO PENDING TASKS</p>
+                                <p className="text-lg font-bold text-white/90">完了</p>
+                                <p className="text-[10px] text-white/50">すべて完了しました</p>
                             </motion.div>
                         ) : (
                             <div className="flex flex-col gap-3">
@@ -199,7 +201,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                                         {/* Text Content */}
                                         <div className="flex-1 text-left min-w-0">
                                             <p className="text-[10px] text-white/90 uppercase tracking-wider font-bold mb-0.5 opacity-80">
-                                                {item.subLabel || 'TASK'}
+                                                {item.subLabel || 'タスク'}
                                             </p>
                                             <p className="text-xl font-bold text-white font-sans tracking-wide drop-shadow-sm truncate">
                                                 {item.label}

@@ -278,7 +278,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                         className="flex items-center gap-3 text-white/90 font-medium text-sm drop-shadow-sm"
                                     >
                                         <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                                            {selectedCat.sex === 'オス' ? '♂ Boy' : selectedCat.sex === 'メス' ? '♀ Girl' : 'Unknown'}
+                                            {selectedCat.sex === 'オス' ? '♂ 男の子' : selectedCat.sex === 'メス' ? '♀ 女の子' : '性別不明'}
                                         </span>
                                         <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                                             {getAgeText()}
@@ -298,7 +298,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                         className="flex flex-col items-center justify-center bg-rose-500 rounded-2xl w-14 h-14 shadow-lg shadow-rose-500/30 animate-pulse border-2 border-white/20 active:scale-95 transition-transform"
                                     >
                                         <span className="text-xl font-bold text-white leading-none">{catchupItems.length}</span>
-                                        <span className="text-[10px] text-white/90 font-bold uppercase tracking-wider">New</span>
+                                        <span className="text-[10px] text-white/90 font-bold uppercase tracking-wider">未確認</span>
                                     </button>
                                 )}
                             </div>
@@ -352,7 +352,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                     <Cake className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Birthday</div>
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">誕生日</div>
                                     <div className="text-lg font-bold text-slate-900 dark:text-white">
                                         {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '未設定'}
                                     </div>
@@ -367,7 +367,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                         <Cpu className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Microchip ID</div>
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">マイクロチップID</div>
                                         <div className="text-lg font-mono font-bold text-slate-900 dark:text-white tracking-wide">
                                             {selectedCat.microchip_id}
                                         </div>
@@ -415,7 +415,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                 <ChevronDown className="h-6 w-6" />
                             </button>
                             <div className="flex flex-col items-center">
-                                <span className="text-slate-400 text-xs font-bold tracking-widest uppercase mb-0.5">Checking</span>
+                                <span className="text-slate-400 text-xs font-bold tracking-widest mb-0.5">確認中</span>
                                 <span className="text-white font-bold text-lg">
                                     <span className="text-amber-500 text-2xl">{catchupItems.length - progressIndex}</span>
                                     <span className="opacity-50 mx-1">/</span>
@@ -462,7 +462,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                         {/* Footer Spacer (buttons are inside stack now or irrelevant if using gestures) */}
                         {/* Adding subtle instructional text */}
                         <div className="pb-10 pt-2 text-center relative z-10">
-                            <p className="text-white/30 text-xs font-medium tracking-wider">SWIPE TO ACTION</p>
+                            <p className="text-white/30 text-xs font-medium tracking-wider">左右にスワイプ</p>
                         </div>
                     </motion.div>
                 )}
@@ -483,13 +483,13 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     >
                         🎉
                     </motion.div>
-                    <h3 className="text-3xl font-bold text-white mb-2">Wonderful!</h3>
-                    <p className="text-slate-400 mb-10 text-lg">All items checked.</p>
+                    <h3 className="text-3xl font-bold text-white mb-2">完了！</h3>
+                    <p className="text-slate-400 mb-10 text-lg">今日の確認はすべて終わりました。</p>
                     <button
                         onClick={() => setShowSwipeMode(false)}
                         className="px-10 py-4 rounded-full bg-white text-slate-900 font-bold text-lg hover:bg-slate-200 active:scale-95 transition-all shadow-xl shadow-white/10"
                     >
-                        Close
+                        閉じる
                     </button>
                 </motion.div>
             )}

@@ -230,7 +230,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                         onClick={addCat}
                         className="w-full py-2 text-sm text-amber-600 font-medium flex items-center justify-center gap-1"
                     >
-                        <Plus className="h-4 w-4" /> もう1匹追加
+                        <Plus className="h-4 w-4" /> 猫ちゃんを追加
                     </button>
 
                     <Button
