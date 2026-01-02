@@ -315,81 +315,97 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     </div>
 
                     {/* 2. Weight Chart */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
-                    >
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl">
-                                <Scale className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-800 dark:text-white text-lg">体重推移</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">健康管理の基本です</p>
-                            </div>
+                    <div className="pt-4">
+                        {/* Section Header */}
+                        <div className="flex items-center gap-3 mb-4 px-1">
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">健康管理</span>
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
                         </div>
-                        <WeightChart
-                            catId={activeCatId}
-                            currentWeight={selectedCat?.weight || undefined}
-                            weightHistory={selectedCat?.weightHistory || []}
-                            onAddWeight={(w, n) => addCatWeightRecord(activeCatId, w, n)}
-                            isDemo={isDemo}
-                        />
-                    </motion.div>
-
-                    {/* 3. Detailed Profile Info */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="grid grid-cols-1 gap-4"
-                    >
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500">
-                                    <Cake className="w-6 h-6" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl">
+                                    <Scale className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">誕生日</div>
-                                    <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                        {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '未設定'}
-                                    </div>
+                                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">体重推移</h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">健康管理の基本です</p>
                                 </div>
                             </div>
-                        </div>
+                            <WeightChart
+                                catId={activeCatId}
+                                currentWeight={selectedCat?.weight || undefined}
+                                weightHistory={selectedCat?.weightHistory || []}
+                                onAddWeight={(w, n) => addCatWeightRecord(activeCatId, w, n)}
+                                isDemo={isDemo}
+                            />
+                        </motion.div>
+                    </div>
 
-                        {selectedCat?.microchip_id && (
+                    {/* 3. Detailed Profile Info */}
+                    <div className="pt-2">
+                        {/* Section Header */}
+                        <div className="flex items-center gap-3 mb-4 px-1">
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">プロフィール</span>
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="grid grid-cols-1 gap-4"
+                        >
                             <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500">
-                                        <Cpu className="w-6 h-6" />
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500">
+                                        <Cake className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">マイクロチップID</div>
-                                        <div className="text-lg font-mono font-bold text-slate-900 dark:text-white tracking-wide">
-                                            {selectedCat.microchip_id}
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">誕生日</div>
+                                        <div className="text-lg font-bold text-slate-900 dark:text-white">
+                                            {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '未設定'}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        )}
 
-                        {selectedCat?.notes && (
-                            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
-                                        <FileText className="w-4 h-4" />
+                            {selectedCat?.microchip_id && (
+                                <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500">
+                                            <Cpu className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">マイクロチップID</div>
+                                            <div className="text-lg font-mono font-bold text-slate-900 dark:text-white tracking-wide">
+                                                {selectedCat.microchip_id}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200">メモ</h3>
                                 </div>
-                                <div className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                                    {selectedCat.notes}
+                            )}
+
+                            {selectedCat?.notes && (
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
+                                            <FileText className="w-4 h-4" />
+                                        </div>
+                                        <h3 className="font-bold text-slate-700 dark:text-slate-200">メモ</h3>
+                                    </div>
+                                    <div className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        {selectedCat.notes}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </motion.div>
+                            )}
+                        </motion.div>
+                    </div>
                 </div>
             </div>
 
