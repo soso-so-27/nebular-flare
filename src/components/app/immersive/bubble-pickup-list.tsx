@@ -64,6 +64,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                         items.push({
                             id: def.id,
                             label: def.title,
+                            // Context-aware subLabel
+                            subLabel: def.perCat
+                                ? (cats.find(c => c.id === activeCatId)?.name || '猫')
+                                : 'お世話',
                             icon: def.icon ? React.createElement(getIcon(def.icon), { className: "w-5 h-5" }) : <Heart className="w-5 h-5" />,
                             colorClass: "bg-rose-500/80 hover:bg-rose-500",
                             onAction: async () => {
@@ -82,10 +86,17 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                     const isDone = careLogs.some(log => log.type === type && (!def.perCat || log.cat_id === activeCatId));
                     if (!isDone) {
                         const slotLabel = slot === 'morning' ? '朝' : slot === 'noon' ? '昼' : slot === 'evening' ? '夕' : '夜';
+                        const catName = cats.find(c => c.id === activeCatId)?.name || '猫';
+
+                        // Context-aware subLabel
+                        const sub = def.perCat
+                            ? `${catName} • ${slotLabel}`
+                            : `お世話 • ${slotLabel}`;
+
                         items.push({
                             id: type,
                             label: def.title,
-                            subLabel: slotLabel,
+                            subLabel: sub,
                             icon: def.icon ? React.createElement(getIcon(def.icon), { className: "w-5 h-5" }) : <Heart className="w-5 h-5" />,
                             colorClass: "bg-orange-500/80 hover:bg-orange-500",
                             onAction: async () => {
@@ -98,7 +109,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 }
             });
         return items;
-    }, [careTaskDefs, careLogs, addCareLog, activeCatId, currentHour]);
+    }, [careTaskDefs, careLogs, addCareLog, activeCatId, currentHour, cats]);
 
     // 2. Observations (Abnormal)
     const obsItems: BubbleItem[] = useMemo(() => {
@@ -136,18 +147,56 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
             }));
     }, [activeCatId, noticeDefs, noticeLogs, observations, isDemo, cats, today, addObservation]);
 
-    // Override colors for CareItems to be Orange too, matching the request
+    // 3. Inventory Items (Score 60-70)
+    const invItems: BubbleItem[] = useMemo(() => {
+        if (!inventory) return [];
+        const urgentThreshold = settings.invThresholds?.urgent ?? 7;
+        const items: BubbleItem[] = [];
+
+        inventory.forEach(it => {
+            if (it.alertEnabled === false || it.stockLevel === 'full') return;
+
+            // Calculate days left
+            const rangeMax = it.range_max || 30;
+            let daysLeft = rangeMax;
+            if (it.last_bought) {
+                const diffTime = new Date().getTime() - new Date(it.last_bought).getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                daysLeft = Math.max(0, rangeMax - diffDays);
+            }
+
+            // Threshold check (using settings or defaults)
+            const isLow = it.stockLevel === 'low' || it.stockLevel === 'empty' || daysLeft <= urgentThreshold;
+
+            if (isLow) {
+                items.push({
+                    id: it.id,
+                    label: `${it.label}が少なくなっています`,
+                    subLabel: "在庫",
+                    icon: <ShoppingCart className="w-5 h-5" />,
+                    colorClass: "bg-slate-500/80 hover:bg-slate-500", // Gray for neutral/shared
+                    onAction: async () => {
+                        // Simple optimistic refill or nav to inventory
+                        toast.success("在庫をチェックしました");
+                    }
+                });
+            }
+        });
+        return items;
+    }, [inventory, settings.invThresholds]);
+
     const unifiedCareItems = careItems.map(item => ({
         ...item,
+        // subLabel is now handled upstream in careItems for correct context (Shared vs Per-Cat)
         colorClass: "bg-gradient-to-br from-orange-500 to-amber-600"
     }));
 
-    const allItems = [...unifiedCareItems, ...obsItems];
+    const allItems = [...unifiedCareItems, ...obsItems, ...invItems];
 
     // Layout
     return (
         <div className="fixed inset-x-4 bottom-56 z-40 flex flex-col items-center pointer-events-none">
-            {/* Container - removed dark glass background to match floating feel or keep it subtle */}
+            {/* Container */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -157,7 +206,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 {/* Header */}
                 <div className="flex items-baseline justify-between mb-4 px-2">
                     <h2 className="text-white text-3xl font-serif font-bold tracking-wide drop-shadow-md">
-                        {cats.find(c => c.id === activeCatId)?.name || ''}のやること
+                        今日のやること
                     </h2>
                     <span className="text-white/80 text-[10px] font-bold opacity-80">未完了のタスク</span>
                 </div>
