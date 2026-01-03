@@ -78,10 +78,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
               Moved to Root for correct Top-Left positioning relative to Viewport.
             */}
             {/* 
-              === VISIBILITY GRADIENT === 
-              Soft dark gradient in top-left to ensure text readability on any photo
+              === VISIBILITY: Strong Drop Shadows === 
+              Switched from gradient to strong shadows to avoid "square box" artifacts.
             */}
-            <div className="absolute top-0 left-0 w-[50vw] h-[30vh] bg-gradient-to-br from-black/50 via-black/10 to-transparent z-30 pointer-events-none" />
 
             {/* 
                   === HUD STATUS DISPLAY (Top Left) === 
@@ -102,6 +101,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             fill="none"
                             stroke="rgba(255,255,255,0.15)"
                             strokeWidth="4"
+                            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }}
                         />
                         <motion.circle
                             cx="30" cy="30" r={26}
@@ -112,26 +112,26 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
                             animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))" }}
+                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
                         />
                     </svg>
 
                     {/* Center Icon */}
-                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                        <Heart className="w-4 h-4 drop-shadow-md" />
+                    <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <Heart className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                     </div>
                 </div>
 
                 {/* Text Data */}
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-bold tracking-wider text-white/60 drop-shadow-md">
+                    <span className="text-[10px] font-bold tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         お世話
                     </span>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-md">
+                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {Math.round(progress * 100)}
                         </span>
-                        <span className="text-sm text-white/60 font-medium">%</span>
+                        <span className="text-sm text-white font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">%</span>
                     </div>
                 </div>
             </motion.div>
@@ -152,6 +152,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             fill="none"
                             stroke="rgba(255,255,255,0.15)"
                             strokeWidth="4"
+                            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }}
                         />
                         <motion.circle
                             cx="30" cy="30" r={26}
@@ -162,26 +163,26 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
                             animate={{ strokeDashoffset: (2 * Math.PI * 26) - (observationProgress.progress * (2 * Math.PI * 26)) }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))" }}
+                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
                         />
                     </svg>
 
                     {/* Center Icon */}
-                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                        <Cat className="w-4 h-4 drop-shadow-md" />
+                    <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <Cat className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                     </div>
                 </div>
 
                 {/* Text Data */}
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-bold tracking-wider text-white/60 drop-shadow-md">
+                    <span className="text-[10px] font-bold tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         猫の様子
                     </span>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-md">
+                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {Math.round(observationProgress.progress * 100)}
                         </span>
-                        <span className="text-sm text-white/60 font-medium">%</span>
+                        <span className="text-sm text-white font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">%</span>
                     </div>
                 </div>
             </motion.div>
