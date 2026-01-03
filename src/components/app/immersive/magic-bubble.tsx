@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Calendar, Cat, X, Plus, Activity, Menu } from "lucide-react";
+import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu } from "lucide-react";
 import { BubblePickupList } from "./bubble-pickup-list";
 
 interface MagicBubbleProps {
@@ -16,9 +16,9 @@ interface MagicBubbleProps {
 
 export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity }: MagicBubbleProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const { careLogs, careTaskDefs, activeCatId, cats } = useAppState();
+    const { careLogs, careTaskDefs, activeCatId, cats, noticeDefs, observations, settings } = useAppState();
 
-    // Calculate Progress
+    // Calculate Care Progress
     const remainingItemsCount = useMemo(() => {
         const careRemaining = careTaskDefs.filter(def => {
             return !careLogs.some(l => l.type.startsWith(def.id) && (!def.perCat || l.cat_id === activeCatId));
@@ -28,6 +28,32 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     }, [careTaskDefs, careLogs, activeCatId]);
 
     const progress = Math.max(0, Math.min(1, 1 - (remainingItemsCount / 5))); // Assume 5 tasks max for visual scale
+
+    // Calculate Observation Progress (for active cat) - Using persisted observations from Supabase
+    const observationProgress = useMemo(() => {
+        const enabledNotices = noticeDefs.filter(n => n.enabled !== false && n.kind === 'notice');
+        if (enabledNotices.length === 0) return { done: 0, total: 0, progress: 1 };
+
+        // Filter observations for today and active cat
+        // observations already filtered by today in useTodayHouseholdObservations hook
+        const catObservations = observations.filter(o => o.cat_id === activeCatId);
+
+        let doneCount = 0;
+        enabledNotices.forEach(notice => {
+            // Check if there's an observation for this notice type
+            const hasObservation = catObservations.some(o => o.type === notice.id);
+            if (hasObservation) {
+                doneCount++;
+            }
+        });
+
+        const total = enabledNotices.length;
+        return {
+            done: doneCount,
+            total,
+            progress: total > 0 ? doneCount / total : 1
+        };
+    }, [noticeDefs, observations, activeCatId]);
 
     // Progress Ring Logic
     const radius = 22; // Smaller for the side indicator
@@ -51,6 +77,12 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
               === HUD STATUS DISPLAY (Top Left) === 
               Moved to Root for correct Top-Left positioning relative to Viewport.
             */}
+            {/* 
+              === VISIBILITY GRADIENT === 
+              Soft dark gradient in top-left to ensure text readability on any photo
+            */}
+            <div className="absolute top-0 left-0 w-[50vw] h-[30vh] bg-gradient-to-br from-black/50 via-black/10 to-transparent z-30 pointer-events-none" />
+
             {/* 
                   === HUD STATUS DISPLAY (Top Left) === 
                   Restored Ring Style. Label updated to "お世話".
@@ -86,7 +118,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
                     {/* Center Icon */}
                     <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                        <Cat className="w-4 h-4 drop-shadow-md" />
+                        <Heart className="w-4 h-4 drop-shadow-md" />
                     </div>
                 </div>
 
@@ -98,6 +130,56 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                     <div className="flex items-baseline gap-1">
                         <span className="text-2xl font-light text-white tracking-tight drop-shadow-md">
                             {Math.round(progress * 100)}
+                        </span>
+                        <span className="text-sm text-white/60 font-medium">%</span>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* === OBSERVATION PROGRESS (Below Care Progress) === */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.8 }}
+                className="absolute top-24 left-6 z-40 pointer-events-none flex items-center gap-3"
+            >
+                {/* Ring Container */}
+                <div className="relative w-10 h-10">
+                    {/* Background Track */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
+                        <circle
+                            cx="30" cy="30" r={26}
+                            fill="none"
+                            stroke="rgba(255,255,255,0.15)"
+                            strokeWidth="4"
+                        />
+                        <motion.circle
+                            cx="30" cy="30" r={26}
+                            fill="none"
+                            stroke={observationProgress.progress >= 1 ? "#10b981" : "#38bdf8"}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
+                            animate={{ strokeDashoffset: (2 * Math.PI * 26) - (observationProgress.progress * (2 * Math.PI * 26)) }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.3))" }}
+                        />
+                    </svg>
+
+                    {/* Center Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                        <Cat className="w-4 h-4 drop-shadow-md" />
+                    </div>
+                </div>
+
+                {/* Text Data */}
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-bold tracking-wider text-white/60 drop-shadow-md">
+                        猫の様子
+                    </span>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-light text-white tracking-tight drop-shadow-md">
+                            {Math.round(observationProgress.progress * 100)}
                         </span>
                         <span className="text-sm text-white/60 font-medium">%</span>
                     </div>

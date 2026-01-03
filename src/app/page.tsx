@@ -181,8 +181,8 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
 
-      <main className="min-h-dvh bg-background dark:bg-slate-950 pb-32 pt-[env(safe-area-inset-top)]">
-        <div className="max-w-md mx-auto p-4 space-y-4">
+      <main className="min-h-dvh overflow-hidden">
+        <div className="max-w-md mx-auto space-y-4">
           <NotificationModal
             isOpen={showNotifications}
             onClose={() => setShowNotifications(false)}
@@ -304,7 +304,7 @@ function AuthenticatedAppWithProfile() {
   return (
     <AppProvider householdId={profile?.householdId ?? null} isDemo={false}>
       <AppContent />
-      <Toaster position="top-center" richColors />
+      <Toaster />
     </AppProvider>
   );
 }
@@ -331,7 +331,7 @@ function AuthenticatedApp() {
     return (
       <AppProvider householdId={null} isDemo={true}>
         <AppContent />
-        <Toaster position="top-center" richColors />
+        <Toaster />
       </AppProvider>
     );
   }

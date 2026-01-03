@@ -222,7 +222,7 @@ export function CatObservationList() {
             </div>
 
             {/* Observation Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
                 {observationItems.map((obs) => (
                     <motion.div
                         layout
@@ -230,25 +230,25 @@ export function CatObservationList() {
                         initial={false}
                         animate={obs.done ? "done" : "idle"}
                         className={cn(
-                            "relative overflow-hidden rounded-3xl p-5 transition-all duration-300 flex flex-col justify-between min-h-[160px] shadow-sm",
+                            "relative overflow-hidden rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between min-h-[150px]",
                             obs.done
                                 ? obs.isAbnormal
-                                    ? "bg-amber-50 border-2 border-amber-200" // Done & Abnormal
-                                    : "bg-emerald-50/50 border border-emerald-100/50 opacity-90 dark:bg-emerald-900/10 dark:border-emerald-900/30" // Done & Normal
-                                : "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-lg hover:border-slate-200 dark:hover:border-slate-700 active:scale-[0.98]" // Pending
+                                    ? "bg-amber-50 border border-amber-200/80 shadow-sm" // Done & Abnormal
+                                    : "bg-card/50 border border-border/30 opacity-80" // Done & Normal
+                                : "bg-card border border-border shadow-md hover:shadow-lg hover:border-primary/20 active:scale-[0.98]" // Pending
                         )}
                     >
                         {/* Header: Icon & Label */}
-                        <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start justify-between mb-3">
                             <div className={cn(
-                                "p-3 rounded-2xl transition-colors",
+                                "p-2.5 rounded-xl transition-colors",
                                 obs.done
                                     ? obs.isAbnormal
                                         ? "bg-amber-100 text-amber-600"
-                                        : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400"
-                                    : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                        : "bg-muted text-muted-foreground"
+                                    : "bg-primary/10 text-primary"
                             )}>
-                                <obs.Icon className="w-6 h-6" />
+                                <obs.Icon className="w-5 h-5" />
                             </div>
                             {obs.done && (
                                 <motion.div
@@ -266,8 +266,8 @@ export function CatObservationList() {
 
                         <div>
                             <span className={cn(
-                                "block text-base font-bold mb-4 transition-colors leading-tight",
-                                obs.done ? "text-slate-400 dark:text-slate-600" : "text-slate-800 dark:text-slate-200"
+                                "block text-sm font-bold mb-3 transition-colors leading-snug",
+                                obs.done ? "text-muted-foreground" : "text-foreground"
                             )}>
                                 {obs.label}
                             </span>
@@ -309,15 +309,15 @@ export function CatObservationList() {
                                                 <>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'いつも通り'); }}
-                                                        className="flex-1 text-xs font-bold py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 shadow-sm hover:bg-emerald-100 active:scale-95 transition-all dark:bg-emerald-900/20 dark:border-emerald-900/50 dark:text-emerald-400"
+                                                        className="flex-1 text-xs font-bold py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-sm hover:bg-primary/20 active:scale-95 transition-all"
                                                     >
                                                         OK
                                                     </button>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
-                                                        className="w-12 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all dark:bg-amber-900/20 dark:border-amber-900/50"
+                                                        className="w-11 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all"
                                                     >
-                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <AlertTriangle className="w-4 h-4" />
                                                     </button>
                                                 </>
                                             )}

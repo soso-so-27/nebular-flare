@@ -200,7 +200,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
     }
 
     return (
-        <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="relative min-h-screen bg-background">
             <CatEditModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
@@ -214,9 +214,9 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             )}>
 
                 {selectedCat && (
-                    <div className="relative mb-6">
-                        {/* Immersive Hero Header */}
-                        <div className="relative h-[300px] w-full overflow-hidden rounded-b-[40px] shadow-2xl z-0">
+                    <div className="relative mb-8">
+                        {/* Immersive Hero Header - Seamless Edge-to-Edge */}
+                        <div className="relative h-[280px] w-full overflow-hidden z-0">
                             {(selectedCat.avatar?.startsWith('http') || selectedCat.avatar?.startsWith('/')) ? (
                                 <img src={selectedCat.avatar} alt={selectedCat.name} className="w-full h-full object-cover" />
                             ) : (
@@ -224,8 +224,8 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                     {selectedCat.avatar || "🐈"}
                                 </div>
                             )}
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                            {/* Gradient Overlay - Top and Bottom for seamless integration */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
 
                             {/* Header Controls (Floating) */}
                             <div className="absolute top-4 right-4 z-10 flex gap-2">
@@ -275,16 +275,16 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.1 }}
-                                        className="flex items-center gap-3 text-white/90 font-medium text-sm drop-shadow-sm"
+                                        className="flex items-center gap-2 text-white/95 font-medium text-sm"
                                     >
-                                        <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                        <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
                                             {selectedCat.sex === 'オス' ? '♂ 男の子' : selectedCat.sex === 'メス' ? '♀ 女の子' : '性別不明'}
                                         </span>
-                                        <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                        <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
                                             {getAgeText()}
                                         </span>
                                         {selectedCat.weight && (
-                                            <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                            <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
                                                 {selectedCat.weight}kg
                                             </span>
                                         )}
@@ -315,26 +315,26 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     </div>
 
                     {/* 2. Weight Chart */}
-                    <div className="pt-4">
+                    <div className="pt-6">
                         {/* Section Header */}
                         <div className="flex items-center gap-3 mb-4 px-1">
-                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-                            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">健康管理</span>
-                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                            <div className="h-px flex-1 bg-border" />
+                            <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">健康管理</span>
+                            <div className="h-px flex-1 bg-border" />
                         </div>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
+                            className="bg-card p-5 rounded-2xl shadow-md border border-border"
                         >
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                                     <Scale className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">体重推移</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">健康管理の基本です</p>
+                                    <h3 className="font-bold text-foreground text-base">体重推移</h3>
+                                    <p className="text-xs text-muted-foreground">健康管理の基本です</p>
                                 </div>
                             </div>
                             <WeightChart
@@ -348,27 +348,27 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     </div>
 
                     {/* 3. Detailed Profile Info */}
-                    <div className="pt-2">
+                    <div className="pt-4">
                         {/* Section Header */}
                         <div className="flex items-center gap-3 mb-4 px-1">
-                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-                            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">プロフィール</span>
-                            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                            <div className="h-px flex-1 bg-border" />
+                            <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">プロフィール</span>
+                            <div className="h-px flex-1 bg-border" />
                         </div>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="grid grid-cols-1 gap-4"
+                            className="grid grid-cols-1 gap-3"
                         >
-                            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="bg-card p-4 rounded-2xl shadow-sm border border-border flex items-center">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500">
-                                        <Cake className="w-6 h-6" />
+                                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <Cake className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">誕生日</div>
-                                        <div className="text-lg font-bold text-slate-900 dark:text-white">
+                                        <div className="text-xs font-medium text-muted-foreground mb-0.5">誕生日</div>
+                                        <div className="text-base font-bold text-foreground">
                                             {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '未設定'}
                                         </div>
                                     </div>
@@ -376,14 +376,14 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                             </div>
 
                             {selectedCat?.microchip_id && (
-                                <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <div className="bg-card p-4 rounded-2xl shadow-sm border border-border flex items-center">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500">
-                                            <Cpu className="w-6 h-6" />
+                                        <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                            <Cpu className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">マイクロチップID</div>
-                                            <div className="text-lg font-mono font-bold text-slate-900 dark:text-white tracking-wide">
+                                            <div className="text-xs font-medium text-muted-foreground mb-0.5">マイクロチップID</div>
+                                            <div className="text-base font-mono font-bold text-foreground tracking-wide">
                                                 {selectedCat.microchip_id}
                                             </div>
                                         </div>
@@ -392,14 +392,14 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                             )}
 
                             {selectedCat?.notes && (
-                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
+                                <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="p-1.5 bg-muted rounded-lg text-muted-foreground">
                                             <FileText className="w-4 h-4" />
                                         </div>
-                                        <h3 className="font-bold text-slate-700 dark:text-slate-200">メモ</h3>
+                                        <h3 className="font-bold text-foreground text-sm">メモ</h3>
                                     </div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed bg-muted/50 p-3 rounded-xl">
                                         {selectedCat.notes}
                                     </div>
                                 </div>

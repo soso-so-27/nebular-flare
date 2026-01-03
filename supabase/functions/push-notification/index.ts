@@ -1,21 +1,6 @@
-// Follow this setup guide to deploy: https://supabase.com/docs/guides/functions/deploy-to-production
-// 1. supabase login
-// 2. supabase functions new push-notification
-// 3. Paste this code into supabase/functions/push-notification/index.ts
-// 4. supabase functions deploy push-notification
-// 5. Set Database Webhook in Supabase Dashboard to trigger this function on INSERT to care_logs
-
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.0.0"
-
-// For Firebase Admin, we usually need a Service Account JSON.
-// Since we are in Deno, we can use the REST API for FCM or a Deno-compatible library.
-// Using raw fetch for FCM Legacy HTTP API or V1 (V1 requires JWT, Legacy is easier with Server Key)
-// For robustness, here is how to use the Legacy API (simpler for quick start) or plan for V1.
-// NOTE: Firebase Cloud Messaging Legacy API is deprecated. We should use HTTP v1.
-// However, HTTP v1 requires generating an OAuth2 token from the service account, which is complex in Deno without libraries.
-// We will use a placeholder fetch and instruct the user to set FIREBASE_SERVER_KEY env var (Legacy) for simplicity in this demo,
-// acknowledging it's deprecated but functional for MVP.
 
 const FIREBASE_SERVER_KEY = Deno.env.get('FIREBASE_SERVER_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -23,60 +8,137 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
     try {
-        const { record, type } = await req.json()
+        const { record, old_record, type, table, schema } = await req.json()
 
-        // Check if it's an INSERT event
-        if (type !== 'INSERT') {
-            return new Response("Not an INSERT event", { status: 200 })
-        }
-
+        // Initialize Supabase Client
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-        // 1. Identify the user who did the action
-        const actorId = record.done_by || record.recorded_by;
-        const householdId = record.household_id;
+        // Identify Household and Actor
+        const householdId = record.household_id || record.householdId;
+        // Observations use 'recorded_by', CareLogs use 'done_by', Inventory has none usually (system or buyer)
+        const actorId = record.done_by || record.recorded_by || record.created_by;
 
-        // 2. Fetch household members to notify (exclude the actor)
-        const { data: members, error: memberError } = await supabase
-            .from('household_members')
-            .select('user_id')
-            .eq('household_id', householdId)
-            .neq('user_id', actorId);
-
-        if (memberError || !members || members.length === 0) {
-            return new Response("No members to notify", { status: 200 })
+        if (!householdId) {
+            return new Response("No household_id found", { status: 200 })
         }
 
-        const memberIds = members.map((m: any) => m.user_id);
+        // 1. Fetch all household members with their notification preferences
+        const { data: members, error: memberError } = await supabase
+            .from('household_members')
+            .select(`
+                user_id,
+                users (
+                    id,
+                    display_name,
+                    notification_preferences
+                )
+            `)
+            .eq('household_id', householdId);
 
-        // 3. Fetch Push Tokens for these members
+        if (memberError || !members || members.length === 0) {
+            return new Response("No members found", { status: 200 })
+        }
+
+        // 2. Determine Notification Content & Target Audience
+        let notificationTitle = "";
+        let notificationBody = "";
+        let targetUserIds = [];
+        const targets: string[] = [];
+
+        // CASE A: Health Alert (Observations)
+        if (table === 'observations' && type === 'INSERT') {
+            const isAbnormal = record.value !== "いつも通り" && record.value !== "なし" && record.value !== "記録した";
+
+            // Only notify if abnormal
+            if (isAbnormal) {
+                // Get Cat Name
+                const { data: cat } = await supabase.from('cats').select('name').eq('id', record.cat_id).single();
+                const catName = cat?.name || "猫";
+
+                notificationTitle = `${catName}に気になる変化があります`;
+                notificationBody = `「${record.value}」が記録されました。確認してください。`;
+
+                // Filter users who have health_alert = true (default true)
+                targetUserIds = members.filter((m: any) => {
+                    const prefs = m.users?.notification_preferences || {};
+                    // If undefined, default to true
+                    return prefs.health_alert !== false && m.user_id !== actorId;
+                }).map((m: any) => m.user_id);
+            }
+        }
+
+        // CASE B: Care Action (Care Logs)
+        else if (table === 'care_logs' && type === 'INSERT') {
+            // Get Task Title if possible, or use raw type
+            // Ideally we join care_task_defs, but for speed we'll map common types or use generic
+            let actionName = "お世話";
+            if (record.type.includes('food') || record.type === 'breakfast' || record.type === 'dinner') actionName = "ごはん";
+            if (record.type.includes('toilet') || record.type === 'litter') actionName = "トイレ掃除";
+
+            // Note: We don't have task name easily unless we query or it's in metadata. 
+            // MVP: Use simple mapping or generic.
+
+            // Get Actor Name
+            const actor = members.find((m: any) => m.user_id === actorId)?.users;
+            const actorName = actor?.display_name || "家族";
+
+            notificationTitle = `${actorName}が${actionName}を完了しました`;
+            notificationBody = "お世話ありがとうございます！";
+
+            // Filter users. For 'Action Notification', we rely on care_reminder or generic 'always send'
+            // Let's check 'care_reminder' for now as a proxy, or send to all (except actor)
+            targetUserIds = members.filter((m: any) => {
+                const prefs = m.users?.notification_preferences || {};
+                // If undefined, default to true. 
+                // Some users might want to mute "Action" notifications specifically, but we don't have that key yet.
+                // We'll respect 'care_reminder' as a "Care related" toggle.
+                return prefs.care_reminder !== false && m.user_id !== actorId;
+            }).map((m: any) => m.user_id);
+        }
+
+        // CASE C: Inventory Alert (Inventory)
+        else if (table === 'inventory' && (type === 'UPDATE' || type === 'INSERT')) {
+            // Check urgency
+            // Logic: if stock_level changed to low/empty OR calculated days left is low
+            // Since we don't have 'days left' in DB column (it's calculated), we rely on stock_level column if available
+            // OR we check range_min/max vs last_bought.
+            // Simplified: If stock_level is 'low' or 'empty' AND it wasn't before (check old_record).
+
+            const newLevel = record.stock_level;
+            const oldLevel = old_record?.stock_level;
+
+            if ((newLevel === 'low' || newLevel === 'empty') && newLevel !== oldLevel) {
+                notificationTitle = `${record.label}が少なくなっています`;
+                notificationBody = `補充のタイミングかもしれません。`;
+
+                targetUserIds = members.filter((m: any) => {
+                    const prefs = m.users?.notification_preferences || {};
+                    return prefs.inventory_alert !== false && m.user_id !== actorId; // Actor seeing it might not need push, or maybe they do?
+                }).map((m: any) => m.user_id);
+            }
+        }
+
+        if (targetUserIds.length === 0) {
+            return new Response("No targets to notify", { status: 200 })
+        }
+
+        // 3. Fetch Push Tokens for Targets
         const { data: tokens, error: tokenError } = await supabase
             .from('push_tokens')
             .select('token')
-            .in('user_id', memberIds);
+            .in('user_id', targetUserIds);
 
         if (tokenError || !tokens || tokens.length === 0) {
             return new Response("No tokens found", { status: 200 })
         }
 
         const deviceTokens = tokens.map((t: any) => t.token);
+        // Deduplicate
+        const uniqueTokens = [...new Set(deviceTokens)];
 
-        // 4. Construct Message
-        let title = "更新がありました";
-        let body = "新しい記録があります";
-
-        if (record.type === 'breakfast' || record.type === 'dinner') {
-            title = "ごはんの時間 🍚";
-            body = "ごはんの記録が追加されました";
-        } else if (record.value) { // Observation
-            title = "猫の様子 📝";
-            body = `記録: ${record.value}`;
-        }
-
-        // 5. Send to FCM (Multicast)
-        // Using Legacy API for ease of demonstration. 
-        // Endpoint: https://fcm.googleapis.com/fcm/send
-        const fcmPromises = deviceTokens.map(async (token: string) => {
+        // 4. Send to FCM
+        const fcmPromises = uniqueTokens.map(async (token: string) => {
+            // ... (Same legacy fetch logic)
             const res = await fetch('https://fcm.googleapis.com/fcm/send', {
                 method: 'POST',
                 headers: {
@@ -86,9 +148,9 @@ serve(async (req) => {
                 body: JSON.stringify({
                     to: token,
                     notification: {
-                        title: title,
-                        body: body,
-                        icon: 'https://nebular-flare.vercel.app/icon.svg'
+                        title: notificationTitle,
+                        body: notificationBody,
+                        icon: 'https://nebular-flare.vercel.app/icon.svg' // Update with real icon URL
                     }
                 })
             });
@@ -97,9 +159,10 @@ serve(async (req) => {
 
         const results = await Promise.all(fcmPromises);
 
-        return new Response(JSON.stringify({ success: true, results }), {
+        return new Response(JSON.stringify({ success: true, results_count: results.length }), {
             headers: { "Content-Type": "application/json" },
         })
+
     } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), {
             status: 400,

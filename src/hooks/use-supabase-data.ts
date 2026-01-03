@@ -210,14 +210,13 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         }
 
         async function fetchObservations() {
-            // Join with cats table to filter by household_id
+            // RLS handles access control via cat_id, no need to filter by household_id
             const { data, error } = await supabase
                 .from('observations')
                 .select(`
     *,
     cats(name)
         `)
-                .eq('household_id', householdId)
                 .gte('created_at', startDt.toISOString())
                 .lt('created_at', endDt.toISOString())
                 .order('created_at', { ascending: false });

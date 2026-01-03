@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useAppState } from "@/store/app-store";
+import { createClient } from "@/lib/supabase";
 import {
     LayoutGrid,
     Activity,
@@ -37,19 +38,66 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     // Feature 4: Ambient Light (Night Mode)
     const [isNight, setIsNight] = useState(false);
 
+    // Feature: Random Photo on Open (pick a random photo each time app is opened)
+    // Note: randomPhotoIndex is now calculated via useMemo below
+
     const activeCat = cats.find(c => c.id === activeCatId);
     const currentIndex = cats.findIndex(c => c.id === activeCatId);
 
+    // Helper function to get public URL from avatars bucket (same as gallery-screen)
+    const getPublicUrl = (path: string) => {
+        const supabase = createClient();
+        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+        return data.publicUrl;
+    };
+
+    // Build array of all photos for the active cat (avatar + gallery images)
+    const allPhotos = React.useMemo(() => {
+        if (!activeCat) return [];
+        const photos: string[] = [];
+        // Add avatar if exists
+        if (activeCat.avatar) {
+            photos.push(activeCat.avatar);
+        }
+        // Add gallery images - use avatars bucket like gallery-screen
+        if (activeCat.images && activeCat.images.length > 0) {
+            activeCat.images.forEach(img => {
+                if (img.storagePath) {
+                    const publicUrl = getPublicUrl(img.storagePath);
+                    // Avoid duplicating avatar
+                    if (!photos.includes(publicUrl) && publicUrl !== activeCat.avatar) {
+                        photos.push(publicUrl);
+                    }
+                }
+            });
+        }
+        return photos;
+    }, [activeCat]);
+
+    // Select random photo - use useMemo so it's calculated immediately on mount
+    // The random selection happens once when allPhotos changes (on catId change or initial load)
+    const randomPhotoIndex = React.useMemo(() => {
+        if (allPhotos.length > 0) {
+            return Math.floor(Math.random() * allPhotos.length);
+        }
+        return 0;
+    }, [activeCatId, allPhotos.length > 0]); // Only recalculate when cat changes or photos become available
+
+    // Use random photo if available, otherwise fallback to avatar
+    const currentPhotoUrl = allPhotos.length > 0
+        ? allPhotos[randomPhotoIndex % allPhotos.length]
+        : activeCat?.avatar || null;
+
     // Initial Setup (Hero Image & Ambient Light)
     useEffect(() => {
-        if (!activeCat?.avatar) {
+        if (!activeCat?.avatar && allPhotos.length === 0) {
             setIsHeroImageLoaded(true);
         }
 
         // Simple Night Mode Check (6PM - 6AM)
         const hour = new Date().getHours();
         setIsNight(hour < 6 || hour >= 18);
-    }, [activeCat, setIsHeroImageLoaded]);
+    }, [activeCat, setIsHeroImageLoaded, allPhotos.length]);
 
     // Auto-hide Logic
     const resetHideTimer = useCallback(() => {
@@ -97,6 +145,35 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         }
     };
 
+    // Preload Images (Aggressive)
+    useEffect(() => {
+        // 1. Preload Avatars for all cats (Priority High)
+        cats.forEach(cat => {
+            if (cat.avatar) {
+                const img = new Image();
+                img.src = cat.avatar;
+            }
+        });
+
+        // 2. Preload Gallery Images for all cats (Background)
+        // We use a timeout to let the main thread breathe / prioritize avatars first
+        const timer = setTimeout(() => {
+            cats.forEach(cat => {
+                if (cat.images && cat.images.length > 0) {
+                    cat.images.forEach(imgData => {
+                        if (imgData.storagePath) {
+                            const url = getPublicUrl(imgData.storagePath);
+                            const img = new Image();
+                            img.src = url;
+                        }
+                    });
+                }
+            });
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [cats]);
+
     const slideVariants = {
         enter: (direction: number) => ({
             x: direction > 0 ? '100%' : '-100%',
@@ -120,7 +197,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     };
 
     return (
-        <div className="fixed inset-0 bg-black overflow-hidden" onClick={resetHideTimer}>
+        <div
+            className="fixed inset-0 bg-black overflow-hidden"
+            onClick={resetHideTimer}
+        >
             {/* Mode 1 & 3: Standard Carousel / Avatars (Not Parallax) */}
             {settings.homeDisplayMode !== 'parallax' && (
                 <AnimatePresence initial={false} custom={direction} mode="popLayout">
@@ -143,12 +223,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                         >
-                            {activeCat?.avatar ? (
+                            {currentPhotoUrl ? (
                                 <motion.img
-                                    src={activeCat.avatar}
-                                    alt={activeCat.name}
+                                    src={currentPhotoUrl}
+                                    alt={activeCat?.name || 'Cat'}
                                     className="w-full h-full object-cover cursor-pointer"
                                     onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                    onLoad={() => setIsHeroImageLoaded(true)}
                                 />
                             ) : (
                                 <motion.div
@@ -363,15 +444,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </div>
             )}
 
-            {/* Top Right Settings Button (Mirrors HUD position) */}
-            {settings.homeInterfaceMode !== 'classic' && settings.homeInterfaceMode !== 'zen' && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onNavigate?.('settings'); }}
-                    className="absolute top-8 right-6 z-40 w-10 h-10 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/90 hover:bg-black/30 transition-all shadow-lg active:scale-95"
-                >
-                    <Settings className="w-5 h-5 drop-shadow-md" />
-                </button>
-            )}
+            {/* Top Right Settings Button - Removed as per user request */}
 
             {/* Always visible: Floating Avatars (If Avatars Mode and partially visible in other modes) */}
             {settings.homeDisplayMode === 'avatars' && settings.homeInterfaceMode !== 'bubble' && (

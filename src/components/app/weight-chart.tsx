@@ -30,16 +30,16 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
 
     // Prepare chart data
     const chartData = useMemo(() => {
-        const data = weightHistory.map(record => ({
+        // Sort by date ascending first, then map
+        const sortedHistory = [...weightHistory].sort((a, b) =>
+            new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
+        );
+
+        return sortedHistory.map(record => ({
             date: format(new Date(record.recorded_at), 'M/d'),
             weight: record.weight,
             fullDate: format(new Date(record.recorded_at), 'yyyy年M月d日', { locale: ja })
         }));
-
-        // Sort by date ascending
-        return data.sort((a, b) =>
-            new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime()
-        );
     }, [weightHistory]);
 
     // Calculate weight trend

@@ -140,6 +140,7 @@ export function NotificationSettings() {
                                     onChange={(e) => updatePreference('notification_hour', parseInt(e.target.value))}
                                     className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg border-none focus:ring-2 focus:ring-emerald-500"
                                 >
+                                    <option value={-1}>指定なし</option>
                                     <option value={8}>朝 8:00</option>
                                     <option value={20}>夜 20:00</option>
                                 </select>
