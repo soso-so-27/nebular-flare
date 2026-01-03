@@ -217,55 +217,75 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         onDragEnd={handleSwipe}
                         className="absolute inset-0 overflow-hidden"
                     >
-                        {/* Breathing Container */}
-                        <motion.div
-                            className="w-full h-full relative"
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                        >
+                        {/* Full Image Display Container */}
+                        <div className="w-full h-full relative bg-gray-900">
                             {currentPhotoUrl ? (
-                                <motion.img
-                                    src={currentPhotoUrl}
-                                    alt={activeCat?.name || 'Cat'}
-                                    className="w-full h-full object-cover cursor-pointer"
-                                    onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
-                                    onLoad={() => setIsHeroImageLoaded(true)}
-                                />
+                                <>
+                                    {/* 1. Blurred Background Layer (Ambient) */}
+                                    <motion.div
+                                        className="absolute inset-0 z-0"
+                                        animate={{ scale: [1.1, 1.2, 1.1] }}
+                                        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <img
+                                            src={currentPhotoUrl}
+                                            alt=""
+                                            className="w-full h-full object-cover blur-3xl opacity-50"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20" />
+                                    </motion.div>
+
+                                    {/* 2. Main Image Layer (Fit Whole Image) */}
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center">
+                                        <motion.img
+                                            src={currentPhotoUrl}
+                                            alt={activeCat?.name || 'Cat'}
+                                            className="max-w-full max-h-full object-contain drop-shadow-2xl cursor-pointer"
+                                            onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                            onLoad={() => setIsHeroImageLoaded(true)}
+                                            initial={{ opacity: 0, scale: 0.98 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.5 }}
+                                        />
+                                    </div>
+                                </>
                             ) : (
                                 <motion.div
-                                    className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
+                                    className="w-full h-full bg-slate-800 flex items-center justify-center cursor-pointer"
                                     onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
                                 >
-                                    <Cat className="w-32 h-32 text-slate-200" />
+                                    <Cat className="w-32 h-32 text-slate-600" />
                                 </motion.div>
                             )}
 
                             {/* Magic Dust Particles */}
-                            {[...Array(8)].map((_, i) => (
-                                <motion.div
-                                    key={i}
-                                    className="absolute rounded-full bg-white blur-[1px] pointer-events-none"
-                                    style={{
-                                        width: Math.random() * 3 + 1 + "px",
-                                        height: Math.random() * 3 + 1 + "px",
-                                        left: Math.random() * 100 + "%",
-                                        top: Math.random() * 100 + "%",
-                                        opacity: Math.random() * 0.5 + 0.2,
-                                    }}
-                                    animate={{
-                                        y: [0, -100],
-                                        opacity: [0, 0.8, 0],
-                                        scale: [0.5, 1.2, 0.5]
-                                    }}
-                                    transition={{
-                                        duration: Math.random() * 5 + 5,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
-                                        delay: Math.random() * 5
-                                    }}
-                                />
-                            ))}
-                        </motion.div>
+                            <div className="absolute inset-0 z-20 pointer-events-none">
+                                {[...Array(8)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute rounded-full bg-white blur-[1px]"
+                                        style={{
+                                            width: Math.random() * 3 + 1 + "px",
+                                            height: Math.random() * 3 + 1 + "px",
+                                            left: Math.random() * 100 + "%",
+                                            top: Math.random() * 100 + "%",
+                                            opacity: Math.random() * 0.5 + 0.2,
+                                        }}
+                                        animate={{
+                                            y: [0, -100],
+                                            opacity: [0, 0.8, 0],
+                                            scale: [0.5, 1.2, 0.5]
+                                        }}
+                                        transition={{
+                                            duration: Math.random() * 5 + 5,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                            delay: Math.random() * 5
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none transition-opacity duration-1000" style={{ opacity: uiVisible ? 1 : 0 }} />
 
