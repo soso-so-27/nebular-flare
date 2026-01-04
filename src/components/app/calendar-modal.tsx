@@ -15,7 +15,7 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
         <AnimatePresence>
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-6"
+                    className="fixed inset-0 z-[10002] flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-6"
                     onClick={onClose}
                 >
                     <motion.div
