@@ -118,6 +118,8 @@ function AppContent() {
       setShowCalendar(true);
     } else if (section === 'notifications') {
       setShowNotifications(true);
+    } else if (section === 'gallery') {
+      setTab("gallery");
     } else if (section === 'settings') {
       setShowSettings(true);
       setTab("settings");

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     X, Bell, Settings, ChevronDown, ChevronRight, Check,
-    Heart, Cat, ShoppingCart, Plus, Calendar, Activity
+    Heart, Cat, ShoppingCart, Plus, Calendar, Activity, Image as ImageIcon
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppState } from "@/store/app-store";
@@ -241,6 +241,37 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
                         {/* Menu Content */}
                         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
+
+                            {/* Shortcuts Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        onNavigate('gallery');
+                                        onClose();
+                                    }}
+                                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all active:scale-95 group"
+                                >
+                                    <div className="p-3 mb-2 rounded-full bg-indigo-100 dark:bg-indigo-800 text-indigo-500 dark:text-indigo-300 group-hover:scale-110 transition-transform">
+                                        <ImageIcon className="w-6 h-6" />
+                                    </div>
+                                    <span className="font-bold text-slate-700 dark:text-slate-200">ギャラリー</span>
+                                    <span className="text-[10px] text-slate-400">思い出を見る</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        onNavigate('calendar');
+                                        onClose();
+                                    }}
+                                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all active:scale-95 group"
+                                >
+                                    <div className="p-3 mb-2 rounded-full bg-orange-100 dark:bg-orange-800 text-orange-500 dark:text-orange-300 group-hover:scale-110 transition-transform">
+                                        <Calendar className="w-6 h-6" />
+                                    </div>
+                                    <span className="font-bold text-slate-700 dark:text-slate-200">カレンダー</span>
+                                    <span className="text-[10px] text-slate-400">予定と記録</span>
+                                </button>
+                            </div>
 
                             {/* Care Section */}
                             <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
