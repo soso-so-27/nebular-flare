@@ -232,7 +232,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     return (
         <div
-            className="fixed inset-0 bg-black overflow-hidden"
+            className="fixed top-0 left-0 w-full h-[100dvh] bg-black overflow-hidden z-[9999]"
             onClick={() => {
                 resetHideTimer();
                 if (showPickup) setShowPickup(false);

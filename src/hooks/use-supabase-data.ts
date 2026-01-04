@@ -225,6 +225,10 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         }
 
         async function fetchObservations() {
+            // DEBUG LOGGING
+            console.log('Fetching observations for household:', householdId);
+            console.log('Date Range:', startIso, '~', endIso);
+
             // RLS handles access control via cat_id, no need to filter by household_id
             const { data, error } = await supabase
                 .from('observations')
@@ -232,6 +236,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     *,
     cats(name)
         `)
+                // REMOVED: .eq('household_id', householdId) - Rely on RLS policy 'allow_select_observations'
                 .gte('created_at', startIso)
                 .lt('created_at', endIso)
                 .order('created_at', { ascending: false });
