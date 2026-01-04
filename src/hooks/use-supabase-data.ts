@@ -197,11 +197,26 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 
-    const todayStr = getAdjustedDateString(new Date(), dayStartHour);
-    const startDt = new Date(todayStr);
-    startDt.setHours(dayStartHour, 0, 0, 0);
+    // Calculate start/end based on local time dayStartHour
+    const now = new Date();
+    // Adjust for day start hour (e.g. if 2am and start is 6am, it's previous day)
+    if (now.getHours() < dayStartHour) {
+        now.setDate(now.getDate() - 1);
+    }
+
+    // Create start date at 00:00:00 (or dayStartHour) LOCAL time
+    const startDt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), dayStartHour, 0, 0, 0);
+
+    // Create end date (next day at start hour)
     const endDt = new Date(startDt);
     endDt.setDate(endDt.getDate() + 1);
+
+    // Convert to ISO string for Supabase comparison (Supabase stores in UTC, but comparison string is interpreted)
+    // IMPORTANT: .toISOString() converts to UTC. If user is JST (+9), 00:00 JST becomes 15:00 UTC previous day.
+    // This IS correct for querying 'timestamptz' columns if Supabase stores them correctly.
+    // However, to be safe and explicit, let's trust the browser's conversion of the local startDt object to ISO.
+    const startIso = startDt.toISOString();
+    const endIso = endDt.toISOString();
 
     useEffect(() => {
         if (!householdId) {
@@ -217,8 +232,8 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     *,
     cats(name)
         `)
-                .gte('created_at', startDt.toISOString())
-                .lt('created_at', endDt.toISOString())
+                .gte('created_at', startIso)
+                .lt('created_at', endIso)
                 .order('created_at', { ascending: false });
 
             if (!error && data) {
@@ -252,7 +267,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [householdId, todayStr, dayStartHour]);
+    }, [householdId, startIso, endIso]);
 
     async function addObservation(catId: string, type: string, value: string) {
         if (!householdId) return;
