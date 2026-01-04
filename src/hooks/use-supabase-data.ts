@@ -236,12 +236,16 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     *,
     cats(name)
         `)
-                // REMOVED: .eq('household_id', householdId) - Rely on RLS policy 'allow_select_observations'
-                .gte('created_at', startIso)
-                .lt('created_at', endIso)
-                .order('created_at', { ascending: false });
+                // TEMPORARILY REMOVED DATE FILTER FOR DEBUGGING
+                // .gte('created_at', startIso)
+                // .lt('created_at', endIso)
+                .order('created_at', { ascending: false })
+                .limit(50); // Limit to avoid too much data
+
+            console.log('Observations fetch result:', { data, error });
 
             if (!error && data) {
+                console.log('Found', data.length, 'observations');
                 setObservations(data);
             }
             setLoading(false);
