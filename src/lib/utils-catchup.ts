@@ -107,45 +107,8 @@ export function getCatchUpItems({
         });
     }
 
-    // 1.5 Unrecorded Observations (Score 70) - Show observations not yet recorded today
-    if (noticeDefs && cats.length > 0) {
-        cats.forEach(cat => {
-            const catLogs = noticeLogs[cat.id] || {};
-
-            enabledNoticeDefs.forEach(def => {
-                const existingLog = catLogs[def.id];
-                const isRecordedToday = existingLog?.at?.startsWith(todayStr);
-
-                // Check Supabase observations
-                const isRecordedSupabase = observations?.some(o =>
-                    o.cat_id === cat.id &&
-                    o.type === def.id && // UUID match
-                    (o.recorded_at || '').startsWith(todayStr)
-                );
-
-                if (!isRecordedToday && !isRecordedSupabase) {
-                    // Required items get higher priority
-                    const baseSeverity = def.required ? 75 : 70;
-
-                    items.push({
-                        id: `unrecorded_${cat.id}_${def.id}_${todayStr}`,
-                        type: 'unrecorded',
-                        severity: baseSeverity,
-                        title: def.title,
-                        body: `${cat.name}の様子を記録しましょう`,
-                        at: now.toISOString(),
-                        status: def.required ? 'warn' : 'info',
-                        actionLabel: '記録',
-                        catId: cat.id,
-                        payload: { noticeId: def.id, catId: cat.id, noticeDef: def },
-                        meta: `${cat.name} ・ 様子確認`,
-                        category: def.category,
-                        required: def.required,
-                    });
-                }
-            });
-        });
-    }
+    // 1.5 Unrecorded Observations - Removed per user request (Only showing done-abnormal or care tasks)
+    // logic removed.
 
     // 2. Care Tasks from careTaskDefs (Score 80) - Time slot based
     if (careTaskDefs && careLogs) {

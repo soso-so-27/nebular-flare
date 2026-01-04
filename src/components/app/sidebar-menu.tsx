@@ -208,54 +208,51 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100]"
+                        className="fixed inset-0 z-[100] cursor-pointer"
                     />
 
-                    {/* Floating Sidebar -> Right Drawer */}
+                    {/* Floating Glass Sidebar */}
                     <motion.div
-                        initial={{ x: '100%', opacity: 0.5 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: '100%', opacity: 0.5 }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-                        className="fixed top-0 right-0 bottom-0 w-full max-w-[360px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-l border-white/40 dark:border-slate-800 z-[101] shadow-2xl shadow-black/20 flex flex-col overflow-hidden rounded-l-[32px]"
-                        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+                        initial={{ x: '100%', opacity: 0.5, scale: 1 }}
+                        animate={{ x: 0, opacity: 1, scale: 1 }}
+                        exit={{ x: '100%', opacity: 0, scale: 1 }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        className="fixed right-0 bottom-4 top-4 w-80 bg-[#121212]/90 backdrop-blur-2xl border-l border-y border-white/10 z-[101] shadow-2xl rounded-l-[32px] flex flex-col overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 pb-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700">
-                                    <Cat className="w-6 h-6 text-slate-400" />
+                        <div className="flex items-center justify-between p-6 pb-2 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                                    <Cat className="w-5 h-5 text-white/80" />
                                 </div>
                                 <div>
-                                    <span className="block text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">{userName}</span>
-                                    <span className="text-xs text-slate-400 font-medium">ねこと暮らす</span>
+                                    <span className="block text-base font-bold text-white tracking-tight">{userName}</span>
+                                    <span className="text-[10px] text-white/40 font-medium uppercase tracking-wider">My Home</span>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
+                                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95 border border-white/5"
                             >
-                                <X className="w-6 h-6 text-slate-400" />
+                                <X className="w-4 h-4 text-white/60" />
                             </button>
                         </div>
 
                         {/* Menu Content */}
-                        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6 scrollbar-hide">
 
-                            {/* Shortcuts Grid */}
+                            {/* Shortcuts Grid (Gallery & Calendar) */}
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => {
                                         onNavigate('gallery');
                                         onClose();
                                     }}
-                                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all active:scale-95 group"
+                                    className="aspect-video flex flex-col items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                    <div className="p-3 mb-2 rounded-full bg-indigo-100 dark:bg-indigo-800 text-indigo-500 dark:text-indigo-300 group-hover:scale-110 transition-transform">
-                                        <ImageIcon className="w-6 h-6" />
-                                    </div>
-                                    <span className="font-bold text-slate-700 dark:text-slate-200">ギャラリー</span>
-                                    <span className="text-[10px] text-slate-400">思い出を見る</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <ImageIcon className="w-6 h-6 text-indigo-200 mb-2 drop-shadow-md" />
+                                    <span className="font-bold text-xs text-indigo-100">ギャラリー</span>
                                 </button>
 
                                 <button
@@ -263,252 +260,136 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         onNavigate('calendar');
                                         onClose();
                                     }}
-                                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all active:scale-95 group"
+                                    className="aspect-video flex flex-col items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                    <div className="p-3 mb-2 rounded-full bg-orange-100 dark:bg-orange-800 text-orange-500 dark:text-orange-300 group-hover:scale-110 transition-transform">
-                                        <Calendar className="w-6 h-6" />
-                                    </div>
-                                    <span className="font-bold text-slate-700 dark:text-slate-200">カレンダー</span>
-                                    <span className="text-[10px] text-slate-400">予定と記録</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Calendar className="w-6 h-6 text-orange-200 mb-2 drop-shadow-md" />
+                                    <span className="font-bold text-xs text-orange-100">カレンダー</span>
                                 </button>
                             </div>
 
-                            {/* Care Section */}
-                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
-                                <button
-                                    onClick={() => toggleSection('care')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
-                                            <Heart className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">お世話を記録</span>
-                                            <span className="text-xs text-slate-400">{careCompleted}/{careItems.length} 完了</span>
-                                        </div>
-                                    </div>
-                                    {expandedSection === 'care' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-300" />
-                                    ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-300" />
-                                    )}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedSection === 'care' && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
-                                        >
-                                            <div className="p-2 space-y-1">
-                                                {careItems.map(item => {
-                                                    const Icon = getIcon(item.icon);
-                                                    return (
-                                                        <div
-                                                            key={item.id}
-                                                            className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <Icon className={cn("w-4 h-4", item.done ? "text-slate-300" : "text-slate-400")} />
-                                                                <span className={cn("text-sm font-medium", item.done ? "text-slate-300 line-through" : "text-slate-600 dark:text-slate-300")}>
-                                                                    {item.label}
-                                                                </span>
-                                                            </div>
-                                                            {item.done ? (
-                                                                <div className="bg-slate-100 text-slate-400 p-1 rounded-full">
-                                                                    <Check className="w-3.5 h-3.5" />
-                                                                </div>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => handleCareComplete(item.type, item.label)}
-                                                                    className="text-xs font-bold px-4 py-1.5 rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-sm shadow-rose-100 transition-all active:scale-95"
-                                                                >
-                                                                    完了
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                            {/* Inventory Section (Collapsible) */}
+                            <div className="space-y-3">
+                                {/* Header Removed */}
+                                <div className="bg-white/5 rounded-[24px] border border-white/5 overflow-hidden transition-colors hover:bg-white/10">
+                                    <button
+                                        onClick={() => setExpandedSection(prev => prev === 'inventory' ? null : 'inventory')}
+                                        className="w-full p-4 flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+                                                <ShoppingCart className="w-5 h-5" />
                                             </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                            <div className="text-left">
+                                                <span className="block text-sm font-bold text-white/90">在庫チェック</span>
+                                                {urgentCount > 0 ? (
+                                                    <span className="text-[10px] font-bold text-rose-400">{urgentCount}件が残りわずか</span>
+                                                ) : (
+                                                    <span className="text-[10px] text-white/40">在庫は十分です</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <ChevronDown className={cn("w-4 h-4 text-white/20 group-hover:text-white/60 transition-transform duration-300", expandedSection === 'inventory' ? "rotate-180" : "")} />
+                                    </button>
 
-                            {/* Observation Section */}
-                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
-                                <button
-                                    onClick={() => toggleSection('observation')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
-                                            <Cat className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">
-                                                {cats.find(c => c.id === activeCatId)?.name || '猫'}の様子
-                                            </span>
-                                            <span className="text-xs text-slate-400">{obsCompleted}/{observationItems.length} 確認済</span>
-                                        </div>
-                                    </div>
-                                    {expandedSection === 'observation' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-300" />
-                                    ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-300" />
-                                    )}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedSection === 'observation' && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
-                                        >
-                                            <div className="p-2 space-y-1">
-                                                {observationItems.map(item => (
-                                                    <div
-                                                        key={item.id}
-                                                        className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
-                                                    >
-                                                        <span className={cn("text-sm font-medium", item.done ? "text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                                                            {item.label}
-                                                        </span>
-                                                        {item.done ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">{item.value}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleObservationComplete(item.id, item.label)}
-                                                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-slate-800 text-white hover:bg-slate-700 shadow-sm shadow-slate-200 transition-all active:scale-95"
+                                    <AnimatePresence>
+                                        {expandedSection === 'inventory' && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="border-t border-white/5 bg-black/20"
+                                            >
+                                                {inventoryItems.length === 0 ? (
+                                                    <div className="p-6 text-center text-xs text-white/30">
+                                                        在庫アイテムはまだありません
+                                                    </div>
+                                                ) : (
+                                                    <div className="divide-y divide-white/5">
+                                                        {inventoryItems.slice(0, 5).map(item => (
+                                                            <div
+                                                                key={item.id}
+                                                                className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
                                                             >
-                                                                OK
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={cn(
+                                                                        "w-2 h-2 rounded-full",
+                                                                        item.status === 'danger' ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" :
+                                                                            item.status === 'warn' ? "bg-amber-500" :
+                                                                                "bg-emerald-500/30"
+                                                                    )} />
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-xs font-medium text-white/90">{item.label}</span>
+                                                                        <span className={cn(
+                                                                            "text-[10px]",
+                                                                            item.status === 'danger' ? "text-rose-300" : "text-white/40"
+                                                                        )}>
+                                                                            あと約{item.daysLeft}日
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleInventoryRefill(item.id, item.label)}
+                                                                    className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/5 transition-colors"
+                                                                >
+                                                                    購入
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        {inventoryItems.length > 5 && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    onNavigate('settings');
+                                                                    onClose();
+                                                                }}
+                                                                className="w-full py-3 text-[10px] text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
+                                                            >
+                                                                すべて見る
                                                             </button>
                                                         )}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
 
-                            {/* Inventory Section */}
-                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
+                            {/* Logs Section */}
+                            <div className="space-y-3">
+                                {/* Header Removed */}
                                 <button
-                                    onClick={() => toggleSection('inventory')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
+                                    onClick={() => {
+                                        onNavigate('activity');
+                                        onClose();
+                                    }}
+                                    className="w-full p-4 rounded-[24px] bg-white/5 border border-white/5 flex items-center justify-between hover:bg-white/10 transition-colors group"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
-                                            <ShoppingCart className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">在庫管理</span>
-                                            {urgentCount > 0 ? (
-                                                <span className="text-xs font-bold text-rose-500">あと{urgentCount}件が在庫薄</span>
-                                            ) : (
-                                                <span className="text-xs text-slate-400">すべて充足</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {expandedSection === 'inventory' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-300" />
-                                    ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-300" />
-                                    )}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedSection === 'inventory' && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
-                                        >
-                                            <div className="p-2 space-y-1">
-                                                {inventoryItems.map(item => (
-                                                    <div
-                                                        key={item.id}
-                                                        className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <span className={cn(
-                                                                "text-[10px] font-bold px-2 py-0.5 rounded-full tracking-tight",
-                                                                item.status === 'danger' ? "bg-rose-50 text-rose-500 border border-rose-100" :
-                                                                    item.status === 'warn' ? "bg-amber-50 text-amber-500 border border-amber-100" :
-                                                                        "bg-slate-100 text-slate-400"
-                                                            )}>
-                                                                残{item.daysLeft}日
-                                                            </span>
-                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => handleInventoryRefill(item.id, item.label)}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 bg-white shadow-sm"
-                                                        >
-                                                            購入
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Activity Section */}
-                            <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] overflow-hidden group hover:border-slate-200 transition-colors">
-                                <button
-                                    onClick={() => toggleSection('activity')}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/60 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-300 border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
                                             <Activity className="w-5 h-5" />
                                         </div>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">アクティビティ</span>
-                                            <span className="text-xs text-slate-400">活動ログを確認</span>
+                                        <div className="text-left">
+                                            <span className="block text-sm font-bold text-white/90">お世話履歴</span>
+                                            <span className="text-[10px] text-white/40">過去の履歴を確認</span>
                                         </div>
                                     </div>
-                                    {expandedSection === 'activity' ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-300" />
-                                    ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-300" />
-                                    )}
+                                    <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/60 transition-colors" />
                                 </button>
-                                <AnimatePresence>
-                                    {expandedSection === 'activity' && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-slate-50/30 dark:bg-slate-900/20 box-border border-t border-slate-50 dark:border-slate-800"
-                                        >
-                                            <div className="p-2">
-                                                <ActivityFeed embedded />
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
+
                         </div>
 
-                        {/* Footer */}
-                        <div className="p-4 flex gap-2">
+                        {/* Footer (Settings & Notifications) */}
+                        <div className="p-4 shrink-0 grid grid-cols-2 gap-3 border-t border-white/5">
                             <button
                                 onClick={() => {
                                     onNavigate('notifications');
                                     onClose();
                                 }}
-                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600 group"
+                                className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white border border-white/5"
                             >
-                                <Bell className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                                <Bell className="w-4 h-4" />
                                 <span className="text-[10px] font-bold">通知</span>
                             </button>
                             <button
@@ -516,9 +397,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     onNavigate('settings');
                                     onClose();
                                 }}
-                                className="flex-1 flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600 group"
+                                className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white border border-white/5"
                             >
-                                <Settings className="w-5 h-5 mb-1 group-hover:scale-110 transition-transform" />
+                                <Settings className="w-4 h-4" />
                                 <span className="text-[10px] font-bold">設定</span>
                             </button>
                         </div>

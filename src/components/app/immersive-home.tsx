@@ -18,6 +18,7 @@ import { MagicBubble } from "./immersive/magic-bubble";
 import { ZenGestures } from "./immersive/zen-gestures";
 import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
+import { analyzeImageBrightness } from "@/lib/image-analysis";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -30,8 +31,17 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
     const [direction, setDirection] = useState(0);
+    const [contrastMode, setContrastMode] = useState<'light' | 'dark'>('dark');
 
-    // Feature 1: Auto-hide UI
+    // ... existing auto-hide logic ...
+
+    // Feature: Image Brightness Analysis
+
+
+    // ... existing setup logic ...
+
+    // ... in render ...
+
     const [uiVisible, setUiVisible] = useState(true);
     const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -87,6 +97,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const currentPhotoUrl = allPhotos.length > 0
         ? allPhotos[randomPhotoIndex % allPhotos.length]
         : activeCat?.avatar || null;
+
+    // Feature: Image Brightness Analysis
+    useEffect(() => {
+        if (currentPhotoUrl) {
+            analyzeImageBrightness(currentPhotoUrl).then(mode => {
+                setContrastMode(mode);
+            });
+        }
+    }, [currentPhotoUrl]);
 
     // Initial Setup (Hero Image & Ambient Light)
     useEffect(() => {
@@ -196,10 +215,28 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         })
     };
 
+    const handleOpenSidebar = (section?: 'care' | 'activity') => {
+        setShowPickup(false);
+        if (onOpenSidebar) onOpenSidebar(section);
+    };
+
+    const handleCatInteraction = useCallback((e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (showPickup) setShowPickup(false);
+        onCatClick?.();
+    }, [showPickup, onCatClick]);
+
+    const handleTogglePickup = () => {
+        setShowPickup(prev => !prev);
+    };
+
     return (
         <div
             className="fixed inset-0 bg-black overflow-hidden"
-            onClick={resetHideTimer}
+            onClick={() => {
+                resetHideTimer();
+                if (showPickup) setShowPickup(false);
+            }}
         >
             {/* Mode 1 & 3: Standard Carousel / Avatars (Not Parallax) */}
             {settings.homeDisplayMode !== 'parallax' && (
@@ -228,13 +265,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                     src={currentPhotoUrl}
                                     alt={activeCat?.name || 'Cat'}
                                     className="w-full h-full object-cover cursor-pointer"
-                                    onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                    onClick={handleCatInteraction}
                                     onLoad={() => setIsHeroImageLoaded(true)}
                                 />
                             ) : (
                                 <motion.div
                                     className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
-                                    onClick={(e) => { e.stopPropagation(); onCatClick?.(); }}
+                                    onClick={handleCatInteraction}
                                 >
                                     <Cat className="w-32 h-32 text-slate-200" />
                                 </motion.div>
@@ -349,19 +386,20 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             {/* Story Mode Tap Zones (Story Mode Only) */}
             {settings.homeDisplayMode === 'story' && settings.homeInterfaceMode !== 'zen' && (
                 <>
-                    <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex - 1); resetHideTimer(); }} />
-                    <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex + 1); resetHideTimer(); }} />
+                    <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex - 1); resetHideTimer(); }} />
+                    <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex + 1); resetHideTimer(); }} />
                 </>
             )}
 
             {/* Interface Layer - Swappable Controls */}
             {settings.homeInterfaceMode === 'bubble' && (
                 <MagicBubble
-                    onOpenPickup={() => setShowPickup(true)}
+                    onOpenPickup={handleTogglePickup}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => onOpenSidebar?.('care')}
-                    onOpenActivity={() => onOpenSidebar?.('activity')}
+                    onOpenCare={() => handleOpenSidebar('care')}
+                    onOpenActivity={() => handleOpenSidebar('activity')}
+                    contrastMode={contrastMode}
                 />
             )}
 
@@ -369,11 +407,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
             {settings.homeInterfaceMode === 'editorial' && (
                 <EditorialCorners
-                    onOpenPickup={() => setShowPickup(true)}
+                    onOpenPickup={handleTogglePickup}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => onOpenSidebar?.('care')}
-                    onOpenActivity={() => onOpenSidebar?.('activity')}
+                    onOpenCare={() => handleOpenSidebar('care')}
+                    onOpenActivity={() => handleOpenSidebar('activity')}
+                    contrastMode={contrastMode}
                 />
             )}
 
@@ -392,7 +431,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         <button
-                            onClick={() => onOpenSidebar?.('care')}
+                            onClick={() => handleOpenSidebar('care')}
                             className="p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/90 hover:bg-black/30 transition-all shadow-lg"
                         >
                             <Menu className="w-5 h-5" />
@@ -477,7 +516,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-40 pointer-events-none"
+                        className="fixed inset-0 z-50 pointer-events-none"
                     >
                         <BubblePickupList onClose={() => setShowPickup(false)} />
                     </motion.div>

@@ -10,9 +10,10 @@ interface ZenGesturesProps {
     onOpenGallery: () => void;
     onOpenSettings: () => void;
     onOpenActivity: () => void;
+    contrastMode: 'light' | 'dark';
 }
 
-export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings, onOpenActivity }: ZenGesturesProps) {
+export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenSettings, onOpenActivity, contrastMode }: ZenGesturesProps) {
     const [showGuide, setShowGuide] = useState(true);
 
     // Fade out guide after 3 seconds
@@ -35,7 +36,7 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50">
                     {showGuide && (
                         <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                            <ChevronUp className="text-white w-6 h-6" />
+                            <ChevronUp className={`${contrastMode === 'light' ? 'text-zinc-900' : 'text-white'} w-6 h-6`} />
                         </motion.div>
                     )}
                 </div>
@@ -53,7 +54,7 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50">
                     {showGuide && (
                         <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                            <ChevronDown className="text-white w-6 h-6" />
+                            <ChevronDown className={`${contrastMode === 'light' ? 'text-zinc-900' : 'text-white'} w-6 h-6`} />
                         </motion.div>
                     )}
                 </div>
@@ -71,7 +72,7 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 <div className="absolute top-1/2 right-2 -translate-y-1/2 flex flex-col items-center opacity-50">
                     {showGuide && (
                         <motion.div animate={{ x: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                            <ChevronLeft className="text-white w-6 h-6" />
+                            <ChevronLeft className={`${contrastMode === 'light' ? 'text-zinc-900' : 'text-white'} w-6 h-6`} />
                         </motion.div>
                     )}
                 </div>
@@ -89,7 +90,7 @@ export function ZenGestures({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 <div className="absolute top-1/2 left-2 -translate-y-1/2 flex flex-col items-center opacity-50">
                     {showGuide && (
                         <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                            <ChevronRight className="text-white w-6 h-6" />
+                            <ChevronRight className={`${contrastMode === 'light' ? 'text-zinc-900' : 'text-white'} w-6 h-6`} />
                         </motion.div>
                     )}
                 </div>

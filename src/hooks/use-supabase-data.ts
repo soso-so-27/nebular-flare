@@ -264,6 +264,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
             type,
             value,
             recorded_by: user.user?.id || null,
+            recorded_at: new Date().toISOString(),
         });
 
         return { error };

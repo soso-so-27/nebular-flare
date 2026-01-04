@@ -10,6 +10,8 @@ import { getToday } from "@/lib/date-utils";
 import { getIcon } from "@/lib/icon-utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { getCatchUpItems } from "@/lib/utils-catchup";
+
 interface BubbleItem {
     id: string;
     label: string;
@@ -37,238 +39,222 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
     const currentHour = new Date().getHours();
     const today = useMemo(() => getToday(settings.dayStartHour), [settings.dayStartHour]);
 
-    // --- Helper Logic (Copied/Simplified from CheckSection) ---
+    // --- Unified Logic using getCatchUpItems ---
 
-    // 1. Care Items
-    const careItems: BubbleItem[] = useMemo(() => {
-        const items: BubbleItem[] = [];
-        const slotOrder = ['morning', 'noon', 'evening', 'night'];
-        const currentSlot = (() => {
-            if (currentHour >= 5 && currentHour < 11) return 'morning';
-            if (currentHour >= 11 && currentHour < 15) return 'noon';
-            if (currentHour >= 15 && currentHour < 20) return 'evening';
-            return 'night';
-        })();
-        const currentSlotIndex = slotOrder.indexOf(currentSlot);
+    // We reuse the same logic as MagicBubble to ensure counts match
+    const catchUpData = useMemo(() => {
+        const now = new Date();
+        // If current hour < dayStartHour, we are in the "previous" date's business day
+        const businessDate = new Date(now);
+        if (now.getHours() < settings.dayStartHour) {
+            businessDate.setDate(businessDate.getDate() - 1);
+        }
+        const todayStr = businessDate.toISOString().split('T')[0];
 
-        careTaskDefs
-            .filter(def => def.enabled !== false)
-            .filter(def => !def.perCat || (def.targetCatIds?.includes(activeCatId) ?? true))
-            .forEach(def => {
-                const slots = def.mealSlots || (def.frequency === 'twice-daily' ? ['morning', 'evening'] : []);
-
-                // Non-slot tasks
-                if (slots.length === 0) {
-                    const isDone = careLogs.some(log => log.type === def.id && (!def.perCat || log.cat_id === activeCatId));
-                    if (!isDone) {
-                        items.push({
-                            id: def.id,
-                            label: def.title,
-                            // Context-aware subLabel
-                            subLabel: def.perCat
-                                ? (cats.find(c => c.id === activeCatId)?.name || '猫')
-                                : 'お世話',
-                            icon: def.icon ? React.createElement(getIcon(def.icon), { className: "w-5 h-5" }) : <Heart className="w-5 h-5" />,
-                            colorClass: "bg-rose-500/80 hover:bg-rose-500",
-                            onAction: async () => {
-                                await addCareLog(def.id, def.perCat ? activeCatId : undefined);
-                                toast.success(`${def.title} 完了`);
-                            }
-                        });
-                    }
-                    return;
-                }
-
-                // Slot tasks
-                for (const slot of slots) {
-                    if (slotOrder.indexOf(slot) > currentSlotIndex) continue; // Future slots skip
-                    const type = `${def.id}:${slot}`;
-                    const isDone = careLogs.some(log => log.type === type && (!def.perCat || log.cat_id === activeCatId));
-                    if (!isDone) {
-                        const slotLabel = slot === 'morning' ? '朝' : slot === 'noon' ? '昼' : slot === 'evening' ? '夕' : '夜';
-                        const catName = cats.find(c => c.id === activeCatId)?.name || '猫';
-
-                        // Context-aware subLabel
-                        const sub = def.perCat
-                            ? `${catName} • ${slotLabel}`
-                            : `お世話 • ${slotLabel}`;
-
-                        items.push({
-                            id: type,
-                            label: def.title,
-                            subLabel: sub,
-                            icon: def.icon ? React.createElement(getIcon(def.icon), { className: "w-5 h-5" }) : <Heart className="w-5 h-5" />,
-                            colorClass: "bg-orange-500/80 hover:bg-orange-500",
-                            onAction: async () => {
-                                await addCareLog(type, def.perCat ? activeCatId : undefined);
-                                toast.success(`${def.title} 完了`);
-                            }
-                        });
-                        break; // Only show first pending slot
-                    }
-                }
-            });
-        return items;
-    }, [careTaskDefs, careLogs, addCareLog, activeCatId, currentHour, cats]);
-
-    // 2. Observations (Abnormal)
-    const obsItems: BubbleItem[] = useMemo(() => {
-        const activeCat = cats.find(c => c.id === activeCatId);
-        if (!activeCat) return [];
-        const catLogs = noticeLogs[activeCatId] || {};
-
-        return noticeDefs
-            .filter(n => n.enabled !== false && n.kind === 'notice')
-            .filter(notice => {
-                const obs = observations.find(o => o.cat_id === activeCatId && o.type === notice.id);
-                // In demo, show if log matches. In real, show if observed value is abnormal.
-                // For simplicity, existing logic seemed to filter for abnormal.
-                // Let's trust the filter:
-                if (isDemo) {
-                    const log = catLogs[notice.id];
-                    return log?.at?.startsWith(today) && log?.done && (log?.value?.startsWith('ちょっと違う') || log?.value === '注意');
-                }
-                return obs && (obs.value?.startsWith('ちょっと違う') || obs.value === '注意');
-            })
-            .map(notice => ({
-                id: notice.id,
-                label: notice.alertLabel || notice.title,
-                subLabel: activeCat.name,
-                icon: <Cat className="w-6 h-6" />,
-                colorClass: "bg-gradient-to-br from-orange-500 to-amber-600", // Unified Orange Theme
-                onAction: async () => {
-                    if (isDemo) {
-                        toast.success("確認なしにしました (Demo)");
-                    } else {
-                        await addObservation(activeCatId, notice.id, 'いつも通り');
-                        toast.success("確認完了");
-                    }
-                }
-            }));
-    }, [activeCatId, noticeDefs, noticeLogs, observations, isDemo, cats, today, addObservation]);
-
-    // 3. Inventory Items (Score 60-70)
-    const invItems: BubbleItem[] = useMemo(() => {
-        if (!inventory) return [];
-        const urgentThreshold = settings.invThresholds?.urgent ?? 7;
-        const items: BubbleItem[] = [];
-
-        inventory.forEach(it => {
-            if (it.alertEnabled === false || it.stockLevel === 'full') return;
-
-            // Calculate days left
-            const rangeMax = it.range_max || 30;
-            let daysLeft = rangeMax;
-            if (it.last_bought) {
-                const diffTime = new Date().getTime() - new Date(it.last_bought).getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                daysLeft = Math.max(0, rangeMax - diffDays);
-            }
-
-            // Threshold check (using settings or defaults)
-            const isLow = it.stockLevel === 'low' || it.stockLevel === 'empty' || daysLeft <= urgentThreshold;
-
-            if (isLow) {
-                items.push({
-                    id: it.id,
-                    label: `${it.label}が少なくなっています`,
-                    subLabel: "在庫",
-                    icon: <ShoppingCart className="w-5 h-5" />,
-                    colorClass: "bg-slate-500/80 hover:bg-slate-500", // Gray for neutral/shared
-                    onAction: async () => {
-                        // Simple optimistic refill or nav to inventory
-                        toast.success("在庫をチェックしました");
-                    }
-                });
-            }
+        return getCatchUpItems({
+            tasks: [],
+            noticeLogs: noticeLogs || {},
+            inventory: inventory || [],
+            lastSeenAt: "1970-01-01",
+            settings,
+            cats,
+            careTaskDefs,
+            careLogs,
+            noticeDefs,
+            today: todayStr,
+            observations
         });
-        return items;
-    }, [inventory, settings.invThresholds]);
+    }, [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, observations, settings.dayStartHour]);
 
-    const unifiedCareItems = careItems.map(item => ({
-        ...item,
-        // subLabel is now handled upstream in careItems for correct context (Shared vs Per-Cat)
-        colorClass: "bg-gradient-to-br from-orange-500 to-amber-600"
-    }));
+    // Map catchUpItems to BubbleItems
+    const allItems: BubbleItem[] = useMemo(() => {
+        return catchUpData.allItems.map(item => {
+            let colorClass = "bg-slate-500";
+            let icon = <Check className="w-5 h-5" />;
 
-    const allItems = [...unifiedCareItems, ...obsItems, ...invItems];
+            const onAction = async () => {
+                if (item.type === 'task') {
+                    // Care Task
+                    if (item.payload) {
+                        // Distinguish slot vs normal
+                        const defId = item.payload.id;
+                        const slot = item.payload.slot;
+                        const logType = slot ? `${defId}:${slot}` : defId;
+
+                        // Check Per Cat
+                        // If item.catId is present, use it. Else fallback to active or undefined.
+                        // But for shared tasks, item.catId might be undefined.
+                        // Wait, if it's perCat, getCatchUpItems sets catId.
+                        const targetCatId = item.catId || (item.payload.perCat ? activeCatId : undefined);
+
+                        await addCareLog(logType, targetCatId);
+                        toast.success(`${item.title} 完了`);
+                    }
+                } else if (item.type === 'unrecorded' || item.type === 'notice') {
+                    // Observation
+                    if (item.payload) {
+                        // unrecorded: payload = { noticeId, catId, noticeDef }
+                        // notice: payload = log object (Supabase row)
+                        const nId = item.payload.noticeId || item.payload.type || item.payload.id;
+                        // Note: for existing observation (notice), type=noticeDefId.
+
+                        // If it's already an observation (notice), we are "acknowledging" it?
+                        // The UI says "OK" for abnormal.
+
+                        if (item.type === 'notice') {
+                            // It's an abnormal observation. We probably want to acknowledge it?
+                            // Or just 'check'. Current logic was "OK".
+                            // addObservation here would duplicate it?
+                            // The user might want to just dismiss it.
+                            // Wait, 'actionLabel' is OK.
+                            // MagicBubble uses `addObservation` for "unrecorded" but what for "notice"?
+                            // MagicBubble just lists them.
+
+                            // Using addObservation("いつも通り") effectively resolves it for today?
+                            // If it's an existing abnormal log from Today, adding "Normal" might not clear the abnormal one,
+                            // but it adds a new latest log.
+
+                            // Let's assume hitting action means "I saw it / normal now".
+                            await addObservation(item.catId || activeCatId, nId, "いつも通り");
+                            toast.success("確認しました");
+                        } else {
+                            // Unrecorded
+                            await addObservation(item.catId || activeCatId, nId, "いつも通り");
+                            toast.success(`${item.title} 記録しました`);
+                        }
+                    }
+                } else if (item.type === 'inventory') {
+                    toast.info("在庫管理から更新してください");
+                }
+            };
+
+            if (item.type === 'task') {
+                colorClass = "bg-rose-500/80 hover:bg-rose-500";
+                icon = <Heart className="w-5 h-5" />;
+                if (item.icon) icon = React.createElement(getIcon(item.icon), { className: "w-5 h-5" });
+            } else if (item.type === 'unrecorded') {
+                colorClass = "bg-sky-500/80 hover:bg-sky-500";
+                icon = <Cat className="w-5 h-5" />;
+                if (item.payload?.noticeDef?.icon) {
+                    icon = React.createElement(getIcon(item.payload.noticeDef.icon), { className: "w-5 h-5" });
+                }
+            } else if (item.type === 'notice') {
+                colorClass = "bg-amber-500/80 hover:bg-amber-500";
+                icon = <Cat className="w-5 h-5" />;
+            } else if (item.type === 'inventory') {
+                colorClass = "bg-emerald-500/80 hover:bg-emerald-500";
+                icon = <ShoppingCart className="w-5 h-5" />;
+            }
+
+            return {
+                id: item.id,
+                label: item.title,
+                subLabel: item.body,
+                icon,
+                colorClass,
+                onAction
+            };
+        });
+    }, [catchUpData, addCareLog, addObservation, activeCatId]);
 
     // Layout
     return (
-        <div className="fixed inset-x-4 bottom-56 z-40 flex flex-col items-center pointer-events-none">
-            {/* Container */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="w-full max-w-sm pointer-events-auto relative"
-            >
-                {/* Header */}
-                <div className="flex items-baseline justify-between mb-4 px-2">
-                    <h2 className="text-white text-3xl font-serif font-bold tracking-wide drop-shadow-md">
-                        ピックアップ
-                    </h2>
-                    <span className="text-white/80 text-[10px] font-bold opacity-80">現在のタスク</span>
-                </div>
-
-                {/* Grid List */}
-                <div className="space-y-3 pb-12">
-                    <AnimatePresence mode="popLayout">
-                        {allItems.length === 0 ? (
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                className="flex flex-col items-center justify-center py-8 bg-black/40 backdrop-blur-md rounded-3xl border border-white/10"
-                            >
-                                <Check className="w-10 h-10 text-emerald-400 mb-3 opacity-80" />
-                                <p className="text-lg font-bold text-white/90">完了</p>
-                                <p className="text-[10px] text-white/50">今のタスクはありません</p>
-                            </motion.div>
-                        ) : (
-                            <div className="flex flex-col gap-3">
-                                {allItems.map((item, index) => (
-                                    <motion.button
-                                        key={item.id}
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={(e) => { e.stopPropagation(); item.onAction(); }}
-                                        className={cn(
-                                            "relative w-full rounded-2xl p-4 flex items-center gap-4 overflow-hidden shadow-lg group",
-                                            item.colorClass
-                                        )}
-                                    >
-                                        {/* Icon Circle */}
-                                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white flex-shrink-0 backdrop-blur-sm border border-white/10">
-                                            {item.icon}
-                                        </div>
-
-                                        {/* Text Content */}
-                                        <div className="flex-1 text-left min-w-0">
-                                            <p className="text-[10px] text-white/90 uppercase tracking-wider font-bold mb-0.5 opacity-80">
-                                                {item.subLabel || 'タスク'}
-                                            </p>
-                                            <p className="text-xl font-bold text-white font-sans tracking-wide drop-shadow-sm truncate">
-                                                {item.label}
-                                            </p>
-                                        </div>
-
-                                        {/* Large Check Circle (Action) */}
-                                        <div className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center group-hover:bg-white/20 group-hover:border-white/50 transition-all">
-                                            <Check className="w-5 h-5 text-white opacity-80 group-hover:opacity-100" />
-                                        </div>
-                                    </motion.button>
-                                ))}
+        // Right-Side Floating Panel (Unified Size & Style with Sidebar)
+        <AnimatePresence>
+            <div className="fixed right-0 bottom-4 top-4 z-40 flex flex-col items-end w-80 pointer-events-none">
+                {/* Unified Glass Panel */}
+                <motion.div
+                    initial={{ x: '100%', opacity: 0.5, scale: 1 }}
+                    animate={{ x: 0, opacity: 1, scale: 1 }}
+                    exit={{ x: '100%', opacity: 0, scale: 1 }}
+                    transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                    className="w-full h-full pointer-events-auto bg-black/60 backdrop-blur-xl border-l border-y border-white/10 shadow-2xl rounded-l-[32px] flex flex-col overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-5 pb-4 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-rose-400 flex items-center justify-center border border-white/10 shadow-lg">
+                                <Check className="w-5 h-5 text-white" />
                             </div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </motion.div>
-        </div>
+                            <div>
+                                <span className="block text-base font-bold text-white tracking-tight">Pickup</span>
+                                <span className="text-[10px] text-white/50 font-medium uppercase tracking-wider">今日やること</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95 border border-white/5"
+                        >
+                            <X className="w-4 h-4 text-white/60" />
+                        </button>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 scrollbar-hide">
+                        <AnimatePresence mode="popLayout">
+                            {allItems.length === 0 ? (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    className="flex flex-col items-center justify-center py-10 mt-10 text-center"
+                                >
+                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
+                                        <Check className="w-8 h-8 text-emerald-400/80" />
+                                    </div>
+                                    <p className="text-lg font-bold text-white/90">完了</p>
+                                    <p className="text-xs text-white/50 mt-1">今のタスクはありません</p>
+                                </motion.div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {allItems.map((item, index) => (
+                                        <motion.button
+                                            key={item.id}
+                                            layout
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 20 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={(e) => { e.stopPropagation(); item.onAction(); }}
+                                            className={cn(
+                                                "relative w-full rounded-[20px] p-3 flex items-center gap-3 overflow-hidden shadow-lg group border border-white/5 transition-all text-left",
+                                                item.colorClass.replace('/80', '/90'),
+                                                "hover:bg-white/10 hover:border-white/20"
+                                            )}
+                                        >
+                                            {/* Icon Circle */}
+                                            <div className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-white flex-shrink-0 backdrop-blur-sm border border-white/10 shadow-inner [&>svg]:w-5 [&>svg]:h-5">
+                                                {item.icon}
+                                            </div>
+
+                                            {/* Text Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[9px] text-white/80 uppercase tracking-wider font-bold mb-0.5 opacity-80">
+                                                    {item.subLabel || 'タスク'}
+                                                </p>
+                                                <p className="text-sm font-bold text-white font-sans tracking-wide truncate">
+                                                    {item.label}
+                                                </p>
+                                            </div>
+
+                                            {/* Action Icon */}
+                                            <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white/20 group-hover:border-white/40 transition-all bg-white/5">
+                                                <Check className="w-4 h-4 text-white/70 group-hover:text-white" />
+                                            </div>
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Footer (Optional, mostly nice gradient fade or just padding) */}
+                    <div className="h-6 shrink-0" />
+                </motion.div>
+            </div>
+        </AnimatePresence>
     );
 }
 

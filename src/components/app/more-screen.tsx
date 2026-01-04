@@ -12,6 +12,9 @@ import { CatSettingsModal } from "./cat-settings-modal";
 import { FamilyMemberModal } from "./family-member-modal";
 import { ProfileSettingsModal } from "./profile-settings-modal";
 import { toast } from "sonner";
+import { CareSettingsModal } from "./care-settings-modal";
+import { NoticeSettingsModal } from "./notice-settings-modal";
+import { InventorySettingsModal } from "./inventory-settings-modal";
 
 // Unified Header Component
 function ScreenHeader({ title, onClose }: { title: string; onClose?: () => void }) {
@@ -41,6 +44,9 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+    const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
+    const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
 
     const handleLogout = async () => {
         if (isDemo) {
@@ -206,9 +212,55 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                             </select>
                         </div>
 
-                        <p className="px-4 py-2 text-[10px] text-slate-400">
-                            ※ お世話・猫の様子・在庫の設定は各カードの⚙️から
-                        </p>
+                    </CardContent>
+                </Card>
+
+                {/* Data Management Section */}
+                <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                            <Cat className="h-4 w-4 text-slate-500" />
+                            データ管理
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-0 p-0">
+                        <button
+                            onClick={() => setIsCatModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <span className="text-xs font-medium text-slate-900 dark:text-white">猫の登録・編集</span>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
+                        <button
+                            onClick={() => setIsCareModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">お世話の設定</span>
+                                <span className="text-[10px] text-muted-foreground">ご飯、トイレ、定期タスク</span>
+                            </div>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
+                        <button
+                            onClick={() => setIsNoticeModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">記録項目の設定</span>
+                                <span className="text-[10px] text-muted-foreground">体調、様子見のチェック項目</span>
+                            </div>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
+                        <button
+                            onClick={() => setIsInventoryModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">在庫の管理</span>
+                                <span className="text-[10px] text-muted-foreground">消耗品の管理・通知</span>
+                            </div>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
                     </CardContent>
                 </Card>
 
@@ -296,6 +348,11 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
 
                 {/* Profile Settings Modal */}
                 <ProfileSettingsModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
+
+                {/* Data Settings Modals */}
+                <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
+                <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
+                <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
 
             </div>
         </div>

@@ -34,7 +34,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#000000',
+  // themeColor removed to prevent iOS status bar conflict
 };
 
 export default function RootLayout({
@@ -44,14 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <head>
-        {/* Explicit iOS PWA meta tags for reliable status bar control */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="CatUp" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-      </head>
+      {/* Manual meta tags removed; relying on Next.js metadata API */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
       >
