@@ -208,7 +208,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[100] cursor-pointer"
+                        className="fixed inset-0 z-[10000] cursor-pointer"
                     />
 
                     {/* Floating Glass Sidebar */}
@@ -217,7 +217,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ x: 0, opacity: 1, scale: 1 }}
                         exit={{ x: '100%', opacity: 0, scale: 1 }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="fixed right-0 bottom-4 top-4 w-80 bg-[#121212]/90 backdrop-blur-2xl border-l border-y border-white/10 z-[101] shadow-2xl rounded-l-[32px] flex flex-col overflow-hidden"
+                        className="fixed right-0 bottom-4 top-4 w-80 bg-[#121212]/90 backdrop-blur-2xl border-l border-y border-white/10 z-[10001] shadow-2xl rounded-l-[32px] flex flex-col overflow-hidden"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 pb-2 shrink-0">
