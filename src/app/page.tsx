@@ -31,6 +31,7 @@ import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/splash-screen";
 import { SidebarMenu } from "@/components/app/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/immersive-home";
+import { ActivityScreen } from "@/components/app/activity-screen";
 
 function AppContent() {
   const [tab, setTab] = useState("home");
@@ -123,6 +124,8 @@ function AppContent() {
     } else if (section === 'settings') {
       setShowSettings(true);
       setTab("settings");
+    } else if (section === 'activity') {
+      setTab("activity");
     } else if (item) {
       // Quick action for specific item
       handleQuickAction(section, item);
@@ -250,6 +253,19 @@ function AppContent() {
                 transition={{ duration: 0.2 }}
               >
                 <MoreScreen onClose={() => setTab("home")} />
+              </motion.div>
+            )}
+
+            {tab === "activity" && (
+              <motion.div
+                key="activity-screen"
+                className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
+                initial={{ opacity: 0, y: "100%" }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: "100%" }}
+                transition={{ duration: 0.3, ease: "circOut" }}
+              >
+                <ActivityScreen onClose={() => setTab("home")} />
               </motion.div>
             )}
           </AnimatePresence>

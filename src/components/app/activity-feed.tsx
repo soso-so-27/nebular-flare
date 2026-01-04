@@ -31,7 +31,7 @@ interface ActivityItem {
     icon?: string;
 }
 
-export function ActivityFeed({ embedded = false }: { embedded?: boolean }) {
+export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: boolean; limit?: number }) {
     const {
         careLogs,
         observations,
@@ -161,9 +161,9 @@ export function ActivityFeed({ embedded = false }: { embedded?: boolean }) {
             new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
 
-        // Return only latest 10 items
-        return items.slice(0, 10);
-    }, [careLogs, observations, cats, careTaskDefs, noticeDefs, householdUsers]);
+        // Return only latest items based on limit
+        return items.slice(0, limit);
+    }, [careLogs, observations, cats, careTaskDefs, noticeDefs, householdUsers, limit]);
 
     // Random background image from active cat's gallery (same as CheckSection)
     const [bgImage, setBgImage] = useState<string | null>(null);
