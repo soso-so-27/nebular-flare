@@ -191,9 +191,10 @@ export function getCatchUpItems({
                     // Per-cat task
                     cats.forEach(cat => {
                         const typeToCheck = slot ? `${def.id}:${slot}` : def.id;
+                        // Match log by type AND (cat_id matches OR cat_id is null for legacy data)
                         const matchingLog = careLogs.find(log =>
                             log.type === typeToCheck &&
-                            log.cat_id === cat.id
+                            (log.cat_id === cat.id || log.cat_id === null)
                         );
 
                         if (!matchingLog) {
