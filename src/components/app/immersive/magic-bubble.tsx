@@ -84,6 +84,22 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
             */}
 
             {/* 
+              === BACKDROP for Expanded HUD === 
+              Appears when a section is expanded to focus attention.
+            */}
+            <AnimatePresence>
+                {expandedSection && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 pointer-events-auto"
+                        onClick={() => setExpandedSection(null)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* 
               === HUD STATUS DISPLAY (Top Left) === 
               Stacking Care and Observation in a vertical flex container to allow expansion "pushing" elements down.
             */}
