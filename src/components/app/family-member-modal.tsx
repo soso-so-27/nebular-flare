@@ -128,13 +128,44 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     };
 
     const removeMember = async (memberId: string) => {
-        if (!confirm("このメンバーを削除しますか？")) return;
+        const isSelf = memberId === user?.id;
+        const confirmMsg = isSelf
+            ? "本当にこの家から退出しますか？"
+            : "このメンバーを削除しますか？";
+
+        if (!confirm(confirmMsg)) return;
 
         if (isDemo) {
             toast.success("メンバーを削除しました（デモ）");
-        } else {
-            // TODO: Implement real member removal
-            toast.success("メンバーを削除しました");
+            setMembers(members.filter(m => m.id !== memberId));
+            if (isSelf) {
+                setTimeout(() => onClose(), 500);
+            }
+            return;
+        }
+
+        try {
+            const supabase = createClient();
+            const { error } = await (supabase.rpc as any)('remove_household_member', {
+                target_user_id: memberId
+            });
+
+            if (error) throw error;
+
+            toast.success(isSelf ? "家族から退会しました" : "メンバーを削除しました");
+
+            // Optimistic update
+            setMembers(members.filter(m => m.id !== memberId));
+
+            if (isSelf) {
+                // If user left, close modal and maybe redirect? 
+                // For now just close modal, app state will eventually sync or require reload
+                onClose();
+                window.location.reload(); // Force reload to update app state
+            }
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || "削除に失敗しました");
         }
     };
 

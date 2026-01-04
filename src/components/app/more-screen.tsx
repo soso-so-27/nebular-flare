@@ -133,6 +133,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-0 p-0">
+                        {/* 
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                             <div className="flex flex-col">
                                 <span className="text-xs font-bold">プラン <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
@@ -142,7 +143,8 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                                 <Badge variant={isPro ? "secondary" : "outline"} className="text-[10px]">{isPro ? 'Pro' : 'Free'}</Badge>
                                 <Switch checked={isPro} onCheckedChange={setIsPro} />
                             </div>
-                        </div>
+                        </div> 
+                        */}
 
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                             <div className="flex flex-col">
@@ -152,6 +154,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                             <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
                         </div>
 
+                        {/* 
                         <div className="px-4 py-3 flex items-center justify-between">
                             <div className="flex flex-col">
                                 <span className="text-xs font-bold">週1まとめ通知 <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
@@ -162,7 +165,8 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                                 checked={settings.weeklySummaryEnabled}
                                 onCheckedChange={(v) => setSettings(s => ({ ...s, weeklySummaryEnabled: v }))}
                             />
-                        </div>
+                        </div> 
+                        */}
 
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                             <div className="flex flex-col">
@@ -265,6 +269,10 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200">
+                        <Info className="h-4 w-4 text-slate-400" />
+                        使い方
+                    </Button>
                     <Button
                         variant="outline"
                         onClick={() => setIsFamilyModalOpen(true)}
@@ -272,17 +280,6 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                     >
                         <User className="h-4 w-4 text-slate-400" />
                         家族を招待
-                    </Button>
-                    <Button variant="outline" disabled className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200 opacity-50">
-                        <Sparkles className="h-4 w-4 text-slate-400" />
-                        スキン (準備中)
-                    </Button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200">
-                        <Info className="h-4 w-4 text-slate-400" />
-                        使い方
                     </Button>
                 </div>
 

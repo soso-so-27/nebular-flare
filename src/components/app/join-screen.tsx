@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Cat, Home, Loader2, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { translateAuthError } from "@/lib/error-utils";
+import { LoginScreen } from "@/components/app/login-screen";
 
 export function JoinScreen() {
     const searchParams = useSearchParams();

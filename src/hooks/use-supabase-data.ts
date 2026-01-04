@@ -260,6 +260,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         const { data: user } = await supabase.auth.getUser();
 
         const { error } = await supabase.from('observations').insert({
+            household_id: householdId,
             cat_id: catId,
             type,
             value,
