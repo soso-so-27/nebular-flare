@@ -373,7 +373,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 <div className="pointer-events-auto">
                     <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={onOpenCare}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenPickup();
+                        }}
                         className={`group relative w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all active:scale-95 ${styles.glassBg} ${styles.glassHover}`}
                     >
                         {/* Inner Circle (For stylistic unity with Pickup) */}
