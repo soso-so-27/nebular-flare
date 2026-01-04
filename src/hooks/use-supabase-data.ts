@@ -232,10 +232,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
             // RLS handles access control via cat_id, no need to filter by household_id
             const { data, error } = await supabase
                 .from('observations')
-                .select(`
-    *,
-    cats(name)
-        `)
+                .select('*') // Removed cats(name) join - causing 400 error
                 // TEMPORARILY REMOVED DATE FILTER FOR DEBUGGING
                 // .gte('created_at', startIso)
                 // .lt('created_at', endIso)
