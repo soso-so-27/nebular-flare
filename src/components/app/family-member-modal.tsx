@@ -45,7 +45,11 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         setMounted(true);
     }, []);
 
-    // ... demoMembers ...
+    // Demo data for preview
+    const demoMembers: FamilyMember[] = [
+        { id: '1', name: 'あなた', email: 'you@example.com', role: 'owner', joinedAt: '2024-01-01' },
+        { id: '2', name: 'パートナー', email: 'partner@example.com', avatar: '👩', role: 'member', joinedAt: '2024-06-15' },
+    ];
 
     // Fetch members on mount
     React.useEffect(() => {
