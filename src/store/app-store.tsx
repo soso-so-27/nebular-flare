@@ -39,9 +39,9 @@ type AppState = {
     householdId: string | null;
     isDemo: boolean;
     // Supabase functions
-    addCareLog: (type: string, slotOrCatId?: string, catId?: string) => Promise<{ error?: any } | undefined>;
+    addCareLog: (type: string, catId?: string | null, note?: string) => Promise<{ error?: any } | undefined>;
     deleteCareLog: (id: string) => Promise<{ error?: any } | undefined>;
-    addObservation: (catId: string, type: string, value: string) => Promise<{ error?: any } | undefined>;
+    addObservation: (catId: string, type: string, value: string, note?: string) => Promise<{ error?: any } | undefined>;
     acknowledgeObservation: (id: string) => Promise<{ error?: any } | undefined>;
     deleteObservation: (id: string) => Promise<{ error?: any } | undefined>;
     careLogs: { type: string; done_at: string; slot?: string; date?: string; id?: string; cat_id?: string | null }[];
@@ -502,16 +502,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     }, [catIds, activeCatId]);
 
     // Actions
-    const addCareLog = async (type: string, catId?: string) => {
+    const addCareLog = async (type: string, catId?: string | null, note?: string) => {
         if (isDemo) {
             const now = new Date().toISOString();
             setDemoCareLogsDone(prev => ({ ...prev, [type]: now }));
             return {};
         }
-        return await supabaseAddCareLog(type, catId);
+        return await supabaseAddCareLog(type, catId || undefined, note);
     };
 
-    const addObservation = async (catId: string, type: string, value: string) => {
+    const addObservation = async (catId: string, type: string, value: string, note?: string) => {
         // Validation for missing catId
         if (!catId) return { error: { message: "猫が選択されていません" } };
 
@@ -534,7 +534,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             }));
             return {};
         }
-        return await supabaseAddObservation(catId, type, value);
+        return await supabaseAddObservation(catId, type, value, note);
     };
 
     const deleteCareLog = async (id: string) => {

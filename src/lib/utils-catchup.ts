@@ -138,6 +138,8 @@ export function getCatchUpItems({
                 case 'twice-daily': return ['morning', 'evening'];
                 case 'three-times-daily': return ['morning', 'noon', 'evening'];
                 case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
+                case 'weekly': return []; // Treat as as-needed for now (TODO: check weekly history)
+                case 'monthly': return []; // Treat as as-needed for now (TODO: check monthly history)
                 case 'as-needed': return []; // Always show
                 default: return ['morning'];
             }

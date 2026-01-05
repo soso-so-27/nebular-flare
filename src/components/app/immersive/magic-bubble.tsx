@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check } from "lucide-react";
+import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save } from "lucide-react";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { getToday } from "@/lib/date-utils";
 import { getAdjustedDateString } from "@/lib/utils-date";
@@ -20,6 +20,9 @@ interface MagicBubbleProps {
 
 export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity, contrastMode }: MagicBubbleProps) {
     const [expandedSection, setExpandedSection] = useState<'care' | 'observation' | null>(null);
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+    const [noteText, setNoteText] = useState("");
+    const [selectedValue, setSelectedValue] = useState("");
     const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs } = useAppState();
 
     const isLight = contrastMode === 'light';
@@ -338,9 +341,91 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                         const choices = notice.choices || ['いつも通り', '気になる'];
                                         const inputType = notice.inputType || 'ok-notice';
 
+                                        const isEditing = editingNoteId === notice.id;
+
+                                        if (isEditing) {
+                                            return (
+                                                <div key={notice.id} className="flex flex-col gap-2 p-2 rounded-lg bg-black/40 border border-white/20 backdrop-blur-md">
+                                                    <span className={`text-sm font-medium ${styles.text}`}>{notice.title}</span>
+
+                                                    {/* Choices for editing */}
+                                                    <div className="flex gap-1.5 flex-wrap">
+                                                        {choices.map((choice) => (
+                                                            <button
+                                                                key={choice}
+                                                                onClick={() => setSelectedValue(choice)}
+                                                                className={`px-2 py-1 rounded text-xs font-bold border transition-all ${selectedValue === choice
+                                                                        ? 'bg-white text-black border-white'
+                                                                        : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
+                                                                    }`}
+                                                            >
+                                                                {choice}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Note Input */}
+                                                    <textarea
+                                                        className="w-full bg-black/20 border border-white/10 rounded p-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40 resize-none h-16"
+                                                        placeholder="メモを入力..."
+                                                        value={noteText}
+                                                        onChange={(e) => setNoteText(e.target.value)}
+                                                    />
+
+                                                    {/* Actions */}
+                                                    <div className="flex gap-2 justify-end">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingNoteId(null);
+                                                                setNoteText("");
+                                                                setSelectedValue("");
+                                                            }}
+                                                            className="p-1 px-2 text-xs text-white/60 hover:text-white"
+                                                        >
+                                                            キャンセル
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!selectedValue) {
+                                                                    toast.error("値を選択してください");
+                                                                    return;
+                                                                }
+                                                                if (addObservation) {
+                                                                    await addObservation(activeCatId, notice.id, selectedValue, noteText);
+                                                                    toast.success("メモ付きで保存しました");
+                                                                    setEditingNoteId(null);
+                                                                    setNoteText("");
+                                                                    setSelectedValue("");
+                                                                }
+                                                            }}
+                                                            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded text-xs font-bold transition-all"
+                                                        >
+                                                            <Save className="w-3 h-3" />
+                                                            保存
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
                                         return (
-                                            <div key={notice.id} className="flex flex-col gap-1.5">
-                                                <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
+                                            <div key={notice.id} className="flex flex-col gap-1.5 group relative">
+                                                <div className="flex justify-between items-center">
+                                                    <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
+                                                    {/* Memo Trigger Button */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setEditingNoteId(notice.id);
+                                                            setSelectedValue(existingObs?.value || choices[0] || 'いつも通り');
+                                                            setNoteText(existingObs?.notes || "");
+                                                        }}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-white/50 hover:text-white"
+                                                        title="詳細・メモを入力"
+                                                    >
+                                                        <MessageSquarePlus className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                                 {!isDone ? (
                                                     <div className="flex gap-1.5 flex-wrap">
                                                         {(inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
@@ -371,6 +456,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
                                                         <Check className="w-3 h-3" />
                                                         <span>{existingObs?.value || '記録済み'}</span>
+                                                        {existingObs?.notes && <span className="text-[10px] opacity-70 truncate max-w-[80px]">📝</span>}
                                                     </div>
                                                 )}
                                             </div>

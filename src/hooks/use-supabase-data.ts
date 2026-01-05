@@ -164,7 +164,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     }, [householdId, todayStr, dayStartHour]);
 
     // Add care log
-    async function addCareLog(type: string, catId?: string) {
+    async function addCareLog(type: string, catId?: string, note?: string) {
         if (!householdId) return { error: { message: "Household ID not found" } };
 
         const { data: user } = await supabase.auth.getUser();
@@ -173,6 +173,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
             household_id: householdId,
             cat_id: catId || null,
             type,
+            notes: note || null,
             done_by: user.user?.id || null,
         });
 
@@ -274,7 +275,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         };
     }, [householdId, startIso, endIso]);
 
-    async function addObservation(catId: string, type: string, value: string) {
+    async function addObservation(catId: string, type: string, value: string, note?: string) {
         if (!householdId) return;
 
         const { data: user } = await supabase.auth.getUser();
@@ -284,6 +285,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
             cat_id: catId,
             type,
             value,
+            notes: note || null,
             recorded_by: user.user?.id || null,
             recorded_at: new Date().toISOString(),
         });
