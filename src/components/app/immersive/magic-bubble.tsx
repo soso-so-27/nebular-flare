@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save } from "lucide-react";
+import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save, MessageCircle } from "lucide-react";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { getToday } from "@/lib/date-utils";
 import { getAdjustedDateString } from "@/lib/utils-date";
@@ -420,7 +420,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             setSelectedValue(existingObs?.value || choices[0] || 'いつも通り');
                                                             setNoteText(existingObs?.notes || "");
                                                         }}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-white/50 hover:text-white"
+                                                        className="p-1.5 text-white/40 hover:text-white transition-colors"
                                                         title="詳細・メモを入力"
                                                     >
                                                         <MessageSquarePlus className="w-3.5 h-3.5" />
@@ -443,9 +443,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                                         }
                                                                     }
                                                                 }}
-                                                                className={`px-2.5 py-1 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
+                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
                                                                     ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
-                                                                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200/90 hover:bg-amber-500/30'
+                                                                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30'
                                                                     }`}
                                                             >
                                                                 {choice}
@@ -456,7 +456,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
                                                         <Check className="w-3 h-3" />
                                                         <span>{existingObs?.value || '記録済み'}</span>
-                                                        {existingObs?.notes && <span className="text-[10px] opacity-70 truncate max-w-[80px]">📝</span>}
+                                                        {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
                                                     </div>
                                                 )}
                                             </div>
