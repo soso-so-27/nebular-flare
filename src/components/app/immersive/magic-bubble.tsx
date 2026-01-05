@@ -355,8 +355,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                                 key={choice}
                                                                 onClick={() => setSelectedValue(choice)}
                                                                 className={`px-2 py-1 rounded text-xs font-bold border transition-all ${selectedValue === choice
-                                                                        ? 'bg-white text-black border-white'
-                                                                        : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
+                                                                    ? 'bg-white text-black border-white'
+                                                                    : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
                                                                     }`}
                                                             >
                                                                 {choice}
@@ -444,8 +444,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                                     }
                                                                 }}
                                                                 className={`px-2.5 py-1 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
-                                                                        ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
-                                                                        : 'border-amber-400/40 bg-amber-500/10 text-amber-200/90 hover:bg-amber-500/30'
+                                                                    ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
+                                                                    : 'border-amber-400/40 bg-amber-500/10 text-amber-200/90 hover:bg-amber-500/30'
                                                                     }`}
                                                             >
                                                                 {choice}
@@ -497,7 +497,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
                                 {/* Label Tooltip (Left side) */}
                                 <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none transform translate-x-2 group-hover:translate-x-0">
-                                    <span className="text-xs text-white font-bold tracking-wide">{pickupData.items[0]?.title || 'Pickup'}</span>
+                                    <span className="text-xs text-white font-bold tracking-wide">{catchUpData.items[0]?.title || 'Pickup'}</span>
                                     {/* Small arrow */}
                                     <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-black/60 border-t border-r border-white/10 transform rotate-45"></div>
                                 </div>
