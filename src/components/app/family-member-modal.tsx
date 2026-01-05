@@ -1,6 +1,36 @@
 import { createPortal } from "react-dom";
 
-// ... existing imports ...
+import React, { useState } from "react";
+import { useAppState } from "@/store/app-store";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+    X,
+    Users,
+    Link2,
+    Copy,
+    Check,
+    UserPlus,
+    Crown,
+    Trash2
+} from "lucide-react";
+import { createClient } from "@/lib/supabase";
+import { useAuth } from "@/providers/auth-provider";
+
+interface FamilyMember {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+    role: 'owner' | 'member';
+    joinedAt: string;
+}
+
+interface FamilyMemberModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
 
 export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const { householdId, isDemo } = useAppState();
