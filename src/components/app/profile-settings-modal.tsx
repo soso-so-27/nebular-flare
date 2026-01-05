@@ -89,7 +89,7 @@ export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
+            <DialogContent className="z-[10002] sm:max-w-md rounded-3xl p-0 overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
                 <DialogHeader className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
                     <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">
                         プロフィール編集
