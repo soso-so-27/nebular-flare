@@ -232,7 +232,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     return (
         <div
-            className="fullscreen-bg w-full bg-black overflow-hidden z-[9999]"
+            className="fullscreen-bg w-full overflow-hidden z-[9999]"
+            style={{ backgroundColor: 'transparent' }}
             onClick={() => {
                 resetHideTimer();
                 if (showPickup) setShowPickup(false);
@@ -499,8 +500,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 y: index === currentIndex ? -10 : 0
                             }}
                             className={`relative w - 14 h - 14 flex - shrink - 0 rounded - full overflow - hidden border - 2 shadow - xl transition - all ${index === currentIndex
-                                    ? 'border-white ring-4 ring-white/30'
-                                    : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
+                                ? 'border-white ring-4 ring-white/30'
+                                : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
                                 } `}
                         >
                             <img src={cat.avatar} className="w-full h-full object-cover" alt="" />

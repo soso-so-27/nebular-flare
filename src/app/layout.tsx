@@ -48,8 +48,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-touch-fullscreen" content="yes" />
-        <meta name="theme-color" content="transparent" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="transparent" media="(prefers-color-scheme: dark)" />
+        {/* Using #000000 to match the expected dark background - status bar will blend with content */}
+        <meta name="theme-color" content="#1a1a1a" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
