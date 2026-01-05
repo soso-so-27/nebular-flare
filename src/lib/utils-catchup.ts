@@ -105,7 +105,7 @@ export function getCatchUpItems({
                     type: 'notice',
                     severity: 100,
                     title: noticeDef?.title || "いつもと違う様子",
-                    body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}`,
+                    body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}${obs.notes ? `\n📝 ${obs.notes}` : ''}`,
                     at: obs.created_at || obs.recorded_at,
                     status: 'danger',
                     actionLabel: '確認',
