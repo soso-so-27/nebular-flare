@@ -186,6 +186,16 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                                                 </p>
                                             </div>
 
+                                            <div className="space-y-1 pt-2">
+                                                <label className="text-xs font-bold text-slate-500">最終購入日</label>
+                                                <input
+                                                    type="date"
+                                                    value={lastBought}
+                                                    onChange={(e) => setLastBought(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                                                />
+                                            </div>
+
                                             <div className="flex gap-2 pt-2">
                                                 <button
                                                     onClick={handleSave}

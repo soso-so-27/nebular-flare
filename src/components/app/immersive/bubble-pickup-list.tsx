@@ -31,7 +31,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
         careTaskDefs,
         noticeDefs, noticeLogs, setNoticeLogs,
         observations, addObservation,
-        inventory, setInventory,
+        inventory, setInventory, updateInventoryItem,
         activeCatId, cats,
         settings, isDemo
     } = useAppState();
@@ -124,7 +124,12 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                         }
                     }
                 } else if (item.type === 'inventory') {
-                    toast.info("在庫管理から更新してください");
+                    // Purchase action: Update last_bought to today and reset stock level
+                    await updateInventoryItem(item.id, {
+                        last_bought: today,
+                        stockLevel: 'full'
+                    });
+                    toast.success("購入を記録しました！");
                 }
             };
 
