@@ -83,18 +83,11 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     React.useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
-            // Also prevent touch move on body to stop bounce effect on iOS
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
         } else {
             document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
         }
         return () => {
             document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
         };
     }, [isOpen]);
 
