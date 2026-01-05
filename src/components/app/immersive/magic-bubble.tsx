@@ -330,51 +330,47 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 exit={{ opacity: 0, height: 0 }}
                                 className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                             >
-                                <div className="py-2 space-y-4 w-[200px]">
-                                    {/* Simplified Obs List Reuse */}
+                                <div className="py-2 space-y-4 w-[220px]">
+                                    {/* inputType-aware Observation List */}
                                     {noticeDefs.filter(def => def.enabled !== false && def.kind === 'notice').map(notice => {
-                                        const isDone = observations.some(o => o.type === notice.id && o.cat_id === activeCatId);
-
-                                        // Determine button labels based on question type
-                                        const isYesNoQuestion = notice.title.includes('吐いた') || notice.title.includes('した？');
-                                        const okLabel = isYesNoQuestion ? 'いいえ' : 'OK';
-                                        const abnormalLabel = isYesNoQuestion ? 'はい' : '気になる';
-                                        const abnormalValue = isYesNoQuestion ? 'あり' : 'いつもと違う';
+                                        const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
+                                        const isDone = !!existingObs;
+                                        const choices = notice.choices || ['いつも通り', '気になる'];
+                                        const inputType = notice.inputType || 'ok-notice';
 
                                         return (
-                                            <div key={notice.id} className="flex flex-col gap-1">
+                                            <div key={notice.id} className="flex flex-col gap-1.5">
                                                 <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
                                                 {!isDone ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={async (e) => {
-                                                                e.stopPropagation();
-                                                                if (addObservation) {
-                                                                    await addObservation(activeCatId, notice.id, "いつも通り");
-                                                                    toast.success(`${notice.title} 記録完了`);
-                                                                }
-                                                            }}
-                                                            className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md border ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30 active:scale-95 transition-all`}
-                                                        >
-                                                            {okLabel}
-                                                        </button>
-                                                        <button
-                                                            onClick={async (e) => {
-                                                                e.stopPropagation();
-                                                                if (addObservation) {
-                                                                    await addObservation(activeCatId, notice.id, abnormalValue);
-                                                                    toast.warning(`${notice.title}: ${abnormalLabel} を記録しました`);
-                                                                }
-                                                            }}
-                                                            className={`px-3 py-1 rounded-full text-xs font-bold border border-amber-400/60 bg-amber-500/20 text-amber-200 hover:bg-amber-500/40 active:scale-95 transition-all`}
-                                                        >
-                                                            {abnormalLabel}
-                                                        </button>
+                                                    <div className="flex gap-1.5 flex-wrap">
+                                                        {(inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
+                                                            <button
+                                                                key={choice}
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (addObservation) {
+                                                                        await addObservation(activeCatId, notice.id, choice);
+                                                                        const isNormal = idx === 0 || choice.includes('通り') || choice.includes('普通') || choice === 'なし';
+                                                                        if (isNormal) {
+                                                                            toast.success(`${notice.title}: ${choice}`);
+                                                                        } else {
+                                                                            toast.warning(`${notice.title}: ${choice}`);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                className={`px-2.5 py-1 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
+                                                                        ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
+                                                                        : 'border-amber-400/40 bg-amber-500/10 text-amber-200/90 hover:bg-amber-500/30'
+                                                                    }`}
+                                                            >
+                                                                {choice}
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
                                                         <Check className="w-3 h-3" />
-                                                        <span>記録済み</span>
+                                                        <span>{existingObs?.value || '記録済み'}</span>
                                                     </div>
                                                 )}
                                             </div>
