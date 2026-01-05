@@ -93,7 +93,9 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                     label,
                     range_max: rangeMax,
                     range_min: Math.floor(rangeMax * 0.7), // default range_min to 70% of range_max
-                    last_bought: lastBought || null
+                    last_bought: lastBought || null,
+                    stock_level: 'full',
+                    alert_enabled: true
                 });
 
             if (error) {
