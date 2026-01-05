@@ -176,7 +176,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center sm:items-center sm:p-4"
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
                     onClick={onClose}
                 >
                     <motion.div
@@ -184,7 +184,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]"
+                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] mx-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
