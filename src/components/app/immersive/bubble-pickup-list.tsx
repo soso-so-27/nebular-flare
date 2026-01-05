@@ -151,10 +151,18 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 icon = <ShoppingCart className="w-5 h-5" />;
             }
 
+            let displayLabel = item.title;
+            let displaySubLabel = item.body;
+
+            if (item.type === 'inventory' && item.payload) {
+                displayLabel = item.body;
+                displaySubLabel = item.payload.label;
+            }
+
             return {
                 id: item.id,
-                label: item.title,
-                subLabel: item.body,
+                label: displayLabel,
+                subLabel: displaySubLabel,
                 icon,
                 colorClass,
                 onAction
