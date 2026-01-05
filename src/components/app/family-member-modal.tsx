@@ -74,6 +74,25 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         fetchMembers();
     }, [householdId, isDemo]);
 
+    // Prevent body scroll when modal is open
+    React.useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+            // Also prevent touch move on body to stop bounce effect on iOS
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        };
+    }, [isOpen]);
+
     const generateInviteLink = async () => {
         setLoading(true);
 
@@ -184,7 +203,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] mx-auto"
+                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] mx-auto overscroll-contain"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
