@@ -151,12 +151,13 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 icon = <ShoppingCart className="w-5 h-5" />;
             }
 
-            let displayLabel = item.title;
-            let displaySubLabel = item.body;
+            // Swap label and subLabel: make content prominent, question as subLabel
+            let displayLabel = item.body;      // Content (e.g., "あめ: 少なめ" or "残り約0日分")
+            let displaySubLabel = item.title;  // Question (e.g., "食欲、いつも通り？")
 
             if (item.type === 'inventory' && item.payload) {
-                displayLabel = item.body;
-                displaySubLabel = item.payload.label;
+                displayLabel = item.body;           // Days remaining
+                displaySubLabel = item.payload.label; // Item name
             }
 
             return {
