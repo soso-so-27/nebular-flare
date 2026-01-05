@@ -62,7 +62,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
             if (data) {
                 setMembers(data.map((m: any) => ({
                     id: m.user_id,
-                    name: m.name || 'メンバー',
+                    name: m.name || m.email?.split('@')[0] || 'メンバー',
                     email: m.email || '',
                     avatar: m.avatar,
                     role: m.role || 'member',
@@ -176,19 +176,19 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center"
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ y: "100%" }}
-                        animate={{ y: 0 }}
-                        exit={{ y: "100%" }}
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md max-h-[80vh] overflow-auto"
+                        className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="sticky top-0 bg-white dark:bg-slate-900 px-5 py-4 border-b flex items-center justify-between">
+                        <div className="bg-slate-50/50 dark:bg-slate-900/50 px-5 py-4 border-b flex items-center justify-between shrink-0">
                             <div className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-slate-500" />
                                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">家族メンバー</h2>
@@ -202,7 +202,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-5 pb-20 space-y-5">
+                        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar">
                             {/* Member List */}
                             <div className="space-y-2">
                                 {members.map(member => (
