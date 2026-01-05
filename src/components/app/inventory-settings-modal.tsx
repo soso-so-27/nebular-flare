@@ -173,7 +173,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                                                 <div className="flex items-center gap-2">
                                                     <input
                                                         type="range"
-                                                        min={7}
+                                                        min={1}
                                                         max={90}
                                                         value={rangeMax}
                                                         onChange={(e) => setRangeMax(parseInt(e.target.value))}
@@ -270,7 +270,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="range"
-                                        min={7}
+                                        min={1}
                                         max={90}
                                         value={rangeMax}
                                         onChange={(e) => setRangeMax(parseInt(e.target.value))}
