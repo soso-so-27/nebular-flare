@@ -55,8 +55,8 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
 
         const fetchMembers = async () => {
             const supabase = createClient();
-            const { data, error } = await (supabase.rpc as any)('get_household_members', {
-                lookup_household_id: householdId
+            const { data, error } = await (supabase.rpc as any)('fetch_family_members', {
+                target_household_id: householdId
             });
 
             if (data) {
