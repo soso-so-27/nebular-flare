@@ -243,29 +243,20 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
 
 
-            // Household Users
-            const { data: membersData } = await supabase.rpc('fetch_family_members', {
-                p_household_id: householdId
-            });
+            // Household Users (direct query workaround for RPC cache issue)
+            const { data: usersData } = await supabase
+                .from('users')
+                .select('id, display_name, avatar_url, household_id')
+                .eq('household_id', householdId);
 
-            if (membersData) {
-                setHouseholdUsers(membersData.map((m: any) => ({
-                    id: m.user_id,
-                    display_name: m.display_name || m.email?.split('@')[0] || 'Unknown',
-                    avatar_url: m.avatar_url,
-                    role: m.role,
-                    joined_at: m.joined_at
+            if (usersData) {
+                setHouseholdUsers(usersData.map((u: any) => ({
+                    id: u.id,
+                    display_name: u.display_name || 'Unknown',
+                    avatar_url: u.avatar_url,
+                    role: 'member', // Default role since we can't join household_members here easily
+                    joined_at: null
                 })));
-            } else {
-                // Fallback for direct query if RPC fails (e.g. during migration)
-                const { data: usersData } = await supabase
-                    .from('users')
-                    .select('id, display_name, avatar_url')
-                    .eq('household_id', householdId);
-
-                if (usersData) {
-                    setHouseholdUsers(usersData);
-                }
             }
         };
 
@@ -422,17 +413,19 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (!householdId || isDemo) return;
 
         const fetchMembers = async () => {
-            const { data: membersData } = await supabase.rpc('fetch_family_members', {
-                p_household_id: householdId
-            });
+            // Direct query workaround for RPC cache issue
+            const { data: usersData } = await supabase
+                .from('users')
+                .select('id, display_name, avatar_url')
+                .eq('household_id', householdId);
 
-            if (membersData) {
-                setHouseholdUsers(membersData.map((m: any) => ({
-                    id: m.user_id,
-                    display_name: m.display_name || m.email?.split('@')[0] || 'Unknown',
-                    avatar_url: m.avatar_url,
-                    role: m.role,
-                    joined_at: m.joined_at
+            if (usersData) {
+                setHouseholdUsers(usersData.map((u: any) => ({
+                    id: u.id,
+                    display_name: u.display_name || 'Unknown',
+                    avatar_url: u.avatar_url,
+                    role: 'member',
+                    joined_at: null
                 })));
             }
         };
