@@ -143,18 +143,22 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const activeCat = cats.find(c => c.id === activeCatId);
 
     // Dynamic Styles based on Contrast Mode
+    // Enhanced styles with stronger shadows for visibility on any background
     const styles = {
-        text: isLight ? 'text-zinc-900 drop-shadow-sm' : 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
-        textSub: isLight ? 'text-zinc-600' : 'text-white/70',
-        ringTrack: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)',
-        careColor: isLight ? (progress >= 1 ? '#059669' : '#d97706') : (progress >= 1 ? '#10b981' : '#fbbf24'),
-        obsColor: isLight ? (observationProgress.progress >= 1 ? '#059669' : '#0284c7') : (observationProgress.progress >= 1 ? '#10b981' : '#38bdf8'),
-        iconFill: isLight ? 'fill-zinc-900' : 'fill-white',
-        iconStroke: isLight ? 'text-zinc-900' : 'text-white',
-        glassBg: isLight ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10',
-        glassHover: isLight ? 'hover:bg-black/10' : 'hover:bg-white/10',
-        buttonBg: isLight ? 'bg-white/40' : 'bg-white/20',
-        buttonText: isLight ? 'text-zinc-900' : 'text-white',
+        // Text always uses dual shadow (dark + light outline) for maximum readability
+        text: 'text-white drop-shadow-[0_0_8px_rgba(0,0,0,0.9)] [text-shadow:0_0_4px_rgba(0,0,0,0.9),0_1px_2px_rgba(0,0,0,0.8)]',
+        textSub: 'text-white/80 drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]',
+        ringTrack: 'rgba(0,0,0,0.3)',
+        careColor: progress >= 1 ? '#10b981' : '#fbbf24',
+        obsColor: observationProgress.progress >= 1 ? '#10b981' : '#38bdf8',
+        iconFill: 'fill-white',
+        iconStroke: 'text-white',
+        glassBg: 'bg-black/30 border-white/10 backdrop-blur-sm',
+        glassHover: 'hover:bg-black/40',
+        buttonBg: 'bg-black/30 backdrop-blur-sm',
+        buttonText: 'text-white',
+        // Strong icon shadow for visibility
+        iconShadow: 'drop-shadow-[0_0_6px_rgba(0,0,0,0.9)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
     };
 
     return (
