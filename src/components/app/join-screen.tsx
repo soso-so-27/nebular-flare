@@ -16,9 +16,13 @@ export function JoinScreen() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
     const [inviteCode, setInviteCode] = useState<string | null>(null);
-    const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'success'>('loading');
+    const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'success' | 'confirm'>("loading");
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [confirmationData, setConfirmationData] = useState<{
+        currentHousehold: string;
+        targetHousehold: string;
+    } | null>(null);
 
     // Get code from URL
     useEffect(() => {
@@ -88,17 +92,28 @@ export function JoinScreen() {
         }
     };
 
-    const handleJoin = async () => {
+    const handleJoin = async (forceJoin: boolean = false) => {
         if (!inviteCode) return;
         setStatus('loading');
 
         try {
             const supabase = createClient();
             const { data, error } = await supabase.rpc('join_household_by_code', {
-                invite_code: inviteCode
+                invite_code: inviteCode,
+                force_join: forceJoin
             });
 
             if (error) throw error;
+
+            // Handle needs_confirmation response
+            if (data && data.needs_confirmation) {
+                setConfirmationData({
+                    currentHousehold: data.current_household_name || '現在の家族',
+                    targetHousehold: data.target_household_name || '新しい家族'
+                });
+                setStatus('confirm');
+                return;
+            }
 
             if (data && data.success) {
                 setStatus('success');
@@ -204,10 +219,47 @@ export function JoinScreen() {
 
                         <div className="space-y-3 pt-2">
                             <Button
-                                onClick={handleJoin}
+                                onClick={() => handleJoin()}
                                 className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-orange-200"
                             >
                                 参加する
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => router.push('/')}
+                                className="text-slate-400 hover:text-slate-600"
+                            >
+                                キャンセル
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {status === 'confirm' && confirmationData && (
+                    <div className="space-y-6">
+                        <div className="h-20 w-20 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto">
+                            <AlertCircle className="h-10 w-10 text-amber-600" />
+                        </div>
+
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900">家族を変更しますか？</h2>
+                            <p className="text-slate-500 mt-2 text-sm">
+                                現在「{confirmationData.currentHousehold}」に参加しています。
+                            </p>
+                        </div>
+
+                        <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                            <p className="text-sm text-amber-800 font-medium">
+                                「{confirmationData.targetHousehold}」に移動すると、現在の家族から退出します。
+                            </p>
+                        </div>
+
+                        <div className="space-y-3 pt-2">
+                            <Button
+                                onClick={() => handleJoin(true)}
+                                className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-orange-200"
+                            >
+                                移動する
                             </Button>
                             <Button
                                 variant="ghost"
