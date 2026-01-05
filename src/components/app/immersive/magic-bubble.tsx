@@ -281,7 +281,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                             <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
                                         </button>
                                     ))}
-                                    <div className="pt-2"><button onClick={onOpenCare} className={`text-xs underline ${styles.textSub}`}>すべて見る & 設定</button></div>
+
                                 </div>
                             </motion.div>
                         )}
@@ -462,7 +462,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                             </div>
                                         )
                                     })}
-                                    <div className="pt-2"><button onClick={onOpenActivity} className={`text-xs underline ${styles.textSub}`}>詳しく見る</button></div>
+
                                 </div>
                             </motion.div>
                         )}
