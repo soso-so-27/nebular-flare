@@ -123,6 +123,20 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                             )}
                         </div>
                     </CardContent>
+
+                    <div className="border-t border-slate-50 dark:border-slate-800">
+                        <button
+                            onClick={() => setIsFamilyModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-slate-400" />
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">家族メンバー</span>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground mr-auto pl-2">招待・管理</span>
+                            <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
+                    </div>
                 </Card>
 
                 <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
@@ -268,56 +282,9 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200">
-                        <Info className="h-4 w-4 text-slate-400" />
-                        使い方
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsFamilyModalOpen(true)}
-                        className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200"
-                    >
-                        <User className="h-4 w-4 text-slate-400" />
-                        家族メンバー
-                    </Button>
-                </div>
 
-                {/* System Section */}
-                {!isDemo && (
-                    <div className="space-y-4">
-                        <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">システム</h3>
-                        <Card className="rounded-3xl shadow-lg border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md overflow-hidden">
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    console.log("Button clicked, calling initializeDefaults...", initializeDefaults);
-                                    if (!initializeDefaults) {
-                                        toast.error("初期化機能が見つかりません。リロードしてください。");
-                                        return;
-                                    }
-                                    // Remove native confirm which might be blocked
-                                    // if (confirm("初期データをロードしますか？（既存のデータがあればスキップされます）")) {
-                                    try {
-                                        console.log("Starting initialization...");
-                                        toast.info("初期化を開始しました...");
-                                        await initializeDefaults();
-                                        console.log("Initialization done.");
-                                        toast.success("データを初期化しました（必要に応じてリロードされます）");
-                                    } catch (e) {
-                                        console.error("Initialization failed", e);
-                                        toast.error("初期化に失敗しました");
-                                    }
-                                    // }
-                                }}
-                                className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors cursor-pointer text-left"
-                            >
-                                <span className="text-xs font-medium text-slate-900">基本データの登録</span>
-                                <SettingsIcon className="h-4 w-4 text-slate-300" />
-                            </button>
-                        </Card>
-                    </div>
-                )}
+
+
 
                 <div className="space-y-4">
                     <h3 className="text-[10px] text-muted-foreground px-4 uppercase font-bold tracking-widest">サポート</h3>
