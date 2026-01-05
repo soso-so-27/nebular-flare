@@ -119,7 +119,8 @@ export function JoinScreen() {
                 setStatus('success');
                 toast.success("家族に参加しました！");
                 setTimeout(() => {
-                    router.push('/');
+                    // Use full page reload to refresh householdId state
+                    window.location.href = '/';
                 }, 1500);
             } else {
                 throw new Error(data?.message || 'Failed to join');
