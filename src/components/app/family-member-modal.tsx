@@ -34,7 +34,7 @@ interface FamilyMemberModalProps {
 }
 
 export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
-    const { householdId, isDemo } = useAppState();
+    const { householdId, isDemo, householdUsers } = useAppState();
     const { user } = useAuth();
     const [inviteUrl, setInviteUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -53,33 +53,25 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         { id: '2', name: 'パートナー', email: 'partner@example.com', avatar: '👩', role: 'member', joinedAt: '2024-06-15' },
     ];
 
-    // Fetch members on mount
+    // Fetch members from global state (which already uses a direct query workaround)
     useEffect(() => {
         if (isDemo || !householdId) {
             setMembers(demoMembers);
             return;
         }
 
-        const fetchMembers = async () => {
-            const supabase = createClient();
-            const { data, error } = await (supabase.rpc as any)('fetch_family_members', {
-                target_household_id: householdId
-            });
-
-            if (data) {
-                setMembers(data.map((m: any) => ({
-                    id: m.user_id,
-                    name: m.name || m.email?.split('@')[0] || 'メンバー',
-                    email: m.email || '',
-                    avatar: m.avatar,
-                    role: m.role || 'member',
-                    joinedAt: m.joined_at,
-                })));
-            }
-        };
-
-        fetchMembers();
-    }, [householdId, isDemo]);
+        // Use householdUsers from global state instead of RPC
+        if (householdUsers && householdUsers.length > 0) {
+            setMembers(householdUsers.map((u: any) => ({
+                id: u.id,
+                name: u.display_name || 'メンバー',
+                email: '',
+                avatar: u.avatar_url,
+                role: u.role || 'member',
+                joinedAt: u.joined_at || '',
+            })));
+        }
+    }, [householdId, isDemo, householdUsers]);
 
     // Prevent body scroll when modal is open
     useEffect(() => {
