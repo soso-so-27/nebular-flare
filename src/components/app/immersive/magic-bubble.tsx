@@ -335,133 +335,141 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             >
                                 <div className="py-2 space-y-4 w-[220px]">
                                     {/* inputType-aware Observation List */}
-                                    {noticeDefs.filter(def => def.enabled !== false && def.kind === 'notice').map(notice => {
-                                        const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
-                                        const isDone = !!existingObs;
-                                        const choices = notice.choices || ['いつも通り', '気になる'];
-                                        const inputType = notice.inputType || 'ok-notice';
+                                    {noticeDefs
+                                        .filter(def => def.enabled !== false && def.kind === 'notice')
+                                        .sort((a, b) => {
+                                            const isDoneA = !!observations.find(o => o.type === a.id && o.cat_id === activeCatId);
+                                            const isDoneB = !!observations.find(o => o.type === b.id && o.cat_id === activeCatId);
+                                            if (isDoneA === isDoneB) return 0;
+                                            return isDoneA ? 1 : -1;
+                                        })
+                                        .map(notice => {
+                                            const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
+                                            const isDone = !!existingObs;
+                                            const choices = notice.choices || ['いつも通り', '気になる'];
+                                            const inputType = notice.inputType || 'ok-notice';
 
-                                        const isEditing = editingNoteId === notice.id;
+                                            const isEditing = editingNoteId === notice.id;
 
-                                        if (isEditing) {
-                                            return (
-                                                <div key={notice.id} className="flex flex-col gap-2 p-2 rounded-lg bg-black/40 border border-white/20 backdrop-blur-md">
-                                                    <span className={`text-sm font-medium ${styles.text}`}>{notice.title}</span>
+                                            if (isEditing) {
+                                                return (
+                                                    <div key={notice.id} className="flex flex-col gap-2 p-2 rounded-lg bg-black/40 border border-white/20 backdrop-blur-md">
+                                                        <span className={`text-sm font-medium ${styles.text}`}>{notice.title}</span>
 
-                                                    {/* Choices for editing */}
-                                                    <div className="flex gap-1.5 flex-wrap">
-                                                        {choices.map((choice) => (
+                                                        {/* Choices for editing */}
+                                                        <div className="flex gap-1.5 flex-wrap">
+                                                            {choices.map((choice) => (
+                                                                <button
+                                                                    key={choice}
+                                                                    onClick={() => setSelectedValue(choice)}
+                                                                    className={`px-2 py-1 rounded text-xs font-bold border transition-all ${selectedValue === choice
+                                                                        ? 'bg-white text-black border-white'
+                                                                        : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
+                                                                        }`}
+                                                                >
+                                                                    {choice}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Note Input */}
+                                                        <textarea
+                                                            className="w-full bg-black/20 border border-white/10 rounded p-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40 resize-none h-16"
+                                                            placeholder="メモを入力..."
+                                                            value={noteText}
+                                                            onChange={(e) => setNoteText(e.target.value)}
+                                                        />
+
+                                                        {/* Actions */}
+                                                        <div className="flex gap-2 justify-end">
                                                             <button
-                                                                key={choice}
-                                                                onClick={() => setSelectedValue(choice)}
-                                                                className={`px-2 py-1 rounded text-xs font-bold border transition-all ${selectedValue === choice
-                                                                    ? 'bg-white text-black border-white'
-                                                                    : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
-                                                                    }`}
-                                                            >
-                                                                {choice}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* Note Input */}
-                                                    <textarea
-                                                        className="w-full bg-black/20 border border-white/10 rounded p-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40 resize-none h-16"
-                                                        placeholder="メモを入力..."
-                                                        value={noteText}
-                                                        onChange={(e) => setNoteText(e.target.value)}
-                                                    />
-
-                                                    {/* Actions */}
-                                                    <div className="flex gap-2 justify-end">
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditingNoteId(null);
-                                                                setNoteText("");
-                                                                setSelectedValue("");
-                                                            }}
-                                                            className="p-1 px-2 text-xs text-white/60 hover:text-white"
-                                                        >
-                                                            キャンセル
-                                                        </button>
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (!selectedValue) {
-                                                                    toast.error("値を選択してください");
-                                                                    return;
-                                                                }
-                                                                if (addObservation) {
-                                                                    await addObservation(activeCatId, notice.id, selectedValue, noteText);
-                                                                    toast.success("メモ付きで保存しました");
+                                                                onClick={() => {
                                                                     setEditingNoteId(null);
                                                                     setNoteText("");
                                                                     setSelectedValue("");
-                                                                }
-                                                            }}
-                                                            className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded text-xs font-bold transition-all"
-                                                        >
-                                                            <Save className="w-3 h-3" />
-                                                            保存
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-
-                                        return (
-                                            <div key={notice.id} className="flex flex-col gap-1.5 group relative">
-                                                <div className="flex justify-between items-center">
-                                                    <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
-                                                    {/* Memo Trigger Button */}
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setEditingNoteId(notice.id);
-                                                            setSelectedValue(existingObs?.value || choices[0] || 'いつも通り');
-                                                            setNoteText(existingObs?.notes || "");
-                                                        }}
-                                                        className="p-1.5 text-white/40 hover:text-white transition-colors"
-                                                        title="詳細・メモを入力"
-                                                    >
-                                                        <MessageSquarePlus className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                                {!isDone ? (
-                                                    <div className="flex gap-1.5 flex-wrap">
-                                                        {(inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
+                                                                }}
+                                                                className="p-1 px-2 text-xs text-white/60 hover:text-white"
+                                                            >
+                                                                キャンセル
+                                                            </button>
                                                             <button
-                                                                key={choice}
-                                                                onClick={async (e) => {
-                                                                    e.stopPropagation();
+                                                                onClick={async () => {
+                                                                    if (!selectedValue) {
+                                                                        toast.error("値を選択してください");
+                                                                        return;
+                                                                    }
                                                                     if (addObservation) {
-                                                                        await addObservation(activeCatId, notice.id, choice);
-                                                                        const isNormal = idx === 0 || choice.includes('通り') || choice.includes('普通') || choice === 'なし';
-                                                                        if (isNormal) {
-                                                                            toast.success(`${notice.title}: ${choice}`);
-                                                                        } else {
-                                                                            toast.warning(`${notice.title}: ${choice}`);
-                                                                        }
+                                                                        await addObservation(activeCatId, notice.id, selectedValue, noteText);
+                                                                        toast.success("メモ付きで保存しました");
+                                                                        setEditingNoteId(null);
+                                                                        setNoteText("");
+                                                                        setSelectedValue("");
                                                                     }
                                                                 }}
-                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
-                                                                    ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
-                                                                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30'
-                                                                    }`}
+                                                                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded text-xs font-bold transition-all"
                                                             >
-                                                                {choice}
+                                                                <Save className="w-3 h-3" />
+                                                                保存
                                                             </button>
-                                                        ))}
+                                                        </div>
                                                     </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                                                        <Check className="w-3 h-3" />
-                                                        <span>{existingObs?.value || '記録済み'}</span>
-                                                        {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
+                                                );
+                                            }
+
+                                            return (
+                                                <div key={notice.id} className="flex flex-col gap-1.5 group relative">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
+                                                        {/* Memo Trigger Button */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingNoteId(notice.id);
+                                                                setSelectedValue(existingObs?.value || choices[0] || 'いつも通り');
+                                                                setNoteText(existingObs?.notes || "");
+                                                            }}
+                                                            className="p-1.5 text-white/40 hover:text-white transition-colors"
+                                                            title="詳細・メモを入力"
+                                                        >
+                                                            <MessageSquarePlus className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
-                                                )}
-                                            </div>
-                                        )
-                                    })}
+                                                    {!isDone ? (
+                                                        <div className="flex gap-1.5 flex-wrap">
+                                                            {(inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
+                                                                <button
+                                                                    key={choice}
+                                                                    onClick={async (e) => {
+                                                                        e.stopPropagation();
+                                                                        if (addObservation) {
+                                                                            await addObservation(activeCatId, notice.id, choice);
+                                                                            const isNormal = idx === 0 || choice.includes('通り') || choice.includes('普通') || choice === 'なし';
+                                                                            if (isNormal) {
+                                                                                toast.success(`${notice.title}: ${choice}`);
+                                                                            } else {
+                                                                                toast.warning(`${notice.title}: ${choice}`);
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                    className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
+                                                                        ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
+                                                                        : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30'
+                                                                        }`}
+                                                                >
+                                                                    {choice}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                                            <Check className="w-3 h-3" />
+                                                            <span>{existingObs?.value || '記録済み'}</span>
+                                                            {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
 
                                 </div>
                             </motion.div>
