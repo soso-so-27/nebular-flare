@@ -1,4 +1,4 @@
-import { createPortal } from "react-dom";
+"use client";
 
 import React, { useState } from "react";
 import { useAppState } from "@/store/app-store";
@@ -39,11 +39,6 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(false);
     const [members, setMembers] = useState<FamilyMember[]>([]);
-    const [mounted, setMounted] = useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
 
     // Demo data for preview
     const demoMembers: FamilyMember[] = [
@@ -186,16 +181,15 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         }
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
+    return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end justify-center touch-none settings-modal-overlay"
+                    className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-end justify-center"
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
                     onClick={onClose}
                 >
                     <motion.div
@@ -203,11 +197,11 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] overscroll-contain mb-0"
+                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="bg-white dark:bg-slate-900 px-5 py-4 border-b flex items-center justify-between shrink-0 touch-auto">
+                        <div className="bg-white dark:bg-slate-900 px-5 py-4 border-b flex items-center justify-between shrink-0">
                             <div className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-slate-500" />
                                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">家族メンバー</h2>
@@ -221,7 +215,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar pb-10 touch-auto">
+                        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar pb-10">
                             {/* Member List */}
                             <div className="space-y-2">
                                 {members.map(member => (
@@ -308,7 +302,6 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     </motion.div>
                 </motion.div>
             )}
-        </AnimatePresence>,
-        document.body
+        </AnimatePresence>
     );
 }
