@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,12 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(false);
     const [members, setMembers] = useState<FamilyMember[]>([]);
+    const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+    // Set portal target after mount (client-side only)
+    useEffect(() => {
+        setPortalTarget(document.body);
+    }, []);
 
     // Demo data for preview
     const demoMembers: FamilyMember[] = [
@@ -47,7 +54,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     ];
 
     // Fetch members on mount
-    React.useEffect(() => {
+    useEffect(() => {
         if (isDemo || !householdId) {
             setMembers(demoMembers);
             return;
@@ -75,7 +82,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     }, [householdId, isDemo]);
 
     // Prevent body scroll when modal is open
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -92,18 +99,13 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         const supabase = createClient();
 
         if (isDemo) {
-            // Demo mode: generate fake link
             await new Promise(resolve => setTimeout(resolve, 500));
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             setInviteUrl(`https://catup.app/invite/${code}`);
             toast.success("招待リンクを作成しました");
         } else {
-            // Real mode: Create invite code
             try {
-                // Generate 6-char code
                 const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-                // Insert into household_invites
                 const { error } = await (supabase
                     .from('household_invites' as any) as any)
                     .insert({
@@ -113,8 +115,6 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     });
 
                 if (error) throw error;
-
-                // Construct URL (Assuming /join route will be handled)
                 setInviteUrl(`${window.location.origin}/join?code=${code}`);
                 toast.success("招待リンクを作成しました");
             } catch (error) {
@@ -165,15 +165,11 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
             if (error) throw error;
 
             toast.success(isSelf ? "家族から退会しました" : "メンバーを削除しました");
-
-            // Optimistic update
             setMembers(members.filter(m => m.id !== memberId));
 
             if (isSelf) {
-                // If user left, close modal and maybe redirect? 
-                // For now just close modal, app state will eventually sync or require reload
                 onClose();
-                window.location.reload(); // Force reload to update app state
+                window.location.reload();
             }
         } catch (error: any) {
             console.error(error);
@@ -181,14 +177,27 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         }
     };
 
-    return (
+    // Modal content
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm"
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 99999,
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        backdropFilter: 'blur(4px)',
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'center',
+                    }}
                     onClick={onClose}
                 >
                     <motion.div
@@ -196,7 +205,18 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="absolute bottom-0 left-0 right-0 mx-auto bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]"
+                        style={{
+                            backgroundColor: 'white',
+                            borderTopLeftRadius: '24px',
+                            borderTopRightRadius: '24px',
+                            width: '100%',
+                            maxWidth: '28rem',
+                            maxHeight: '85dvh',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -214,7 +234,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar pb-10">
+                        <div className="p-5 overflow-y-auto flex-1 pb-10">
                             {/* Member List */}
                             <div className="space-y-2">
                                 {members.map(member => (
@@ -222,12 +242,9 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                         key={member.id}
                                         className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800"
                                     >
-                                        {/* Avatar */}
                                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg">
                                             {member.avatar || member.name[0]}
                                         </div>
-
-                                        {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="font-medium text-slate-800 dark:text-white truncate">
@@ -239,12 +256,10 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                             </div>
                                             <p className="text-xs text-slate-500 truncate">{member.email}</p>
                                         </div>
-
-                                        {/* Actions */}
                                         {member.role !== 'owner' && (
                                             <button
                                                 onClick={() => removeMember(member.id)}
-                                                className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -255,15 +270,15 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
 
                             {/* Invite Section */}
                             <div className="pt-4 border-t mt-4">
-                                <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                <h3 className="text-sm font-medium text-slate-700 mb-3">
                                     家族を招待
                                 </h3>
 
                                 {inviteUrl ? (
                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-100 dark:bg-slate-800">
+                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-100">
                                             <Link2 className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                                            <p className="text-sm text-slate-600 dark:text-slate-300 truncate flex-1">
+                                            <p className="text-sm text-slate-600 truncate flex-1">
                                                 {inviteUrl}
                                             </p>
                                             <button
@@ -272,7 +287,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                                     "p-2 rounded-lg transition-colors",
                                                     copied
                                                         ? "bg-green-100 text-green-600"
-                                                        : "bg-white dark:bg-slate-700 text-slate-500 hover:text-slate-700"
+                                                        : "bg-white text-slate-500 hover:text-slate-700"
                                                 )}
                                             >
                                                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -303,4 +318,8 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
             )}
         </AnimatePresence>
     );
+
+    // Render via portal to document.body
+    if (!portalTarget) return null;
+    return createPortal(modalContent, portalTarget);
 }
