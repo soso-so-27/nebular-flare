@@ -279,7 +279,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                         className="rounded-2xl h-16 flex flex-col items-center justify-center gap-1 border border-white/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-lg font-bold text-xs text-slate-700 dark:text-slate-200"
                     >
                         <User className="h-4 w-4 text-slate-400" />
-                        家族を招待
+                        家族メンバー
                     </Button>
                 </div>
 
