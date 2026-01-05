@@ -84,12 +84,22 @@ export function getCatchUpItems({
             // Filter by enabled noticeDefs (obs.type should be the noticeDef ID)
             if (noticeDefs && !enabledNoticeIds.includes(obs.type)) return;
 
-            const isNew = new Date(obs.created_at || obs.recorded_at) > lastSeenDate; // Check available date field
-            const isAbnormal = obs.value !== "いつも通り" && obs.value !== "なし" && obs.value !== "記録した";
+            const noticeDef = noticeDefs?.find(n => n.id === obs.type);
 
-            // Only add if not already added and not acknowledged
+            // Determine 'normal' values from settings or use defaults
+            // The first choice is typically the 'normal'/healthy response
+            const normalValues = noticeDef?.choices?.slice(0, 1) || ['いつも通り'];
+            const commonNormalValues = ['いつも通り', '普通', '元気', 'なし', '記録した'];
+            const isNormal = normalValues.includes(obs.value) ||
+                commonNormalValues.includes(obs.value) ||
+                obs.value.includes('通り') ||
+                obs.value.includes('普通');
+            const isAbnormal = !isNormal;
+
+            const isNew = new Date(obs.created_at || obs.recorded_at) > lastSeenDate;
+
+            // Only add if abnormal, new, and not acknowledged
             if (isAbnormal && isNew && !obs.acknowledged_at) {
-                const noticeDef = noticeDefs?.find(n => n.id === obs.type);
                 items.push({
                     id: obs.id,
                     type: 'notice',
@@ -98,7 +108,7 @@ export function getCatchUpItems({
                     body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}`,
                     at: obs.created_at || obs.recorded_at,
                     status: 'danger',
-                    actionLabel: 'OK',
+                    actionLabel: '確認',
                     catId: obs.cat_id,
                     payload: obs,
                     meta: `${cats.find(c => c.id === obs.cat_id)?.name} ・ 体調`,
