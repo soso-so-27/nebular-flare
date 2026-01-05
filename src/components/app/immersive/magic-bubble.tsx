@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check } from "lucide-react";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { getToday } from "@/lib/date-utils";
+import { getAdjustedDateString } from "@/lib/utils-date";
 import { toast } from "sonner";
 
 interface MagicBubbleProps {
