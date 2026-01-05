@@ -30,12 +30,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
     // Calculate "today" based on custom day start time (Consistent with other components)
     const todayStr = useMemo(() => {
-        const now = new Date();
-        const currentHour = now.getHours();
-        if (currentHour < dayStartHour) {
-            now.setDate(now.getDate() - 1);
-        }
-        return now.toISOString().split('T')[0];
+        return getAdjustedDateString(new Date(), dayStartHour);
     }, [dayStartHour]);
 
     // Helper for slot labels
@@ -74,9 +69,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             new Date(b.done_at).getTime() - new Date(a.done_at).getTime()
                         );
                         const lastLog = sortedLogs[0];
-                        const adjustedLogDate = new Date(lastLog.done_at);
-                        adjustedLogDate.setHours(adjustedLogDate.getHours() - dayStartHour);
-                        const logDateStr = adjustedLogDate.toISOString().split('T')[0];
+                        // Use the exact same logic as todayStr to ensure match
+                        const logDateStr = getAdjustedDateString(new Date(lastLog.done_at), dayStartHour);
                         isDone = logDateStr === todayStr;
                     }
 
@@ -243,7 +237,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     const result = await addCareLog(item.id, item.perCat ? activeCatId : undefined);
                                                     if (result && result.error) {
                                                         console.error("Care log error:", result.error);
-                                                        toast.error("記録できませんでした");
+                                                        toast.error(result.error.message || "記録できませんでした");
                                                     } else {
                                                         toast.success(`${item.label} 完了`);
                                                     }
