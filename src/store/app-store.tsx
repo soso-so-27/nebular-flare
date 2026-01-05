@@ -244,13 +244,10 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
 
             // Household Users (direct query workaround for RPC cache issue)
-            console.log('[DEBUG] Fetching household users with householdId:', householdId);
-            const { data: usersData, error: usersError } = await supabase
+            const { data: usersData } = await supabase
                 .from('users')
                 .select('id, display_name, avatar_url, household_id')
                 .eq('household_id', householdId);
-
-            console.log('[DEBUG] Household users query result:', { usersData, usersError });
 
             if (usersData) {
                 setHouseholdUsers(usersData.map((u: any) => ({
