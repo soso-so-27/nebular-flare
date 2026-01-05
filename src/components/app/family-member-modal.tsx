@@ -188,8 +188,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-end justify-center"
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                    className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -197,7 +196,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]"
+                        className="absolute bottom-0 left-0 right-0 mx-auto bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
