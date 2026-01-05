@@ -153,22 +153,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         };
     }, [noticeDefs, observations, activeCatId]);
 
-    // Calculate Pickup Items
-    const pickupData = useMemo(() => getCatchUpItems({
-        tasks: [], // tasks not in app-store
-        noticeLogs: noticeLogs || {},
-        inventory: inventory || [],
-        lastSeenAt: "1970-01-01", // Show all relevant
-        settings,
-        cats,
-        careTaskDefs,
-        careLogs,
-        noticeDefs,
-        today: todayStr,
-        observations
-    }), [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, todayStr, observations]);
-
-    const activeCount = catsLoading ? 0 : pickupData.items.length;
+    // Use catchUpData for pickup items (already calculated above)
+    const activeCount = catsLoading ? 0 : catchUpData.items.length;
 
     // Progress Ring Logic
     const radius = 22; // Smaller for the side indicator
@@ -348,13 +334,42 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                     {/* Simplified Obs List Reuse */}
                                     {noticeDefs.filter(def => def.enabled !== false && def.kind === 'notice').map(notice => {
                                         const isDone = observations.some(o => o.type === notice.id && o.cat_id === activeCatId);
+
+                                        // Determine button labels based on question type
+                                        const isYesNoQuestion = notice.title.includes('吐いた') || notice.title.includes('した？');
+                                        const okLabel = isYesNoQuestion ? 'いいえ' : 'OK';
+                                        const abnormalLabel = isYesNoQuestion ? 'はい' : '気になる';
+                                        const abnormalValue = isYesNoQuestion ? 'あり' : 'いつもと違う';
+
                                         return (
                                             <div key={notice.id} className="flex flex-col gap-1">
                                                 <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
                                                 {!isDone ? (
                                                     <div className="flex gap-2">
-                                                        <button onClick={async (e) => { e.stopPropagation(); if (addObservation) { await addObservation(activeCatId, notice.id, "いつも通り"); toast.success(`${notice.title} 記録完了`); } }} className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md border ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`}>OK</button>
-                                                        <button onClick={(e) => { e.stopPropagation(); onOpenActivity?.(); }} className={`px-3 py-1 rounded-full bg-transparent hover:bg-white/10 text-xs border border-white/20 ${styles.textSub}`}>注意</button>
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                if (addObservation) {
+                                                                    await addObservation(activeCatId, notice.id, "いつも通り");
+                                                                    toast.success(`${notice.title} 記録完了`);
+                                                                }
+                                                            }}
+                                                            className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md border ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30 active:scale-95 transition-all`}
+                                                        >
+                                                            {okLabel}
+                                                        </button>
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                if (addObservation) {
+                                                                    await addObservation(activeCatId, notice.id, abnormalValue);
+                                                                    toast.warning(`${notice.title}: ${abnormalLabel} を記録しました`);
+                                                                }
+                                                            }}
+                                                            className={`px-3 py-1 rounded-full text-xs font-bold border border-amber-400/60 bg-amber-500/20 text-amber-200 hover:bg-amber-500/40 active:scale-95 transition-all`}
+                                                        >
+                                                            {abnormalLabel}
+                                                        </button>
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
