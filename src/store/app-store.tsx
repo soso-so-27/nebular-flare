@@ -159,7 +159,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 stockLevel: i.stock_level || 'full',
                 alertEnabled: i.alert_enabled ?? true,
                 deleted_at: i.deleted_at,
-                enabled: i.enabled ?? true
+                enabled: i.enabled ?? true,
+                range_max: i.range_max,
+                range_min: i.range_min
             })));
         }
     }, [supabaseInventory, isDemo, householdId]);
@@ -380,7 +382,10 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                                 last: 'まだある', // Default or derived?
                                 last_bought: payload.new.last_bought,
                                 stockLevel: payload.new.stock_level || 'full',
-                                alertEnabled: payload.new.alert_enabled ?? true
+                                alertEnabled: payload.new.alert_enabled ?? true,
+                                range_max: payload.new.range_max,
+                                range_min: payload.new.range_min,
+                                enabled: payload.new.enabled ?? true
                             };
                             return [...prev, newItem];
                         });
@@ -394,7 +399,10 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                                 range: [payload.new.range_min || i.range?.[0] || 7, payload.new.range_max || i.range?.[1] || 30],
                                 last_bought: payload.new.last_bought,
                                 stockLevel: payload.new.stock_level,
-                                alertEnabled: payload.new.alert_enabled
+                                alertEnabled: payload.new.alert_enabled,
+                                range_max: payload.new.range_max,
+                                range_min: payload.new.range_min,
+                                enabled: payload.new.enabled ?? true
                             } : i));
                         }
                     } else if (payload.eventType === 'DELETE') {
