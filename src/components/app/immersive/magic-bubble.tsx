@@ -264,14 +264,15 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                             key={item.id}
                                             onClick={async (e) => {
                                                 e.stopPropagation();
+                                                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                                                    navigator.vibrate(15);
+                                                }
                                                 if (!item.done && addCareLog) {
                                                     const targetId = (item as any).actionId || item.id;
                                                     const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
                                                     if (result && result.error) {
                                                         console.error("Care log error:", result.error);
                                                         toast.error(result.error.message || "記録できませんでした");
-                                                    } else {
-                                                        toast.success(`${item.label} 完了`);
                                                     }
                                                 }
                                             }}
@@ -396,13 +397,17 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             </button>
                                                             <button
                                                                 onClick={async () => {
+                                                                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                                                                        navigator.vibrate(20);
+                                                                    }
                                                                     if (!selectedValue) {
+                                                                        // Error handling can stay visual or use toast if critical, but user asked to remove "unnecessary" toasts from bottom
+                                                                        // Let's keep error toast for validation as it's not "success" feedback
                                                                         toast.error("値を選択してください");
                                                                         return;
                                                                     }
                                                                     if (addObservation) {
                                                                         await addObservation(activeCatId, notice.id, selectedValue, noteText);
-                                                                        toast.success("メモ付きで保存しました");
                                                                         setEditingNoteId(null);
                                                                         setNoteText("");
                                                                         setSelectedValue("");
@@ -443,14 +448,11 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                                     key={choice}
                                                                     onClick={async (e) => {
                                                                         e.stopPropagation();
+                                                                        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                                                                            navigator.vibrate(15);
+                                                                        }
                                                                         if (addObservation) {
                                                                             await addObservation(activeCatId, notice.id, choice);
-                                                                            const isNormal = idx === 0 || choice.includes('通り') || choice.includes('普通') || choice === 'なし';
-                                                                            if (isNormal) {
-                                                                                toast.success(`${notice.title}: ${choice}`);
-                                                                            } else {
-                                                                                toast.warning(`${notice.title}: ${choice}`);
-                                                                            }
                                                                         }
                                                                     }}
                                                                     className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
