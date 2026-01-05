@@ -29,6 +29,7 @@ interface ActivityItem {
     userAvatar?: string;
     timestamp: string;
     icon?: string;
+    notes?: string;
 }
 
 export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: boolean; limit?: number }) {
@@ -95,7 +96,8 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
                 userName: userInfo.name,
                 userAvatar: userInfo.avatar,
                 timestamp: log.done_at || new Date().toISOString(),
-                icon: taskDef?.icon
+                icon: taskDef?.icon,
+                notes: log.notes
             });
         });
 
@@ -152,7 +154,8 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
                 userId: obs.recorded_by,
                 userName: userInfo.name,
                 userAvatar: userInfo.avatar,
-                timestamp: obs.recorded_at || obs.created_at || new Date().toISOString()
+                timestamp: obs.recorded_at || obs.created_at || new Date().toISOString(),
+                notes: obs.notes
             });
         });
 
@@ -321,6 +324,14 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
                                                     <p className="text-xs text-slate-400 truncate">
                                                         {item.catName}
                                                     </p>
+                                                )}
+                                                {item.notes && (
+                                                    <div className="mt-1 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-md border border-slate-100 dark:border-slate-800">
+                                                        <p className="text-xs text-slate-600 dark:text-slate-300 break-words whitespace-pre-wrap flex gap-1.5 items-start">
+                                                            <span className="opacity-70 text-[10px] mt-0.5">📝</span>
+                                                            <span>{item.notes}</span>
+                                                        </p>
+                                                    </div>
                                                 )}
                                             </div>
 
