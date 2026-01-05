@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
-import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences } from '@/hooks/use-supabase-data';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
 import { toast } from "sonner";
 
@@ -145,6 +145,23 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     );
 
     // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
+    // Use Supabase inventory with proper mapping
+    const { inventory: supabaseInventory } = useInventory(isDemo ? null : householdId);
+
+    useEffect(() => {
+        if (!isDemo && householdId && supabaseInventory) {
+            setInventory(supabaseInventory.map((i: any) => ({
+                id: i.id,
+                label: i.label,
+                range: [i.range_min || 0, i.range_max || 30],
+                last: 'まだある',
+                last_bought: i.last_bought,
+                stockLevel: i.stock_level || 'full',
+                alertEnabled: i.alert_enabled ?? true
+            })));
+        }
+    }, [supabaseInventory, isDemo, householdId]);
+
     const today = new Date().toISOString().split('T')[0];
 
     const [demoCareLogsDone, setDemoCareLogsDone] = useState<Record<string, string>>(() => {
@@ -220,16 +237,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 })) as NoticeDef[]);
             }
 
-            // Inventory
-            const { data: invData } = await supabase
-                .from('inventory')
-                .select('*')
-                .eq('household_id', householdId)
-                .is('deleted_at', null);
 
-            if (invData) {
-                setInventory(invData as InventoryItem[]);
-            }
 
             // Household Users
             const { data: membersData } = await supabase.rpc('fetch_family_members', {
