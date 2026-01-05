@@ -44,8 +44,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <meta name="apple-touch-fullscreen" content="yes" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="theme-color" content="transparent" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="transparent" media="(prefers-color-scheme: dark)" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
