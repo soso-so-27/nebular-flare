@@ -55,9 +55,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const currentIndex = cats.findIndex(c => c.id === activeCatId);
 
     // Helper function to get public URL from avatars bucket (same as gallery-screen)
-    const getPublicUrl = (path: string) => {
+    const getPublicUrl = (path: string, options?: { width: number, quality: number }) => {
         const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+        const { data } = supabase.storage.from('avatars').getPublicUrl(path, {
+            transform: options ? {
+                width: options.width,
+                quality: options.quality,
+                resize: 'cover',
+            } : undefined
+        });
         return data.publicUrl;
     };
 
@@ -73,7 +79,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         if (activeCat.images && activeCat.images.length > 0) {
             activeCat.images.forEach(img => {
                 if (img.storagePath) {
-                    const publicUrl = getPublicUrl(img.storagePath);
+                    // Optimized for fullscreen mobile (width 1200, q=80)
+                    const publicUrl = getPublicUrl(img.storagePath, { width: 1200, quality: 80 });
                     // Avoid duplicating avatar
                     if (!photos.includes(publicUrl) && publicUrl !== activeCat.avatar) {
                         photos.push(publicUrl);
@@ -181,7 +188,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 if (cat.images && cat.images.length > 0) {
                     cat.images.forEach(imgData => {
                         if (imgData.storagePath) {
-                            const url = getPublicUrl(imgData.storagePath);
+                            const url = getPublicUrl(imgData.storagePath, { width: 1200, quality: 80 });
                             const img = new Image();
                             img.src = url;
                         }
