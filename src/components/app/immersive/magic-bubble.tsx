@@ -26,70 +26,106 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
 
 
-    // --- Improved Care Calculation (Ported from SidebarMenu) ---
+    // --- Use getCatchUpItems for consistent care task calculation ---
     const { dayStartHour } = settings;
 
-    // Calculate "today" based on custom day start time (Consistent with other components)
-    const todayStr = useMemo(() => {
-        return getAdjustedDateString(new Date(), dayStartHour);
-    }, [dayStartHour]);
-
-    // Helper for slot labels
-    const getSlotLabel = (slot: string) => {
-        switch (slot) {
-            case 'morning': return '朝';
-            case 'noon': return '昼';
-            case 'evening': return '夕';
-            case 'night': return '夜';
-            default: return '';
+    // Calculate business date (same as BubblePickupList)
+    const catchUpData = useMemo(() => {
+        const now = new Date();
+        const businessDate = new Date(now);
+        if (now.getHours() < dayStartHour) {
+            businessDate.setDate(businessDate.getDate() - 1);
         }
-    };
+        const todayStr = businessDate.toISOString().split('T')[0];
 
+        return getCatchUpItems({
+            tasks: [],
+            noticeLogs: noticeLogs || {},
+            inventory: inventory || [],
+            lastSeenAt: "1970-01-01",
+            settings,
+            cats,
+            careTaskDefs,
+            careLogs,
+            noticeDefs,
+            today: todayStr,
+            observations
+        });
+    }, [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, observations, dayStartHour]);
+
+    // Filter care tasks from catchUpData
     const careItems = useMemo(() => {
-        if (!careTaskDefs) return [];
-        return careTaskDefs
-            .filter(def => def.enabled !== false)
-            .flatMap(def => {
-                const isTarget = !def.perCat || (def.targetCatIds?.includes(activeCatId) ?? true);
-                if (!isTarget) return [];
+        return catchUpData.allItems
+            .filter(item => item.type === 'task')
+            .map(item => ({
+                id: item.id,
+                defId: item.payload?.id || item.id,
+                label: item.title,
+                perCat: item.payload?.perCat,
+                done: false, // Items in catchUp are NOT done
+                slot: item.payload?.slot,
+                catId: item.catId
+            }));
+    }, [catchUpData]);
 
-                const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&
-                    (def.frequency === 'twice-daily' || def.frequency === 'three-times-daily' || def.frequency === 'four-times-daily');
-                const slots = shouldSplit ? (def.mealSlots || []) : [null];
+    // Calculate total care tasks (done + pending)
+    // We need to count both completed and pending tasks
+    const { totalCareTasks, completedCareTasks } = useMemo(() => {
+        if (!careTaskDefs) return { totalCareTasks: 0, completedCareTasks: 0 };
 
-                return slots.map(slot => {
-                    const type = slot ? `${def.id}:${slot}` : def.id;
-                    const label = slot ? `${def.title}（${getSlotLabel(slot)}）` : def.title;
+        const now = new Date();
+        const currentHour = now.getHours();
+        const businessDate = new Date(now);
+        if (currentHour < dayStartHour) {
+            businessDate.setDate(businessDate.getDate() - 1);
+        }
+        const todayStr = businessDate.toISOString().split('T')[0];
 
-                    const taskLogs = careLogs.filter(log => log.type === type);
-                    let isDone = false;
+        // Calculate current slot
+        const getCurrentMealSlot = (hour: number) => {
+            if (hour >= 5 && hour < 11) return 'morning';
+            if (hour >= 11 && hour < 15) return 'noon';
+            if (hour >= 15 && hour < 20) return 'evening';
+            return 'night';
+        };
+        const currentSlot = getCurrentMealSlot(currentHour);
+        const slotOrder = ['morning', 'noon', 'evening', 'night'];
+        const currentSlotIndex = slotOrder.indexOf(currentSlot);
 
-                    // More robust check logic matching SidebarMenu
-                    if (taskLogs.length > 0) {
-                        const sortedLogs = [...taskLogs].sort((a, b) =>
-                            new Date(b.done_at).getTime() - new Date(a.done_at).getTime()
-                        );
-                        const lastLog = sortedLogs[0];
-                        // Use the exact same logic as todayStr to ensure match
-                        const logDateStr = getAdjustedDateString(new Date(lastLog.done_at), dayStartHour);
-                        isDone = logDateStr === todayStr;
-                    }
+        let total = 0;
+        let completed = 0;
 
-                    return {
-                        id: type, // Unique ID for key
-                        defId: def.id,
-                        label,
-                        // icon: def.icon, // We render icon manually or import getIcon? Let's just use checkmark for now or simplistic logic
-                        perCat: def.perCat,
-                        done: isDone
-                    };
-                });
-            });
-    }, [careTaskDefs, careLogs, todayStr, dayStartHour, activeCatId]);
+        careTaskDefs.filter(def => def.enabled).forEach(def => {
+            const slots = def.mealSlots || (def.frequency === 'as-needed' ? [] :
+                def.frequency === 'twice-daily' ? ['morning', 'evening'] :
+                    def.frequency === 'three-times-daily' ? ['morning', 'noon', 'evening'] :
+                        def.frequency === 'four-times-daily' ? ['morning', 'noon', 'evening', 'night'] :
+                            ['morning']);
 
-    const careCompletedCount = careItems.filter(c => c.done).length;
-    const careTotalCount = careItems.length;
-    const progress = careTotalCount > 0 ? careCompletedCount / careTotalCount : 1;
+            if (slots.length === 0) {
+                // as-needed or no slots
+                total += 1;
+                const hasLog = careLogs?.find(log => log.type === def.id);
+                if (hasLog) completed += 1;
+                return;
+            }
+
+            // Only count slots up to current time
+            for (const slot of slots) {
+                const slotIndex = slotOrder.indexOf(slot as string);
+                if (slotIndex <= currentSlotIndex) {
+                    total += 1;
+                    const typeToCheck = `${def.id}:${slot}`;
+                    const hasLog = careLogs?.find(log => log.type === typeToCheck);
+                    if (hasLog) completed += 1;
+                }
+            }
+        });
+
+        return { totalCareTasks: total, completedCareTasks: completed };
+    }, [careTaskDefs, careLogs, dayStartHour]);
+
+    const progress = totalCareTasks > 0 ? completedCareTasks / totalCareTasks : 1;
 
     // Calculate Observation Progress (for active cat) - Using persisted observations from Supabase
     const observationProgress = useMemo(() => {
