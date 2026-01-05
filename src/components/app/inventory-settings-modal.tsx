@@ -46,7 +46,7 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
             .select('id, label, last_bought, range_max')
             .eq('household_id', householdId)
             .is('deleted_at', null)
-            .order('created_at', { ascending: true });
+            .order('label', { ascending: true });
 
         if (!error && data) {
             setItems(data);
