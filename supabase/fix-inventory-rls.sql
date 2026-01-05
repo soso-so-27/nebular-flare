@@ -38,6 +38,10 @@ DROP POLICY IF EXISTS "Users can insert inventory to own household" ON inventory
 DROP POLICY IF EXISTS "allow_select" ON inventory;
 DROP POLICY IF EXISTS "allow_insert" ON inventory;
 DROP POLICY IF EXISTS "authenticated_all" ON inventory;
+DROP POLICY IF EXISTS "inventory_select" ON inventory;
+DROP POLICY IF EXISTS "inventory_insert" ON inventory;
+DROP POLICY IF EXISTS "inventory_update" ON inventory;
+DROP POLICY IF EXISTS "inventory_delete" ON inventory;
 
 -- RLSを有効化
 ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
