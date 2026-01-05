@@ -232,15 +232,15 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             }
 
             // Household Users
-            const { data: membersData } = await supabase.rpc('get_household_members', {
-                lookup_household_id: householdId
+            const { data: membersData } = await supabase.rpc('fetch_family_members', {
+                p_household_id: householdId
             });
 
             if (membersData) {
                 setHouseholdUsers(membersData.map((m: any) => ({
                     id: m.user_id,
-                    display_name: m.name, // Map for compatibility with ActivityFeed
-                    avatar_url: m.avatar,
+                    display_name: m.display_name || m.email?.split('@')[0] || 'Unknown',
+                    avatar_url: m.avatar_url,
                     role: m.role,
                     joined_at: m.joined_at
                 })));
@@ -404,15 +404,15 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (!householdId || isDemo) return;
 
         const fetchMembers = async () => {
-            const { data: membersData } = await supabase.rpc('get_household_members', {
-                lookup_household_id: householdId
+            const { data: membersData } = await supabase.rpc('fetch_family_members', {
+                p_household_id: householdId
             });
 
             if (membersData) {
                 setHouseholdUsers(membersData.map((m: any) => ({
                     id: m.user_id,
-                    display_name: m.name,
-                    avatar_url: m.avatar,
+                    display_name: m.display_name || m.email?.split('@')[0] || 'Unknown',
+                    avatar_url: m.avatar_url,
                     role: m.role,
                     joined_at: m.joined_at
                 })));
