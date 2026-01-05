@@ -240,8 +240,13 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                             onClick={async (e) => {
                                                 e.stopPropagation();
                                                 if (!item.done && addCareLog) {
-                                                    await addCareLog(item.id, item.perCat ? activeCatId : undefined);
-                                                    toast.success(`${item.label} 完了`);
+                                                    const result = await addCareLog(item.id, item.perCat ? activeCatId : undefined);
+                                                    if (result && result.error) {
+                                                        console.error("Care log error:", result.error);
+                                                        toast.error("記録できませんでした");
+                                                    } else {
+                                                        toast.success(`${item.label} 完了`);
+                                                    }
                                                 }
                                             }}
                                             className={`flex items-center gap-3 w-full text-left transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10 rounded-lg p-1 -m-1`}`}

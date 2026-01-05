@@ -165,7 +165,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
 
     // Add care log
     async function addCareLog(type: string, catId?: string) {
-        if (!householdId) return;
+        if (!householdId) return { error: { message: "Household ID not found" } };
 
         const { data: user } = await supabase.auth.getUser();
 
