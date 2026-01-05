@@ -157,7 +157,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 last: 'まだある',
                 last_bought: i.last_bought,
                 stockLevel: i.stock_level || 'full',
-                alertEnabled: i.alert_enabled ?? true
+                alertEnabled: i.alert_enabled ?? true,
+                deleted_at: i.deleted_at,
+                enabled: i.enabled ?? true
             })));
         }
     }, [supabaseInventory, isDemo, householdId]);

@@ -94,7 +94,7 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-[2px]"
+                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-[2px]"
                     onClick={onClose}
                 >
                     <motion.div
