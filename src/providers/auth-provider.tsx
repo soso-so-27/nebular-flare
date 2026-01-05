@@ -86,9 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // 2. Update Public Users Table
         if (user) {
-            const publicUpdates: { display_name: string; updated_at: string; avatar_url?: string } = {
+            const publicUpdates: { display_name: string; avatar_url?: string } = {
                 display_name: displayName,
-                updated_at: new Date().toISOString(),
             };
             if (avatarUrl !== undefined) {
                 publicUpdates.avatar_url = avatarUrl;
