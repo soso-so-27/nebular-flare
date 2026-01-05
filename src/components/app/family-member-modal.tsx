@@ -1,36 +1,6 @@
-"use client";
+import { createPortal } from "react-dom";
 
-import React, { useState } from "react";
-import { useAppState } from "@/store/app-store";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import {
-    X,
-    Users,
-    Link2,
-    Copy,
-    Check,
-    UserPlus,
-    Crown,
-    Trash2
-} from "lucide-react";
-import { createClient } from "@/lib/supabase";
-import { useAuth } from "@/providers/auth-provider";
-
-interface FamilyMember {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    role: 'owner' | 'member';
-    joinedAt: string;
-}
-
-interface FamilyMemberModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
+// ... existing imports ...
 
 export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const { householdId, isDemo } = useAppState();
@@ -39,12 +9,13 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(false);
     const [members, setMembers] = useState<FamilyMember[]>([]);
+    const [mounted, setMounted] = useState(false);
 
-    // Demo data for preview
-    const demoMembers: FamilyMember[] = [
-        { id: '1', name: 'あなた', email: 'you@example.com', role: 'owner', joinedAt: '2024-01-01' },
-        { id: '2', name: 'パートナー', email: 'partner@example.com', avatar: '👩', role: 'member', joinedAt: '2024-06-15' },
-    ];
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // ... demoMembers ...
 
     // Fetch members on mount
     React.useEffect(() => {
@@ -188,14 +159,16 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         }
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end justify-center touch-none"
+                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end justify-center touch-none settings-modal-overlay"
                     onClick={onClose}
                 >
                     <motion.div
@@ -203,7 +176,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] overscroll-contain"
+                        className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] overscroll-contain mb-0"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -261,7 +234,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                             </div>
 
                             {/* Invite Section */}
-                            <div className="pt-4 border-t">
+                            <div className="pt-4 border-t mt-4">
                                 <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                     家族を招待
                                 </h3>
@@ -308,6 +281,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                     </motion.div>
                 </motion.div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
