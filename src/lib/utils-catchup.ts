@@ -16,6 +16,7 @@ export type CatchUpItem = {
     icon?: string; // Icon name from settings
     category?: string; // Category for grouping
     required?: boolean; // From settings
+    actionId?: string;
 };
 
 export function getCatchUpItems({
@@ -177,6 +178,7 @@ export function getCatchUpItems({
                         payload: def,
                         meta: 'お世話',
                         icon: def.icon,
+                        actionId: def.id,
                     });
                 }
                 return;
@@ -223,6 +225,7 @@ export function getCatchUpItems({
                                 meta: `${cat.name} ・ お世話`,
                                 icon: def.icon,
                                 catId: cat.id,
+                                actionId: typeToCheck,
                             });
                         }
                     });
@@ -246,6 +249,7 @@ export function getCatchUpItems({
                             payload: { ...def, slot: slot },
                             meta: 'お世話',
                             icon: def.icon,
+                            actionId: typeToCheck,
                         });
                     }
                 }

@@ -62,6 +62,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
             .filter(item => item.type === 'task')
             .map(item => ({
                 id: item.id,
+                actionId: item.actionId,
                 defId: item.payload?.id || item.id,
                 label: item.title,
                 perCat: item.payload?.perCat,
@@ -264,7 +265,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                             onClick={async (e) => {
                                                 e.stopPropagation();
                                                 if (!item.done && addCareLog) {
-                                                    const result = await addCareLog(item.id, item.perCat ? activeCatId : undefined);
+                                                    const targetId = (item as any).actionId || item.id;
+                                                    const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
                                                     if (result && result.error) {
                                                         console.error("Care log error:", result.error);
                                                         toast.error(result.error.message || "記録できませんでした");
