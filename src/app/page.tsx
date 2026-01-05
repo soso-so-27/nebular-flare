@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppProvider } from "@/store/app-store";
@@ -8,14 +9,6 @@ import { useAuth } from "@/providers/auth-provider";
 import { useUserProfile } from "@/hooks/use-supabase-data";
 import { TopBar } from "@/components/app/top-bar";
 import { HomeScreen } from "@/components/app/home-screen";
-import { WidgetHomeScreen } from "@/components/app/widget-home-screen";
-import { FullscreenHeroHomeScreen } from "@/components/app/fullscreen-hero-home";
-import { CareScreen } from "@/components/app/care-screen";
-import { CatScreen } from "@/components/app/cat-screen";
-import { GalleryScreen } from "@/components/app/gallery-screen";
-import { MoreScreen } from "@/components/app/more-screen";
-import { LoginScreen } from "@/components/app/login-screen";
-import { OnboardingScreen } from "@/components/app/onboarding-screen";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal, X } from "lucide-react";
@@ -23,15 +16,23 @@ import { Loader2 } from "lucide-react";
 import { TwinFAB } from "@/components/app/twin-fab";
 import { useAppState } from "@/store/app-store";
 import { getCatchUpItems } from "@/lib/utils-catchup";
-
-import { NotificationModal } from "@/components/app/notification-modal";
-import { CalendarModal } from "@/components/app/calendar-modal";
-
 import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/splash-screen";
 import { SidebarMenu } from "@/components/app/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/immersive-home";
-import { ActivityScreen } from "@/components/app/activity-screen";
+
+// Lazy load heavy components
+const WidgetHomeScreen = dynamic(() => import("@/components/app/widget-home-screen").then(m => ({ default: m.WidgetHomeScreen })), { ssr: false });
+const FullscreenHeroHomeScreen = dynamic(() => import("@/components/app/fullscreen-hero-home").then(m => ({ default: m.FullscreenHeroHomeScreen })), { ssr: false });
+const CareScreen = dynamic(() => import("@/components/app/care-screen").then(m => ({ default: m.CareScreen })), { ssr: false });
+const CatScreen = dynamic(() => import("@/components/app/cat-screen").then(m => ({ default: m.CatScreen })), { ssr: false });
+const GalleryScreen = dynamic(() => import("@/components/app/gallery-screen").then(m => ({ default: m.GalleryScreen })), { ssr: false });
+const MoreScreen = dynamic(() => import("@/components/app/more-screen").then(m => ({ default: m.MoreScreen })), { ssr: false });
+const LoginScreen = dynamic(() => import("@/components/app/login-screen").then(m => ({ default: m.LoginScreen })), { ssr: false });
+const OnboardingScreen = dynamic(() => import("@/components/app/onboarding-screen").then(m => ({ default: m.OnboardingScreen })), { ssr: false });
+const NotificationModal = dynamic(() => import("@/components/app/notification-modal").then(m => ({ default: m.NotificationModal })), { ssr: false });
+const CalendarModal = dynamic(() => import("@/components/app/calendar-modal").then(m => ({ default: m.CalendarModal })), { ssr: false });
+const ActivityScreen = dynamic(() => import("@/components/app/activity-screen").then(m => ({ default: m.ActivityScreen })), { ssr: false });
 
 function AppContent() {
   const [tab, setTab] = useState("home");
