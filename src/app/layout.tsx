@@ -43,16 +43,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
+    <html lang="ja" style={{ backgroundColor: '#000', margin: 0, padding: 0 }}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-touch-fullscreen" content="yes" />
-        {/* Using #000000 to match the expected dark background - status bar will blend with content */}
-        <meta name="theme-color" content="#1a1a1a" />
+        {/* Theme color should match the app background for seamless status bar */}
+        <meta name="theme-color" content="#000000" />
+        {/* Inline style in head for earliest possible application */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          html, body {
+            background-color: #000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        `}} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{ backgroundColor: '#000', margin: 0, padding: 0 }}
       >
         <AuthProvider>
           {children}
