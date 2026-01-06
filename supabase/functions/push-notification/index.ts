@@ -157,13 +157,32 @@ serve(async (req) => {
         // CASE A: Health Alert (Observations)
         if (table === 'observations' && type === 'INSERT') {
             console.log('[PUSH] Processing observation. Value:', record.value);
-            const isAbnormal = record.value !== "いつも通り" && record.value !== "なし" && record.value !== "記録した";
-            console.log('[PUSH] isAbnormal:', isAbnormal);
+            const isAbnormal = record.value !== "いつも通り" && record.value !== "なし" && record.value !== "記録した" && record.value !== "撮影した";
+            const isPhoto = record.value === "撮影した" || (record.images && record.images.length > 0);
+            console.log('[PUSH] isAbnormal:', isAbnormal, '| isPhoto:', isPhoto);
 
-            if (isAbnormal) {
-                const { data: cat } = await supabase.from('cats').select('name').eq('id', record.cat_id).single();
-                const catName = cat?.name || "猫";
+            // Get cat name for notification
+            const { data: cat } = await supabase.from('cats').select('name').eq('id', record.cat_id).single();
+            const catName = cat?.name || "猫";
 
+            // Get actor name
+            const actor = users.find((u: any) => u.id === actorId);
+            const actorName = actor?.display_name || "家族";
+
+            if (isPhoto) {
+                // CASE A1: Photo posted (Daily Snap)
+                notificationTitle = `📷 ${actorName}が${catName}の写真を投稿しました`;
+                notificationBody = `今日の一枚が届きました！チェックしてみましょう。`;
+
+                targetUserIds = users.filter((u: any) => {
+                    const prefs = u.notification_preferences || {};
+                    // Use health_alert preference for now, or could add photo_share preference later
+                    const shouldNotify = prefs.health_alert !== false && u.id !== actorId;
+                    console.log('[PUSH] User', u.id, '| photo notif | isActor:', u.id === actorId, '| shouldNotify:', shouldNotify);
+                    return shouldNotify;
+                }).map((u: any) => u.id);
+            } else if (isAbnormal) {
+                // CASE A2: Abnormal observation (existing logic)
                 notificationTitle = `${catName}に気になる変化があります`;
                 notificationBody = `「${record.value}」が記録されました。確認してください。`;
 
