@@ -30,7 +30,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
         careLogs, addCareLog,
         careTaskDefs,
         noticeDefs, noticeLogs, setNoticeLogs,
-        observations, addObservation,
+        observations, addObservation, acknowledgeObservation,
         inventory, setInventory, updateInventoryItem,
         activeCatId, cats,
         settings, isDemo
@@ -96,26 +96,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                         // unrecorded: payload = { noticeId, catId, noticeDef }
                         // notice: payload = log object (Supabase row)
                         const nId = item.payload.noticeId || item.payload.type || item.payload.id;
-                        // Note: for existing observation (notice), type=noticeDefId.
-
-                        // If it's already an observation (notice), we are "acknowledging" it?
-                        // The UI says "OK" for abnormal.
 
                         if (item.type === 'notice') {
-                            // It's an abnormal observation. We probably want to acknowledge it?
-                            // Or just 'check'. Current logic was "OK".
-                            // addObservation here would duplicate it?
-                            // The user might want to just dismiss it.
-                            // Wait, 'actionLabel' is OK.
-                            // MagicBubble uses `addObservation` for "unrecorded" but what for "notice"?
-                            // MagicBubble just lists them.
-
-                            // Using addObservation("いつも通り") effectively resolves it for today?
-                            // If it's an existing abnormal log from Today, adding "Normal" might not clear the abnormal one,
-                            // but it adds a new latest log.
-
-                            // Let's assume hitting action means "I saw it / normal now".
-                            await addObservation(item.catId || activeCatId, nId, "いつも通り");
+                            // Abnormal observation -> Acknowledge it to remove from list
+                            await acknowledgeObservation(item.id);
                             toast.success("確認しました");
                         } else {
                             // Unrecorded
@@ -123,6 +107,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                             toast.success(`${item.title} 記録しました`);
                         }
                     }
+
                 } else if (item.type === 'inventory') {
                     // Purchase action: Update last_bought to today and reset stock level
                     await updateInventoryItem(item.id, {
