@@ -16,17 +16,23 @@ export default function ButtonDemoPage() {
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [hapticEnabled, setHapticEnabled] = useState(true);
 
-    const playSound = (sound: () => void) => {
-        if (soundEnabled) sound();
+    const playSound = async (sound: () => Promise<void>) => {
+        if (soundEnabled) {
+            try {
+                await sound();
+            } catch (e) {
+                console.warn('Sound failed:', e);
+            }
+        }
     };
 
     const playHaptic = (haptic: () => void) => {
         if (hapticEnabled) haptic();
     };
 
-    const handleFeedback = (sound: () => void, haptic: () => void) => {
-        playSound(sound);
+    const handleFeedback = async (sound: () => Promise<void>, haptic: () => void) => {
         playHaptic(haptic);
+        await playSound(sound);
     };
 
     return (
@@ -108,8 +114,8 @@ export default function ButtonDemoPage() {
                                 handleFeedback(liked ? sounds.toggleOff : sounds.success, haptics.success);
                             }}
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${liked
-                                    ? 'bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/40'
-                                    : 'bg-slate-700'
+                                ? 'bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/40'
+                                : 'bg-slate-700'
                                 }`}
                         >
                             <Heart
@@ -125,8 +131,8 @@ export default function ButtonDemoPage() {
                                 handleFeedback(starred ? sounds.toggleOff : sounds.bounce, haptics.impactMedium);
                             }}
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${starred
-                                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/40'
-                                    : 'bg-slate-700'
+                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/40'
+                                : 'bg-slate-700'
                                 }`}
                         >
                             <Star
@@ -175,16 +181,16 @@ export default function ButtonDemoPage() {
                                     }
                                 }}
                                 className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all ${completed.includes(item)
-                                        ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500'
-                                        : 'bg-white/5 border-2 border-white/10'
+                                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500'
+                                    : 'bg-white/5 border-2 border-white/10'
                                     }`}
                             >
                                 <motion.div
                                     animate={completed.includes(item) ? { scale: [1, 1.4, 1] } : {}}
                                     transition={{ type: "spring", stiffness: 500 }}
                                     className={`w-8 h-8 rounded-full flex items-center justify-center ${completed.includes(item)
-                                            ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
-                                            : 'bg-slate-600'
+                                        ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
+                                        : 'bg-slate-600'
                                         }`}
                                 >
                                     <Check className={`w-5 h-5 ${completed.includes(item) ? 'text-white' : 'text-slate-400'}`} />
