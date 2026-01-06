@@ -266,14 +266,11 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
-                            notification: {
+                            // Use data-only message - Service Worker will display notification
+                            data: {
                                 title: notificationTitle,
-                                body: notificationBody
-                            },
-                            webpush: {
-                                notification: {
-                                    icon: 'https://nebular-flare.vercel.app/icon.svg'
-                                }
+                                body: notificationBody,
+                                icon: '/icon.svg'
                             }
                         }
                     })

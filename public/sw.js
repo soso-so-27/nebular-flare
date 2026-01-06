@@ -35,14 +35,21 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('[sw.js] Received background message', payload);
-    const notificationTitle = payload.notification.title || 'CatUp';
+
+    // Read from data payload (data-only message from Edge Function)
+    const data = payload.data || {};
+    const notificationTitle = data.title || payload.notification?.title || 'CatUp';
+    const notificationBody = data.body || payload.notification?.body || '';
+    const notificationIcon = data.icon || '/icon.svg';
+
     const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/icon.svg',
+        body: notificationBody,
+        icon: notificationIcon,
         badge: '/icon.svg',
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
