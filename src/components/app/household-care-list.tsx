@@ -119,14 +119,14 @@ export function HouseholdCareList() {
                 }
                 return t;
             }));
-            toast.success(`${item.label} 完了！`);
+            toast.success(`${item.label}を記録しました`);
         } else {
             // Supabase mode: add care log
             const result = await addCareLog(item.type);
             if (result?.error) {
                 toast.error("記録に失敗しました");
             } else {
-                toast.success(`${item.label} 完了！`);
+                toast.success(`${item.label}を記録・通知しました`);
             }
         }
     }

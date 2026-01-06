@@ -111,6 +111,9 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
                     it.id === item.id ? { ...it, last: new Date().toISOString().split('T')[0], range: [30, 45] } : it
                 ));
             }
+
+            // Show feedback toast
+            toast.success('記録・通知しました');
         } else {
             // Silently skip
         }
