@@ -21,35 +21,62 @@ if (firebaseConfig.apiKey) {
 }
 
 export const requestFcmToken = async () => {
-    if (typeof window === 'undefined' || !app) return null;
+    console.log('[FCM] Starting token request...');
+
+    if (typeof window === 'undefined') {
+        console.log('[FCM] Skipped: window is undefined (SSR)');
+        return null;
+    }
+
+    if (!app) {
+        console.log('[FCM] Skipped: Firebase app not initialized. Check env vars.');
+        return null;
+    }
 
     try {
+        console.log('[FCM] Importing firebase/messaging...');
         const { getMessaging, getToken, isSupported } = await import("firebase/messaging");
 
+        console.log('[FCM] Checking if messaging is supported...');
         const supported = await isSupported();
+        console.log('[FCM] isSupported:', supported);
+
         if (!supported) {
-            console.log('Firebase Messaging is not supported in this browser.');
+            console.log('[FCM] Firebase Messaging is not supported in this browser/device.');
             return null;
         }
 
+        console.log('[FCM] Getting messaging instance...');
         const messaging = getMessaging(app);
 
-        // Get existing service worker registration
+        console.log('[FCM] Waiting for Service Worker to be ready...');
         const registration = await navigator.serviceWorker.ready;
+        console.log('[FCM] Service Worker ready:', registration.scope);
 
+        console.log('[FCM] Requesting notification permission...');
+        const permission = await Notification.requestPermission();
+        console.log('[FCM] Permission status:', permission);
+
+        if (permission !== 'granted') {
+            console.log('[FCM] Notification permission denied by user');
+            return null;
+        }
+
+        console.log('[FCM] Getting FCM token...');
         const currentToken = await getToken(messaging, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             serviceWorkerRegistration: registration,
         });
 
         if (currentToken) {
+            console.log('[FCM] Token retrieved successfully:', currentToken.substring(0, 20) + '...');
             return currentToken;
         } else {
-            console.log('No registration token available.');
+            console.log('[FCM] No registration token available.');
             return null;
         }
     } catch (err) {
-        console.error('An error occurred while retrieving token.', err);
+        console.error('[FCM] Token retrieval failed:', err);
         return null;
     }
 };
