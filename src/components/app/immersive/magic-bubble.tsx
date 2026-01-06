@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useMemo } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +6,8 @@ import { getCatchUpItems } from "@/lib/utils-catchup";
 import { getToday } from "@/lib/date-utils";
 import { getAdjustedDateString } from "@/lib/utils-date";
 import { toast } from "sonner";
+import { sounds } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
@@ -27,6 +27,19 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
     const isLight = contrastMode === 'light';
 
+    // Helper for interactive feedback
+    const triggerFeedback = (type: 'light' | 'medium' | 'success' = 'light') => {
+        if (type === 'light') {
+            sounds.click();
+            haptics.impactLight();
+        } else if (type === 'medium') {
+            sounds.pop();
+            haptics.impactMedium();
+        } else if (type === 'success') {
+            sounds.success();
+            haptics.success();
+        }
+    };
 
 
     // --- Use getCatchUpItems for consistent care task calculation ---
@@ -199,7 +212,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 pointer-events-auto"
-                        onClick={() => setExpandedSection(null)}
+                        onClick={() => {
+                            triggerFeedback('light');
+                            setExpandedSection(null);
+                        }}
                     />
                 )}
             </AnimatePresence>
@@ -212,10 +228,13 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
                 {/* CARE RING */}
                 <div className="flex flex-col gap-2">
-                    <div
+                    <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         className="flex items-center gap-3 cursor-pointer group"
                         onClick={(e) => {
                             e.stopPropagation();
+                            triggerFeedback('medium');
                             setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
                     >
@@ -248,7 +267,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 <span className={`text-xs font-medium ${styles.text}`}>%</span>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                     {/* Expanded Care List - Flows Downwards (Natural Accordion) */}
                     <AnimatePresence>
                         {expandedSection === 'care' && (
@@ -260,13 +279,13 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             >
                                 <div className="py-2 space-y-3 w-[200px]">
                                     {careItems.map(item => (
-                                        <button
+                                        <motion.button
                                             key={item.id}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={async (e) => {
                                                 e.stopPropagation();
-                                                if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                                                    navigator.vibrate(15);
-                                                }
+                                                triggerFeedback('success'); // Good job for completing task
+
                                                 if (!item.done && addCareLog) {
                                                     const targetId = (item as any).actionId || item.id;
                                                     const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
@@ -282,7 +301,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                 {item.done && <Check className="w-3 h-3 text-white" />}
                                             </div>
                                             <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
-                                        </button>
+                                        </motion.button>
                                     ))}
 
                                 </div>
@@ -293,9 +312,14 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
                 {/* OBSERVATION RING */}
                 <div className="flex flex-col gap-2">
-                    <div
+                    <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         className="flex items-center gap-3 cursor-pointer group"
-                        onClick={() => setExpandedSection(expandedSection === 'observation' ? null : 'observation')}
+                        onClick={() => {
+                            triggerFeedback('medium');
+                            setExpandedSection(expandedSection === 'observation' ? null : 'observation')
+                        }}
                     >
                         {/* Ring Container */}
                         <div className="relative w-10 h-10 transition-transform group-active:scale-95">
@@ -326,7 +350,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 <span className={`text-xs font-medium ${styles.text}`}>%</span>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                     {/* Expanded Obs List - Flows Downwards */}
                     <AnimatePresence>
                         {expandedSection === 'observation' && (
@@ -364,7 +388,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             {choices.map((choice) => (
                                                                 <button
                                                                     key={choice}
-                                                                    onClick={() => setSelectedValue(choice)}
+                                                                    onClick={() => {
+                                                                        triggerFeedback('light');
+                                                                        setSelectedValue(choice);
+                                                                    }}
                                                                     className={`px-2 py-1 rounded text-xs font-bold border transition-all ${selectedValue === choice
                                                                         ? 'bg-white text-black border-white'
                                                                         : 'bg-transparent text-white/70 border-white/20 hover:bg-white/10'
@@ -387,6 +414,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         <div className="flex gap-2 justify-end">
                                                             <button
                                                                 onClick={() => {
+                                                                    triggerFeedback('light');
                                                                     setEditingNoteId(null);
                                                                     setNoteText("");
                                                                     setSelectedValue("");
@@ -397,12 +425,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             </button>
                                                             <button
                                                                 onClick={async () => {
-                                                                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                                                                        navigator.vibrate(20);
-                                                                    }
+                                                                    triggerFeedback('success');
                                                                     if (!selectedValue) {
-                                                                        // Error handling can stay visual or use toast if critical, but user asked to remove "unnecessary" toasts from bottom
-                                                                        // Let's keep error toast for validation as it's not "success" feedback
                                                                         toast.error("値を選択してください");
                                                                         return;
                                                                     }
@@ -431,6 +455,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
+                                                                triggerFeedback('medium');
                                                                 setEditingNoteId(notice.id);
                                                                 setSelectedValue(existingObs?.value || choices[0] || 'いつも通り');
                                                                 setNoteText(existingObs?.notes || "");
@@ -444,13 +469,12 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     {!isDone ? (
                                                         <div className="flex gap-1.5 flex-wrap">
                                                             {(inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
-                                                                <button
+                                                                <motion.button
                                                                     key={choice}
+                                                                    whileTap={{ scale: 0.9 }}
                                                                     onClick={async (e) => {
                                                                         e.stopPropagation();
-                                                                        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                                                                            navigator.vibrate(15);
-                                                                        }
+                                                                        triggerFeedback('success');
                                                                         if (addObservation) {
                                                                             await addObservation(activeCatId, notice.id, choice);
                                                                         }
@@ -461,7 +485,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                                         }`}
                                                                 >
                                                                     {choice}
-                                                                </button>
+                                                                </motion.button>
                                                             ))}
                                                         </div>
                                                     ) : (
@@ -497,11 +521,16 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 initial={{ opacity: 0, scale: 0.5, x: 20 }}
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.5, x: 20 }}
-                                onClick={onOpenPickup}
+                                whileTap={{ scale: 0.85 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                onClick={() => {
+                                    triggerFeedback('medium');
+                                    onOpenPickup();
+                                }}
                                 className="relative group"
                             >
                                 {/* Main Icon Ring - Double Layer */}
-                                <div className={`w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all group-active:scale-95 ${styles.glassBg} ${styles.glassHover}`}>
+                                <div className={`w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all ${styles.glassBg} ${styles.glassHover}`}>
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-rose-400 flex items-center justify-center shadow-inner ring-2 ring-black/10">
                                         <span className="text-white font-bold text-sm font-sans drop-shadow-md">{activeCount}</span>
                                     </div>
@@ -521,12 +550,14 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 {/* Menu Trigger (Unified Design) */}
                 <div className="pointer-events-auto">
                     <motion.button
-                        whileTap={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 12 }}
                         onClick={(e) => {
                             e.stopPropagation();
+                            triggerFeedback('medium');
                             onOpenCare();
                         }}
-                        className={`group relative w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all active:scale-95 ${styles.glassBg} ${styles.glassHover}`}
+                        className={`group relative w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all ${styles.glassBg} ${styles.glassHover}`}
                     >
                         {/* Inner Circle (For stylistic unity with Pickup) */}
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-inner transition-colors ${isLight ? 'bg-black/5 group-hover:bg-black/10' : 'bg-white/10 group-hover:bg-white/10'}`}>
