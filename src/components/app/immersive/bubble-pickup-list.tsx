@@ -255,9 +255,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
 
                                             {/* Action Icon */}
                                             <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white/20 group-hover:border-white/40 transition-all bg-white/5">
-                                                <Check className="w-4 h-4 text-white/70 group-hover:text-white" />
+                                                <div className="w-4 h-4 rounded-full border-2 border-white/40 group-hover:border-white/80 transition-colors" />
                                             </div>
                                         </motion.button>
+
                                     ))}
                                 </div>
                             )}
