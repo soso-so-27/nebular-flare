@@ -1,16 +1,10 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAppState } from "@/store/app-store";
-import { Card, CardContent } from "@/components/ui/card";
-import { Cat as CatIcon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, RotateCcw, Settings, Edit, Cake, Scale, Cpu, FileText } from "lucide-react";
-import { CatObservationList } from "./cat-observation-list";
-import { getCatchUpItems, CatchUpItem } from "@/lib/utils-catchup";
-import { CatchUpStack } from "./catch-up-stack";
-import { toast } from "sonner";
+import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import { haptics } from "@/lib/haptics";
+import { motion } from "framer-motion";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { WeightChart } from "./weight-chart";
 import { CatEditModal } from "./cat-edit-modal";
@@ -25,150 +19,12 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
         cats,
         activeCatId,
         setActiveCatId,
-        tasks,
-        noticeLogs,
-        setNoticeLogs,
-        inventory,
-        lastSeenAt,
-        settings,
-        careTaskDefs,
-        careLogs,
-        noticeDefs,
-        observations,
         isDemo,
-        addObservation,
-        acknowledgeObservation,
         addCatWeightRecord
     } = useAppState();
     const selectedCat = cats.find(c => c.id === activeCatId) || cats[0];
 
-    const [internalShowSwipeMode, setInternalShowSwipeMode] = useState(false);
-    const [progressIndex, setProgressIndex] = useState(0);
-    const [lastAction, setLastAction] = useState<{ item: CatchUpItem; action: 'done' | 'later'; prevIndex: number } | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-    // Combine external and internal swipe mode
-    const showSwipeMode = externalSwipeMode || internalShowSwipeMode;
-    const setShowSwipeMode = (show: boolean) => {
-        setInternalShowSwipeMode(show);
-        onSwipeModeChange?.(show);
-    };
-
-    // Lock body scroll when swipe mode is active
-    useEffect(() => {
-        if (showSwipeMode) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
-        } else {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.height = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.height = '';
-        };
-    }, [showSwipeMode]);
-
-    // Get catchup items and filter for cat-related types (notice)
-    // Defer heavy calculation to unblock navigation
-    const [catchupItems, setCatchupItems] = useState<CatchUpItem[]>([]);
-
-    useEffect(() => {
-        // Run in next tick to allow immediate render
-        const timer = setTimeout(() => {
-            const result = getCatchUpItems({
-                tasks,
-                noticeLogs,
-                inventory,
-                lastSeenAt,
-                settings,
-                cats,
-                careTaskDefs,
-                careLogs,
-                noticeDefs,
-                observations,
-            });
-            setCatchupItems(result.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded'));
-        }, 10);
-        return () => clearTimeout(timer);
-    }, [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs, observations]);
-
-    // FAB will trigger swipe mode - removed auto-show
-
-    async function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later', value?: string) {
-        if (action === 'done' && item.catId) {
-            haptics.success();
-            if (item.type === 'notice') {
-                if (isDemo) {
-                    setNoticeLogs(prev => ({
-                        ...prev,
-                        [item.catId!]: {
-                            ...prev[item.catId!],
-                            [item.id]: {
-                                ...item.payload,
-                                done: true,
-                                later: false
-                            }
-                        }
-                    }));
-                } else {
-                    // Supabase mode: Dismissing an abnormal observation
-                    await acknowledgeObservation(item.id);
-                    // toast.info("確認しました");
-                }
-            } else if (item.type === 'unrecorded') {
-                // Use provided value or default to "いつも通り"
-                const noticeId = item.payload?.noticeId;
-                const recordValue = value || 'いつも通り';
-
-                if (noticeId) {
-                    if (isDemo) {
-                        setNoticeLogs(prev => ({
-                            ...prev,
-                            [item.catId!]: {
-                                ...prev[item.catId!],
-                                [noticeId]: {
-                                    id: `${item.catId}_${noticeId}_${Date.now()}`,
-                                    catId: item.catId,
-                                    noticeId: noticeId,
-                                    value: recordValue,
-                                    at: new Date().toISOString(),
-                                    done: true,
-                                    later: false
-                                }
-                            }
-                        }));
-                    } else {
-                        // Supabase mode: Record observation
-                        await addObservation(item.catId, noticeId, recordValue);
-                        toast.success("記録しました");
-                    }
-                }
-            }
-        } else {
-            // Silently skip
-        }
-    }
-
-    function handleCatChange(direction: 'up' | 'down') {
-        const currentIndex = cats.findIndex(c => c.id === activeCatId);
-        let nextIndex: number;
-        if (direction === 'up') {
-            nextIndex = currentIndex > 0 ? currentIndex - 1 : cats.length - 1;
-        } else {
-            nextIndex = currentIndex < cats.length - 1 ? currentIndex + 1 : 0;
-        }
-        const nextCat = cats[nextIndex];
-        if (nextCat) {
-            setActiveCatId(nextCat.id);
-        }
-    }
 
     // Helper for Age Text
     const getAgeText = () => {
@@ -208,10 +64,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
             />
 
             {/* Main Content */}
-            <div className={cn(
-                "pb-24 transition-all duration-500",
-                showSwipeMode && catchupItems.length > 0 && "blur-xl scale-[0.98] pointer-events-none opacity-50"
-            )}>
+            <div className="pb-24 transition-all duration-500">
 
                 {selectedCat && (
                     <div className="relative mb-8">
@@ -290,32 +143,16 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                                         )}
                                     </motion.div>
                                 </div>
-
-                                {/* Swipe Badge (New Items) */}
-                                {catchupItems.length > 0 && !showSwipeMode && (
-                                    <button
-                                        onClick={() => setShowSwipeMode(true)}
-                                        className="flex flex-col items-center justify-center bg-rose-500 rounded-2xl w-14 h-14 shadow-lg shadow-rose-500/30 animate-pulse border-2 border-white/20 active:scale-95 transition-transform"
-                                    >
-                                        <span className="text-xl font-bold text-white leading-none">{catchupItems.length}</span>
-                                        <span className="text-[10px] text-white/90 font-bold uppercase tracking-wider">未確認</span>
-                                    </button>
-                                )}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Dashboard Content - Single Scroll View - NO TABS */}
-                <div className="px-4 space-y-6">
+                {/* Dashboard Content - Single Scroll View */}
+                <div className="px-4 space-y-6 pt-6">
 
-                    {/* 1. Observation List (Top Priority) */}
-                    <div className="space-y-2">
-                        <CatObservationList />
-                    </div>
-
-                    {/* 2. Weight Chart */}
-                    <div className="pt-6">
+                    {/* 1. Weight Chart (Main Focus) */}
+                    <div>
                         {/* Section Header */}
                         <div className="flex items-center gap-3 mb-4 px-1">
                             <div className="h-px flex-1 bg-border" />
@@ -347,7 +184,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                         </motion.div>
                     </div>
 
-                    {/* 3. Detailed Profile Info */}
+                    {/* 2. Detailed Profile Info */}
                     <div className="pt-4">
                         {/* Section Header */}
                         <div className="flex items-center gap-3 mb-4 px-1">
@@ -408,107 +245,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     </div>
                 </div>
             </div>
-
-            {/* Swipe Card Overlay - Slack style */}
-            <AnimatePresence>
-                {showSwipeMode && catchupItems.length > 0 && progressIndex < catchupItems.length && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 overflow-hidden overscroll-none"
-                        style={{ touchAction: 'none' }}
-                    >
-                        {/* Background Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-slate-900 to-amber-900/20 pointer-events-none" />
-
-                        {/* Header: Back + count + Cat switch + Undo */}
-                        <div className="relative z-10 flex items-center justify-between px-4 pt-12 pb-4">
-                            <button
-                                onClick={() => setShowSwipeMode(false)}
-                                className="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white bg-white/5 rounded-full backdrop-blur-md transition-all active:scale-95"
-                            >
-                                <ChevronDown className="h-6 w-6" />
-                            </button>
-                            <div className="flex flex-col items-center">
-                                <span className="text-slate-400 text-xs font-bold tracking-widest mb-0.5">確認中</span>
-                                <span className="text-white font-bold text-lg">
-                                    <span className="text-amber-500 text-2xl">{catchupItems.length - progressIndex}</span>
-                                    <span className="opacity-50 mx-1">/</span>
-                                    <span className="opacity-50">{catchupItems.length}</span>
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {/* Undo button */}
-                                <button
-                                    onClick={() => {
-                                        if (lastAction) {
-                                            setProgressIndex(lastAction.prevIndex);
-                                            setLastAction(null);
-                                        }
-                                    }}
-                                    className={cn(
-                                        "w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md transition-all active:scale-95",
-                                        lastAction ? "bg-white/10 text-white hover:bg-white/20" : "bg-white/5 text-white/20"
-                                    )}
-                                    disabled={!lastAction}
-                                >
-                                    <RotateCcw className="h-5 w-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Card area */}
-                        <div className="flex-1 px-4 pb-8 relative z-10" style={{ touchAction: 'none' }}>
-                            <div className="w-full h-full relative" style={{ touchAction: 'none' }}>
-                                <CatchUpStack
-                                    items={catchupItems}
-                                    cats={cats}
-                                    onAction={(item, action, value) => {
-                                        // Save for undo
-                                        setLastAction({ item, action, prevIndex: progressIndex });
-                                        handleCatchupAction(item, action, value);
-                                    }}
-                                    onIndexChange={setProgressIndex}
-                                    onVerticalSwipe={handleCatChange}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Footer Spacer (buttons are inside stack now or irrelevant if using gestures) */}
-                        {/* Adding subtle instructional text */}
-                        <div className="pb-10 pt-2 text-center relative z-10">
-                            <p className="text-white/30 text-xs font-medium tracking-wider">左右にスワイプ</p>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Completion Screen */}
-            {showSwipeMode && catchupItems.length > 0 && progressIndex >= catchupItems.length && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950"
-                >
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", duration: 0.5 }}
-                        className="text-8xl mb-8"
-                    >
-                        🎉
-                    </motion.div>
-                    <h3 className="text-3xl font-bold text-white mb-2">完了！</h3>
-                    <p className="text-slate-400 mb-10 text-lg">今日の確認はすべて終わりました。</p>
-                    <button
-                        onClick={() => setShowSwipeMode(false)}
-                        className="px-10 py-4 rounded-full bg-white text-slate-900 font-bold text-lg hover:bg-slate-200 active:scale-95 transition-all shadow-xl shadow-white/10"
-                    >
-                        閉じる
-                    </button>
-                </motion.div>
-            )}
         </div>
     );
 }
+
