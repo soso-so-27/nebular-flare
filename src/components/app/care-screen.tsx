@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { haptics } from "@/lib/haptics";
+import { sounds } from "@/lib/sounds";
 
 const careTypeConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
     breakfast: { icon: <Sun className="h-4 w-4" />, label: "朝ごはん", color: "text-orange-500 bg-orange-100" },
@@ -91,9 +92,10 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
 
     // FAB will trigger swipe mode - removed auto-show
 
-    function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later') {
+    async function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later') {
         if (action === 'done') {
             haptics.success();
+            await sounds.success();
             if (item.type === 'task') {
                 setTasks(prev => prev.map(t =>
                     t.id === item.id ? { ...t, done: true, doneAt: new Date().toISOString() } : t

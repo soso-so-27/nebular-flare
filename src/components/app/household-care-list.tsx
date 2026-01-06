@@ -6,6 +6,7 @@ import { Check, Clock, User, Utensils, Trash2, Home, Camera } from "lucide-react
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";
+import { sounds } from "@/lib/sounds";
 import type { LucideIcon } from "lucide-react";
 
 interface HouseholdCareItem {
@@ -102,6 +103,7 @@ export function HouseholdCareList() {
 
     async function handleToggle(item: HouseholdCareItem) {
         haptics.success();
+        await sounds.success();
         if (isDemo) {
             // Demo mode: update local tasks
             const now = new Date().toISOString();

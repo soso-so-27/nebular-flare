@@ -28,17 +28,17 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
     const isLight = contrastMode === 'light';
 
-    // Helper for interactive feedback
-    const triggerFeedback = (type: 'light' | 'medium' | 'success' = 'light') => {
+    // Helper for interactive feedback - must await sounds for iOS compatibility
+    const triggerFeedback = async (type: 'light' | 'medium' | 'success' = 'light') => {
         if (type === 'light') {
-            sounds.click();
             haptics.impactLight();
+            await sounds.click();
         } else if (type === 'medium') {
-            sounds.pop();
             haptics.impactMedium();
+            await sounds.pop();
         } else if (type === 'success') {
-            sounds.success();
             haptics.success();
+            await sounds.success();
         }
     };
 
