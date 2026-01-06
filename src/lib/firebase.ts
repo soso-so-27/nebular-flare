@@ -30,6 +30,7 @@ export const requestFcmToken = async () => {
 
     if (!app) {
         console.log('[FCM] Skipped: Firebase app not initialized. Check env vars.');
+        alert('[FCM] Firebase not initialized');
         return null;
     }
 
@@ -43,6 +44,7 @@ export const requestFcmToken = async () => {
 
         if (!supported) {
             console.log('[FCM] Firebase Messaging is not supported in this browser/device.');
+            alert('[FCM] このブラウザはプッシュ通知に対応していません');
             return null;
         }
 
@@ -59,10 +61,11 @@ export const requestFcmToken = async () => {
 
         if (permission !== 'granted') {
             console.log('[FCM] Notification permission denied by user');
+            alert('[FCM] 通知の許可が拒否されました');
             return null;
         }
 
-        console.log('[FCM] Getting FCM token...');
+        console.log('[FCM] Getting FCM token with VAPID:', process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.substring(0, 20) + '...');
         const currentToken = await getToken(messaging, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             serviceWorkerRegistration: registration,
@@ -73,13 +76,16 @@ export const requestFcmToken = async () => {
             return currentToken;
         } else {
             console.log('[FCM] No registration token available.');
+            alert('[FCM] トークンが空です');
             return null;
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error('[FCM] Token retrieval failed:', err);
+        alert('[FCM] エラー: ' + (err?.message || err));
         return null;
     }
 };
+
 
 export const getFirebaseMessaging = async () => {
     if (typeof window === 'undefined' || !app) return null;
