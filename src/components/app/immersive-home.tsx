@@ -19,6 +19,7 @@ import { ZenGestures } from "./immersive/zen-gestures";
 import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
 import { analyzeImageBrightness } from "@/lib/image-analysis";
+import { unlockAudio } from "@/lib/sounds";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -47,6 +48,21 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     // Feature 4: Ambient Light (Night Mode)
     const [isNight, setIsNight] = useState(false);
+
+    // iOS Audio Unlock: Must unlock audio context on first user touch
+    useEffect(() => {
+        const handleFirstTouch = () => {
+            unlockAudio();
+            document.removeEventListener('touchstart', handleFirstTouch);
+            document.removeEventListener('click', handleFirstTouch);
+        };
+        document.addEventListener('touchstart', handleFirstTouch, { once: true });
+        document.addEventListener('click', handleFirstTouch, { once: true });
+        return () => {
+            document.removeEventListener('touchstart', handleFirstTouch);
+            document.removeEventListener('click', handleFirstTouch);
+        };
+    }, []);
 
     // Feature: Random Photo on Open (pick a random photo each time app is opened)
     // Note: randomPhotoIndex is now calculated via useMemo below
