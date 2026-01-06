@@ -49,19 +49,26 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     // Feature 4: Ambient Light (Night Mode)
     const [isNight, setIsNight] = useState(false);
 
-    // iOS Audio Unlock: Must unlock audio context on first user touch
-    // Using touchend (not touchstart) for better iOS Safari compatibility
+    // iOS Audio Unlock Strategy: Aggressive
+    // Listen to multiple events to ensure audio context is resumed as early as possible
     useEffect(() => {
-        const handleFirstTouch = () => {
-            unlockAudio();
-            document.removeEventListener('touchend', handleFirstTouch);
-            document.removeEventListener('click', handleFirstTouch);
+        const attemptUnlock = () => {
+            unlockAudio().then(success => {
+                if (success) {
+                    // Optional: remove listeners if we are 100% sure it's stable
+                    // But for iOS, keeping them might be safer to handle re-suspend
+                    // document.removeEventListener('touchstart', attemptUnlock);
+                    // document.removeEventListener('touchend', attemptUnlock);
+                    // document.removeEventListener('click', attemptUnlock);
+                }
+            });
         };
-        document.addEventListener('touchend', handleFirstTouch, { once: true, passive: true });
-        document.addEventListener('click', handleFirstTouch, { once: true });
+
+        const events = ['touchstart', 'touchend', 'click', 'keydown'];
+        events.forEach(e => document.addEventListener(e, attemptUnlock, { passive: true }));
+
         return () => {
-            document.removeEventListener('touchend', handleFirstTouch);
-            document.removeEventListener('click', handleFirstTouch);
+            events.forEach(e => document.removeEventListener(e, attemptUnlock));
         };
     }, []);
 
