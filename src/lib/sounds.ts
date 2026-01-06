@@ -1,248 +1,161 @@
 // Simple sound synthesis utility for satisfying button feedback
-// Uses Web Audio API for lightweight, instantaneous sounds
-// Handles mobile browser autoplay restrictions
+// Simplified for maximum iOS compatibility
 
 let audioContext: AudioContext | null = null;
 let isUnlocked = false;
 
 function getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+    try {
+        if (!audioContext) {
+            // Use standard AudioContext
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+                audioContext = new AudioContextClass();
+            }
+        }
+        return audioContext;
+    } catch (e) {
+        console.error('[Audio] Failed to create context:', e);
+        return null;
     }
-    return audioContext;
 }
 
-// Must be called on user gesture to unlock audio on mobile
+// Ensure AudioContext is running
+async function resumeContext(ctx: AudioContext): Promise<boolean> {
+    if (ctx.state === 'suspended') {
+        try {
+            await ctx.resume();
+            console.log('[Audio] Resumed context, state:', ctx.state);
+        } catch (e) {
+            console.error('[Audio] Failed to resume context:', e);
+            return false;
+        }
+    }
+    return ctx.state === 'running';
+}
+
+// Unlock audio on first user interaction
 export async function unlockAudio(): Promise<boolean> {
     const ctx = getAudioContext();
     if (!ctx) return false;
 
-    // Already unlocked
-    if (isUnlocked && ctx.state === 'running') return true;
+    // Try to resume
+    await resumeContext(ctx);
 
+    // Play a silent buffer to force unlock
     try {
-        // iOS requires resume() to be called during user gesture
-        if (ctx.state === 'suspended') {
-            await ctx.resume();
-        }
-
-        // Play a silent sound via Web Audio API to fully unlock
         const buffer = ctx.createBuffer(1, 1, 22050);
         const source = ctx.createBufferSource();
         source.buffer = buffer;
         source.connect(ctx.destination);
-
-        source.onended = () => {
-            source.disconnect();
-        };
-
         source.start(0);
 
-        // iOS additional workaround: Also touch an HTML Audio element if exists
+        // Also try the HTML audio workaround
         const silentAudio = document.getElementById('silent-audio-unlock') as HTMLAudioElement;
         if (silentAudio) {
-            try {
-                silentAudio.volume = 0; // Ensure silence
-                await silentAudio.play();
-                // Don't pause immediately, let it play a bit
-            } catch (e) {
-                // Ignore
-            }
+            silentAudio.play().catch(() => { });
         }
 
         isUnlocked = true;
-        console.log('[Audio] Unlocked successfully, state:', ctx.state);
+        console.log('[Audio] Unlocked successfully');
         return true;
     } catch (e) {
-        console.warn('[Audio] Failed to unlock:', e);
+        console.error('[Audio] Unlock failed:', e);
         return false;
     }
 }
 
-// Check if audio is ready
 export function isAudioUnlocked(): boolean {
     return isUnlocked;
 }
 
-// Helper to ensure audio is unlocked before playing
-async function ensureUnlocked(): Promise<AudioContext | null> {
-    const ctx = getAudioContext();
-    if (!ctx) return null;
-
-    // Always try to resume if suspended (iOS aggressive suspend)
-    if (ctx.state === 'suspended') {
-        try {
-            await ctx.resume();
-        } catch (e) {
-            console.error('[Audio] Failed to resume:', e);
-        }
+// Generic sound player that handles node creation/cleanup properly
+const playTone = async (
+    freqStart: number,
+    freqEnd: number,
+    details: {
+        duration: number,
+        type?: OscillatorType,
+        volStart?: number,
+        volEnd?: number
     }
+) => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
 
-    return ctx;
-}
+    // Important: Always try to resume context on iOS before playing
+    await resumeContext(ctx);
+
+    try {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = details.type || 'sine';
+        osc.frequency.setValueAtTime(freqStart, t);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, t + details.duration);
+
+        gain.gain.setValueAtTime(details.volStart ?? 0.3, t);
+        gain.gain.exponentialRampToValueAtTime(details.volEnd ?? 0.01, t + details.duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(t);
+        osc.stop(t + details.duration);
+
+        // Schedule cleanup
+        setTimeout(() => {
+            osc.disconnect();
+            gain.disconnect();
+        }, (details.duration + 0.1) * 1000);
+
+    } catch (e) {
+        console.error('[Audio] Play error:', e);
+    }
+};
 
 export const sounds = {
-    // Pop sound - like a bubble popping
-    pop: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
+    pop: () => playTone(400, 150, { duration: 0.1 }),
+    click: () => playTone(600, 200, { duration: 0.05, type: 'square', volStart: 0.2 }),
+    bounce: () => playTone(800, 400, { duration: 0.15, volStart: 0.25 }),
+    toggleOn: () => playTone(300, 500, { duration: 0.1, volStart: 0.2 }),
+    toggleOff: () => playTone(500, 300, { duration: 0.1, volStart: 0.2 }),
 
-        try {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.frequency.setValueAtTime(400, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
-
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-            osc.onended = () => {
-                osc.disconnect();
-                gain.disconnect();
-            };
-
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.1);
-        } catch (e) {
-            console.error('[Audio] pop error:', e);
-        }
-    },
-
-    // Click sound - sharp and snappy
-    click: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        try {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(600, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.05);
-
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-
-            osc.onended = () => {
-                osc.disconnect();
-                gain.disconnect();
-            };
-
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.05);
-        } catch (e) {
-            console.error('[Audio] click error:', e);
-        }
-    },
-
-    // Success chime - happy ascending tone
     success: async () => {
-        const ctx = await ensureUnlocked();
+        const ctx = getAudioContext();
         if (!ctx) return;
+        await resumeContext(ctx);
 
-        try {
-            const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
-            const now = ctx.currentTime;
+        const now = ctx.currentTime;
+        const tones = [523.25, 659.25, 783.99]; // C E G
 
-            frequencies.forEach((freq, i) => {
+        tones.forEach((freq, i) => {
+            try {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
 
                 osc.connect(gain);
                 gain.connect(ctx.destination);
 
-                osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, now + i * 0.1);
 
                 gain.gain.setValueAtTime(0, now + i * 0.1);
-                gain.gain.linearRampToValueAtTime(0.25, now + i * 0.1 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
-
-                osc.onended = () => {
-                    osc.disconnect();
-                    gain.disconnect();
-                };
+                gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
 
                 osc.start(now + i * 0.1);
-                osc.stop(now + i * 0.1 + 0.2);
-            });
-        } catch (e) {
-            console.error('[Audio] success error:', e);
-        }
-    },
+                osc.stop(now + i * 0.1 + 0.3);
 
-    // Bounce sound - playful spring
-    bounce: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.15);
-
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.15);
-    },
-
-    // Toggle on - soft ascending
-    toggleOn: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
-
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.1);
-    },
-
-    // Toggle off - soft descending
-    toggleOff: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
-
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.1);
-    },
+                setTimeout(() => {
+                    osc.disconnect();
+                    gain.disconnect();
+                }, 500);
+            } catch (e) {
+                console.error('[Audio] Success tone error:', e);
+            }
+        });
+    }
 };
