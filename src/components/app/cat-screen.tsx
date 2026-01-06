@@ -56,196 +56,175 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
     }
 
     return (
-        <div className="relative min-h-screen bg-background">
+        <div className="relative min-h-screen bg-slate-950 text-white overflow-hidden">
             <CatEditModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 catId={activeCatId}
             />
 
-            {/* Main Content */}
-            <div className="pb-24 transition-all duration-500">
-
-                {selectedCat && (
-                    <div className="relative mb-8">
-                        {/* Immersive Hero Header - Seamless Edge-to-Edge */}
-                        <div className="relative h-[280px] w-full overflow-hidden z-0">
-                            {(selectedCat.avatar?.startsWith('http') || selectedCat.avatar?.startsWith('/')) ? (
-                                <img src={selectedCat.avatar} alt={selectedCat.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 text-8xl">
-                                    {selectedCat.avatar || "🐈"}
-                                </div>
-                            )}
-                            {/* Gradient Overlay - Top and Bottom for seamless integration */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
-
-                            {/* Header Controls (Floating) */}
-                            <div className="absolute top-4 right-4 z-10 flex gap-2">
-                                <button
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="p-3 bg-black/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/20 transition-all active:scale-95"
-                                >
-                                    <Edit className="h-5 w-5" />
-                                </button>
-                            </div>
-
-                            {/* Cat Switcher (Floating Top Left) */}
-                            {cats.length > 1 && (
-                                <div className="absolute top-4 left-4 z-10 flex gap-2 overflow-x-auto scrollbar-hide max-w-[60%] py-1 px-1">
-                                    {cats.map(cat => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => setActiveCatId(cat.id)}
-                                            className={cn(
-                                                "w-10 h-10 rounded-full border-2 overflow-hidden transition-all flex-shrink-0 shadow-lg",
-                                                activeCatId === cat.id
-                                                    ? "border-amber-500 scale-110 ring-2 ring-amber-500/50 z-10"
-                                                    : "border-white/50 opacity-70 hover:opacity-100 hover:scale-105"
-                                            )}
-                                        >
-                                            {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
-                                                <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full bg-slate-200 flex items-center justify-center text-xs">{cat.avatar || "🐈"}</div>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Info Overlay (Bottom Left) */}
-                            <div className="absolute bottom-0 left-0 w-full p-6 pb-8 flex items-end justify-between">
-                                <div>
-                                    <motion.h1
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="text-4xl font-extrabold text-white drop-shadow-md mb-2 tracking-tight"
-                                    >
-                                        {selectedCat.name}
-                                    </motion.h1>
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="flex items-center gap-2 text-white/95 font-medium text-sm"
-                                    >
-                                        <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
-                                            {selectedCat.sex === 'オス' ? '♂ 男の子' : selectedCat.sex === 'メス' ? '♀ 女の子' : '性別不明'}
-                                        </span>
-                                        <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
-                                            {getAgeText()}
-                                        </span>
-                                        {selectedCat.weight && (
-                                            <span className="bg-white/15 backdrop-blur-lg px-3 py-1.5 rounded-full border border-white/20 shadow-sm">
-                                                {selectedCat.weight}kg
-                                            </span>
-                                        )}
-                                    </motion.div>
-                                </div>
-                            </div>
+            {/* 1. Full Screen Background Layer */}
+            {selectedCat && (
+                <div className="fixed inset-0 z-0">
+                    {(selectedCat.avatar?.startsWith('http') || selectedCat.avatar?.startsWith('/')) ? (
+                        <motion.img
+                            key={selectedCat.id}
+                            initial={{ opacity: 0, scale: 1.1 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.7 }}
+                            src={selectedCat.avatar}
+                            alt={selectedCat.name}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-amber-900">
+                            <span className="text-9xl">{selectedCat.avatar || "🐈"}</span>
                         </div>
+                    )}
+                    {/* Dark Overlay for readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30" />
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+                </div>
+            )}
+
+            {/* 2. Main Scrollable Content */}
+            <div className="relative z-10 h-screen overflow-y-auto overflow-x-hidden pb-32 scrollbar-hide">
+
+                {/* Header Actions */}
+                <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-4">
+                    {/* Cat Switcher */}
+                    <div className="flex gap-2 p-1 overflow-x-auto scrollbar-hide max-w-[70%] mask-linear-fade">
+                        {cats.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCatId(cat.id)}
+                                className={cn(
+                                    "w-10 h-10 rounded-full border border-white/20 overflow-hidden transition-all flex-shrink-0 shadow-lg relative",
+                                    activeCatId === cat.id
+                                        ? "scale-110 ring-2 ring-amber-500 z-10"
+                                        : "opacity-60 hover:opacity-100 scale-95 grayscale"
+                                )}
+                            >
+                                {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
+                                    <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-xs">{cat.avatar || "🐈"}</div>
+                                )}
+                            </button>
+                        ))}
                     </div>
-                )}
 
-                {/* Dashboard Content - Single Scroll View */}
-                <div className="px-4 space-y-6 pt-6">
+                    <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="p-2.5 bg-black/20 backdrop-blur-md border border-white/10 rounded-full text-white/80 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                    >
+                        <Edit className="h-5 w-5" />
+                    </button>
+                </div>
 
-                    {/* 1. Weight Chart (Main Focus) */}
-                    <div>
-                        {/* Section Header */}
-                        <div className="flex items-center gap-3 mb-4 px-1">
-                            <div className="h-px flex-1 bg-border" />
-                            <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">健康管理</span>
-                            <div className="h-px flex-1 bg-border" />
+                {/* Hero Section */}
+                <div className="px-6 pt-10 pb-8 flex flex-col items-center text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-6"
+                    >
+                        <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 drop-shadow-2xl mb-3 tracking-tight leading-none">
+                            {selectedCat.name}
+                        </h1>
+                        <div className="flex items-center justify-center gap-2 text-white/80 text-sm font-medium">
+                            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
+                                {selectedCat.sex === 'オス' ? '♂ 男の子' : selectedCat.sex === 'メス' ? '♀ 女の子' : '性別不明'}
+                            </span>
+                            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
+                                {getAgeText()}
+                            </span>
                         </div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-card p-5 rounded-2xl shadow-md border border-border"
-                        >
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
-                                    <Scale className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-foreground text-base">体重推移</h3>
-                                    <p className="text-xs text-muted-foreground">健康管理の基本です</p>
-                                </div>
-                            </div>
+                    </motion.div>
+                </div>
+
+                {/* Glass Content Area */}
+                <div className="px-4 space-y-4">
+
+                    {/* Weight Chart Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-2xl overflow-hidden relative"
+                    >
+                        {/* Decorative background glow */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                        <div className="relative z-10">
                             <WeightChart
                                 catId={activeCatId}
                                 currentWeight={selectedCat?.weight || undefined}
                                 weightHistory={selectedCat?.weightHistory || []}
                                 onAddWeight={(w, n) => addCatWeightRecord(activeCatId, w, n)}
                                 isDemo={isDemo}
+                                variant="glass"
                             />
+                        </div>
+                    </motion.div>
+
+                    {/* Profile Stats Cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="rounded-3xl bg-black/20 backdrop-blur-lg border border-white/10 p-4 shadow-lg flex flex-col items-center justify-center text-center gap-2"
+                        >
+                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-amber-300 mb-1">
+                                <Cake className="w-5 h-5" />
+                            </div>
+                            <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Birthday</div>
+                            <div className="text-lg font-bold text-white">
+                                {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '---'}
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.25 }}
+                            className="rounded-3xl bg-black/20 backdrop-blur-lg border border-white/10 p-4 shadow-lg flex flex-col items-center justify-center text-center gap-2"
+                        >
+                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-300 mb-1">
+                                <Cpu className="w-5 h-5" />
+                            </div>
+                            <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Microchip</div>
+                            <div className="text-sm font-mono font-bold text-white/90">
+                                {selectedCat.microchip_id || '---'}
+                            </div>
                         </motion.div>
                     </div>
 
-                    {/* 2. Detailed Profile Info */}
-                    <div className="pt-4">
-                        {/* Section Header */}
-                        <div className="flex items-center gap-3 mb-4 px-1">
-                            <div className="h-px flex-1 bg-border" />
-                            <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">プロフィール</span>
-                            <div className="h-px flex-1 bg-border" />
-                        </div>
+                    {/* Notes Card */}
+                    {selectedCat?.notes && (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="grid grid-cols-1 gap-3"
+                            className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-lg"
                         >
-                            <div className="bg-card p-4 rounded-2xl shadow-sm border border-border flex items-center">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                        <Cake className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-medium text-muted-foreground mb-0.5">誕生日</div>
-                                        <div className="text-base font-bold text-foreground">
-                                            {selectedCat?.birthday ? format(new Date(selectedCat.birthday), 'yyyy.MM.dd') : '未設定'}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="flex items-center gap-2 mb-3 text-white/70">
+                                <FileText className="w-4 h-4" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Memo</span>
                             </div>
-
-                            {selectedCat?.microchip_id && (
-                                <div className="bg-card p-4 rounded-2xl shadow-sm border border-border flex items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                            <Cpu className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-medium text-muted-foreground mb-0.5">マイクロチップID</div>
-                                            <div className="text-base font-mono font-bold text-foreground tracking-wide">
-                                                {selectedCat.microchip_id}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {selectedCat?.notes && (
-                                <div className="bg-card p-4 rounded-2xl shadow-sm border border-border">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="p-1.5 bg-muted rounded-lg text-muted-foreground">
-                                            <FileText className="w-4 h-4" />
-                                        </div>
-                                        <h3 className="font-bold text-foreground text-sm">メモ</h3>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed bg-muted/50 p-3 rounded-xl">
-                                        {selectedCat.notes}
-                                    </div>
-                                </div>
-                            )}
+                            <div className="text-sm text-white/90 whitespace-pre-wrap leading-relaxed">
+                                {selectedCat.notes}
+                            </div>
                         </motion.div>
-                    </div>
+                    )}
+
+                    {/* Bottom Spacer for global fab/nav */}
+                    <div className="h-20" />
                 </div>
             </div>
         </div>
     );
 }
+
 

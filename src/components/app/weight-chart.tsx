@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Plus, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface WeightRecord {
     id: string;
@@ -21,12 +22,19 @@ interface WeightChartProps {
     weightHistory: WeightRecord[];
     onAddWeight: (weight: number, notes?: string) => Promise<any>;
     isDemo?: boolean;
+    variant?: 'default' | 'glass';
 }
 
-export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo }: WeightChartProps) {
+export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo, variant = 'default' }: WeightChartProps) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newWeight, setNewWeight] = useState(currentWeight?.toString() || "");
     const [notes, setNotes] = useState("");
+
+    const isGlass = variant === 'glass';
+    const axisColor = isGlass ? '#ffffff80' : '#94a3b8';
+    const gridColor = isGlass ? '#ffffff20' : '#e2e8f0';
+    const textColor = isGlass ? '#ffffff' : '#1e293b';
+    const cardBg = isGlass ? 'bg-white/10 backdrop-blur-md border border-white/10 text-white' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white';
 
     // Prepare chart data
     const chartData = useMemo(() => {
@@ -96,14 +104,18 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">体重推移</span>
+                    <span className={cn("text-sm font-medium", isGlass ? "text-white/90" : "text-slate-700 dark:text-slate-200")}>体重推移</span>
                     {trend && (
-                        <span className={`flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${trend.direction === 'up'
-                            ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                            : trend.direction === 'down'
-                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                            }`}>
+                        <span className={cn(
+                            "flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full",
+                            isGlass
+                                ? "bg-white/20 text-white backdrop-blur-sm"
+                                : trend.direction === 'up'
+                                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                    : trend.direction === 'down'
+                                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                        )}>
                             {trend.direction === 'up' && <TrendingUp className="h-3 w-3" />}
                             {trend.direction === 'down' && <TrendingDown className="h-3 w-3" />}
                             {trend.direction === 'stable' && <Minus className="h-3 w-3" />}
@@ -113,7 +125,10 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                 </div>
                 <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    className={cn(
+                        "flex items-center gap-1 text-xs transition-colors",
+                        isGlass ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    )}
                 >
                     <Plus className="h-3 w-3" />
                     記録
@@ -125,24 +140,24 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                 <div className="h-40 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={displayData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                             <XAxis
                                 dataKey="date"
-                                tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                axisLine={{ stroke: '#e2e8f0' }}
+                                tick={{ fontSize: 10, fill: axisColor }}
+                                axisLine={{ stroke: gridColor }}
                             />
                             <YAxis
                                 domain={['dataMin - 0.2', 'dataMax + 0.2']}
-                                tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                axisLine={{ stroke: '#e2e8f0' }}
+                                tick={{ fontSize: 10, fill: axisColor }}
+                                axisLine={{ stroke: gridColor }}
                                 tickFormatter={(value) => `${value}kg`}
                             />
                             <Tooltip
                                 content={({ active, payload }) => {
                                     if (active && payload && payload.length) {
                                         return (
-                                            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg px-3 py-2 text-xs">
-                                                <p className="text-slate-500">{payload[0].payload.fullDate}</p>
+                                            <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-lg shadow-lg px-3 py-2 text-xs border border-white/20">
+                                                <p className="text-slate-500 dark:text-slate-400">{payload[0].payload.fullDate}</p>
                                                 <p className="font-bold text-slate-800 dark:text-white">{payload[0].value} kg</p>
                                             </div>
                                         );
@@ -153,17 +168,20 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                             <Line
                                 type="monotone"
                                 dataKey="weight"
-                                stroke="#f59e0b"
+                                stroke={isGlass ? "#fbbf24" : "#f59e0b"}
                                 strokeWidth={2}
-                                dot={{ fill: '#f59e0b', strokeWidth: 0, r: 4 }}
-                                activeDot={{ r: 6, fill: '#d97706' }}
+                                dot={{ fill: isGlass ? "#fbbf24" : "#f59e0b", strokeWidth: 0, r: 4 }}
+                                activeDot={{ r: 6, fill: isGlass ? "#fff" : "#d97706" }}
                             />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
             ) : (
-                <div className="h-24 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    <p className="text-sm text-slate-400">記録がありません</p>
+                <div className={cn(
+                    "h-24 flex items-center justify-center rounded-xl",
+                    isGlass ? "bg-white/5 border border-white/10" : "bg-slate-50 dark:bg-slate-800"
+                )}>
+                    <p className={cn("text-sm", isGlass ? "text-white/40" : "text-slate-400")}>記録がありません</p>
                 </div>
             )}
 
