@@ -5,6 +5,40 @@
 let audioContext: AudioContext | null = null;
 let isUnlocked = false;
 
+// iOS fallback: Pre-loaded Audio elements
+// Base64 encoded short beep sounds
+const BEEP_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleQARj8PO1Z5NExNrl7vSt30kADqDsNPJkkcLA0yEqMnKnlkPADJ4pM3EjD8SCz5vos/MnFgOAC9vn83Jkz4RDjZnns7QnlwQAC5nn83MmEMTDjFhm8zRo2MSAC1hm8zOmUYVDy5dlsjTqGgUACxelsfNmEQUECxcksfTq2oVACpck8bMl0IUECpakMTSrG0WACpZj8TNmEQUEClXjcLQrG0WACdYjMLNl0IUEChVir/PrGwXAqZWir/OmEQTECdTh77OrGwXAqZVh77OmEQTECZShrLMrmwYAqRUhrPNmEQTDyVRhLDLrmwYAqNThbPNmEQTDyRQg6/KrmwYAqNSg7DOmUUTDyROgq7JrWwZAqJRgq/NmUUTDyNOga3IrWwZAqFQga7NmUYTDiJMf6zHrG0ZAqBPf6zMmUYTDiFMfqvGrG0aAp9OfqzLmkYSDiBLfKrFq20aAp5NfavLm0YSDh9Ke6nFq24aAp1Me6rKm0YSDR5KeanEqm4bApxLeanKnUcSDR1JeKjDqm4bAptKeafKnkcSDRxIdqfCqW8cAplJdqbJnkgRDBtHdabBqW8cAphIdKXInkgRDBpGc6XAqHAcApdHc6THnkkRCxpFcqS/qHAdAZZGcqPHn0kRCxlEcaO+p3AdAZVFcaLGn0oRChpDcKK+pnEeAZREb6LFoEoRChpDb6G9pXIeAZNDb6DFoUsQChlBbqC8pHIfAZJCbaDF oUsQCRlAbqC8pHIfAZFBbJ+9o3MfAZBBbJ+8onQg';
+
+// Pool of pre-created Audio elements for reuse
+let audioPool: HTMLAudioElement[] = [];
+let poolIndex = 0;
+
+function getPooledAudio(): HTMLAudioElement | null {
+    if (typeof window === 'undefined') return null;
+
+    // Create pool on first use
+    if (audioPool.length === 0) {
+        for (let i = 0; i < 5; i++) {
+            const audio = new Audio(BEEP_SOUND);
+            audio.preload = 'auto';
+            audio.volume = 0.3;
+            audioPool.push(audio);
+        }
+    }
+
+    // Round-robin through the pool
+    const audio = audioPool[poolIndex];
+    poolIndex = (poolIndex + 1) % audioPool.length;
+    return audio;
+}
+
+// Detect iOS
+function isIOS(): boolean {
+    if (typeof window === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!audioContext) {
@@ -98,6 +132,21 @@ async function ensureUnlocked(): Promise<AudioContext | null> {
 export const sounds = {
     // Pop sound - like a bubble popping
     pop: async () => {
+        // iOS fallback: Use pre-loaded Audio element
+        if (isIOS()) {
+            const audio = getPooledAudio();
+            if (audio) {
+                try {
+                    audio.currentTime = 0;
+                    await audio.play();
+                    console.log('[Audio] pop played (iOS fallback)');
+                    return;
+                } catch (e) {
+                    console.warn('[Audio] iOS audio fallback failed:', e);
+                }
+            }
+        }
+
         const ctx = await ensureUnlocked();
         if (!ctx) {
             console.warn('[Audio] pop: No context');
@@ -132,6 +181,21 @@ export const sounds = {
 
     // Click sound - sharp and snappy
     click: async () => {
+        // iOS fallback: Use pre-loaded Audio element
+        if (isIOS()) {
+            const audio = getPooledAudio();
+            if (audio) {
+                try {
+                    audio.currentTime = 0;
+                    await audio.play();
+                    console.log('[Audio] click played (iOS fallback)');
+                    return;
+                } catch (e) {
+                    console.warn('[Audio] iOS audio fallback failed:', e);
+                }
+            }
+        }
+
         const ctx = await ensureUnlocked();
         if (!ctx) {
             console.warn('[Audio] click: No context');
@@ -159,7 +223,7 @@ export const sounds = {
 
             osc.start(ctx.currentTime);
             osc.stop(ctx.currentTime + 0.05);
-            console.log('[Audio] click played');
+            console.log('[Audio] click played (Web Audio)');
         } catch (e) {
             console.error('[Audio] click error:', e);
         }
@@ -167,6 +231,21 @@ export const sounds = {
 
     // Success chime - happy ascending tone
     success: async () => {
+        // iOS fallback: Use pre-loaded Audio element
+        if (isIOS()) {
+            const audio = getPooledAudio();
+            if (audio) {
+                try {
+                    audio.currentTime = 0;
+                    await audio.play();
+                    console.log('[Audio] success played (iOS fallback)');
+                    return;
+                } catch (e) {
+                    console.warn('[Audio] iOS audio fallback failed:', e);
+                }
+            }
+        }
+
         const ctx = await ensureUnlocked();
         if (!ctx) {
             console.warn('[Audio] success: No context');
