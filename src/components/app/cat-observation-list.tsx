@@ -13,7 +13,7 @@ interface CatObservation {
     label: string;
     Icon: LucideIcon;
     type: string; // for Supabase observation type
-    inputType?: 'ok-notice' | 'count' | 'choice';
+    inputType?: 'ok-notice' | 'count' | 'choice' | 'photo';
     category?: string;
     done: boolean;
     value?: string;
