@@ -28,17 +28,22 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
     const isLight = contrastMode === 'light';
 
-    // Helper for interactive feedback - must await sounds for iOS compatibility
-    const triggerFeedback = async (type: 'light' | 'medium' | 'success' = 'light') => {
-        if (type === 'light') {
-            haptics.impactLight();
-            await sounds.click();
-        } else if (type === 'medium') {
-            haptics.impactMedium();
-            await sounds.pop();
-        } else if (type === 'success') {
-            haptics.success();
-            await sounds.success();
+    // Helper for interactive feedback
+    // Removed await to prevent UI blocking if audio fails
+    const triggerFeedback = (type: 'light' | 'medium' | 'success' = 'light') => {
+        try {
+            if (type === 'light') {
+                haptics.impactLight();
+                sounds.click().catch(e => console.warn(e));
+            } else if (type === 'medium') {
+                haptics.impactMedium();
+                sounds.pop().catch(e => console.warn(e));
+            } else if (type === 'success') {
+                haptics.success();
+                sounds.success().catch(e => console.warn(e));
+            }
+        } catch (e) {
+            console.warn('Feedback error:', e);
         }
     };
 

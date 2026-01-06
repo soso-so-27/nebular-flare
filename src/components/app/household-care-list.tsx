@@ -103,7 +103,7 @@ export function HouseholdCareList() {
 
     async function handleToggle(item: HouseholdCareItem) {
         haptics.success();
-        await sounds.success();
+        sounds.success().catch(e => console.warn(e));
         if (isDemo) {
             // Demo mode: update local tasks
             const now = new Date().toISOString();
