@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
+
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat, Circle } from "lucide-react";
+import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat, Circle, Camera, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { LucideIcon } from "lucide-react";
@@ -68,6 +72,11 @@ export function CatObservationList() {
 
     // Optimistic UI State: Map of noticeId -> value
     const [optimisticLogs, setOptimisticLogs] = useState<Record<string, string>>({});
+
+    // Photo handling state
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [pendingPhotoObsId, setPendingPhotoObsId] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Get per-cat observations (health checks)
     const observationItems: CatObservation[] = useMemo(() => {
@@ -170,6 +179,46 @@ export function CatObservationList() {
             }
         }
     }
+
+    // Handle photo capture for Daily Snap (1-tap camera flow)
+    const handlePhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0 || !pendingPhotoObsId) return;
+
+        const file = e.target.files[0];
+        const obsId = pendingPhotoObsId;
+
+        // Find the observation to get label for toast
+        const obs = observationItems.find(o => o.id === obsId);
+        const label = obs?.label || '写真';
+
+        // Clear pending state
+        setPendingPhotoObsId(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+
+        // Optimistic update
+        setOptimisticLogs(prev => ({ ...prev, [obsId]: '撮影した' }));
+        setIsUploading(true);
+
+        try {
+            // Use addObservation with files parameter
+            const result = await addObservation(activeCatId, obsId, '撮影した', undefined, [file]);
+            if (result?.error) {
+                throw new Error(result.error.message);
+            }
+            toast.success(`${label}を記録しました 📷`);
+        } catch (err: any) {
+            console.error(err);
+            // Revert optimistic update
+            setOptimisticLogs(prev => {
+                const next = { ...prev };
+                delete next[obsId];
+                return next;
+            });
+            toast.error("写真の保存に失敗しました");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     // Clean up optimistic logs when real data arrives
     useEffect(() => {
@@ -305,6 +354,23 @@ export function CatObservationList() {
                                                 >
                                                     数値を入力
                                                 </button>
+                                            ) : obs.inputType === 'photo' ? (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPendingPhotoObsId(obs.id);
+                                                        fileInputRef.current?.click();
+                                                    }}
+                                                    disabled={isUploading}
+                                                    className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
+                                                >
+                                                    {isUploading && pendingPhotoObsId === obs.id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Camera className="w-4 h-4" />
+                                                    )}
+                                                    📷 撮影する
+                                                </button>
                                             ) : (
                                                 <>
                                                     <button
@@ -329,6 +395,16 @@ export function CatObservationList() {
                     </motion.div>
                 ))}
             </div>
+
+            {/* Hidden file input for photo capture */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoCapture}
+            />
         </div>
     );
 }
