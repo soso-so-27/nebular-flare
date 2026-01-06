@@ -65,6 +65,20 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         };
     }, []);
 
+    // Re-unlock audio when page returns from background (iOS suspends AudioContext)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log('[App] Page became visible, re-unlocking audio');
+                unlockAudio();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
     // Feature: Random Photo on Open (pick a random photo each time app is opened)
     // Note: randomPhotoIndex is now calculated via useMemo below
 

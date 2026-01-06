@@ -61,12 +61,35 @@ export function isAudioUnlocked(): boolean {
 }
 
 // Helper to ensure audio is unlocked before playing
+// iOS Safari may re-suspend AudioContext, so we check every time
 async function ensureUnlocked(): Promise<AudioContext | null> {
     const ctx = getAudioContext();
-    if (!ctx) return null;
+    if (!ctx) {
+        console.warn('[Audio] No AudioContext available');
+        return null;
+    }
 
-    if (!isUnlocked || ctx.state === 'suspended') {
-        await unlockAudio();
+    // Always check state - iOS can re-suspend at any time
+    if (ctx.state === 'suspended') {
+        console.log('[Audio] Context suspended, attempting resume...');
+        try {
+            await ctx.resume();
+            console.log('[Audio] Context resumed, state:', ctx.state);
+        } catch (e) {
+            console.error('[Audio] Failed to resume:', e);
+            return null;
+        }
+    }
+
+    // Double-check state after resume attempt
+    if (ctx.state !== 'running') {
+        console.warn('[Audio] Context still not running:', ctx.state);
+        // Try one more time
+        try {
+            await ctx.resume();
+        } catch (e) {
+            console.error('[Audio] Second resume attempt failed:', e);
+        }
     }
 
     return ctx;
