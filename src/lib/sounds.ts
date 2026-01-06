@@ -1,7 +1,9 @@
 // Simple sound synthesis utility for satisfying button feedback
 // Uses Web Audio API for lightweight, instantaneous sounds
+// Handles mobile browser autoplay restrictions
 
 let audioContext: AudioContext | null = null;
+let isUnlocked = false;
 
 function getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -11,10 +13,52 @@ function getAudioContext(): AudioContext | null {
     return audioContext;
 }
 
+// Must be called on user gesture to unlock audio on mobile
+export async function unlockAudio(): Promise<boolean> {
+    const ctx = getAudioContext();
+    if (!ctx) return false;
+
+    if (ctx.state === 'suspended') {
+        try {
+            await ctx.resume();
+        } catch (e) {
+            console.warn('Failed to resume audio context:', e);
+            return false;
+        }
+    }
+
+    // Play a silent sound to fully unlock
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+
+    isUnlocked = true;
+    return true;
+}
+
+// Check if audio is ready
+export function isAudioUnlocked(): boolean {
+    return isUnlocked;
+}
+
+// Helper to ensure audio is unlocked before playing
+async function ensureUnlocked(): Promise<AudioContext | null> {
+    const ctx = getAudioContext();
+    if (!ctx) return null;
+
+    if (!isUnlocked || ctx.state === 'suspended') {
+        await unlockAudio();
+    }
+
+    return ctx;
+}
+
 export const sounds = {
     // Pop sound - like a bubble popping
-    pop: () => {
-        const ctx = getAudioContext();
+    pop: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const osc = ctx.createOscillator();
@@ -34,8 +78,8 @@ export const sounds = {
     },
 
     // Click sound - sharp and snappy
-    click: () => {
-        const ctx = getAudioContext();
+    click: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const osc = ctx.createOscillator();
@@ -56,8 +100,8 @@ export const sounds = {
     },
 
     // Success chime - happy ascending tone
-    success: () => {
-        const ctx = getAudioContext();
+    success: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
@@ -83,8 +127,8 @@ export const sounds = {
     },
 
     // Bounce sound - playful spring
-    bounce: () => {
-        const ctx = getAudioContext();
+    bounce: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const osc = ctx.createOscillator();
@@ -105,8 +149,8 @@ export const sounds = {
     },
 
     // Toggle on - soft ascending
-    toggleOn: () => {
-        const ctx = getAudioContext();
+    toggleOn: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const osc = ctx.createOscillator();
@@ -127,8 +171,8 @@ export const sounds = {
     },
 
     // Toggle off - soft descending
-    toggleOff: () => {
-        const ctx = getAudioContext();
+    toggleOff: async () => {
+        const ctx = await ensureUnlocked();
         if (!ctx) return;
 
         const osc = ctx.createOscillator();
