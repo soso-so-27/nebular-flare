@@ -37,7 +37,7 @@ export type Frequency = 'once-daily' | 'twice-daily' | 'three-times-daily' | 'fo
 export type TimeOfDay = 'morning' | 'noon' | 'evening' | 'anytime';
 export type MealSlot = 'morning' | 'noon' | 'evening' | 'night';
 export type StockLevel = 'full' | 'half' | 'low' | 'empty';
-export type ObservationInputType = 'ok-notice' | 'count' | 'choice';
+export type ObservationInputType = 'ok-notice' | 'count' | 'choice' | 'photo';
 export type ObservationCategory = 'eating' | 'toilet' | 'behavior' | 'health';
 
 // Care Task Definition (settings)

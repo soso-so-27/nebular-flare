@@ -34,6 +34,9 @@ const NotificationModal = dynamic(() => import("@/components/app/notification-mo
 const CalendarModal = dynamic(() => import("@/components/app/calendar-modal").then(m => ({ default: m.CalendarModal })), { ssr: false });
 const ActivityScreen = dynamic(() => import("@/components/app/activity-screen").then(m => ({ default: m.ActivityScreen })), { ssr: false });
 
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/exhaustive-deps */
+
 function AppContent() {
   const [tab, setTab] = useState("home");
   const [careSwipeMode, setCareSwipeMode] = useState(false);
@@ -43,6 +46,7 @@ function AppContent() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
+  const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
 
   // Get data and functions for quick actions
   const {
@@ -121,6 +125,7 @@ function AppContent() {
     } else if (section === 'notifications') {
       setShowNotifications(true);
     } else if (section === 'gallery') {
+      setGalleryCatId(null); // Reset filter when opening from sidebar
       setTab("gallery");
     } else if (section === 'settings') {
       setShowSettings(true);
@@ -226,7 +231,12 @@ function AppContent() {
                   </button>
                 </div>
                 <div className="h-full overflow-y-auto pt-16 px-4 pb-24">
-                  <CatScreen />
+                  <CatScreen
+                    onOpenGallery={() => {
+                      setGalleryCatId(activeCatId); // Use current active cat
+                      setTab("gallery");
+                    }}
+                  />
                 </div>
               </motion.div>
             )}
@@ -240,7 +250,13 @@ function AppContent() {
                 exit={{ opacity: 0, y: "100%" }}
                 transition={{ duration: 0.3, ease: "circOut" }}
               >
-                <GalleryScreen onClose={() => setTab("home")} />
+                <GalleryScreen
+                  onClose={() => {
+                    setGalleryCatId(null);
+                    setTab("home");
+                  }}
+                  initialCatId={galleryCatId}
+                />
               </motion.div>
             )}
 

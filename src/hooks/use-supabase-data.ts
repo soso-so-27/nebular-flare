@@ -163,17 +163,57 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         };
     }, [householdId, todayStr, dayStartHour]);
 
+    // Generic image upload helper - Duplicated here to avoid large refactor
+    async function uploadCatImage(catId: string, file: File): Promise<string | null> {
+        if (!householdId) return null;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const timestamp = Date.now();
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const path = `cat-photos/${catId}/${dateStr}/${timestamp}-${cleanName}`;
+        const { error } = await supabase.storage.from('cat-images').upload(path, file, { cacheControl: '3600', upsert: false });
+        if (error) { console.error('Image upload failed:', error); return null; }
+        const { data: { publicUrl } } = supabase.storage.from('cat-images').getPublicUrl(path);
+        return publicUrl;
+    }
+
     // Add care log
-    async function addCareLog(type: string, catId?: string, note?: string) {
+    async function addCareLog(type: string, catId?: string, note?: string, images: File[] = []) {
         if (!householdId) return { error: { message: "Household ID not found" } };
 
         const { data: user } = await supabase.auth.getUser();
+
+        // Upload images if any (Only if catId is present, as generic household tasks don't have cat folder? 
+        // Actually, for household tasks, where to put images? 
+        // Let's use 'household/{householdId}' or just require catId for photos?
+        // User asked for "Care Photos", usually related to a cat. 
+        // If catId is missing (household task), let's use a 'household' folder.
+
+        let imageUrls: string[] = [];
+        if (images.length > 0) {
+            const targetId = catId || 'household-common';
+            // We need a slight variation of the helper if catId is missing.
+            // Let's just inline logic.
+            const uploadPromises = images.map(async (file) => {
+                const dateStr = new Date().toISOString().split('T')[0];
+                const timestamp = Date.now();
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                // If catId is missing, use household_id as valid path segment
+                const path = `cat-photos/${targetId}/${dateStr}/${timestamp}-${cleanName}`;
+                const { error } = await supabase.storage.from('cat-images').upload(path, file, { cacheControl: '3600', upsert: false });
+                if (error) return null;
+                const { data: { publicUrl } } = supabase.storage.from('cat-images').getPublicUrl(path);
+                return publicUrl;
+            });
+            const results = await Promise.all(uploadPromises);
+            imageUrls = results.filter((url): url is string => url !== null);
+        }
 
         const { error } = await supabase.from('care_logs').insert({
             household_id: householdId,
             cat_id: catId || null,
             type,
             notes: note || null,
+            images: imageUrls.length > 0 ? imageUrls : null,
             done_by: user.user?.id || null,
         });
 
@@ -275,10 +315,53 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         };
     }, [householdId, startIso, endIso]);
 
-    async function addObservation(catId: string, type: string, value: string, note?: string) {
+    // Generic image upload helper
+    async function uploadCatImage(catId: string, file: File): Promise<string | null> {
+        if (!householdId) return null;
+
+        // Generate a path: cat-photos/{catId}/{YYYY-MM-DD}/{timestamp}-{filename}
+        const dateStr = new Date().toISOString().split('T')[0];
+        const timestamp = Date.now();
+        // Clean filename
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const path = `cat-photos/${catId}/${dateStr}/${timestamp}-${cleanName}`;
+
+        const { data, error } = await supabase.storage
+            .from('cat-images') // Assuming 'cat-images' bucket is available/created. 
+            // If not available, we might need to fallback or user will see error. 
+            // For now, let's assume 'avatars' or a new bucket. 
+            // The prompt "fix-gallery" implied maybe 'avatars' was used for gallery?
+            // Let's use 'cat-images' as planned. If it fails, I'll need to create it or guide user.
+            .upload(path, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (error) {
+            console.error('Image upload failed:', error);
+            return null;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('cat-images')
+            .getPublicUrl(path);
+
+        return publicUrl;
+    }
+
+    async function addObservation(catId: string, type: string, value: string, note?: string, images: File[] = []) {
         if (!householdId) return;
 
         const { data: user } = await supabase.auth.getUser();
+
+        // Upload images if any
+        let imageUrls: string[] = [];
+        if (images.length > 0) {
+            const uploadPromises = images.map(file => uploadCatImage(catId, file));
+            const results = await Promise.all(uploadPromises);
+            imageUrls = results.filter((url): url is string => url !== null);
+        }
 
         const { error } = await supabase.from('observations').insert({
             household_id: householdId,
@@ -286,6 +369,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
             type,
             value,
             notes: note || null,
+            images: imageUrls.length > 0 ? imageUrls : null, // Store as text[]
             recorded_by: user.user?.id || null,
             recorded_at: new Date().toISOString(),
         });

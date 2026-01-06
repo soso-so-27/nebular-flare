@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle } from "lucide-react";
+import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -43,6 +43,57 @@ export function CheckSection() {
     useEffect(() => {
         setCurrentHour(new Date().getHours());
     }, []);
+
+    // File input for care photos
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [uploadingItemId, setUploadingItemId] = React.useState<string | null>(null);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0 && uploadingItemId) {
+            const file = e.target.files[0];
+            const item = pendingCareItems.find(i => i.id === uploadingItemId);
+
+            // Reconstruct logic to find def and call addCareLog
+            // uploadingItemId is def.id (for simple) or def.id_slot (for slotted)
+            // But UUID has no underscores, slots do.
+            // Actually, safe way is to find def by matching ID prefix? 
+            // Or just split by _ if we rely on format.
+            // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (hyphens)
+            // So splitting by _ is safe if ID uses hyphens.
+
+            let defId = uploadingItemId;
+            let slot: string | undefined = undefined;
+
+            const parts = uploadingItemId.split('_');
+            if (parts.length > 1) {
+                // Check if last part is a valid slot
+                const potentialSlot = parts[parts.length - 1];
+                if (['morning', 'noon', 'evening', 'night'].includes(potentialSlot)) {
+                    slot = potentialSlot;
+                    defId = parts.slice(0, parts.length - 1).join('_');
+                }
+            }
+
+            const def = careTaskDefs.find(d => d.id === defId);
+            if (def) {
+                const type = slot ? `${defId}:${slot}` : defId;
+                const catId = def.perCat ? activeCatId : undefined;
+
+                toast.info("写真をアップロード中...");
+                const result = await addCareLog(type, catId, undefined, [file]);
+                if (result?.error) {
+                    toast.error("完了しましたが写真のアップロードに失敗しました");
+                } else {
+                    toast.success("写真付きで完了しました！");
+                }
+            } else {
+                toast.error("タスクが見つかりません");
+            }
+            // Reset
+            setUploadingItemId(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
 
     // Random background image from active cat's gallery
     const [bgImage, setBgImage] = useState<string | null>(null);
@@ -317,7 +368,7 @@ export function CheckSection() {
                     {pendingCareItems.map(item => (
                         <div
                             key={item.id}
-                            className="flex items-center justify-between px-4 py-2.5"
+                            className="flex items-center justify-between px-4 py-2.5 group"
                         >
                             <div className="flex items-center gap-2">
                                 {item.icon ? (
@@ -329,12 +380,30 @@ export function CheckSection() {
                                     {item.label}
                                 </span>
                             </div>
-                            <button
-                                onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
-                            >
-                                完了
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {uploadingItemId === item.id ? (
+                                    <div className="w-8 h-8 flex items-center justify-center">
+                                        <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setUploadingItemId(item.id);
+                                            fileInputRef.current?.click();
+                                        }}
+                                        className="p-1.5 rounded-full text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                                        title="写真を撮って記録"
+                                    >
+                                        <Camera className="w-4 h-4" />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={item.onAction}
+                                    className="text-xs font-bold px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 active:scale-95 transition-all"
+                                >
+                                    完了
+                                </button>
+                            </div>
                         </div>
                     ))}
 
@@ -388,6 +457,13 @@ export function CheckSection() {
                     ))}
                 </div>
             </div>
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+            />
         </div>
     );
 }

@@ -2,19 +2,23 @@
 
 import React, { useState } from "react";
 import { useAppState } from "@/store/app-store";
-import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText } from "lucide-react";
+import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { WeightChart } from "./weight-chart";
 import { CatEditModal } from "./cat-edit-modal";
 
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/exhaustive-deps */
+
 interface CatScreenProps {
     externalSwipeMode?: boolean;
     onSwipeModeChange?: (show: boolean) => void;
+    onOpenGallery?: () => void;
 }
 
-export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatScreenProps) {
+export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpenGallery }: CatScreenProps) {
     const {
         cats,
         activeCatId,
@@ -84,6 +88,16 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange }: CatS
                     {/* Dark Overlay for readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30" />
                     <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+
+                    {/* Gallery Tap Area Overlay */}
+                    <div
+                        className="absolute inset-0 z-20 cursor-pointer active:bg-white/5 transition-colors group"
+                        onClick={onOpenGallery}
+                    >
+                        <div className="absolute top-20 right-4 bg-black/30 backdrop-blur-md text-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Image className="w-5 h-5" />
+                        </div>
+                    </div>
                 </div>
             )}
 

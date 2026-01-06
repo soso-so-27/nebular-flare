@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Clock, User, Utensils, Trash2, Home } from "lucide-react";
+import { Check, Clock, User, Utensils, Trash2, Home, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";
@@ -32,6 +32,29 @@ export function HouseholdCareList() {
     useEffect(() => {
         setToday(new Date().toISOString().split('T')[0]);
     }, []);
+
+    // File input for photos
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [uploadingItemId, setUploadingItemId] = React.useState<string | null>(null);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0 && uploadingItemId) {
+            const file = e.target.files[0];
+            const item = careItems.find(i => i.id === uploadingItemId);
+            if (item) {
+                toast.info("写真をアップロード中...");
+                const result = await addCareLog(item.type, undefined, undefined, [file]);
+                if (result?.error) {
+                    toast.error("完了しましたが写真のアップロードに失敗しました");
+                } else {
+                    toast.success("写真付きで完了しました！");
+                    // Force refresh or local update? addCareLog should trigger subscription updates.
+                }
+            }
+            setUploadingItemId(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
 
     // Get household care status from Supabase care_logs or local tasks
     const careItems: HouseholdCareItem[] = useMemo(() => {
@@ -145,43 +168,66 @@ export function HouseholdCareList() {
             {/* Care Items - Compact */}
             <div className="px-5 pb-4 space-y-2">
                 {careItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => !item.done && handleToggle(item)}
-                        disabled={item.done}
-                        className={cn(
-                            "w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left",
-                            item.done
-                                ? "bg-slate-50 dark:bg-slate-800/50"
-                                : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
-                        )}
-                    >
-                        <div className="flex items-center gap-2.5">
-                            <item.Icon className={cn(
-                                "h-4 w-4",
-                                item.done ? "text-slate-400" : "text-slate-600 dark:text-slate-300"
-                            )} />
-                            <span className={cn(
-                                "text-sm font-medium",
+                    <div key={item.id} className="flex gap-2">
+                        <button
+                            onClick={() => !item.done && handleToggle(item)}
+                            disabled={item.done}
+                            className={cn(
+                                "flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left",
                                 item.done
-                                    ? "text-slate-400 line-through"
-                                    : "text-slate-700 dark:text-slate-200"
-                            )}>
-                                {item.label}
-                            </span>
-                        </div>
-
-                        {item.done ? (
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-400">{item.doneBy} • {item.doneAt}</span>
-                                <Check className="h-4 w-4 text-emerald-500" />
+                                    ? "bg-slate-50 dark:bg-slate-800/50"
+                                    : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+                            )}
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <item.Icon className={cn(
+                                    "h-4 w-4",
+                                    item.done ? "text-slate-400" : "text-slate-600 dark:text-slate-300"
+                                )} />
+                                <span className={cn(
+                                    "text-sm font-medium",
+                                    item.done
+                                        ? "text-slate-400 line-through"
+                                        : "text-slate-700 dark:text-slate-200"
+                                )}>
+                                    {item.label}
+                                </span>
                             </div>
-                        ) : (
-                            <span className="text-xs text-slate-400">タップで完了</span>
+
+                            {item.done ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-slate-400">{item.doneBy} • {item.doneAt}</span>
+                                    <Check className="h-4 w-4 text-emerald-500" />
+                                </div>
+                            ) : (
+                                <span className="text-xs text-slate-400">タップで完了</span>
+                            )}
+                        </button>
+                        {!item.done && (
+                            <button
+                                onClick={() => {
+                                    setUploadingItemId(item.id);
+                                    fileInputRef.current?.click();
+                                }}
+                                className="px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors flex items-center justify-center"
+                            >
+                                {uploadingItemId === item.id ? (
+                                    <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                ) : (
+                                    <Camera className="w-5 h-5" />
+                                )}
+                            </button>
                         )}
-                    </button>
+                    </div>
                 ))}
             </div>
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+            />
         </div>
     );
 }
