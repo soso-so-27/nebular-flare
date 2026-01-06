@@ -8,9 +8,23 @@ export function NotificationSettings() {
     const [permission, setPermission] = useState<NotificationPermission>('default');
     const [loading, setLoading] = useState(false);
     const [token, setToken] = useState<string | null>(null);
+    const [swReady, setSwReady] = useState(false);
     const { saveToken } = usePushToken();
 
     useEffect(() => {
+        // Wait for Service Worker to be ready before allowing notification setup
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(() => {
+                console.log('[Notification] Service Worker is ready');
+                setSwReady(true);
+            }).catch((err) => {
+                console.error('[Notification] Service Worker failed:', err);
+            });
+        } else {
+            // No SW support, allow anyway (will fail later with better error)
+            setSwReady(true);
+        }
+
         if (typeof window !== 'undefined' && 'Notification' in window) {
             const perm = Notification.permission;
             setPermission(perm);
@@ -220,11 +234,11 @@ export function NotificationSettings() {
             </div>
             <button
                 onClick={handleEnable}
-                disabled={loading}
-                className="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                disabled={loading || !swReady}
+                className="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                通知をオンにする
+                {(loading || !swReady) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {!swReady ? '準備中...' : '通知をオンにする'}
             </button>
         </div>
     );
