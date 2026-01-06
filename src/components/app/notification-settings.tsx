@@ -45,23 +45,36 @@ export function NotificationSettings() {
     const handleEnable = async () => {
         setLoading(true);
         try {
+            console.log('[Notification] Starting handleEnable...');
             const currentToken = await requestFcmToken();
+
             if (currentToken) {
+                console.log('[Notification] Token received, saving to server...');
                 setToken(currentToken);
-                await saveToken(currentToken); // Call saveToken here
+
+                const result = await saveToken(currentToken);
+
+                if (result.error) {
+                    console.error('[Notification] saveToken failed:', result.error);
+                    toast.error('トークンの保存に失敗しました');
+                    return; // Don't mark as granted if save failed
+                }
+
+                console.log('[Notification] Token saved successfully');
                 setPermission('granted');
-                toast.success('通知設定が完了しました！'); // Updated toast message
-                console.log('FCM Token:', currentToken);
+                toast.success('通知設定が完了しました！');
             } else {
-                toast.error('通知トークンの取得に失敗しました'); // Updated toast message
+                console.error('[Notification] No token received from requestFcmToken');
+                toast.error('通知トークンの取得に失敗しました');
             }
         } catch (error) {
-            console.error(error);
-            toast.error('設定中にエラーが発生しました');
+            console.error('[Notification] handleEnable error:', error);
+            toast.error('通知の設定に失敗しました');
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleTestNotification = () => {
         // Send a test notification via Service Worker immediately
