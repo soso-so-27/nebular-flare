@@ -102,8 +102,14 @@ export function HouseholdCareList() {
     const totalCount = careItems.length;
 
     async function handleToggle(item: HouseholdCareItem) {
-        haptics.success();
-        sounds.success().catch(e => console.warn(e));
+        // Play effects (Non-blocking / Safe)
+        try {
+            haptics.success();
+            sounds.success().catch(e => console.warn(e));
+        } catch (e) {
+            console.warn('Feedback failed:', e);
+        }
+
         if (isDemo) {
             // Demo mode: update local tasks
             const now = new Date().toISOString();

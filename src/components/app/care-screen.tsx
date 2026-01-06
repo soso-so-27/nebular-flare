@@ -94,8 +94,14 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
 
     async function handleCatchupAction(item: CatchUpItem, action: 'done' | 'later') {
         if (action === 'done') {
-            haptics.success();
-            sounds.success().catch(e => console.warn(e));
+            // Play effects (Non-blocking / Safe)
+            try {
+                haptics.success();
+                sounds.success().catch(e => console.warn(e));
+            } catch (e) {
+                console.warn('Feedback failed:', e);
+            }
+
             if (item.type === 'task') {
                 setTasks(prev => prev.map(t =>
                     t.id === item.id ? { ...t, done: true, doneAt: new Date().toISOString() } : t
