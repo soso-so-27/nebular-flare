@@ -50,16 +50,17 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const [isNight, setIsNight] = useState(false);
 
     // iOS Audio Unlock: Must unlock audio context on first user touch
+    // Using touchend (not touchstart) for better iOS Safari compatibility
     useEffect(() => {
         const handleFirstTouch = () => {
             unlockAudio();
-            document.removeEventListener('touchstart', handleFirstTouch);
+            document.removeEventListener('touchend', handleFirstTouch);
             document.removeEventListener('click', handleFirstTouch);
         };
-        document.addEventListener('touchstart', handleFirstTouch, { once: true });
+        document.addEventListener('touchend', handleFirstTouch, { once: true, passive: true });
         document.addEventListener('click', handleFirstTouch, { once: true });
         return () => {
-            document.removeEventListener('touchstart', handleFirstTouch);
+            document.removeEventListener('touchend', handleFirstTouch);
             document.removeEventListener('click', handleFirstTouch);
         };
     }, []);

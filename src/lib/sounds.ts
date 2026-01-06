@@ -18,24 +18,41 @@ export async function unlockAudio(): Promise<boolean> {
     const ctx = getAudioContext();
     if (!ctx) return false;
 
-    if (ctx.state === 'suspended') {
-        try {
+    // Already unlocked
+    if (isUnlocked && ctx.state === 'running') return true;
+
+    try {
+        // iOS requires resume() to be called during user gesture
+        if (ctx.state === 'suspended') {
             await ctx.resume();
-        } catch (e) {
-            console.warn('Failed to resume audio context:', e);
-            return false;
         }
+
+        // Play a silent sound via Web Audio API to fully unlock
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+
+        // iOS additional workaround: Also touch an HTML Audio element
+        // This helps with iOS lock screen audio resumption
+        const silentAudio = document.getElementById('silent-audio-unlock') as HTMLAudioElement;
+        if (silentAudio) {
+            try {
+                await silentAudio.play();
+                silentAudio.pause();
+            } catch (e) {
+                // Ignore - this is just a fallback
+            }
+        }
+
+        isUnlocked = true;
+        console.log('[Audio] Unlocked successfully, state:', ctx.state);
+        return true;
+    } catch (e) {
+        console.warn('[Audio] Failed to unlock:', e);
+        return false;
     }
-
-    // Play a silent sound to fully unlock
-    const buffer = ctx.createBuffer(1, 1, 22050);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start(0);
-
-    isUnlocked = true;
-    return true;
 }
 
 // Check if audio is ready

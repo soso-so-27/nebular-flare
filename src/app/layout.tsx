@@ -67,6 +67,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        {/* Hidden audio element for iOS audio unlock workaround */}
+        <audio id="silent-audio-unlock" preload="auto" src="data:audio/wav;base64,UklGRigIAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQIAAA=" />
         <PwaRegister />
       </body>
     </html>
