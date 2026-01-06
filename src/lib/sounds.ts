@@ -99,71 +99,110 @@ export const sounds = {
     // Pop sound - like a bubble popping
     pop: async () => {
         const ctx = await ensureUnlocked();
-        if (!ctx) return;
+        if (!ctx) {
+            console.warn('[Audio] pop: No context');
+            return;
+        }
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.frequency.setValueAtTime(400, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
-
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.1);
-    },
-
-    // Click sound - sharp and snappy
-    click: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(600, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.05);
-
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.05);
-    },
-
-    // Success chime - happy ascending tone
-    success: async () => {
-        const ctx = await ensureUnlocked();
-        if (!ctx) return;
-
-        const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
-        const now = ctx.currentTime;
-
-        frequencies.forEach((freq, i) => {
+        try {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
             osc.connect(gain);
             gain.connect(ctx.destination);
 
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, now + i * 0.1);
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
 
-            gain.gain.setValueAtTime(0, now + i * 0.1);
-            gain.gain.linearRampToValueAtTime(0.25, now + i * 0.1 + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
 
-            osc.start(now + i * 0.1);
-            osc.stop(now + i * 0.1 + 0.2);
-        });
+            osc.onended = () => {
+                osc.disconnect();
+                gain.disconnect();
+            };
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.1);
+            console.log('[Audio] pop played');
+        } catch (e) {
+            console.error('[Audio] pop error:', e);
+        }
+    },
+
+    // Click sound - sharp and snappy
+    click: async () => {
+        const ctx = await ensureUnlocked();
+        if (!ctx) {
+            console.warn('[Audio] click: No context');
+            return;
+        }
+
+        try {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.05);
+
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+            osc.onended = () => {
+                osc.disconnect();
+                gain.disconnect();
+            };
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.05);
+            console.log('[Audio] click played');
+        } catch (e) {
+            console.error('[Audio] click error:', e);
+        }
+    },
+
+    // Success chime - happy ascending tone
+    success: async () => {
+        const ctx = await ensureUnlocked();
+        if (!ctx) {
+            console.warn('[Audio] success: No context');
+            return;
+        }
+
+        try {
+            const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
+            const now = ctx.currentTime;
+
+            frequencies.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + i * 0.1);
+
+                gain.gain.setValueAtTime(0, now + i * 0.1);
+                gain.gain.linearRampToValueAtTime(0.25, now + i * 0.1 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+
+                osc.onended = () => {
+                    osc.disconnect();
+                    gain.disconnect();
+                };
+
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.2);
+            });
+            console.log('[Audio] success played');
+        } catch (e) {
+            console.error('[Audio] success error:', e);
+        }
     },
 
     // Bounce sound - playful spring
