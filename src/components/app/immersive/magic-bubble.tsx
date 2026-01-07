@@ -234,7 +234,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
             */}
             {placement === 'bottom-center' ? (
                 /* === CARD MODE: Consolidated Icon with Expandable List === */
-                <div className="absolute top-8 left-6 z-40 pointer-events-auto flex flex-col gap-2">
+                <div className="absolute top-8 left-6 z-40 pointer-events-auto flex flex-col items-start gap-2">
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -243,7 +243,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             triggerFeedback('medium');
                             setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
-                        className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-xl border shadow-lg ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/40 border-white/10'}`}
+                        className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-md border shadow-sm transition-colors ${isLight
+                                ? 'bg-white/40 border-black/5 hover:bg-white/60'
+                                : 'bg-black/20 border-white/10 hover:bg-black/40'
+                            }`}
                     >
                         {/* Combined Progress Ring */}
                         <div className="relative w-10 h-10">
@@ -269,7 +272,6 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             <span className={`text-xs font-medium ${styles.text}`}>%</span>
                         </div>
                     </motion.button>
-
                     {/* Expandable Consolidated List for Card Mode (Care + Observation) */}
                     <AnimatePresence>
                         {expandedSection === 'care' && (
@@ -279,7 +281,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 exit={{ opacity: 0, height: 0, y: -10 }}
                                 className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                             >
-                                <div className="py-2 space-y-4 w-[240px]">
+                                <div className="py-2 space-y-4 w-[240px] max-h-[50vh] overflow-y-auto no-scrollbar">
                                     {/* Care Section - Same as other modes */}
                                     {careItems.length > 0 && (
                                         <div className="space-y-2">
