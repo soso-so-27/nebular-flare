@@ -47,7 +47,7 @@ export function useCats(householdId: string | null) {
                 const catIds = catsData.map((c: any) => c.id);
                 const { data: images } = await supabase
                     .from('cat_images')
-                    .select('*')
+                    .select('id, storage_path, cat_id, created_at, is_favorite')
                     .in('cat_id', catIds);
 
                 // Merge images into cats
@@ -64,7 +64,7 @@ export function useCats(householdId: string | null) {
                 if (catIds.length > 0) {
                     const { data: weights, error: weightError } = await supabase
                         .from('cat_weight_history')
-                        .select('*')
+                        .select('id, cat_id, weight, recorded_at, note')
                         .in('cat_id', catIds)
                         .order('recorded_at', { ascending: false }); // Latest first
 

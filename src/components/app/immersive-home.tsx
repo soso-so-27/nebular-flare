@@ -33,18 +33,32 @@ const BackgroundVideo = ({ src, poster, className, onClick, onLoadedData }: { sr
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        // Force play on mount/update for mobile
-        if (videoRef.current) {
-            videoRef.current.defaultMuted = true; // Crucial for some browsers
-            videoRef.current.muted = true;
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Auto-play was prevented:", error);
-                    // Retry with interaction if needed, or just let it be
-                });
+        const attemptPlay = async () => {
+            if (videoRef.current && videoRef.current.paused) {
+                videoRef.current.defaultMuted = true;
+                videoRef.current.muted = true;
+                try {
+                    await videoRef.current.play();
+                } catch (e) {
+                    console.log("Play failed", e);
+                }
             }
-        }
+        };
+
+        // Try playing immediately
+        attemptPlay();
+
+        // Also resume when returning to the app (visibility change)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                attemptPlay();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [src]);
 
     return (
