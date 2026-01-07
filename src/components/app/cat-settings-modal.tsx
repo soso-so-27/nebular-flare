@@ -269,7 +269,10 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
 
         } catch (err: any) {
             console.error("Error saving cat:", err);
-            toast.error("保存に失敗しました: " + err.message);
+            // Show detailed error for debugging
+            const msg = err.message || "Unknown error";
+            const details = err.details || err.hint || "";
+            toast.error(`保存失敗: ${msg} ${details ? `(${details})` : ""}`);
         } finally {
             setIsLoading(false);
         }

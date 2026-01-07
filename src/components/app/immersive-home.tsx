@@ -144,12 +144,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         : activeCat?.avatar || null;
 
     // Determine Display Media based on background_mode
-    const { displayMedia, isVideo } = React.useMemo(() => {
+    const bgMediaInfo = React.useMemo(() => {
         const mode = activeCat?.background_mode || 'random';
-        // console.log('ImmersiveHome bg check:', { cat: activeCat?.name, mode, media: activeCat?.background_media });
 
-        if (mode === 'media' && activeCat?.background_media) {
+        if (mode === 'media' && activeCat && activeCat.background_media) {
             const isVid = /\.(mp4|webm|mov)$/i.test(activeCat.background_media);
+            // Cache buster logic if needed, but keeping simple for safely
             return { displayMedia: activeCat.background_media, isVideo: isVid };
         }
 
@@ -160,6 +160,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         // Random mode (default)
         return { displayMedia: randomPhotoUrl, isVideo: false };
     }, [activeCat, randomPhotoUrl]);
+
+    const { displayMedia, isVideo } = bgMediaInfo;
 
     // For brightness/contrast analysis, we only analyze images. 
     // If video, maybe default to dark or light? Let's use avatar as fallback for analysis or just skip.
