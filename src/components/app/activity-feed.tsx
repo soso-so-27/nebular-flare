@@ -36,6 +36,7 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
     const {
         careLogs,
         observations,
+        incidents, // Added
         cats,
         careTaskDefs,
         noticeDefs,
@@ -98,6 +99,35 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
                 timestamp: log.done_at || new Date().toISOString(),
                 icon: taskDef?.icon,
                 notes: log.notes
+            });
+        });
+
+        // Add incidents
+        incidents.forEach((inc: any) => {
+            const cat = cats.find(c => c.id === inc.cat_id);
+            const typeLabel = {
+                'vomit': '嘔吐',
+                'diarrhea': '下痢',
+                'injury': '怪我',
+                'appetite': '食欲不振',
+                'energy': '元気がない',
+                'toilet': 'トイレ失敗',
+                'other': 'その他'
+            }[inc.type as string] || inc.type;
+
+            const userInfo = getUserInfo(inc.created_by);
+
+            items.push({
+                id: `inc-${inc.id}`,
+                type: 'observation', // Use observation style for now, or add new type
+                title: `⚠️ ${typeLabel}`, // Add warning icon to title
+                catName: cat?.name,
+                userId: inc.created_by,
+                userName: userInfo.name,
+                userAvatar: userInfo.avatar,
+                timestamp: inc.created_at,
+                notes: inc.note,
+                icon: 'alert-circle'
             });
         });
 

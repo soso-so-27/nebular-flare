@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
-import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory } from '@/hooks/use-supabase-data';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
 import { createClient } from '@/lib/supabase';
 import { toast } from "sonner";
 
@@ -76,6 +76,12 @@ type AppState = {
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
     householdUsers: any[];
     uploadUserImage: (userId: string, file: File) => Promise<{ error?: any; publicUrl?: string }>;
+    // Incidents
+    incidents: any[];
+    addIncident: (catId: string, type: string, note: string, photos?: File[]) => Promise<{ error?: any; data?: any }>;
+    addIncidentUpdate: (incidentId: string, note: string, photos?: File[], statusChange?: string) => Promise<{ error?: any }>;
+    resolveIncident: (incidentId: string) => Promise<{ error?: any }>;
+    deleteIncident: (incidentId: string) => Promise<{ error?: any }>;
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -163,6 +169,9 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     // Demo mode care log tracking - using care task ID as key, doneAt ISO string as value
     // Use Supabase inventory with proper mapping
     const { inventory: supabaseInventory } = useInventory(isDemo ? null : householdId);
+
+    // Incidents hook
+    const { incidents, addIncident, addIncidentUpdate, resolveIncident, deleteIncident } = useIncidents(isDemo ? null : householdId);
 
     useEffect(() => {
         if (!isDemo && householdId && supabaseInventory) {
@@ -1308,6 +1317,12 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         acknowledgeObservation,
         deleteObservation,
         householdUsers,
+        // Incidents
+        incidents: incidents || [],
+        addIncident: addIncident || (async () => ({})),
+        addIncidentUpdate: addIncidentUpdate || (async () => ({})),
+        resolveIncident: resolveIncident || (async () => ({})),
+        deleteIncident: deleteIncident || (async () => ({})),
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

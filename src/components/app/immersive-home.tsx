@@ -80,19 +80,14 @@ const BackgroundVideo = ({ src, poster, className, onClick, onLoadedData }: { sr
 };
 
 export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
-    const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings } = useAppState();
+    const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings, incidents } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
     const [direction, setDirection] = useState(0);
+
+    const activeIncidents = React.useMemo(() => {
+        return (incidents || []).filter(inc => inc.status !== 'resolved');
+    }, [incidents]);
     const [contrastMode, setContrastMode] = useState<'light' | 'dark'>('dark');
-
-    // ... existing auto-hide logic ...
-
-    // Feature: Image Brightness Analysis
-
-
-    // ... existing setup logic ...
-
-    // ... in render ...
 
     const [uiVisible, setUiVisible] = useState(true);
     const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -101,16 +96,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const [isNight, setIsNight] = useState(false);
 
     // iOS Audio Unlock Strategy: Aggressive
-    // Listen to multiple events to ensure audio context is resumed as early as possible
     useEffect(() => {
         const attemptUnlock = () => {
             unlockAudio().then(success => {
                 if (success) {
-                    // Optional: remove listeners if we are 100% sure it's stable
-                    // But for iOS, keeping them might be safer to handle re-suspend
-                    // document.removeEventListener('touchstart', attemptUnlock);
-                    // document.removeEventListener('touchend', attemptUnlock);
-                    // document.removeEventListener('click', attemptUnlock);
+                    // Unlocked
                 }
             });
         };
@@ -123,7 +113,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         };
     }, []);
 
-    // Re-unlock audio when page returns from background (iOS suspends AudioContext)
+    // Re-unlock audio when page returns from background
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
@@ -137,13 +127,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         };
     }, []);
 
-    // Feature: Random Photo on Open (pick a random photo each time app is opened)
-    // Note: randomPhotoIndex is now calculated via useMemo below
-
     const activeCat = cats.find(c => c.id === activeCatId);
     const currentIndex = cats.findIndex(c => c.id === activeCatId);
 
-    // Helper function to get public URL from avatars bucket (same as gallery-screen)
+    // Helper function to get public URL from avatars bucket
     const getPublicUrl = (path: string, options?: { width: number, quality: number }) => {
         const supabase = createClient();
         const { data } = supabase.storage.from('avatars').getPublicUrl(path, {
@@ -156,21 +143,17 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         return data.publicUrl;
     };
 
-    // Build array of all photos for the active cat (avatar + gallery images)
+    // Build array of all photos for the active cat
     const allPhotos = React.useMemo(() => {
         if (!activeCat) return [];
         const photos: string[] = [];
-        // Add avatar if exists
         if (activeCat.avatar) {
             photos.push(activeCat.avatar);
         }
-        // Add gallery images - use avatars bucket like gallery-screen
         if (activeCat.images && activeCat.images.length > 0) {
             activeCat.images.forEach(img => {
                 if (img.storagePath) {
-                    // Optimized for fullscreen mobile (width 1200, q=80)
                     const publicUrl = getPublicUrl(img.storagePath, { width: 1200, quality: 80 });
-                    // Avoid duplicating avatar
                     if (!photos.includes(publicUrl) && publicUrl !== activeCat.avatar) {
                         photos.push(publicUrl);
                     }
@@ -180,16 +163,23 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         return photos;
     }, [activeCat]);
 
-    // Select random photo - use useMemo so it's calculated immediately on mount
-    // The random selection happens once when allPhotos changes (on catId change or initial load)
-    const randomPhotoIndex = React.useMemo(() => {
-        if (allPhotos.length > 0) {
-            return Math.floor(Math.random() * allPhotos.length);
-        }
-        return 0;
-    }, [activeCatId, allPhotos.length > 0]); // Only recalculate when cat changes or photos become available
+    // Select random photo - user useEffect to avoid hydration mismatch
+    // Select random photo - user useEffect to avoid hydration mismatch
+    const [randomPhotoIndex, setRandomPhotoIndex] = useState(0);
 
-    // Use random photo if available, otherwise fallback to avatar
+    // Use ref to track if we've already set a random index for this cat/photo-set to prevent loops
+    const lastPhotoSetRef = useRef<string>('');
+
+    useEffect(() => {
+        if (allPhotos.length > 0) {
+            const photoSetKey = `${activeCatId}-${allPhotos.length}`;
+            if (lastPhotoSetRef.current !== photoSetKey) {
+                setRandomPhotoIndex(Math.floor(Math.random() * allPhotos.length));
+                lastPhotoSetRef.current = photoSetKey;
+            }
+        }
+    }, [activeCatId, allPhotos.length]);
+
     const randomPhotoUrl = allPhotos.length > 0
         ? allPhotos[randomPhotoIndex % allPhotos.length]
         : activeCat?.avatar || null;
@@ -200,7 +190,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
         if (mode === 'media' && activeCat && activeCat.background_media) {
             const isVid = /\.(mp4|webm|mov)$/i.test(activeCat.background_media);
-            // Cache buster logic if needed, but keeping simple for safely
             return { displayMedia: activeCat.background_media, isVideo: isVid };
         }
 
@@ -208,14 +197,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             return { displayMedia: activeCat?.avatar || null, isVideo: false };
         }
 
-        // Random mode (default)
         return { displayMedia: randomPhotoUrl, isVideo: false };
     }, [activeCat, randomPhotoUrl]);
 
     const { displayMedia, isVideo } = bgMediaInfo;
 
-    // For brightness/contrast analysis, we only analyze images. 
-    // If video, maybe default to dark or light? Let's use avatar as fallback for analysis or just skip.
     const currentPhotoUrl = isVideo ? (activeCat?.avatar || null) : displayMedia;
 
     // Feature: Image Brightness Analysis
@@ -233,7 +219,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             setIsHeroImageLoaded(true);
         }
 
-        // Simple Night Mode Check (6PM - 6AM)
         const hour = new Date().getHours();
         setIsNight(hour < 6 || hour >= 18);
     }, [activeCat, setIsHeroImageLoaded, allPhotos.length]);
@@ -243,21 +228,19 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         setUiVisible(true);
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         hideTimerRef.current = setTimeout(() => {
-            // Only hide if no modals are open
             if (!showPickup) {
                 setUiVisible(false);
             }
-        }, 3000); // Hide after 3 seconds
+        }, 3000);
     }, [showPickup]);
 
-    // Preload images for smoother swiping
+    // Preload images
     useEffect(() => {
         if (!cats.length) return;
         cats.forEach(cat => {
             if (cat.avatar) {
                 const img = new Image();
                 img.src = cat.avatar;
-                // Optional: set priority for browser
                 img.decoding = 'async';
             }
         });
@@ -269,7 +252,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         window.addEventListener('touchstart', resetHideTimer);
         window.addEventListener('click', resetHideTimer);
 
-        resetHideTimer(); // Start timer on mount
+        resetHideTimer();
 
         return () => {
             window.removeEventListener('mousemove', resetHideTimer);
@@ -299,7 +282,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     // Preload Images (Aggressive)
     useEffect(() => {
-        // 1. Preload Avatars for all cats (Priority High)
         cats.forEach(cat => {
             if (cat.avatar) {
                 const img = new Image();
@@ -307,8 +289,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             }
         });
 
-        // 2. Preload Gallery Images for all cats (Background)
-        // We use a timeout to let the main thread breathe / prioritize avatars first
         const timer = setTimeout(() => {
             cats.forEach(cat => {
                 if (cat.images && cat.images.length > 0) {
@@ -328,7 +308,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     const slideVariants = {
         enter: (direction: number) => ({
-            x: direction > 0 ? '105%' : '-105%', // Slightly more than 100 to avoid edge artifacts
+            x: direction > 0 ? '105%' : '-105%',
             scale: 0.9,
             opacity: 0,
             zIndex: 0
@@ -339,13 +319,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             opacity: 1,
             zIndex: 1,
             transition: {
-                x: { type: "spring" as const, stiffness: 260, damping: 25 }, // Snappy but fluid
+                x: { type: "spring" as const, stiffness: 260, damping: 25 },
                 opacity: { duration: 0.2 },
                 scale: { duration: 0.2 }
             }
         },
         exit: (direction: number) => ({
-            x: direction > 0 ? '-30%' : '30%', // Parallax exit (slower than enter)
+            x: direction > 0 ? '-30%' : '30%',
             scale: 0.9,
             opacity: 0,
             zIndex: 0,
@@ -371,6 +351,36 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const handleTogglePickup = () => {
         setShowPickup(prev => !prev);
     };
+
+    // Magic Dust Particles State
+    const [particles, setParticles] = useState<Array<{
+        style: React.CSSProperties,
+        animate: any,
+        transition: any
+    }>>([]);
+
+    useEffect(() => {
+        setParticles([...Array(8)].map(() => ({
+            style: {
+                width: Math.random() * 3 + 1 + "px",
+                height: Math.random() * 3 + 1 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 100 + "%",
+                opacity: Math.random() * 0.5 + 0.2,
+            },
+            animate: {
+                y: [0, -100],
+                opacity: [0, 0.8, 0],
+                scale: [0.5, 1.2, 0.5]
+            },
+            transition: {
+                duration: Math.random() * 5 + 5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: Math.random() * 5
+            }
+        })));
+    }, []);
 
     return (
         <div
@@ -431,28 +441,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             )}
 
                             {/* Magic Dust Particles */}
-                            {[...Array(8)].map((_, i) => (
+                            {particles.map((p, i) => (
                                 <motion.div
                                     key={i}
                                     className="absolute rounded-full bg-white blur-[1px] pointer-events-none"
-                                    style={{
-                                        width: Math.random() * 3 + 1 + "px",
-                                        height: Math.random() * 3 + 1 + "px",
-                                        left: Math.random() * 100 + "%",
-                                        top: Math.random() * 100 + "%",
-                                        opacity: Math.random() * 0.5 + 0.2,
-                                    }}
-                                    animate={{
-                                        y: [0, -100],
-                                        opacity: [0, 0.8, 0],
-                                        scale: [0.5, 1.2, 0.5]
-                                    }}
-                                    transition={{
-                                        duration: Math.random() * 5 + 5,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
-                                        delay: Math.random() * 5
-                                    }}
+                                    style={p.style}
+                                    animate={p.animate}
+                                    transition={p.transition}
                                 />
                             ))}
                         </motion.div>
@@ -612,6 +607,24 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </>
             )}
 
+            {/* Incident Alert - Top Center */}
+            <AnimatePresence>
+                {activeIncidents.length > 0 && !showPickup && (
+                    <motion.button
+                        initial={{ y: -100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -100, opacity: 0 }}
+                        onClick={(e) => { e.stopPropagation(); setShowPickup(true); }}
+                        className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-white/20 flex items-center gap-2"
+                    >
+                        <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                        <span className="text-xs font-bold drop-shadow-md">
+                            {activeIncidents.length}件のインシデント
+                        </span>
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
             {/* Interface Layer - Always MagicBubble (placement varies by mode) */}
             <MagicBubble
                 onOpenPickup={handleTogglePickup}
@@ -622,54 +635,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 contrastMode={contrastMode}
                 placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
             />
-
-            {/* Legacy/Classic Mode Removed - All modes now use MagicBubble */}
-            {false && (
-                <motion.div
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: uiVisible ? 1 : 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ zIndex: 20 }}
-                >
-                    {/* Standard Floating Top Bar */}
-                    <div
-                        className="absolute top-4 left-0 right-0 flex items-center justify-between px-4 pointer-events-auto"
-                        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-                    >
-                        <button
-                            onClick={() => handleOpenSidebar('care')}
-                            className="p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/90 hover:bg-black/30 transition-all shadow-lg"
-                        >
-                            <Menu className="w-5 h-5" />
-                        </button>
-
-                        <div className="px-4 py-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 shadow-lg">
-                            <span className="text-white/90 font-medium text-sm text-shadow-sm">{activeCat?.name || 'Cat'}</span>
-                        </div>
-                        <div className="w-11" />
-                    </div>
-
-                    {/* Standard Bottom Dock */}
-                    <div
-                        className="absolute bottom-0 left-0 right-0 pointer-events-auto"
-                        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
-                    >
-                        <div className="flex items-center justify-center gap-8">
-                            <button onClick={() => setShowPickup(true)} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
-                                <LayoutGrid className="w-6 h-6" />
-                            </button>
-                            <button onClick={() => onNavigate?.('gallery')} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
-                                <Cat className="w-6 h-6" />
-                            </button>
-                            <button onClick={onOpenCalendar} className="p-4 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-white/30 transition-all active:scale-95">
-                                <Calendar className="w-6 h-6" />
-                            </button>
-
-                        </div>
-                    </div>
-                </motion.div>
-            )}
 
             {/* Always visible: Story Indicators (If Story Mode) - Changed to Dots */}
             {settings.homeViewMode === 'story' && (
@@ -689,8 +654,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     ))}
                 </div>
             )}
-
-            {/* Top Right Settings Button - Removed as per user request */}
 
             {/* Always visible: Floating Avatars (If Icon Mode) */}
             {settings.homeViewMode === 'icon' && (
@@ -723,7 +686,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 pointer-events-none"
+                        className="fixed inset-0 z-50"
                     >
                         <BubblePickupList onClose={() => setShowPickup(false)} />
                     </motion.div>

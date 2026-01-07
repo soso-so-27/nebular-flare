@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { getAdjustedDateString } from "@/lib/utils-date";
 import type { Database } from '@/types/database';
@@ -11,7 +11,8 @@ type CareLog = Database['public']['Tables']['care_logs']['Row'];
 type Observation = Database['public']['Tables']['observations']['Row'];
 type CatObservation = Observation; // Alias for compat
 type Inventory = Database['public']['Tables']['inventory']['Row'];
-
+type Incident = Database['public']['Tables']['incidents']['Row'];
+type IncidentUpdate = Database['public']['Tables']['incident_updates']['Row'];
 
 
 // Rewriting useCats to allow refetch
@@ -487,7 +488,7 @@ export function useInventory(householdId: string | null) {
 }
 
 // Hook for user profile with household
-export function useUserProfile() {
+export function useUserProfile(currentUser?: any) {
     const [profile, setProfile] = useState<{ householdId: string | null; displayName: string | null } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -495,8 +496,16 @@ export function useUserProfile() {
 
     const fetchProfile = async () => {
         try {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
+            // Only show full loading state if we have no data yet
+            if (!profile) {
+                setLoading(true);
+            }
+
+            let user = currentUser;
+            if (!user) {
+                const { data } = await supabase.auth.getUser();
+                user = data.user;
+            }
 
             if (!user) {
                 setLoading(false);
@@ -574,6 +583,214 @@ export function usePushToken() {
 }
 
 // Hook for notification preferences
+// --- Incidents ---
+
+export function useIncidents(householdId: string | null) {
+    const [incidents, setIncidents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient() as any;
+
+    const fetchIncidents = useCallback(async () => {
+        if (!householdId) return;
+        try {
+            // Fetch active incidents (not resolved, or resolved recently)
+            // For now, let's just fetch all non-deleted for the last 30 days maybe?
+            // Or just active ones + resolved in last 24h?
+            // Let's simplified: fetch all non-deleted, filter on client or server.
+            // Actually, we want active ones predominantly.
+
+            const { data, error } = await supabase
+                .from('incidents')
+                .select(`
+                    *,
+                    updates:incident_updates(*)
+                `)
+                .eq('household_id', householdId)
+                .is('deleted_at', null)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            // Client-side sort updates
+            const sorted = (data as any[])?.map(inc => ({
+                ...inc,
+                updates: (inc.updates as any[])?.sort((a: any, b: any) =>
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
+            })) || [];
+
+            setIncidents(sorted);
+        } catch (e) {
+            console.error("Error fetching incidents:", e);
+        } finally {
+            setLoading(false);
+        }
+    }, [householdId]);
+
+    useEffect(() => {
+        fetchIncidents();
+
+        if (!householdId) return;
+
+        // Realtime subscription
+        const channel = supabase
+            .channel('public:incidents')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'incidents', filter: `household_id=eq.${householdId}` },
+                () => fetchIncidents()
+            )
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'incident_updates' }, // Filter might be hard for joined updates, just listen to table
+                () => fetchIncidents()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [householdId, fetchIncidents]);
+
+    const addIncident = async (catId: string, type: string, note: string, photos: File[] = []) => {
+        if (!householdId) return { error: "No household" };
+
+        try {
+            // 1. Upload photos
+            const photoPaths: string[] = [];
+            for (const file of photos) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `incidents/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('avatars') // Using avatars bucket for now as shared storage
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+                photoPaths.push(filePath);
+            }
+
+            // 2. Create Incident
+            const { data, error } = await supabase
+                .from('incidents')
+                .insert({
+                    household_id: householdId,
+                    cat_id: catId,
+                    type,
+                    note,
+                    photos: photoPaths,
+                    created_by: (await supabase.auth.getUser()).data.user?.id
+                } as any)
+                .select()
+                .single();
+
+            if (error) throw error;
+            fetchIncidents();
+            return { data };
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    const addIncidentUpdate = async (incidentId: string, note: string, photos: File[] = [], statusChange?: string) => {
+        try {
+            // 1. Upload photos
+            const photoPaths: string[] = [];
+            for (const file of photos) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `incidents/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('avatars')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+                photoPaths.push(filePath);
+            }
+
+            // 2. Create Update
+            const { error } = await supabase
+                .from('incident_updates')
+                .insert({
+                    incident_id: incidentId,
+                    user_id: (await supabase.auth.getUser()).data.user?.id,
+                    note,
+                    photos: photoPaths,
+                    status_change: statusChange === 'none' ? null : statusChange
+                } as any);
+
+            if (error) throw error;
+
+            // 3. Update Parent Incident if status changed
+            if (statusChange && statusChange !== 'none') {
+                // Determine new status based on change
+                let newStatus = 'watching';
+                if (statusChange === 'resolved') newStatus = 'resolved';
+
+                // If resolved, set resolved_at
+                const updateData: any = { status: newStatus, updated_at: new Date().toISOString() };
+                if (newStatus === 'resolved') updateData.resolved_at = new Date().toISOString();
+
+                await supabase.from('incidents').update(updateData).eq('id', incidentId);
+            }
+
+            fetchIncidents();
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    const resolveIncident = async (incidentId: string) => {
+        try {
+            const { error } = await supabase
+                .from('incidents')
+                .update({
+                    status: 'resolved',
+                    resolved_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                } as any)
+                .eq('id', incidentId);
+
+            if (error) throw error;
+
+            // Add a system update for clarity? Optional.
+            await supabase.from('incident_updates').insert({
+                incident_id: incidentId,
+                user_id: (await supabase.auth.getUser()).data.user?.id,
+                note: '解決済みにしました',
+                status_change: 'resolved'
+            } as any);
+
+            fetchIncidents();
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    }
+
+    const deleteIncident = async (incidentId: string) => {
+        try {
+            const { error } = await supabase
+                .from('incidents')
+                .update({ deleted_at: new Date().toISOString() } as any)
+                .eq('id', incidentId);
+
+            if (error) throw error;
+            fetchIncidents();
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    return { incidents, loading, refetch: fetchIncidents, addIncident, addIncidentUpdate, resolveIncident, deleteIncident };
+}
+
 export function useNotificationPreferences() {
     const [preferences, setPreferences] = useState<{
         care_reminder: boolean;

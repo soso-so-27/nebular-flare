@@ -297,8 +297,8 @@ function AppContent() {
 
 
 
-function AuthenticatedAppWithProfile() {
-  const { profile, loading: profileLoading, refetch } = useUserProfile();
+function AuthenticatedAppWithProfile({ user }: { user: any }) {
+  const { profile, loading: profileLoading, refetch } = useUserProfile(user);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [checkComplete, setCheckComplete] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -351,13 +351,20 @@ function AuthenticatedApp() {
   const searchParams = useSearchParams();
   const isDemo = searchParams.get('demo') === 'true';
 
-  // Show loading state
-  if (loading) {
+  // Latch user to prevent flickering on auth state changes
+  const userRef = React.useRef<any>(null);
+  if (user) {
+    userRef.current = user;
+  }
+  const effectiveUser = user || userRef.current;
+
+  // Show loading state only if we don't have a user yet
+  if (loading && !effectiveUser) {
     return <SplashScreen />;
   }
 
-  // Show login if not authenticated and not demo mode
-  if (!user && !isDemo) {
+  // Show login if not authenticated and not demo mode (and not loading)
+  if (!effectiveUser && !isDemo && !loading) {
     return <LoginScreen />;
   }
 
@@ -372,7 +379,7 @@ function AuthenticatedApp() {
   }
 
   // Authenticated: check for onboarding
-  return <AuthenticatedAppWithProfile />;
+  return <AuthenticatedAppWithProfile user={effectiveUser} />;
 }
 
 export default function Home() {

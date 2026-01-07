@@ -329,6 +329,82 @@ export interface Database {
                     deleted_at?: string | null;
                 };
             };
+            incidents: {
+                Row: {
+                    id: string;
+                    household_id: string;
+                    cat_id: string;
+                    type: string;
+                    status: string;
+                    severity: string;
+                    photos: string[] | null;
+                    note: string | null;
+                    created_by: string | null;
+                    created_at: string;
+                    updated_at: string;
+                    resolved_at: string | null;
+                    deleted_at: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    household_id: string;
+                    cat_id: string;
+                    type: string;
+                    status?: string;
+                    severity?: string;
+                    photos?: string[] | null;
+                    note?: string | null;
+                    created_by?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                    resolved_at?: string | null;
+                    deleted_at?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    household_id?: string;
+                    cat_id?: string;
+                    type?: string;
+                    status?: string;
+                    severity?: string;
+                    photos?: string[] | null;
+                    note?: string | null;
+                    created_by?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                    resolved_at?: string | null;
+                    deleted_at?: string | null;
+                };
+            };
+            incident_updates: {
+                Row: {
+                    id: string;
+                    incident_id: string;
+                    user_id: string | null;
+                    note: string | null;
+                    photos: string[] | null;
+                    status_change: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    incident_id: string;
+                    user_id?: string | null;
+                    note?: string | null;
+                    photos?: string[] | null;
+                    status_change?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    incident_id?: string;
+                    user_id?: string | null;
+                    note?: string | null;
+                    photos?: string[] | null;
+                    status_change?: string | null;
+                    created_at?: string;
+                };
+            };
         };
     };
 }

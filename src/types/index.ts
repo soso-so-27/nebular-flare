@@ -116,6 +116,37 @@ export type SignalLog = {
   signalId: string;
   value: string;
   at: string;
+  acknowledged_at?: string | null;
+};
+
+export type IncidentStatus = 'watching' | 'hospital' | 'resolved';
+export type IncidentSeverity = 'low' | 'medium' | 'high';
+export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other';
+
+export type Incident = {
+  id: string;
+  household_id: string;
+  cat_id: string;
+  type: IncidentType;
+  status: IncidentStatus;
+  severity: IncidentSeverity;
+  photos: string[];
+  note: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  resolved_at?: string;
+  updates?: IncidentUpdate[]; // Joined for UI
+};
+
+export type IncidentUpdate = {
+  id: string;
+  incident_id: string;
+  user_id: string;
+  note: string;
+  photos: string[];
+  status_change?: IncidentStatus; // If status changed with this update
+  created_at: string;
 };
 
 export type InventoryItem = {

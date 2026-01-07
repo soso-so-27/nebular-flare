@@ -13,7 +13,7 @@ import { useUserProfile, useDateLogs } from "@/hooks/use-supabase-data";
 import { ActivityFeed } from "./activity-feed";
 
 export function CalendarScreen() {
-    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats } = useAppState();
+    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident } = useAppState();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -69,13 +69,37 @@ export function CalendarScreen() {
             });
         });
 
-        return records.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-    }, [dayCareLogs, dayObservations, careTaskDefs, noticeDefs, cats]);
+        // Add Incidents
+        incidents.filter(inc => isSameDay(new Date(inc.created_at), selectedDate)).forEach(inc => {
+            const cat = cats.find(c => c.id === inc.cat_id);
+            const typeLabel = {
+                'vomit': '嘔吐',
+                'diarrhea': '下痢',
+                'injury': '怪我',
+                'appetite': '食欲不振',
+                'energy': '元気がない',
+                'toilet': 'トイレ失敗',
+                'other': 'その他'
+            }[inc.type as string] || inc.type;
 
-    const handleDelete = async (id: string, type: 'care' | 'observation') => {
+            records.push({
+                id: inc.id,
+                sourceType: 'incident',
+                title: `⚠️ ${typeLabel}`,
+                subtitle: `${cat?.name || ''} ${inc.note || ''}`,
+                time: inc.created_at,
+                catId: inc.cat_id
+            });
+        });
+
+        return records.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    }, [dayCareLogs, dayObservations, incidents, careTaskDefs, noticeDefs, cats, selectedDate]);
+
+    const handleDelete = async (id: string, type: 'care' | 'observation' | 'incident') => {
         if (!confirm("削除しますか？")) return;
         if (type === 'care') await deleteCareLog(id);
-        else await deleteObservation(id);
+        else if (type === 'observation') await deleteObservation(id);
+        else if (type === 'incident') await deleteIncident(id);
         refetchDayLogs();
     };
 
@@ -122,6 +146,9 @@ export function CalendarScreen() {
                         const isCurrentMonth = isSameMonth(day, currentMonth);
                         const isTodayDate = isToday(day);
 
+                        // Check for incidents on this day
+                        const hasIncident = incidents.some(inc => isSameDay(new Date(inc.created_at), day));
+
                         return (
                             <button
                                 key={idx}
@@ -141,9 +168,9 @@ export function CalendarScreen() {
 
                                 {/* Indicators */}
                                 <div className="flex items-center gap-0.5 mt-1">
-                                    {dayData?.hasCare && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                                    {dayData?.hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                                    {dayData?.hasCrisis && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                                    {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                                    {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
+                                    {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
                                 </div>
                             </button>
                         );
@@ -182,9 +209,13 @@ export function CalendarScreen() {
                         <div key={r.id} className="rounded-xl shadow-none border border-slate-100 bg-white px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0 hover:bg-slate-50 transition-colors group">
                             <div className={`
                                 w-5 h-5 rounded-full flex items-center justify-center shrink-0
-                                ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}
+                                ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' :
+                                    r.sourceType === 'incident' ? 'bg-red-100 text-red-600' :
+                                        'bg-blue-100 text-blue-600'}
                             `}>
-                                {r.sourceType === 'care' ? <Check className="w-3 h-3" /> : <Stethoscope className="w-3 h-3" />}
+                                {r.sourceType === 'care' ? <Check className="w-3 h-3" /> :
+                                    r.sourceType === 'incident' ? <AlertCircle className="w-3 h-3" /> :
+                                        <Stethoscope className="w-3 h-3" />}
                             </div>
                             <div className="min-w-0 flex-1 flex flex-row items-center gap-2 overflow-hidden">
                                 <span className="text-[10px] font-mono text-slate-400 shrink-0">

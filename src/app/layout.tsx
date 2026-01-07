@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" style={{ backgroundColor: '#000', margin: 0, padding: 0 }}>
+    <html lang="ja" style={{ backgroundColor: '#000', margin: 0, padding: 0 }} suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -63,13 +63,30 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ backgroundColor: '#000', margin: 0, padding: 0 }}
+        suppressHydrationWarning
       >
         <AuthProvider>
           {children}
         </AuthProvider>
         {/* Hidden audio element for iOS audio unlock workaround */}
         <audio id="silent-audio-unlock" preload="auto" src="data:audio/wav;base64,UklGRigIAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQIAAA=" />
-        <PwaRegister />
+        {/* <PwaRegister /> */}
+        {/* SW unregister disabled for debug
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('ServiceWorker unregistered');
+                  }
+                });
+              }
+            `
+          }}
+        />
+        */}
       </body>
     </html>
   );
