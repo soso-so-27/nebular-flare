@@ -361,7 +361,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
             {/* Mode: Card (Tinder-style swipe, tilted stack, NO icons) */}
             {settings.homeViewMode === 'parallax' && (
-                <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {/* Background Blur */}
                     <div className="absolute inset-0">
                         <AnimatePresence mode="popLayout">
@@ -376,45 +376,45 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 {activeCat?.avatar && (
                                     <img
                                         src={activeCat.avatar}
-                                        className="w-full h-full object-cover blur-3xl opacity-30 scale-110"
+                                        className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
                                         alt=""
                                     />
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80" />
                             </motion.div>
                         </AnimatePresence>
                     </div>
 
-                    {/* Card Stack Container - centered with padding for rings */}
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px' }}>
-
-                        {/* Stacked cards behind - TILTED and OFFSET for visibility */}
+                    {/* Card Stack - Fixed positioning from top to leave room for rings */}
+                    <div
+                        className="absolute left-4 right-4 flex items-center justify-center"
+                        style={{
+                            top: '140px',  /* Space for MagicBubble rings */
+                            bottom: '100px' /* Space for bottom controls */
+                        }}
+                    >
+                        {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}
                         {cats.length > 1 && (
                             <>
-                                {/* Third card (furthest back) - more tilted */}
+                                {/* Back card - rotated right */}
                                 <div
-                                    className="absolute rounded-2xl bg-slate-700/40 border border-white/5"
+                                    className="absolute inset-0 rounded-2xl bg-slate-600 shadow-lg"
                                     style={{
-                                        width: 'calc(100% - 80px)',
-                                        height: 'calc(100% - 40px)',
-                                        transform: 'rotate(6deg) translateX(20px) translateY(-10px)',
-                                        zIndex: 0
+                                        transform: 'rotate(5deg) translateX(15px)',
+                                        transformOrigin: 'center bottom'
                                     }}
                                 />
-                                {/* Second card - slightly tilted */}
+                                {/* Middle card - slightly rotated */}
                                 <div
-                                    className="absolute rounded-2xl bg-slate-600/50 border border-white/10 shadow-xl"
+                                    className="absolute inset-0 rounded-2xl bg-slate-500 shadow-xl"
                                     style={{
-                                        width: 'calc(100% - 48px)',
-                                        height: 'calc(100% - 24px)',
-                                        transform: 'rotate(3deg) translateX(10px) translateY(-5px)',
-                                        zIndex: 1
+                                        transform: 'rotate(2.5deg) translateX(8px)',
+                                        transformOrigin: 'center bottom'
                                     }}
                                 />
                             </>
                         )}
 
-                        {/* Main Card with swipe */}
+                        {/* Main Card */}
                         <AnimatePresence initial={false} custom={direction}>
                             <motion.div
                                 key={activeCatId}
@@ -430,15 +430,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                         x: 0,
                                         opacity: 1,
                                         scale: 1,
-                                        rotate: 0,
-                                        zIndex: 10
+                                        rotate: 0
                                     },
                                     exit: (d: number) => ({
                                         x: d > 0 ? -400 : 400,
                                         opacity: 0,
                                         scale: 0.85,
-                                        rotate: d > 0 ? -15 : 15,
-                                        zIndex: 0
+                                        rotate: d > 0 ? -15 : 15
                                     })
                                 }}
                                 initial="enter"
@@ -450,24 +448,18 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 dragElastic={0.2}
                                 onDragEnd={handleSwipe}
                                 onClick={() => onCatClick?.()}
-                                className="absolute rounded-2xl overflow-hidden shadow-2xl bg-slate-900 cursor-pointer"
-                                style={{
-                                    width: 'calc(100% - 16px)',
-                                    height: '100%',
-                                    zIndex: 10
-                                }}
+                                className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl bg-slate-800 cursor-pointer"
+                                style={{ zIndex: 10 }}
                             >
                                 {activeCat?.avatar ? (
-                                    <motion.img
+                                    <img
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover"
-                                        animate={{ scale: [1, 1.02] }}
-                                        whileTap={{ scale: 0.97 }}
-                                        transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
+                                        alt={activeCat.name}
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                        <Cat className="w-20 h-20 text-slate-600" />
+                                    <div className="w-full h-full bg-slate-700 flex items-center justify-center">
+                                        <Cat className="w-20 h-20 text-slate-500" />
                                     </div>
                                 )}
                                 {/* Gradient overlay */}
