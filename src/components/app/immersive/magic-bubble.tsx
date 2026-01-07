@@ -270,7 +270,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         </div>
                     </motion.button>
 
-                    {/* Expandable Care List for Card Mode */}
+                    {/* Expandable Consolidated List for Card Mode (Care + Observation) */}
                     <AnimatePresence>
                         {expandedSection === 'care' && (
                             <motion.div
@@ -279,30 +279,70 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 exit={{ opacity: 0, height: 0, y: -10 }}
                                 className={`rounded-2xl backdrop-blur-xl border shadow-lg overflow-hidden ${isLight ? 'bg-white/90 border-black/10' : 'bg-black/60 border-white/10'}`}
                             >
-                                <div className="p-3 space-y-2 max-h-[50vh] overflow-y-auto">
-                                    {careItems.map(item => (
-                                        <motion.button
-                                            key={item.id}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={async (e) => {
-                                                e.stopPropagation();
-                                                triggerFeedback('success');
-                                                if (!item.done && addCareLog) {
-                                                    const targetId = (item as any).actionId || item.id;
-                                                    const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
-                                                    if (result && result.error) {
-                                                        toast.error(result.error.message || "記録できませんでした");
-                                                    }
-                                                }
-                                            }}
-                                            className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10`}`}
-                                        >
-                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
-                                                {item.done && <Check className="w-3 h-3 text-white" />}
+                                <div className="p-3 space-y-3 max-h-[50vh] overflow-y-auto">
+                                    {/* Care Section */}
+                                    {careItems.length > 0 && (
+                                        <div className="space-y-2">
+                                            <div className={`flex items-center gap-2 text-xs font-bold ${styles.text}`}>
+                                                <Heart className="w-3 h-3" />
+                                                <span>お世話</span>
                                             </div>
-                                            <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
-                                        </motion.button>
-                                    ))}
+                                            {careItems.map(item => (
+                                                <motion.button
+                                                    key={item.id}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        triggerFeedback('success');
+                                                        if (!item.done && addCareLog) {
+                                                            const targetId = (item as any).actionId || item.id;
+                                                            const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
+                                                            if (result && result.error) {
+                                                                toast.error(result.error.message || "記録できませんでした");
+                                                            }
+                                                        }
+                                                    }}
+                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10`}`}
+                                                >
+                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                        {item.done && <Check className="w-3 h-3 text-white" />}
+                                                    </div>
+                                                    <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Observation Section */}
+                                    {noticeDefs.filter(n => n.enabled !== false && n.kind === 'notice').length > 0 && (
+                                        <div className="space-y-2">
+                                            <div className={`flex items-center gap-2 text-xs font-bold ${styles.text}`}>
+                                                <Cat className="w-3 h-3" />
+                                                <span>猫の様子</span>
+                                            </div>
+                                            {noticeDefs.filter(n => n.enabled !== false && n.kind === 'notice').map(notice => {
+                                                const catObservations = observations.filter(o => o.cat_id === activeCatId);
+                                                const isDone = catObservations.some(o => o.type === notice.id);
+                                                return (
+                                                    <motion.button
+                                                        key={notice.id}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            triggerFeedback('medium');
+                                                            setEditingNoteId(notice.id);
+                                                        }}
+                                                        className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${isDone ? 'opacity-50' : `hover:bg-white/10`}`}
+                                                    >
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${isDone ? 'bg-sky-500 border-sky-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                            {isDone && <Check className="w-3 h-3 text-white" />}
+                                                        </div>
+                                                        <span className={`text-sm font-medium truncate ${styles.text}`}>{notice.title}</span>
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
