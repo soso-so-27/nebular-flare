@@ -472,182 +472,184 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         </AnimatePresence>
                     </div>
 
-                    {/* OBSERVATION RING */}
-                    <div className="flex flex-col gap-2">
-                        <motion.div
-                            whileTap={{ scale: 0.9 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                            className="flex items-center gap-3 cursor-pointer group"
-                            onClick={() => {
-                                triggerFeedback('medium');
-                                setExpandedSection(expandedSection === 'observation' ? null : 'observation')
-                            }}
-                        >
-                            {/* Ring Container */}
-                            <div className="relative w-10 h-10 transition-transform group-active:scale-95">
-                                <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
-                                    <circle cx="30" cy="30" r={26} fill="none" stroke={styles.ringTrack} strokeWidth="4" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
-                                    <motion.circle
-                                        cx="30" cy="30" r={26} fill="none" stroke={styles.obsColor} strokeWidth="4" strokeLinecap="round"
-                                        initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
-                                        animate={{ strokeDashoffset: (2 * Math.PI * 26) - (observationProgress.progress * (2 * Math.PI * 26)) }}
-                                        transition={{ duration: 1.5, ease: "easeOut" }}
-                                        style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
-                                    />
-                                </svg>
-                                <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
-                                    <Cat className={`w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${expandedSection === 'observation' ? styles.iconFill : ''}`} />
-                                </div>
-                            </div>
-
-                            {/* Text Data */}
-                            <div className="flex flex-col">
-                                <span className={`text-[10px] font-bold tracking-wider ${styles.text}`}>
-                                    猫の様子
-                                </span>
-                                <div className="flex items-baseline gap-1">
-                                    <span className={`text-xl font-light tracking-tight ${styles.text}`}>
-                                        {Math.round(observationProgress.progress * 100)}
-                                    </span>
-                                    <span className={`text-xs font-medium ${styles.text}`}>%</span>
-                                </div>
-                            </div>
-                        </motion.div>
-                        {/* Expanded Obs List - Flows Downwards */}
-                        <AnimatePresence>
-                            {expandedSection === 'observation' && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
-                                >
-                                    <div className="py-2 space-y-4 w-[220px]">
-                                        {/* inputType-aware Observation List */}
-                                        {noticeDefs
-                                            .filter(def => def.enabled !== false && def.kind === 'notice')
-                                            .sort((a, b) => {
-                                                const isDoneA = !!observations.find(o => o.type === a.id && o.cat_id === activeCatId);
-                                                const isDoneB = !!observations.find(o => o.type === b.id && o.cat_id === activeCatId);
-                                                if (isDoneA === isDoneB) return 0;
-                                                return isDoneA ? 1 : -1;
-                                            })
-                                            .map(notice => {
-                                                const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
-                                                const isDone = !!existingObs;
-                                                const choices = notice.choices || ['いつも通り', '気になる'];
-                                                const inputType = notice.inputType || 'ok-notice';
-
-                                                const isEditing = editingNoteId === notice.id;
-
-                                                if (isEditing) {
-                                                    return (
-                                                        <ObservationEditor
-                                                            key={notice.id}
-                                                            notice={notice}
-                                                            choices={choices}
-                                                            existingObs={existingObs}
-                                                            styles={styles}
-                                                            onCancel={() => {
-                                                                triggerFeedback('light');
-                                                                setEditingNoteId(null);
-                                                                setNoteText("");
-                                                                setSelectedValue("");
-                                                            }}
-                                                            onSave={async (val, text, files) => {
-                                                                triggerFeedback('success');
-                                                                if (addObservation) {
-                                                                    await addObservation(activeCatId, notice.id, val, text, files);
-                                                                }
-                                                                setEditingNoteId(null);
-                                                            }}
-                                                            triggerFeedback={triggerFeedback}
-                                                        />
-                                                    );
-                                                }
-
-                                                return (
-                                                    <div key={notice.id} className="flex flex-col gap-1.5 group relative">
-                                                        <div className="flex justify-between items-center">
-                                                            <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
-                                                            {/* Memo Trigger Button */}
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    triggerFeedback('medium');
-                                                                    setEditingNoteId(notice.id);
-                                                                    // Default value logic
-                                                                    if (existingObs) {
-                                                                        setSelectedValue(existingObs.value);
-                                                                        setNoteText(existingObs.notes || "");
-                                                                    } else {
-                                                                        // For photo type, default is '撮影した' or similar from choices[0]
-                                                                        setSelectedValue(choices[0] || '記録');
-                                                                        setNoteText("");
-                                                                    }
-                                                                }}
-                                                                className="p-1.5 text-white/40 hover:text-white transition-colors"
-                                                                title="詳細・メモを入力"
-                                                            >
-                                                                <MessageSquarePlus className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                        {!isDone ? (
-                                                            <div className="flex gap-1.5 flex-wrap">
-                                                                {inputType === 'photo' ? (
-                                                                    <motion.button
-                                                                        whileTap={{ scale: 0.9 }}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            triggerFeedback('medium');
-                                                                            // Directly open editor for photo type
-                                                                            setEditingNoteId(notice.id);
-                                                                            setSelectedValue(choices[0] || '撮影した');
-                                                                        }}
-                                                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border active:scale-95 transition-all ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`}
-                                                                    >
-                                                                        <Camera className="w-4 h-4" />
-                                                                        <span>写真を撮る</span>
-                                                                    </motion.button>
-                                                                ) : (
-                                                                    (inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
-                                                                        <motion.button
-                                                                            key={choice}
-                                                                            whileTap={{ scale: 0.9 }}
-                                                                            onClick={async (e) => {
-                                                                                e.stopPropagation();
-                                                                                triggerFeedback('success');
-                                                                                if (addObservation) {
-                                                                                    await addObservation(activeCatId, notice.id, choice);
-                                                                                }
-                                                                            }}
-                                                                            className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
-                                                                                ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
-                                                                                : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30'
-                                                                                }`}
-                                                                        >
-                                                                            {choice}
-                                                                        </motion.button>
-                                                                    ))
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                                                                <Check className="w-3 h-3" />
-                                                                <span>{existingObs?.value || '記録済み'}</span>
-                                                                {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
-                                                                {/* Show image indicator if present (we don't have images in existingObs type here yet, need fetch update, but for now just text is fine or check notes) */}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )
-                                            })}
-
+                    {/* OBSERVATION RING - Explicitly hidden in Card Mode (bottom-center) */}
+                    {(placement as string) !== 'bottom-center' && (
+                        <div className="flex flex-col gap-2">
+                            <motion.div
+                                whileTap={{ scale: 0.9 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                className="flex items-center gap-3 cursor-pointer group"
+                                onClick={() => {
+                                    triggerFeedback('medium');
+                                    setExpandedSection(expandedSection === 'observation' ? null : 'observation')
+                                }}
+                            >
+                                {/* Ring Container */}
+                                <div className="relative w-10 h-10 transition-transform group-active:scale-95">
+                                    <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
+                                        <circle cx="30" cy="30" r={26} fill="none" stroke={styles.ringTrack} strokeWidth="4" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
+                                        <motion.circle
+                                            cx="30" cy="30" r={26} fill="none" stroke={styles.obsColor} strokeWidth="4" strokeLinecap="round"
+                                            initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
+                                            animate={{ strokeDashoffset: (2 * Math.PI * 26) - (observationProgress.progress * (2 * Math.PI * 26)) }}
+                                            transition={{ duration: 1.5, ease: "easeOut" }}
+                                            style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
+                                        />
+                                    </svg>
+                                    <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
+                                        <Cat className={`w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${expandedSection === 'observation' ? styles.iconFill : ''}`} />
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                                </div>
+
+                                {/* Text Data */}
+                                <div className="flex flex-col">
+                                    <span className={`text-[10px] font-bold tracking-wider ${styles.text}`}>
+                                        猫の様子
+                                    </span>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className={`text-xl font-light tracking-tight ${styles.text}`}>
+                                            {Math.round(observationProgress.progress * 100)}
+                                        </span>
+                                        <span className={`text-xs font-medium ${styles.text}`}>%</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                            {/* Expanded Obs List - Flows Downwards */}
+                            <AnimatePresence>
+                                {expandedSection === 'observation' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
+                                    >
+                                        <div className="py-2 space-y-4 w-[220px]">
+                                            {/* inputType-aware Observation List */}
+                                            {noticeDefs
+                                                .filter(def => def.enabled !== false && def.kind === 'notice')
+                                                .sort((a, b) => {
+                                                    const isDoneA = !!observations.find(o => o.type === a.id && o.cat_id === activeCatId);
+                                                    const isDoneB = !!observations.find(o => o.type === b.id && o.cat_id === activeCatId);
+                                                    if (isDoneA === isDoneB) return 0;
+                                                    return isDoneA ? 1 : -1;
+                                                })
+                                                .map(notice => {
+                                                    const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
+                                                    const isDone = !!existingObs;
+                                                    const choices = notice.choices || ['いつも通り', '気になる'];
+                                                    const inputType = notice.inputType || 'ok-notice';
+
+                                                    const isEditing = editingNoteId === notice.id;
+
+                                                    if (isEditing) {
+                                                        return (
+                                                            <ObservationEditor
+                                                                key={notice.id}
+                                                                notice={notice}
+                                                                choices={choices}
+                                                                existingObs={existingObs}
+                                                                styles={styles}
+                                                                onCancel={() => {
+                                                                    triggerFeedback('light');
+                                                                    setEditingNoteId(null);
+                                                                    setNoteText("");
+                                                                    setSelectedValue("");
+                                                                }}
+                                                                onSave={async (val, text, files) => {
+                                                                    triggerFeedback('success');
+                                                                    if (addObservation) {
+                                                                        await addObservation(activeCatId, notice.id, val, text, files);
+                                                                    }
+                                                                    setEditingNoteId(null);
+                                                                }}
+                                                                triggerFeedback={triggerFeedback}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <div key={notice.id} className="flex flex-col gap-1.5 group relative">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
+                                                                {/* Memo Trigger Button */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        triggerFeedback('medium');
+                                                                        setEditingNoteId(notice.id);
+                                                                        // Default value logic
+                                                                        if (existingObs) {
+                                                                            setSelectedValue(existingObs.value);
+                                                                            setNoteText(existingObs.notes || "");
+                                                                        } else {
+                                                                            // For photo type, default is '撮影した' or similar from choices[0]
+                                                                            setSelectedValue(choices[0] || '記録');
+                                                                            setNoteText("");
+                                                                        }
+                                                                    }}
+                                                                    className="p-1.5 text-white/40 hover:text-white transition-colors"
+                                                                    title="詳細・メモを入力"
+                                                                >
+                                                                    <MessageSquarePlus className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                            {!isDone ? (
+                                                                <div className="flex gap-1.5 flex-wrap">
+                                                                    {inputType === 'photo' ? (
+                                                                        <motion.button
+                                                                            whileTap={{ scale: 0.9 }}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                triggerFeedback('medium');
+                                                                                // Directly open editor for photo type
+                                                                                setEditingNoteId(notice.id);
+                                                                                setSelectedValue(choices[0] || '撮影した');
+                                                                            }}
+                                                                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border active:scale-95 transition-all ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`}
+                                                                        >
+                                                                            <Camera className="w-4 h-4" />
+                                                                            <span>写真を撮る</span>
+                                                                        </motion.button>
+                                                                    ) : (
+                                                                        (inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
+                                                                            <motion.button
+                                                                                key={choice}
+                                                                                whileTap={{ scale: 0.9 }}
+                                                                                onClick={async (e) => {
+                                                                                    e.stopPropagation();
+                                                                                    triggerFeedback('success');
+                                                                                    if (addObservation) {
+                                                                                        await addObservation(activeCatId, notice.id, choice);
+                                                                                    }
+                                                                                }}
+                                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
+                                                                                    ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
+                                                                                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30'
+                                                                                    }`}
+                                                                            >
+                                                                                {choice}
+                                                                            </motion.button>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                                                    <Check className="w-3 h-3" />
+                                                                    <span>{existingObs?.value || '記録済み'}</span>
+                                                                    {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
+                                                                    {/* Show image indicator if present (we don't have images in existingObs type here yet, need fetch update, but for now just text is fine or check notes) */}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })}
+
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
                 </div>
             )}
 
