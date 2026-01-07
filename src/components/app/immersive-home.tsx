@@ -385,7 +385,17 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         </AnimatePresence>
                     </div>
 
-                    <div className="absolute inset-0 flex items-center justify-center p-6">
+                    {/* Card Stack Area - Shows stacked cards behind main card */}
+                    <div className="absolute inset-0 flex items-center justify-center p-6 pt-20">
+                        {/* Background stacked cards (decorative) */}
+                        {cats.length > 1 && (
+                            <>
+                                <div className="absolute w-[calc(100%-3rem)] max-h-[65vh] rounded-3xl bg-slate-700/50 shadow-lg" style={{ transform: 'scale(0.92) translateY(12px)', zIndex: 0 }} />
+                                <div className="absolute w-[calc(100%-3rem)] max-h-[65vh] rounded-3xl bg-slate-600/30 shadow-md" style={{ transform: 'scale(0.85) translateY(24px)', zIndex: -1 }} />
+                            </>
+                        )}
+
+                        {/* Main Card with swipe */}
                         <AnimatePresence initial={false} custom={direction}>
                             <motion.div
                                 key={activeCatId}
@@ -403,13 +413,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 dragConstraints={{ left: 0, right: 0 }}
                                 onDragEnd={handleSwipe}
                                 onClick={() => onCatClick?.()}
-                                className="w-full h-full max-h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative bg-slate-900 cursor-pointer"
+                                className="w-full h-full max-h-[65vh] rounded-3xl overflow-hidden shadow-2xl relative bg-slate-900 cursor-pointer"
                             >
                                 {activeCat?.avatar ? (
                                     <motion.img
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover"
-                                        animate={{ scale: [1, 1.1] }}
+                                        animate={{ scale: [1, 1.05] }}
                                         whileTap={{ scale: 0.95 }}
                                         transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
                                     />
@@ -418,13 +428,27 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                         <Cat className="w-32 h-32 text-slate-200" />
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                <div className="absolute bottom-8 left-6">
-                                    <h2 className="text-4xl font-bold text-white mb-2">{activeCat?.name}</h2>
-                                    <p className="text-white/80">{activeCat?.age} • {activeCat?.sex}</p>
+                                {/* Gradient overlay for name */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                                {/* Cat name only (no age/sex) */}
+                                <div className="absolute bottom-6 left-6 right-6">
+                                    <h2 className="text-3xl font-bold text-white drop-shadow-lg">{activeCat?.name}</h2>
                                 </div>
                             </motion.div>
                         </AnimatePresence>
+
+                        {/* Card pagination dots */}
+                        {cats.length > 1 && (
+                            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 z-10">
+                                {cats.map((cat, index) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setActiveCatId(cat.id)}
+                                        className={`w-2 h-2 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125' : 'bg-white/40'}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
