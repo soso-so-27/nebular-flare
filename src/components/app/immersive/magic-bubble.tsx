@@ -279,8 +279,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 exit={{ opacity: 0, height: 0, y: -10 }}
                                 className={`rounded-2xl backdrop-blur-xl border shadow-lg overflow-hidden ${isLight ? 'bg-white/90 border-black/10' : 'bg-black/60 border-white/10'}`}
                             >
-                                <div className="p-3 space-y-3 max-h-[50vh] overflow-y-auto">
-                                    {/* Care Section */}
+                                <div className="p-3 space-y-4 max-h-[50vh] overflow-y-auto">
+                                    {/* Care Section - Same as other modes */}
                                     {careItems.length > 0 && (
                                         <div className="space-y-2">
                                             <div className={`flex items-center gap-2 text-xs font-bold ${styles.text}`}>
@@ -313,34 +313,70 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                         </div>
                                     )}
 
-                                    {/* Observation Section */}
+                                    {/* Observation Section - Same logic as other modes with ObservationEditor */}
                                     {noticeDefs.filter(n => n.enabled !== false && n.kind === 'notice').length > 0 && (
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             <div className={`flex items-center gap-2 text-xs font-bold ${styles.text}`}>
                                                 <Cat className="w-3 h-3" />
                                                 <span>猫の様子</span>
                                             </div>
-                                            {noticeDefs.filter(n => n.enabled !== false && n.kind === 'notice').map(notice => {
-                                                const catObservations = observations.filter(o => o.cat_id === activeCatId);
-                                                const isDone = catObservations.some(o => o.type === notice.id);
-                                                return (
-                                                    <motion.button
-                                                        key={notice.id}
-                                                        whileTap={{ scale: 0.95 }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            triggerFeedback('medium');
-                                                            setEditingNoteId(notice.id);
-                                                        }}
-                                                        className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${isDone ? 'opacity-50' : `hover:bg-white/10`}`}
-                                                    >
-                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${isDone ? 'bg-sky-500 border-sky-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
-                                                            {isDone && <Check className="w-3 h-3 text-white" />}
-                                                        </div>
-                                                        <span className={`text-sm font-medium truncate ${styles.text}`}>{notice.title}</span>
-                                                    </motion.button>
-                                                );
-                                            })}
+                                            {noticeDefs
+                                                .filter(def => def.enabled !== false && def.kind === 'notice')
+                                                .sort((a, b) => {
+                                                    const isDoneA = !!observations.find(o => o.type === a.id && o.cat_id === activeCatId);
+                                                    const isDoneB = !!observations.find(o => o.type === b.id && o.cat_id === activeCatId);
+                                                    if (isDoneA === isDoneB) return 0;
+                                                    return isDoneA ? 1 : -1;
+                                                })
+                                                .map(notice => {
+                                                    const existingObs = observations.find(o => o.type === notice.id && o.cat_id === activeCatId);
+                                                    const isDone = !!existingObs;
+                                                    const choices = notice.choices || ['いつも通り', '気になる'];
+
+                                                    if (editingNoteId === notice.id) {
+                                                        return (
+                                                            <ObservationEditor
+                                                                key={notice.id}
+                                                                notice={notice}
+                                                                choices={choices}
+                                                                existingObs={existingObs}
+                                                                styles={styles}
+                                                                onCancel={() => {
+                                                                    triggerFeedback('light');
+                                                                    setEditingNoteId(null);
+                                                                    setNoteText("");
+                                                                    setSelectedValue("");
+                                                                }}
+                                                                onSave={async (val, text, files) => {
+                                                                    triggerFeedback('success');
+                                                                    if (addObservation) {
+                                                                        await addObservation(activeCatId, notice.id, val, text, files);
+                                                                    }
+                                                                    setEditingNoteId(null);
+                                                                }}
+                                                                triggerFeedback={triggerFeedback}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <motion.button
+                                                            key={notice.id}
+                                                            whileTap={{ scale: 0.95 }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                triggerFeedback('medium');
+                                                                setEditingNoteId(notice.id);
+                                                            }}
+                                                            className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${isDone ? 'opacity-50' : `hover:bg-white/10`}`}
+                                                        >
+                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${isDone ? 'bg-sky-500 border-sky-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                                {isDone && <Check className="w-3 h-3 text-white" />}
+                                                            </div>
+                                                            <span className={`text-sm font-medium truncate ${styles.text}`}>{notice.title}</span>
+                                                        </motion.button>
+                                                    );
+                                                })}
                                         </div>
                                     )}
                                 </div>
