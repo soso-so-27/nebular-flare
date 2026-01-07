@@ -233,15 +233,15 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
               Other modes: Vertical stack with expandable rings
             */}
             {placement === 'bottom-center' ? (
-                /* === CARD MODE: Consolidated Icon === */
-                <div className="absolute top-8 left-6 z-40 pointer-events-auto">
+                /* === CARD MODE: Consolidated Icon with Expandable List === */
+                <div className="absolute top-8 left-6 z-40 pointer-events-auto flex flex-col gap-2">
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         onClick={(e) => {
                             e.stopPropagation();
                             triggerFeedback('medium');
-                            setExpandedSection(expandedSection === 'care' ? null : 'care'); // Toggle expand in-place
+                            setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
                         className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-xl border shadow-lg ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/40 border-white/10'}`}
                     >
@@ -269,6 +269,44 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             <span className={`text-xs font-medium ${styles.text}`}>%</span>
                         </div>
                     </motion.button>
+
+                    {/* Expandable Care List for Card Mode */}
+                    <AnimatePresence>
+                        {expandedSection === 'care' && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, y: -10 }}
+                                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                exit={{ opacity: 0, height: 0, y: -10 }}
+                                className={`rounded-2xl backdrop-blur-xl border shadow-lg overflow-hidden ${isLight ? 'bg-white/90 border-black/10' : 'bg-black/60 border-white/10'}`}
+                            >
+                                <div className="p-3 space-y-2 max-h-[50vh] overflow-y-auto">
+                                    {careItems.map(item => (
+                                        <motion.button
+                                            key={item.id}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                triggerFeedback('success');
+                                                if (!item.done && addCareLog) {
+                                                    const targetId = (item as any).actionId || item.id;
+                                                    const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
+                                                    if (result && result.error) {
+                                                        toast.error(result.error.message || "記録できませんでした");
+                                                    }
+                                                }
+                                            }}
+                                            className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10`}`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                {item.done && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ) : (
                 /* === OTHER MODES: Vertical Stack with Expandable Rings === */
