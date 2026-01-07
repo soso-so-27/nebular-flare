@@ -328,23 +328,32 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     const slideVariants = {
         enter: (direction: number) => ({
-            x: direction > 0 ? '100%' : '-100%',
+            x: direction > 0 ? '105%' : '-105%', // Slightly more than 100 to avoid edge artifacts
+            scale: 0.9,
             opacity: 0,
-            scale: 1
+            zIndex: 0
         }),
         center: {
             x: 0,
-            opacity: 1,
             scale: 1,
+            opacity: 1,
+            zIndex: 1,
             transition: {
-                x: { type: "spring" as const, stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
+                x: { type: "spring" as const, stiffness: 260, damping: 25 }, // Snappy but fluid
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.2 }
             }
         },
         exit: (direction: number) => ({
-            x: direction > 0 ? '-100%' : '100%',
+            x: direction > 0 ? '-30%' : '30%', // Parallax exit (slower than enter)
+            scale: 0.9,
             opacity: 0,
-            scale: 1
+            zIndex: 0,
+            transition: {
+                x: { type: "spring" as const, stiffness: 260, damping: 25 },
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.2 }
+            }
         })
     };
 
@@ -384,14 +393,14 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         exit="exit"
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.2}
+                        dragElastic={1} // Full mobile responsiveness (follows finger exactly)
                         onDragEnd={handleSwipe}
-                        className="absolute inset-0 overflow-hidden"
+                        className="absolute inset-0 overflow-hidden shadow-2xl" // Added shadow
                     >
                         {/* Breathing Container */}
                         <motion.div
                             className="w-full h-full relative"
-                            animate={{ scale: [1, 1.05, 1] }}
+                            animate={{ scale: [1, 1.02, 1] }} // Subtle breathing
                             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                         >
                             {displayMedia ? (
@@ -528,31 +537,32 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 custom={direction}
                                 variants={{
                                     enter: (d: number) => ({
-                                        x: d > 0 ? 400 : -400,
+                                        x: d > 0 ? 500 : -500, // Cards fly in from further away
                                         opacity: 0,
-                                        scale: 0.85,
-                                        rotate: d > 0 ? 15 : -15
+                                        scale: 0.8,
+                                        rotate: d > 0 ? 20 : -20
                                     }),
                                     center: {
                                         x: 0,
                                         opacity: 1,
                                         scale: 1,
-                                        rotate: 0
+                                        rotate: 0,
+                                        transition: { type: "spring", stiffness: 300, damping: 20 }
                                     },
                                     exit: (d: number) => ({
-                                        x: d > 0 ? -400 : 400,
+                                        x: d > 0 ? -500 : 500, // Cards fly out further
                                         opacity: 0,
-                                        scale: 0.85,
-                                        rotate: d > 0 ? -15 : 15
+                                        scale: 0.8,
+                                        rotate: d > 0 ? -20 : 20,
+                                        transition: { duration: 0.2 }
                                     })
                                 }}
                                 initial="enter"
                                 animate="center"
                                 exit="exit"
-                                transition={{ type: "spring", stiffness: 260, damping: 25 }}
                                 drag="x"
                                 dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={0.2}
+                                dragElastic={0.7} // High elasticity for "throwing" feel
                                 onDragEnd={handleSwipe}
                                 onClick={() => onCatClick?.()}
                                 className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl bg-slate-800 cursor-pointer"
