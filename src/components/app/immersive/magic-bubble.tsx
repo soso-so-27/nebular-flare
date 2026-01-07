@@ -231,7 +231,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
               === FLOATING HUD SATELLITES (Returned to Top-Left) === 
               Restored to Top-Left for natural dropdown expansion.
             */}
-            <div className="absolute top-8 left-6 z-40 flex flex-col gap-6 items-start pointer-events-auto max-h-[85vh] overflow-y-auto no-scrollbar pb-20 pr-4">
+            <div className="absolute top-8 left-6 z-40 flex flex-row gap-6 items-start pointer-events-auto">
 
                 {/* CARE RING */}
                 <div className="flex flex-col gap-2">
@@ -500,7 +500,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
               === SOCIAL RIGHT STACK (Right-Edge Actions) === 
               Vertical stack of actions on the right edge, optimized for thumb reach.
             */}
-            <div className="fixed right-4 bottom-10 z-50 flex flex-col gap-5 items-center pointer-events-none">
+            <div className="fixed right-4 bottom-10 z-50 flex flex-row gap-4 items-center pointer-events-none">
 
                 {/* Pickup Widget (Notification Badge Style) */}
                 <div className="pointer-events-auto">
