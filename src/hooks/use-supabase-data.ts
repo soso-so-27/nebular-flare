@@ -40,6 +40,7 @@ export function useCats(householdId: string | null) {
                 return;
             }
 
+
             // Manually fetch images since we can't join in RPC easily
             let catsData = rawCats || [];
             if (catsData.length > 0) {

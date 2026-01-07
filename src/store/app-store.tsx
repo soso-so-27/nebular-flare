@@ -515,6 +515,8 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             weight: (c as any).weight,
             microchip_id: (c as any).microchip_id,
             notes: (c as any).notes,
+            background_mode: (c as any).background_mode,
+            background_media: (c as any).background_media,
         }));
     }, [isDemo, supabaseCats, demoCats]);
 

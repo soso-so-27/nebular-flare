@@ -15,10 +15,10 @@ import { getCatchUpItems } from "@/lib/utils-catchup";
 interface BubbleItem {
     id: string;
     label: string;
-    subLabel?: string;
+    subLabel?: string | null;
     icon: React.ReactNode;
     colorClass: string;
-    onAction: () => void;
+    onAction: () => void | Promise<void>;
 }
 
 interface BubblePickupListProps {

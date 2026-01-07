@@ -1,6 +1,10 @@
+-- Drop the existing function first to allow return type change
+DROP FUNCTION IF EXISTS get_all_cats(uuid);
+
 -- Function to fetch cats returning raw JSON
 -- This avoids 'SETOF cats' which might be cached with old column definitions by PostgREST
--- We allow NULL result (if no cats found, json_agg might be null, handled in coalescing)
+-- Using SELECT * ensures we get all real columns (including new background ones) 
+-- and avoids errors with non-existent columns like 'age'
 
 CREATE OR REPLACE FUNCTION get_all_cats(target_household_id uuid)
 RETURNS json
@@ -10,22 +14,7 @@ SECURITY DEFINER
 AS $$
   SELECT COALESCE(json_agg(t), '[]'::json)
   FROM (
-      SELECT 
-        id, 
-        name, 
-        age, 
-        sex, 
-        avatar, 
-        birthday, 
-        weight, 
-        microchip_id, 
-        notes,
-        background_mode, 
-        background_media, 
-        household_id, 
-        created_at, 
-        updated_at, 
-        deleted_at
+      SELECT *
       FROM cats
       WHERE household_id = target_household_id
       AND deleted_at IS NULL
