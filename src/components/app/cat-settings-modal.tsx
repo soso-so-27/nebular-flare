@@ -205,40 +205,63 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
 
             } else {
                 // Update (Skip weight update here, use profile detail)
-                const { error } = await supabase.from("cats").update({
-                    name: name.trim(),
-                    sex,
-                    birthday: birthday || null,
-                } as any).eq('id', currentCatId);
-
-                if (error) throw error;
+                // Update handled in step 3 for atomicity if possible, 
+                // but let's keep basic check here or just skip.
+                // Let's SKIP update here and do it all at step 3 for existing cats.
+                currentCatId = editingCatId;
             }
 
-            // 2. Upload Photos if any
+            // 2. Upload Photos/Media
             let newAvatarUrl = null;
             if (selectedFiles.length > 0 && currentCatId) {
                 const { firstPublicUrl } = await uploadFiles(currentCatId);
                 newAvatarUrl = firstPublicUrl;
             }
 
-            // 3. Update Avatar URL if we got a new one
-            if (newAvatarUrl && currentCatId) {
-                await supabase.from("cats").update({ avatar: newAvatarUrl }).eq('id', currentCatId);
-            }
-
-            // 4. Update Background Settings
             let newBgMediaUrl = backgroundMedia;
             if (bgFile && currentCatId) {
                 const uploadedBg = await uploadBgMedia(currentCatId);
                 if (uploadedBg) newBgMediaUrl = uploadedBg;
             }
 
+            // 3. Final Update (Single Query)
             if (currentCatId) {
-                await supabase.from("cats").update({
-                    background_mode: backgroundMode,
-                    background_media: newBgMediaUrl
-                }).eq('id', currentCatId);
+                let updates: any = {};
+
+                if (editingCatId) {
+                    // Full update for existing cat
+                    updates = {
+                        name: name.trim(),
+                        sex,
+                        birthday: birthday || null,
+                        background_mode: backgroundMode,
+                        background_media: newBgMediaUrl
+                    };
+                    if (newAvatarUrl) updates.avatar = newAvatarUrl;
+
+                    const { error } = await supabase.from("cats").update(updates).eq('id', currentCatId);
+                    if (error) throw error;
+
+                } else {
+                    // For NEW cat, we just update the extras (media & background)
+                    updates = {
+                        background_mode: backgroundMode,
+                        background_media: newBgMediaUrl
+                    };
+                    if (newAvatarUrl) updates.avatar = newAvatarUrl;
+
+                    const { error } = await supabase.from("cats").update(updates).eq('id', currentCatId);
+                    if (error) throw error;
+                }
             }
+
+
+
+
+
+
+
+
 
             toast.success(editingCatId ? "更新しました" : "追加しました");
             refetchCats();

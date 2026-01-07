@@ -146,6 +146,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     // Determine Display Media based on background_mode
     const { displayMedia, isVideo } = React.useMemo(() => {
         const mode = activeCat?.background_mode || 'random';
+        // console.log('ImmersiveHome bg check:', { cat: activeCat?.name, mode, media: activeCat?.background_media });
 
         if (mode === 'media' && activeCat?.background_media) {
             const isVid = /\.(mp4|webm|mov)$/i.test(activeCat.background_media);
