@@ -244,8 +244,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
                         className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-md border shadow-sm transition-colors ${isLight
-                                ? 'bg-white/40 border-black/5 hover:bg-white/60'
-                                : 'bg-black/20 border-white/10 hover:bg-black/40'
+                            ? 'bg-white/40 border-black/5 hover:bg-white/60'
+                            : 'bg-black/20 border-white/10 hover:bg-black/40'
                             }`}
                     >
                         {/* Combined Progress Ring */}
@@ -281,7 +281,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 exit={{ opacity: 0, height: 0, y: -10 }}
                                 className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                             >
-                                <div className="py-2 space-y-4 w-[240px] max-h-[50vh] overflow-y-auto no-scrollbar">
+                                <div
+                                    className="py-2 space-y-4 w-[240px] max-h-[75vh] overflow-y-auto no-scrollbar [&::-webkit-scrollbar]:hidden"
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+                                >
                                     {/* Care Section - Same as other modes */}
                                     {careItems.length > 0 && (
                                         <div className="space-y-2">
