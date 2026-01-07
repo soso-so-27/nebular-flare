@@ -272,7 +272,15 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
 
             toast.success(editingCatId ? "更新しました" : "追加しました");
             refetchCats();
-            resetForm();
+
+            if (editingCatId) {
+                // If editing, close modal to reflect changes and prevent confusion
+                resetForm(); // Clean up state
+                onClose();   // Close modal
+            } else {
+                // If adding, stay open or reset for next add
+                resetForm();
+            }
 
         } catch (err: any) {
             console.error("Error saving cat:", err);
