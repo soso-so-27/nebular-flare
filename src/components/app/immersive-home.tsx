@@ -384,12 +384,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         </AnimatePresence>
                     </div>
 
-                    {/* Card Stack - Fixed positioning from top to leave room for rings */}
+                    {/* Card Stack - positioned higher since bottom icons are now horizontal */}
                     <div
                         className="absolute left-4 right-4 flex items-center justify-center"
                         style={{
-                            top: '140px',  /* Space for MagicBubble rings */
-                            bottom: '100px' /* Space for bottom controls */
+                            top: '100px',  /* Reduced from 140px - more card space */
+                            bottom: '80px' /* Reduced from 100px - horizontal icons take less space */
                         }}
                     >
                         {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}

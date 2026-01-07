@@ -229,7 +229,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
 
             {/* 
               === FLOATING HUD SATELLITES === 
-              Card mode: Single consolidated icon (opens sidebar)
+              Card mode: Single consolidated icon (expands care list in-place)
               Other modes: Vertical stack with expandable rings
             */}
             {placement === 'bottom-center' ? (
@@ -241,7 +241,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         onClick={(e) => {
                             e.stopPropagation();
                             triggerFeedback('medium');
-                            onOpenCare(); // Open sidebar
+                            setExpandedSection(expandedSection === 'care' ? null : 'care'); // Toggle expand in-place
                         }}
                         className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-xl border shadow-lg ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/40 border-white/10'}`}
                     >

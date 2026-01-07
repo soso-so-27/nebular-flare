@@ -92,21 +92,38 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [activeCatId, setActiveCatId] = useState('');
     const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
 
-    const [settings, setSettings] = useState<AppSettings>(() => ({
-        plan: 'Free',
-        aiEnabled: true,
-        engagement: 'passive',
-        homeMode: 'checklist',
-        homeViewMode: 'story',
-        weeklySummaryEnabled: true,
-        quietHours: { start: 23, end: 7 },
-        invThresholds: { soon: 7, urgent: 3, critical: 1 },
-        seasonalDeckEnabled: true,
-        skinPackOwned: false,
-        skinMode: 'default',
-        photoTagAssist: true,
-        dayStartHour: 4,
-    }));
+    const [settings, setSettings] = useState<AppSettings>(() => {
+        // Load homeViewMode from localStorage if available
+        let savedViewMode: 'story' | 'parallax' | 'icon' = 'story';
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('homeViewMode');
+            if (saved === 'story' || saved === 'parallax' || saved === 'icon') {
+                savedViewMode = saved;
+            }
+        }
+        return {
+            plan: 'Free',
+            aiEnabled: true,
+            engagement: 'passive',
+            homeMode: 'checklist',
+            homeViewMode: savedViewMode,
+            weeklySummaryEnabled: true,
+            quietHours: { start: 23, end: 7 },
+            invThresholds: { soon: 7, urgent: 3, critical: 1 },
+            seasonalDeckEnabled: true,
+            skinPackOwned: false,
+            skinMode: 'default',
+            photoTagAssist: true,
+            dayStartHour: 4,
+        };
+    });
+
+    // Persist homeViewMode to localStorage when changed
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('homeViewMode', settings.homeViewMode);
+        }
+    }, [settings.homeViewMode]);
 
     // Notification Preferences (DB Sync)
     const { preferences, updatePreference } = useNotificationPreferences();
