@@ -413,12 +413,14 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 {displayMedia && (
                                     isVideo ? (
                                         <video
+                                            key={displayMedia} // Force re-render on change
                                             src={displayMedia}
                                             className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
                                             autoPlay
                                             muted
                                             loop
                                             playsInline
+                                            onError={(e) => console.error("Background video error:", e.currentTarget.error)}
                                         />
                                     ) : (
                                         <img
@@ -504,13 +506,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 {displayMedia ? (
                                     isVideo ? (
                                         <video
+                                            key={displayMedia} // Force re-render logic
                                             src={displayMedia}
                                             className="w-full h-full object-cover"
                                             autoPlay
                                             muted
                                             loop
                                             playsInline
-                                            poster={activeCat?.avatar} // Fallback poster
+                                            poster={activeCat?.avatar}
+                                            onError={(e) => console.error("Main card video error:", e.currentTarget.error)}
                                         />
                                     ) : (
                                         <img
