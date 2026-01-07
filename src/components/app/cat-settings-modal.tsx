@@ -565,6 +565,19 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                                                         accept="image/*,video/*"
                                                         onChange={handleBgFileSelect}
                                                     />
+
+                                                    {/* Upload Guidelines */}
+                                                    <div className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg space-y-1 mt-2">
+                                                        <p className="font-bold flex items-center gap-1">
+                                                            <Upload className="h-3 w-3" />
+                                                            動画アップロードのヒント
+                                                        </p>
+                                                        <ul className="list-disc list-inside space-y-0.5 ml-1 opacity-80">
+                                                            <li>推奨サイズ: 50MB以下（Wi-Fi推奨）</li>
+                                                            <li>推奨長さ: 10〜15秒のループ素材</li>
+                                                            <li>スマホ全画面向けに<strong>縦型動画</strong>がおすすめです</li>
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             )}
 
