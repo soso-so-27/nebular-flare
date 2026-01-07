@@ -310,21 +310,25 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
     };
 
     const startEdit = (cat: any) => {
+        console.log("startEdit cat:", cat); // Debugging
         setEditingCatId(cat.id);
         setName(cat.name);
         setBirthday(cat.birthday || "");
         setSex(cat.sex || "オス");
+        setWeight(cat.weight ? String(cat.weight) : ""); // Fix: Load weight too
         setAvatar(cat.avatar || "🐈");
         setSelectedFiles([]);
         setPreviewUrls([]);
-        // Load existing images? For now, we only support adding NEW images.
-        // Ideally we would load existing gallery images to show preview, but that requires fetching.
-        // We will keep it simple: Show current avatar as preview if no new files.
-        // Background settings
-        setBackgroundMode(cat.background_mode || 'random');
-        setBackgroundMedia(cat.background_media || null);
+
+        // Background settings - Prioritize 'random' if undefined
+        const bgMode = cat.background_mode || 'random';
+        const bgMedia = cat.background_media || null;
+        console.log("Setting BG Mode:", bgMode, "Media:", bgMedia);
+
+        setBackgroundMode(bgMode);
+        setBackgroundMedia(bgMedia);
         setBgFile(null);
-        setBgPreview(cat.background_media || null);
+        setBgPreview(bgMedia); // This will be used as initial preview URL
 
         setViewMode('form');
     };
