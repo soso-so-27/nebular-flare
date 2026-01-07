@@ -31,14 +31,9 @@ export function useCats(householdId: string | null) {
             setLoading(true);
 
             // Fetch cats first (Critical data)
-            // Explicitly select columns to ensure cache freshness for new fields
             const { data: catsData, error: catsError } = await supabase
                 .from('cats')
-                .select(`
-                    id, name, age, sex, avatar, birthday, weight, microchip_id, notes,
-                    background_mode, background_media, household_id, created_at, updated_at, deleted_at,
-                    images:cat_images(*)
-                `)
+                .select('*, images:cat_images(*)')
                 .eq('household_id', householdId)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: true });
