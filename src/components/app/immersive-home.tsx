@@ -175,6 +175,19 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         }, 3000); // Hide after 3 seconds
     }, [showPickup]);
 
+    // Preload images for smoother swiping
+    useEffect(() => {
+        if (!cats.length) return;
+        cats.forEach(cat => {
+            if (cat.avatar) {
+                const img = new Image();
+                img.src = cat.avatar;
+                // Optional: set priority for browser
+                img.decoding = 'async';
+            }
+        });
+    }, [cats]);
+
     // Setup Interaction Listeners
     useEffect(() => {
         window.addEventListener('mousemove', resetHideTimer);
@@ -378,6 +391,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
                                         alt=""
+                                        loading="eager"
+                                        decoding="async"
                                     />
                                 )}
                             </motion.div>
@@ -456,6 +471,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover"
                                         alt={activeCat.name}
+                                        loading="eager"
+                                        decoding="sync"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-slate-700 flex items-center justify-center">
