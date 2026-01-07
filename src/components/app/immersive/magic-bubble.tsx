@@ -359,22 +359,81 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         );
                                                     }
 
+                                                    // Reuse variables for Card Mode
+                                                    const inputType = notice.inputType || 'ok-notice';
+
+                                                    // Use the rich UI structure like other modes
                                                     return (
-                                                        <motion.button
-                                                            key={notice.id}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                triggerFeedback('medium');
-                                                                setEditingNoteId(notice.id);
-                                                            }}
-                                                            className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${isDone ? 'opacity-50' : `hover:bg-white/10`}`}
-                                                        >
-                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${isDone ? 'bg-sky-500 border-sky-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
-                                                                {isDone && <Check className="w-3 h-3 text-white" />}
+                                                        <div key={notice.id} className="flex flex-col gap-1.5 group relative p-1">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className={`text-sm font-medium drop-shadow-md ${styles.text}`}>{notice.title}</span>
+                                                                {/* Memo Trigger Button */}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        triggerFeedback('medium');
+                                                                        setEditingNoteId(notice.id);
+                                                                        // Default value logic
+                                                                        if (existingObs) {
+                                                                            setSelectedValue(existingObs.value);
+                                                                            setNoteText(existingObs.notes || "");
+                                                                        } else {
+                                                                            setSelectedValue(choices[0] || '記録');
+                                                                            setNoteText("");
+                                                                        }
+                                                                    }}
+                                                                    className="p-1.5 text-white/40 hover:text-white transition-colors"
+                                                                    title="詳細・メモを入力"
+                                                                >
+                                                                    <MessageSquarePlus className="w-3.5 h-3.5" />
+                                                                </button>
                                                             </div>
-                                                            <span className={`text-sm font-medium truncate ${styles.text}`}>{notice.title}</span>
-                                                        </motion.button>
+                                                            {!isDone ? (
+                                                                <div className="flex gap-1.5 flex-wrap">
+                                                                    {inputType === 'photo' ? (
+                                                                        <motion.button
+                                                                            whileTap={{ scale: 0.9 }}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                triggerFeedback('medium');
+                                                                                setEditingNoteId(notice.id);
+                                                                                setSelectedValue(choices[0] || '撮影した');
+                                                                            }}
+                                                                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border active:scale-95 transition-all ${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`}
+                                                                        >
+                                                                            <Camera className="w-4 h-4" />
+                                                                            <span>写真を撮る</span>
+                                                                        </motion.button>
+                                                                    ) : (
+                                                                        (inputType === 'choice' || inputType === 'count' ? choices : choices.slice(0, 2)).map((choice, idx) => (
+                                                                            <motion.button
+                                                                                key={choice}
+                                                                                whileTap={{ scale: 0.9 }}
+                                                                                onClick={async (e) => {
+                                                                                    e.stopPropagation();
+                                                                                    triggerFeedback('success');
+                                                                                    if (addObservation) {
+                                                                                        await addObservation(activeCatId, notice.id, choice);
+                                                                                    }
+                                                                                }}
+                                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all ${idx === 0
+                                                                                    ? `${styles.buttonBg} ${styles.buttonText} border-white/20 hover:bg-white/30`
+                                                                                    : (isLight ? 'bg-black/5 border-black/10 text-black/70 hover:bg-black/10' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30')
+                                                                                    }`}
+                                                                            >
+                                                                                {choice}
+                                                                            </motion.button>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                                                    <Check className="w-3 h-3" />
+                                                                    <span>{existingObs?.value || '記録済み'}</span>
+                                                                    {existingObs?.notes && <MessageCircle className="w-3 h-3 text-white/50 ml-1.5" />}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     );
                                                 })}
                                         </div>
