@@ -359,59 +359,55 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </AnimatePresence>
             )}
 
-            {/* Mode: Parallax Cards (Layout C) */}
+            {/* Mode: Card (Tinder-style swipe, tilted stack, NO icons) */}
             {settings.homeViewMode === 'parallax' && (
-                <div className="absolute inset-0 overflow-hidden flex flex-col">
-                    {/* Background Blur with Cross-fade */}
-                    <div className="absolute inset-0 -z-10">
+                <div className="absolute inset-0 overflow-hidden">
+                    {/* Background Blur */}
+                    <div className="absolute inset-0">
                         <AnimatePresence mode="popLayout">
                             <motion.div
                                 key={activeCatId}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.8 }}
+                                transition={{ duration: 0.6 }}
                                 className="absolute inset-0"
                             >
                                 {activeCat?.avatar && (
                                     <img
                                         src={activeCat.avatar}
-                                        className="w-full h-full object-cover blur-3xl opacity-40 scale-125"
+                                        className="w-full h-full object-cover blur-3xl opacity-30 scale-110"
                                         alt=""
                                     />
                                 )}
-                                <div className="absolute inset-0 bg-black/50" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80" />
                             </motion.div>
                         </AnimatePresence>
                     </div>
 
-                    {/* Top: Reserved space for MagicBubble rings (handled by MagicBubble) */}
-                    <div className="h-28 flex-shrink-0" />
+                    {/* Card Stack Container - centered with padding for rings */}
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '24px', paddingRight: '24px' }}>
 
-                    {/* Center: Card Stack Area */}
-                    <div className="flex-1 relative px-4 pb-4">
-                        {/* Stacked cards behind - visually offset to bottom-right */}
+                        {/* Stacked cards behind - TILTED and OFFSET for visibility */}
                         {cats.length > 1 && (
                             <>
-                                {/* Second card (furthest back) */}
+                                {/* Third card (furthest back) - more tilted */}
                                 <div
-                                    className="absolute rounded-3xl bg-slate-800/60 shadow-lg"
+                                    className="absolute rounded-2xl bg-slate-700/40 border border-white/5"
                                     style={{
-                                        top: '16px',
-                                        left: '32px',
-                                        right: '8px',
-                                        bottom: '0px',
+                                        width: 'calc(100% - 80px)',
+                                        height: 'calc(100% - 40px)',
+                                        transform: 'rotate(6deg) translateX(20px) translateY(-10px)',
                                         zIndex: 0
                                     }}
                                 />
-                                {/* First card (behind main) */}
+                                {/* Second card - slightly tilted */}
                                 <div
-                                    className="absolute rounded-3xl bg-slate-700/70 shadow-xl"
+                                    className="absolute rounded-2xl bg-slate-600/50 border border-white/10 shadow-xl"
                                     style={{
-                                        top: '8px',
-                                        left: '24px',
-                                        right: '16px',
-                                        bottom: '8px',
+                                        width: 'calc(100% - 48px)',
+                                        height: 'calc(100% - 24px)',
+                                        transform: 'rotate(3deg) translateX(10px) translateY(-5px)',
                                         zIndex: 1
                                     }}
                                 />
@@ -424,66 +420,68 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 key={activeCatId}
                                 custom={direction}
                                 variants={{
-                                    enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0, scale: 0.9, rotate: direction > 0 ? 8 : -8 }),
-                                    center: { x: 0, opacity: 1, scale: 1, rotate: 0, zIndex: 10 },
-                                    exit: (direction: number) => ({ x: direction > 0 ? -300 : 300, opacity: 0, scale: 0.9, rotate: direction > 0 ? -8 : 8, zIndex: 0 })
+                                    enter: (d: number) => ({
+                                        x: d > 0 ? 400 : -400,
+                                        opacity: 0,
+                                        scale: 0.85,
+                                        rotate: d > 0 ? 15 : -15
+                                    }),
+                                    center: {
+                                        x: 0,
+                                        opacity: 1,
+                                        scale: 1,
+                                        rotate: 0,
+                                        zIndex: 10
+                                    },
+                                    exit: (d: number) => ({
+                                        x: d > 0 ? -400 : 400,
+                                        opacity: 0,
+                                        scale: 0.85,
+                                        rotate: d > 0 ? -15 : 15,
+                                        zIndex: 0
+                                    })
                                 }}
                                 initial="enter"
                                 animate="center"
                                 exit="exit"
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 25 }}
                                 drag="x"
                                 dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={0.15}
+                                dragElastic={0.2}
                                 onDragEnd={handleSwipe}
                                 onClick={() => onCatClick?.()}
-                                className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 cursor-pointer"
-                                style={{ zIndex: 10 }}
+                                className="absolute rounded-2xl overflow-hidden shadow-2xl bg-slate-900 cursor-pointer"
+                                style={{
+                                    width: 'calc(100% - 16px)',
+                                    height: '100%',
+                                    zIndex: 10
+                                }}
                             >
                                 {activeCat?.avatar ? (
                                     <motion.img
                                         src={activeCat.avatar}
                                         className="w-full h-full object-cover"
-                                        animate={{ scale: [1, 1.03] }}
-                                        whileTap={{ scale: 0.98 }}
-                                        transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
+                                        animate={{ scale: [1, 1.02] }}
+                                        whileTap={{ scale: 0.97 }}
+                                        transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                        <Cat className="w-24 h-24 text-slate-600" />
+                                        <Cat className="w-20 h-20 text-slate-600" />
                                     </div>
                                 )}
                                 {/* Gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                                {/* Cat name */}
-                                <div className="absolute bottom-5 left-5 right-5">
-                                    <h2 className="text-2xl font-bold text-white drop-shadow-lg">{activeCat?.name}</h2>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                                {/* Cat name + swipe hint */}
+                                <div className="absolute bottom-6 left-6 right-6">
+                                    <h2 className="text-3xl font-bold text-white drop-shadow-lg mb-1">{activeCat?.name}</h2>
+                                    {cats.length > 1 && (
+                                        <p className="text-white/50 text-sm">← スワイプで切り替え →</p>
+                                    )}
                                 </div>
                             </motion.div>
                         </AnimatePresence>
                     </div>
-
-                    {/* Bottom: Cat Icon Navigation */}
-                    {cats.length > 1 && (
-                        <div className="h-24 flex-shrink-0 flex items-center justify-center gap-4 px-4">
-                            {cats.map((cat, index) => (
-                                <motion.button
-                                    key={cat.id}
-                                    onClick={() => setActiveCatId(cat.id)}
-                                    whileTap={{ scale: 0.9 }}
-                                    className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all duration-300 ${index === currentIndex
-                                            ? 'w-16 h-16 ring-3 ring-white shadow-lg'
-                                            : 'w-12 h-12 opacity-50 hover:opacity-80'
-                                        }`}
-                                >
-                                    <img src={cat.avatar} className="w-full h-full object-cover" alt={cat.name} />
-                                    {index === currentIndex && (
-                                        <div className="absolute inset-0 ring-2 ring-white/30 rounded-full" />
-                                    )}
-                                </motion.button>
-                            ))}
-                        </div>
-                    )}
                 </div>
             )}
 
