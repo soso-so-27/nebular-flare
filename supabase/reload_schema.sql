@@ -1,6 +1,10 @@
--- Supabase (PostgREST) のAPIキャッシュを強制的にリロードします
--- 新しい関数が見つからない(404)場合や、引数が古いまま認識されている(400)場合に有効です
+-- Force reload of PostgREST schema cache to recognize new columns
+NOTIFY pgrst, 'reload schema';
 
-NOTIFY pgrst, 'reload config';
-
-SELECT 'Schema cache reloaded' as status;
+-- Verify that columns are returned in JSON format (bypasses potential client-side type issues)
+SELECT row_to_json(t) 
+FROM (
+  SELECT id, name, background_mode, background_media 
+  FROM cats 
+  LIMIT 1
+) t;
