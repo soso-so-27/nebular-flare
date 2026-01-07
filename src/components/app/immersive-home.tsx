@@ -538,6 +538,14 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                     {cats.length > 1 && (
                                         <p className="text-white/50 text-sm">← スワイプで切り替え →</p>
                                     )}
+                                    {/* DEBUG OVERLAY - user please check this */}
+                                    <div className="mt-2 p-2 bg-black/50 text-white text-[10px] font-mono rounded pointer-events-none">
+                                        DEBUG:<br />
+                                        Mode: {String(activeCat?.background_mode)}<br />
+                                        Media: {String(activeCat?.background_media).slice(-20)}<br />
+                                        IsVid: {String(isVideo)}<br />
+                                        Display: {String(displayMedia).slice(-20)}
+                                    </div>
                                 </div>
                             </motion.div>
                         </AnimatePresence>
