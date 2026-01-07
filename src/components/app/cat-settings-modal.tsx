@@ -32,6 +32,13 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
     const [avatar, setAvatar] = useState("🐈");
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+    // Background Settings
+    const [backgroundMode, setBackgroundMode] = useState<'random' | 'media' | 'avatar'>('random');
+    const [backgroundMedia, setBackgroundMedia] = useState<string | null>(null);
+    const [bgFile, setBgFile] = useState<File | null>(null);
+    const [bgPreview, setBgPreview] = useState<string | null>(null);
+
     const [isLoading, setIsLoading] = useState(false);
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -66,15 +73,30 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
         });
     };
 
+    const handleBgFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setBgFile(file);
+        setBgPreview(URL.createObjectURL(file));
+        setBackgroundMode('media'); // Auto switch to media mode
+    };
+
     const resetForm = () => {
         setName("");
         setBirthday("");
         setSex("オス");
         setWeight(""); // Reset weight
         setAvatar("🐈");
+        setAvatar("🐈");
         setSelectedFiles([]);
         setPreviewUrls([]);
         setEditingCatId(null);
+        // Reset background settings
+        setBackgroundMode('random');
+        setBackgroundMedia(null);
+        setBgFile(null);
+        setBgPreview(null);
         setViewMode('list');
     };
 
@@ -111,6 +133,31 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
             }
         }
         return { firstPublicUrl, uploadedPaths };
+        return { firstPublicUrl, uploadedPaths };
+    };
+
+    const uploadBgMedia = async (catId: string) => {
+        if (!bgFile) return null;
+        try {
+            const fileExt = bgFile.name.split('.').pop();
+            const fileName = `${catId}/bg-${Date.now()}.${fileExt}`;
+
+            // Using 'cat-images' bucket for general media to act as background
+            const { error: uploadError } = await supabase.storage
+                .from('avatars') // Reuse avatars bucket for now as it's definitely public
+                .upload(fileName, bgFile);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+
+            return publicUrl;
+        } catch (e) {
+            console.error("BG Upload failed", e);
+            return null;
+        }
     };
 
     const handleSubmit = async () => {
@@ -179,6 +226,20 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                 await supabase.from("cats").update({ avatar: newAvatarUrl }).eq('id', currentCatId);
             }
 
+            // 4. Update Background Settings
+            let newBgMediaUrl = backgroundMedia;
+            if (bgFile && currentCatId) {
+                const uploadedBg = await uploadBgMedia(currentCatId);
+                if (uploadedBg) newBgMediaUrl = uploadedBg;
+            }
+
+            if (currentCatId) {
+                await supabase.from("cats").update({
+                    background_mode: backgroundMode,
+                    background_media: newBgMediaUrl
+                }).eq('id', currentCatId);
+            }
+
             toast.success(editingCatId ? "更新しました" : "追加しました");
             refetchCats();
             resetForm();
@@ -226,6 +287,12 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
         // Load existing images? For now, we only support adding NEW images.
         // Ideally we would load existing gallery images to show preview, but that requires fetching.
         // We will keep it simple: Show current avatar as preview if no new files.
+        // Background settings
+        setBackgroundMode(cat.background_mode || 'random');
+        setBackgroundMedia(cat.background_media || null);
+        setBgFile(null);
+        setBgPreview(cat.background_media || null);
+
         setViewMode('form');
     };
 
@@ -433,6 +500,80 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                                                 />
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Background Settings Section */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <label className="text-xs font-bold text-slate-500 block mb-2">ホーム背景</label>
+                                        <div className="space-y-3">
+                                            <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                                                {(['random', 'media', 'avatar'] as const).map((mode) => (
+                                                    <button
+                                                        key={mode}
+                                                        type="button"
+                                                        onClick={() => setBackgroundMode(mode)}
+                                                        className={cn(
+                                                            "flex-1 py-1.5 text-xs font-bold rounded-md transition-all",
+                                                            backgroundMode === mode
+                                                                ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                                                                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                                        )}
+                                                    >
+                                                        {mode === 'random' && "ランダム"}
+                                                        {mode === 'media' && "固定 (動画OK)"}
+                                                        {mode === 'avatar' && "アバター"}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {backgroundMode === 'random' && (
+                                                <div className="text-xs text-slate-400 px-1">
+                                                    ギャラリーの写真がランダムで背景になります
+                                                </div>
+                                            )}
+
+                                            {backgroundMode === 'media' && (
+                                                <div className="space-y-2">
+                                                    <div
+                                                        onClick={() => document.getElementById('bg-file-input')?.click()}
+                                                        className="relative w-full aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800 hover:border-primary hover:text-primary transition-colors cursor-pointer overflow-hidden"
+                                                    >
+                                                        {bgPreview ? (
+                                                            bgFile?.type.startsWith('video') || bgPreview.match(/\.(mp4|webm|mov)$/i) ? (
+                                                                <video src={bgPreview} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                                            ) : (
+                                                                <img src={bgPreview} alt="bg" className="w-full h-full object-cover" />
+                                                            )
+                                                        ) : (
+                                                            <div className="text-center text-slate-400">
+                                                                <Upload className="h-6 w-6 mx-auto mb-1" />
+                                                                <span className="text-xs">動画または画像を選択</span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Label overlay if preview exists */}
+                                                        {bgPreview && (
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                                                                <span className="text-white text-xs font-bold">変更する</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <input
+                                                        id="bg-file-input"
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept="image/*,video/*"
+                                                        onChange={handleBgFileSelect}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {backgroundMode === 'avatar' && (
+                                                <div className="text-xs text-slate-400 px-1">
+                                                    現在のアバター写真が常に背景になります
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="flex gap-2 pt-2">

@@ -18,6 +18,8 @@ export type Cat = {
   notes?: string; // Additional notes
   images?: CatImage[];
   weightHistory?: CatWeightRecord[];
+  background_mode?: 'random' | 'media' | 'avatar';
+  background_media?: string | null;
 };
 
 export type CatImage = {

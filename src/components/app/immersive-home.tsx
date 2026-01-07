@@ -139,9 +139,30 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     }, [activeCatId, allPhotos.length > 0]); // Only recalculate when cat changes or photos become available
 
     // Use random photo if available, otherwise fallback to avatar
-    const currentPhotoUrl = allPhotos.length > 0
+    const randomPhotoUrl = allPhotos.length > 0
         ? allPhotos[randomPhotoIndex % allPhotos.length]
         : activeCat?.avatar || null;
+
+    // Determine Display Media based on background_mode
+    const { displayMedia, isVideo } = React.useMemo(() => {
+        const mode = activeCat?.background_mode || 'random';
+
+        if (mode === 'media' && activeCat?.background_media) {
+            const isVid = /\.(mp4|webm|mov)$/i.test(activeCat.background_media);
+            return { displayMedia: activeCat.background_media, isVideo: isVid };
+        }
+
+        if (mode === 'avatar') {
+            return { displayMedia: activeCat?.avatar || null, isVideo: false };
+        }
+
+        // Random mode (default)
+        return { displayMedia: randomPhotoUrl, isVideo: false };
+    }, [activeCat, randomPhotoUrl]);
+
+    // For brightness/contrast analysis, we only analyze images. 
+    // If video, maybe default to dark or light? Let's use avatar as fallback for analysis or just skip.
+    const currentPhotoUrl = isVideo ? (activeCat?.avatar || null) : displayMedia;
 
     // Feature: Image Brightness Analysis
     useEffect(() => {
@@ -386,14 +407,25 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 transition={{ duration: 0.6 }}
                                 className="absolute inset-0"
                             >
-                                {currentPhotoUrl && (
-                                    <img
-                                        src={currentPhotoUrl}
-                                        className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
-                                        alt=""
-                                        loading="eager"
-                                        decoding="async"
-                                    />
+                                {displayMedia && (
+                                    isVideo ? (
+                                        <video
+                                            src={displayMedia}
+                                            className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                        />
+                                    ) : (
+                                        <img
+                                            src={displayMedia}
+                                            className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
+                                            alt=""
+                                            loading="eager"
+                                            decoding="async"
+                                        />
+                                    )
                                 )}
                             </motion.div>
                         </AnimatePresence>
@@ -466,14 +498,26 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl bg-slate-800 cursor-pointer"
                                 style={{ zIndex: 10 }}
                             >
-                                {currentPhotoUrl ? (
-                                    <img
-                                        src={currentPhotoUrl}
-                                        className="w-full h-full object-cover"
-                                        alt={activeCat?.name || 'Cat'}
-                                        loading="eager"
-                                        decoding="sync"
-                                    />
+                                {displayMedia ? (
+                                    isVideo ? (
+                                        <video
+                                            src={displayMedia}
+                                            className="w-full h-full object-cover"
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                            poster={activeCat?.avatar} // Fallback poster
+                                        />
+                                    ) : (
+                                        <img
+                                            src={displayMedia}
+                                            className="w-full h-full object-cover"
+                                            alt={activeCat?.name || 'Cat'}
+                                            loading="eager"
+                                            decoding="sync"
+                                        />
+                                    )
                                 ) : (
                                     <div className="w-full h-full bg-slate-700 flex items-center justify-center">
                                         <Cat className="w-20 h-20 text-slate-500" />
