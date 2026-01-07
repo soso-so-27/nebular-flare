@@ -145,18 +145,25 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
             // Using 'cat-images' bucket for general media to act as background
             const { error: uploadError } = await supabase.storage
                 .from('avatars') // Reuse avatars bucket for now as it's definitely public
-                .upload(fileName, bgFile);
+                .upload(fileName, bgFile, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
 
-            if (uploadError) throw uploadError;
+            if (uploadError) {
+                console.error("Upload error detail:", uploadError);
+                throw new Error(`Upload Failed: ${uploadError.message}`);
+            }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('avatars')
                 .getPublicUrl(fileName);
 
             return publicUrl;
-        } catch (e) {
+        } catch (e: any) {
             console.error("BG Upload failed", e);
-            return null;
+            // Re-throw so handleSubmit catches it and shows toast
+            throw e;
         }
     };
 
