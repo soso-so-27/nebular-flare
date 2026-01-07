@@ -530,10 +530,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 scale: index === currentIndex ? 1.3 : 1,
                                 y: index === currentIndex ? -10 : 0
                             }}
-                            className={`relative w - 14 h - 14 flex - shrink - 0 rounded - full overflow - hidden border - 2 shadow - xl transition - all ${index === currentIndex
+                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
                                 ? 'border-white ring-4 ring-white/30'
                                 : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
-                                } `}
+                                }`}
                         >
                             <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
                         </motion.button>
