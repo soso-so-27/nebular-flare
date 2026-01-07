@@ -30,18 +30,30 @@ export function useCats(householdId: string | null) {
         async function fetchCats() {
             setLoading(true);
 
-            // Fetch cats first (Critical data)
-            const { data: catsData, error: catsError } = await supabase
-                .from('cats')
-                .select('*, images:cat_images(*)')
-                .eq('household_id', householdId)
-                .is('deleted_at', null)
-                .order('created_at', { ascending: true });
+            // Fetch cats using RPC to bypass cache issues
+            const { data: rawCats, error: catsError } = await supabase
+                .rpc('get_all_cats', { target_household_id: householdId });
 
             if (catsError) {
-                console.error('Error fetching cats:', catsError);
+                console.error('Error fetching cats via RPC:', catsError);
                 setLoading(false);
                 return;
+            }
+
+            // Manually fetch images since we can't join in RPC easily
+            let catsData = rawCats || [];
+            if (catsData.length > 0) {
+                const catIds = catsData.map((c: any) => c.id);
+                const { data: images } = await supabase
+                    .from('cat_images')
+                    .select('*')
+                    .in('cat_id', catIds);
+
+                // Merge images into cats
+                catsData = catsData.map((cat: any) => ({
+                    ...cat,
+                    images: images?.filter((img: any) => img.cat_id === cat.id) || []
+                }));
             }
 
             // Fetch weight history safely (Non-critical)
