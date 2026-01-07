@@ -277,9 +277,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 initial={{ opacity: 0, height: 0, y: -10 }}
                                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                                 exit={{ opacity: 0, height: 0, y: -10 }}
-                                className={`rounded-2xl backdrop-blur-xl border shadow-lg overflow-hidden ${isLight ? 'bg-white/90 border-black/10' : 'bg-black/60 border-white/10'}`}
+                                className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                             >
-                                <div className="p-3 space-y-4 max-h-[50vh] overflow-y-auto">
+                                <div className="py-2 space-y-4 w-[240px]">
                                     {/* Care Section - Same as other modes */}
                                     {careItems.length > 0 && (
                                         <div className="space-y-2">
