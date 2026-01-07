@@ -153,8 +153,8 @@ export type AppSettings = {
   aiEnabled: boolean;
   engagement: 'passive' | 'daily';
   homeMode: 'checklist' | 'cards' | 'immersive';
-  homeDisplayMode: 'story' | 'parallax' | 'avatars'; // Content presentation
-  homeInterfaceMode: 'bubble' | 'zen' | 'editorial' | 'classic'; // UI controls
+  // Unified view mode: Display style + Bubble placement combined
+  homeViewMode: 'story' | 'parallax' | 'icon';
   weeklySummaryEnabled: boolean;
   quietHours: { start: number; end: number };
   invThresholds: { soon: number; urgent: number; critical: number };

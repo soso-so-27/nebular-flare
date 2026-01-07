@@ -17,9 +17,10 @@ interface MagicBubbleProps {
     onOpenCare: () => void;
     onOpenActivity: () => void;
     contrastMode: 'light' | 'dark';
+    placement?: 'fixed-bottom-right' | 'bottom-center';
 }
 
-export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity, contrastMode }: MagicBubbleProps) {
+export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity, contrastMode, placement = 'fixed-bottom-right' }: MagicBubbleProps) {
     const [expandedSection, setExpandedSection] = useState<'care' | 'observation' | null>(null);
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
     const [noteText, setNoteText] = useState("");

@@ -284,8 +284,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 if (showPickup) setShowPickup(false);
             }}
         >
-            {/* Mode 1 & 3: Standard Carousel / Avatars (Not Parallax) */}
-            {settings.homeDisplayMode !== 'parallax' && (
+            {/* Mode: Story / Icon (Not Parallax Cards) */}
+            {settings.homeViewMode !== 'parallax' && (
                 <AnimatePresence initial={false} custom={direction} mode="popLayout">
                     <motion.div
                         key={activeCatId}
@@ -359,8 +359,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </AnimatePresence>
             )}
 
-            {/* Mode 2: Parallax Cards */}
-            {settings.homeDisplayMode === 'parallax' && (
+            {/* Mode: Parallax Cards */}
+            {settings.homeViewMode === 'parallax' && (
                 <div className="absolute inset-0 overflow-hidden">
                     {/* Background Blur with Cross-fade */}
                     <div className="absolute inset-0">
@@ -430,40 +430,26 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             )}
 
             {/* Story Mode Tap Zones (Story Mode Only) */}
-            {settings.homeDisplayMode === 'story' && settings.homeInterfaceMode !== 'zen' && (
+            {settings.homeViewMode === 'story' && (
                 <>
                     <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex - 1); resetHideTimer(); }} />
                     <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex + 1); resetHideTimer(); }} />
                 </>
             )}
 
-            {/* Interface Layer - Swappable Controls */}
-            {settings.homeInterfaceMode === 'bubble' && (
-                <MagicBubble
-                    onOpenPickup={handleTogglePickup}
-                    onOpenCalendar={() => onOpenCalendar?.()}
-                    onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => handleOpenSidebar('care')}
-                    onOpenActivity={() => handleOpenSidebar('activity')}
-                    contrastMode={contrastMode}
-                />
-            )}
+            {/* Interface Layer - Always MagicBubble (placement varies by mode) */}
+            <MagicBubble
+                onOpenPickup={handleTogglePickup}
+                onOpenCalendar={() => onOpenCalendar?.()}
+                onOpenGallery={() => onNavigate?.('gallery')}
+                onOpenCare={() => handleOpenSidebar('care')}
+                onOpenActivity={() => handleOpenSidebar('activity')}
+                contrastMode={contrastMode}
+                placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
+            />
 
-            {/* Zen Mode Removed as per request */}
-
-            {settings.homeInterfaceMode === 'editorial' && (
-                <EditorialCorners
-                    onOpenPickup={handleTogglePickup}
-                    onOpenCalendar={() => onOpenCalendar?.()}
-                    onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenCare={() => handleOpenSidebar('care')}
-                    onOpenActivity={() => handleOpenSidebar('activity')}
-                    contrastMode={contrastMode}
-                />
-            )}
-
-            {/* Legacy/Classic Mode (Fallback logic & Zen Fallback) */}
-            {(settings.homeInterfaceMode === 'classic' || settings.homeInterfaceMode === 'zen' || !settings.homeInterfaceMode) && (
+            {/* Legacy/Classic Mode Removed - All modes now use MagicBubble */}
+            {false && (
                 <motion.div
                     initial={{ opacity: 1 }}
                     animate={{ opacity: uiVisible ? 1 : 0 }}
@@ -511,7 +497,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             )}
 
             {/* Always visible: Story Indicators (If Story Mode) - Changed to Dots */}
-            {settings.homeDisplayMode === 'story' && settings.homeInterfaceMode !== 'zen' && (
+            {settings.homeViewMode === 'story' && (
                 <div className="absolute top-4 left-0 right-0 z-30 flex justify-center gap-2 px-3 pt-3 pointer-events-none">
                     {cats.map((cat, index) => (
                         <motion.div
@@ -531,8 +517,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
             {/* Top Right Settings Button - Removed as per user request */}
 
-            {/* Always visible: Floating Avatars (If Avatars Mode and partially visible in other modes) */}
-            {settings.homeDisplayMode === 'avatars' && settings.homeInterfaceMode !== 'bubble' && (
+            {/* Always visible: Floating Avatars (If Icon Mode) */}
+            {settings.homeViewMode === 'icon' && (
                 <div
                     className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
                 >

@@ -200,33 +200,17 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
 
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold">猫の切り替え</span>
-                                <span className="text-[10px] text-muted-foreground">ホーム画面の表示スタイル</span>
+                                <span className="text-xs font-bold">表示モード</span>
+                                <span className="text-[10px] text-muted-foreground">猫の切り替え方式と画面スタイル</span>
                             </div>
                             <select
-                                value={settings.homeDisplayMode}
-                                onChange={(e) => setSettings(s => ({ ...s, homeDisplayMode: e.target.value as any }))}
+                                value={settings.homeViewMode}
+                                onChange={(e) => setSettings(s => ({ ...s, homeViewMode: e.target.value as any }))}
                                 className="text-xs border rounded p-1 bg-slate-50"
                             >
                                 <option value="story">ストーリー</option>
-                                <option value="parallax">パララックス</option>
-                                <option value="avatars">アイコン</option>
-                            </select>
-                        </div>
-
-                        <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold">操作メニュー</span>
-                                <span className="text-[10px] text-muted-foreground">ボタン配置と操作感</span>
-                            </div>
-                            <select
-                                value={settings.homeInterfaceMode || 'bubble'}
-                                onChange={(e) => setSettings(s => ({ ...s, homeInterfaceMode: e.target.value as any }))}
-                                className="text-xs border rounded p-1 bg-slate-50"
-                            >
-                                <option value="bubble">Magic Bubble (推奨)</option>
-                                <option value="editorial">Editorial Corners</option>
-                                <option value="classic">クラシック</option>
+                                <option value="parallax">カード</option>
+                                <option value="icon">アイコン</option>
                             </select>
                         </div>
 
