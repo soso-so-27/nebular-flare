@@ -179,12 +179,21 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 <h2 className="font-bold text-lg text-slate-800">まとめて記録 / チェック</h2>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => setShowIncidentModal(true)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowIncidentModal(true);
+                        }}
                         className="text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1"
                     >
                         + 異変
                     </button>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-200 transition-colors">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClose();
+                        }}
+                        className="p-1 rounded-full hover:bg-slate-200 transition-colors"
+                    >
                         <X className="w-6 h-6 text-slate-500" />
                     </button>
                 </div>
