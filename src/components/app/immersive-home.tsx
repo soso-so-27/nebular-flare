@@ -343,14 +343,29 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                         >
-                            {currentPhotoUrl ? (
-                                <motion.img
-                                    src={currentPhotoUrl}
-                                    alt={activeCat?.name || 'Cat'}
-                                    className="w-full h-full object-cover cursor-pointer"
-                                    onClick={handleCatInteraction}
-                                    onLoad={() => setIsHeroImageLoaded(true)}
-                                />
+                            {displayMedia ? (
+                                isVideo ? (
+                                    <motion.video
+                                        key={displayMedia}
+                                        src={displayMedia}
+                                        className="w-full h-full object-cover cursor-pointer"
+                                        onClick={handleCatInteraction}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        onLoadedData={() => setIsHeroImageLoaded(true)}
+                                        onError={(e) => console.error("Story video error:", e.currentTarget.error)}
+                                    />
+                                ) : (
+                                    <motion.img
+                                        src={displayMedia}
+                                        alt={activeCat?.name || 'Cat'}
+                                        className="w-full h-full object-cover cursor-pointer"
+                                        onClick={handleCatInteraction}
+                                        onLoad={() => setIsHeroImageLoaded(true)}
+                                    />
+                                )
                             ) : (
                                 <motion.div
                                     className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
