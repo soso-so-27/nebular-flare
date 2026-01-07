@@ -386,9 +386,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 transition={{ duration: 0.6 }}
                                 className="absolute inset-0"
                             >
-                                {activeCat?.avatar && (
+                                {currentPhotoUrl && (
                                     <img
-                                        src={activeCat.avatar}
+                                        src={currentPhotoUrl}
                                         className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
                                         alt=""
                                         loading="eager"
@@ -466,11 +466,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl bg-slate-800 cursor-pointer"
                                 style={{ zIndex: 10 }}
                             >
-                                {activeCat?.avatar ? (
+                                {currentPhotoUrl ? (
                                     <img
-                                        src={activeCat.avatar}
+                                        src={currentPhotoUrl}
                                         className="w-full h-full object-cover"
-                                        alt={activeCat.name}
+                                        alt={activeCat?.name || 'Cat'}
                                         loading="eager"
                                         decoding="sync"
                                     />
