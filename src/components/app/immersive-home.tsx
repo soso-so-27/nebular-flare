@@ -28,6 +28,43 @@ interface ImmersiveHomeProps {
     onCatClick?: () => void;
 }
 
+// Helper Component for Mobile-Friendly Video
+const BackgroundVideo = ({ src, poster, className, onClick, onLoadedData }: { src: string, poster?: string, className?: string, onClick?: (e: any) => void, onLoadedData?: () => void }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        // Force play on mount/update for mobile
+        if (videoRef.current) {
+            videoRef.current.defaultMuted = true; // Crucial for some browsers
+            videoRef.current.muted = true;
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Auto-play was prevented:", error);
+                    // Retry with interaction if needed, or just let it be
+                });
+            }
+        }
+    }, [src]);
+
+    return (
+        <motion.video
+            ref={videoRef}
+            key={src} // Re-mount on src change to ensure reliable autoplay
+            src={src}
+            className={className}
+            onClick={onClick}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={poster}
+            onLoadedData={onLoadedData}
+            onError={(e) => console.error("Video error:", e.currentTarget.error)}
+        />
+    );
+};
+
 export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
@@ -345,17 +382,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         >
                             {displayMedia ? (
                                 isVideo ? (
-                                    <motion.video
-                                        key={displayMedia}
+                                    <BackgroundVideo
                                         src={displayMedia}
+                                        poster={activeCat?.avatar}
                                         className="w-full h-full object-cover cursor-pointer"
                                         onClick={handleCatInteraction}
-                                        autoPlay
-                                        muted
-                                        loop
-                                        playsInline
                                         onLoadedData={() => setIsHeroImageLoaded(true)}
-                                        onError={(e) => console.error("Story video error:", e.currentTarget.error)}
                                     />
                                 ) : (
                                     <motion.img
@@ -427,15 +459,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             >
                                 {displayMedia && (
                                     isVideo ? (
-                                        <video
-                                            key={displayMedia} // Force re-render on change
+                                        <BackgroundVideo
                                             src={displayMedia}
                                             className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
-                                            autoPlay
-                                            muted
-                                            loop
-                                            playsInline
-                                            onError={(e) => console.error("Background video error:", e.currentTarget.error)}
                                         />
                                     ) : (
                                         <img
@@ -520,16 +546,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             >
                                 {displayMedia ? (
                                     isVideo ? (
-                                        <video
-                                            key={displayMedia} // Force re-render logic
+                                        <BackgroundVideo
                                             src={displayMedia}
-                                            className="w-full h-full object-cover"
-                                            autoPlay
-                                            muted
-                                            loop
-                                            playsInline
                                             poster={activeCat?.avatar}
-                                            onError={(e) => console.error("Main card video error:", e.currentTarget.error)}
+                                            className="w-full h-full object-cover"
                                         />
                                     ) : (
                                         <img
