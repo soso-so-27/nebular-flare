@@ -38,7 +38,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
     const { incidents, cats, addIncidentUpdate, resolveIncident } = useAppState();
     const [loading, setLoading] = useState(false);
     const [updateNote, setUpdateNote] = useState('');
-    const [statusChange, setStatusChange] = useState('');
+    const [statusChange, setStatusChange] = useState('no_change');
     const [photos, setPhotos] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [showUpdateForm, setShowUpdateForm] = useState(false);
@@ -71,7 +71,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
     };
 
     const handleAddUpdate = async () => {
-        if (!updateNote && photos.length === 0 && !statusChange) {
+        if (!updateNote && photos.length === 0 && (statusChange === 'no_change' || !statusChange)) {
             toast.error("更新内容を入力してください");
             return;
         }
@@ -88,7 +88,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
 
             toast.success("更新を記録しました");
             setUpdateNote('');
-            setStatusChange('');
+            setStatusChange('no_change');
             setPhotos([]);
             setPreviewUrls([]);
             setShowUpdateForm(false);
@@ -233,7 +233,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                             {/* Status Change */}
                             <div className="grid gap-2">
                                 <Label>ステータス変更（任意）</Label>
-                                <Select value={statusChange || undefined} onValueChange={setStatusChange}>
+                                <Select value={statusChange} onValueChange={setStatusChange}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="変更しない" />
                                     </SelectTrigger>
