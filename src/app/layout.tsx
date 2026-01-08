@@ -70,23 +70,7 @@ export default function RootLayout({
         </AuthProvider>
         {/* Hidden audio element for iOS audio unlock workaround */}
         <audio id="silent-audio-unlock" preload="auto" src="data:audio/wav;base64,UklGRigIAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQIAAA=" />
-        {/* <PwaRegister /> */}
-        {/* SW unregister disabled for debug
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  for(let registration of registrations) {
-                    registration.unregister();
-                    console.log('ServiceWorker unregistered');
-                  }
-                });
-              }
-            `
-          }}
-        />
-        */}
+        <PwaRegister />
       </body>
     </html>
   );
