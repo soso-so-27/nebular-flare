@@ -262,7 +262,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                             >
                                 <div
-                                    className="py-2 space-y-4 w-[240px] max-h-[75vh] overflow-y-auto no-scrollbar [&::-webkit-scrollbar]:hidden"
+                                    className="py-2 space-y-4 w-max min-w-[160px] max-w-[80vw] max-h-[75vh] overflow-y-auto no-scrollbar [&::-webkit-scrollbar]:hidden pr-1"
                                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
                                 >
                                     {/* Care Section - Same as other modes */}
@@ -391,9 +391,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className={`ml-2 pl-4 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
+                                    className={`ml-2 pl-2 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                                 >
-                                    <div className="py-2 space-y-3 w-[200px]">
+                                    <div className="py-2 space-y-3 w-max min-w-[140px] pr-2">
                                         {careItems.map(item => (
                                             <motion.button
                                                 key={item.id}

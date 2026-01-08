@@ -1,66 +1,64 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Cat } from "lucide-react";
 
 export function SplashScreen() {
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 text-slate-900 select-none">
-            <motion.div
-                className="relative"
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FAF9F7] select-none overflow-hidden">
+            {/* Ambient Background */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#E8B4A0]/20 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#7CAA8E]/20 rounded-full blur-3xl animate-pulse delay-1000" />
+            </div>
+
+            <div
+                className="relative z-10 flex flex-col items-center"
             >
-                {/* Brand Logo Animation */}
+                {/* Breathing Brand Icon */}
                 <motion.div
                     animate={{
                         scale: [1, 1.05, 1],
-                        rotate: [0, 5, -5, 0]
+                        opacity: [0.9, 1, 0.9],
                     }}
                     transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
-                    className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center relative overflow-hidden ring-1 ring-slate-100"
+                    className="relative w-32 h-32 flex items-center justify-center"
                 >
-                    <div className="absolute -right-4 -top-4 w-12 h-12 bg-slate-100 rounded-full opacity-50" />
-                    <div className="absolute -left-4 -bottom-4 w-16 h-16 bg-slate-100 rounded-full opacity-50" />
+                    {/* Glass Container */}
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-2xl rounded-[32px] border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]" />
 
-                    <Cat className="w-12 h-12 text-slate-900 relative z-10" />
+                    {/* Inner Specular Highlight */}
+                    <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-70" />
+
+                    {/* App Icon */}
+                    <img
+                        src="/icon.svg"
+                        alt="CatUp Logo"
+                        className="w-20 h-20 relative z-20 drop-shadow-sm object-contain"
+                    />
                 </motion.div>
 
-            </motion.div>
+                {/* Brand Text */}
+                <div className="mt-8 flex flex-col items-center gap-3">
+                    <h1 className="text-2xl font-black tracking-wider text-slate-700">
+                        CatUp
+                    </h1>
 
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mt-8 text-center"
-            >
-                <h1 className="text-2xl font-black tracking-tight text-slate-900">
-                    CatUp
-                </h1>
-                <div className="flex justify-center gap-1 mt-3">
-                    <motion.div
-                        className="w-1.5 h-1.5 rounded-full bg-slate-400"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                    />
-                    <motion.div
-                        className="w-1.5 h-1.5 rounded-full bg-slate-400"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                    />
-                    <motion.div
-                        className="w-1.5 h-1.5 rounded-full bg-slate-400"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                    />
+                    {/* Loading Dots */}
+                    <div className="flex gap-2">
+                        {[0, 1, 2].map((i) => (
+                            <motion.div
+                                key={i}
+                                className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-[#E8B4A0]' : i === 1 ? 'bg-[#7CAA8E]' : 'bg-[#B8A6D9]'}`}
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </motion.div>
-
-            {/* Bottom Credit */}
-            <div className="absolute bottom-8 text-[10px] text-slate-400 font-medium tracking-wide">
-                LOADING
             </div>
         </div>
     );

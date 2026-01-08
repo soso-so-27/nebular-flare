@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Heart, ShoppingCart, X, ChevronLeft } from "lucide-react";
+import { Check, Heart, ShoppingCart, X, ChevronLeft, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -212,7 +212,11 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                         }}
                     >
                         {/* Sheet Visuals */}
-                        <div className="bg-[#FAF9F7]/80 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-2xl border-t border-white/40 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative">
+                        <div className="bg-[#FAF9F7]/85 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
+                            {/* Specular Elements */}
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
+                            <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
+
                             {/* Gradient Overlay for extra glass depth */}
                             <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
@@ -234,41 +238,51 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 overflow-y-auto p-6 pt-2 pb-10 relative z-10">
+                            <div className="flex-1 overflow-y-auto p-6 pt-2 pb-10 relative z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
                                 {activeIncidents.length > 0 && (
-                                    <div className="mb-4">
-                                        <div className="text-xs font-bold text-slate-400 mb-2 px-1">対応が必要な気付き</div>
+                                    <div className="mb-6">
+                                        <div className="flex items-center gap-2 mb-3 px-1">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                                            <span className="text-xs font-bold text-slate-500">対応が必要な気付き</span>
+                                        </div>
                                         {activeIncidents.map(inc => (
                                             <IncidentItem key={inc.id} incident={inc} />
                                         ))}
                                     </div>
                                 )}
 
-                                <div className="text-xs font-bold text-slate-400 mb-2 px-1">本日のタスク・記録</div>
+                                <div className="flex items-center gap-2 mb-3 px-1">
+                                    <Check className="w-4 h-4 text-emerald-500" />
+                                    <span className="text-sm font-bold text-slate-700">今日のやること</span>
+                                </div>
+
                                 {allItems.length === 0 ? (
-                                    <div className="text-center py-10 text-slate-400">
-                                        <p>現在提案できるアクションはありません</p>
-                                        <p className="text-xs mt-1">記録はすべて完了しています！</p>
+                                    <div className="text-center py-12 rounded-3xl bg-white/30 border border-white/40 border-dashed mx-1 flex flex-col items-center justify-center">
+                                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-3">
+                                            <Sparkles className="w-6 h-6 text-emerald-500" />
+                                        </div>
+                                        <p className="font-bold text-slate-600">すべて完了！</p>
+                                        <p className="text-xs text-slate-400 mt-1">今日も一日お疲れ様でした ✨</p>
                                     </div>
                                 ) : (
                                     <div className="grid gap-3">
                                         {allItems.map(item => (
                                             <div
                                                 key={item.id}
-                                                className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center justify-between"
+                                                className="bg-white/60 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/60 flex items-center justify-between group transition-all hover:bg-white/80"
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm", item.colorClass)}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-inner", item.colorClass)}>
                                                         {item.icon}
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-slate-700">{item.label}</div>
-                                                        {item.subLabel && <div className="text-xs text-slate-400">{item.subLabel}</div>}
+                                                        <div className="font-bold text-slate-700 leading-tight">{item.label}</div>
+                                                        {item.subLabel && <div className="text-[10px] text-slate-500 mt-0.5">{item.subLabel}</div>}
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={item.onAction}
-                                                    className="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-full hover:bg-slate-200 transition-colors"
+                                                    className="px-5 py-2 bg-[#7CAA8E] text-white text-xs font-bold rounded-full shadow-md hover:bg-[#6B997D] hover:scale-105 active:scale-95 transition-all"
                                                 >
                                                     完了
                                                 </button>

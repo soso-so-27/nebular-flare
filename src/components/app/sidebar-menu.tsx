@@ -17,6 +17,7 @@ import { CatSettingsModal } from "./cat-settings-modal";
 import { CareSettingsModal } from "./care-settings-modal";
 import { NoticeSettingsModal } from "./notice-settings-modal";
 import { InventorySettingsModal } from "./inventory-settings-modal";
+import { FamilyMemberModal } from "./family-member-modal";
 
 interface SidebarMenuProps {
     isOpen: boolean;
@@ -364,6 +365,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         const [isCareModalOpen, setIsCareModalOpen] = useState(false);
         const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
         const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+        const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
 
         const handleLogout = async () => {
             if (isDemo) {
@@ -384,7 +386,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         };
 
         return (
-            <div className="h-full overflow-y-auto pb-20 px-1 space-y-4">
+            <div className="h-full overflow-y-auto pb-32 px-1 space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
 
                 {/* Account Section */}
                 <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md">
@@ -522,6 +524,18 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </button>
+                    <div className="h-px bg-slate-200/50" />
+
+                    <button
+                        onClick={() => setIsFamilyModalOpen(true)}
+                        className="w-full flex items-center justify-between py-3 text-left group"
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">家族メンバーの管理</span>
+                            <span className="text-[10px] text-slate-500">家族の招待・編集</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                    </button>
                 </div>
 
                 <div className="text-center pt-4 pb-8">
@@ -533,6 +547,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
                 <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
                 <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
+                <FamilyMemberModal isOpen={isFamilyModalOpen} onClose={() => setIsFamilyModalOpen(false)} />
             </div>
         );
     };
@@ -564,7 +579,11 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             if (info.offset.y > 100) onClose();
                         }}
                     >
-                        <div className="bg-[#FAF9F7]/80 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-2xl border-t border-white/40 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative">
+                        <div className="bg-[#FAF9F7]/85 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
+                            {/* Specular Elements */}
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
+                            <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
+
                             {/* Gradient Overlay for extra glass depth */}
                             <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
@@ -605,7 +624,11 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             {activeView === 'root' && user && (
                                 <div className="px-6 pb-2 relative z-10">
                                     <div className="flex items-center gap-3 py-2">
-                                        <div className="h-12 w-12 rounded-full bg-white/50 border border-white/60 shadow-inner flex items-center justify-center overflow-hidden">
+                                        <motion.div
+                                            animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
+                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                            className="h-12 w-12 rounded-full bg-white/50 border border-white/60 shadow-inner flex items-center justify-center overflow-hidden"
+                                        >
                                             {user.user_metadata?.avatar_url ? (
                                                 <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                                             ) : (
@@ -613,7 +636,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                     <User className="h-6 w-6 text-slate-400" />
                                                 </div>
                                             )}
-                                        </div>
+                                        </motion.div>
                                         <div>
                                             <div className="font-bold text-slate-800 leading-tight">
                                                 {user.user_metadata?.display_name || 'My Cat User'}

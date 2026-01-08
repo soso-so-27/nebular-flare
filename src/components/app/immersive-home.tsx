@@ -20,6 +20,7 @@ import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
 import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
+import { BrandLoader } from "@/components/ui/brand-loader";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -433,10 +434,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                 )
                             ) : (
                                 <motion.div
-                                    className="w-full h-full bg-slate-50 flex items-center justify-center cursor-pointer"
+                                    className="w-full h-full bg-[#FAF9F7] flex items-center justify-center cursor-pointer"
                                     onClick={handleCatInteraction}
                                 >
-                                    <Cat className="w-32 h-32 text-slate-200" />
+                                    <BrandLoader onClick={handleCatInteraction} />
                                 </motion.div>
                             )}
 
@@ -580,8 +581,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                         />
                                     )
                                 ) : (
-                                    <div className="w-full h-full bg-slate-700 flex items-center justify-center">
-                                        <Cat className="w-20 h-20 text-slate-500" />
+                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                                        <BrandLoader className="scale-75 opacity-70" />
                                     </div>
                                 )}
                                 {/* Gradient overlay */}
