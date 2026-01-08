@@ -8,8 +8,8 @@
     </linearGradient>
   </defs>
   
-  <!-- Background circle with milky glass effect -->
-  <circle cx="256" cy="256" r="240" fill="#FAF9F7" stroke="none"/>
+  <!-- Background Square (Milky Glass) - changed from circle for iOS compatibility -->
+  <rect width="512" height="512" fill="#FAF9F7" />
   
   <!-- Cat outline - abstract, no face, soft lines -->
   <path 

@@ -27,12 +27,12 @@ const FullscreenHeroHomeScreen = dynamic(() => import("@/components/app/fullscre
 const CareScreen = dynamic(() => import("@/components/app/care-screen").then(m => ({ default: m.CareScreen })), { ssr: false });
 const CatScreen = dynamic(() => import("@/components/app/cat-screen").then(m => ({ default: m.CatScreen })), { ssr: false });
 const GalleryScreen = dynamic(() => import("@/components/app/gallery-screen").then(m => ({ default: m.GalleryScreen })), { ssr: false });
-const MoreScreen = dynamic(() => import("@/components/app/more-screen").then(m => ({ default: m.MoreScreen })), { ssr: false });
+
 const LoginScreen = dynamic(() => import("@/components/app/login-screen").then(m => ({ default: m.LoginScreen })), { ssr: false });
 const OnboardingScreen = dynamic(() => import("@/components/app/onboarding-screen").then(m => ({ default: m.OnboardingScreen })), { ssr: false });
-const NotificationModal = dynamic(() => import("@/components/app/notification-modal").then(m => ({ default: m.NotificationModal })), { ssr: false });
+
 const CalendarModal = dynamic(() => import("@/components/app/calendar-modal").then(m => ({ default: m.CalendarModal })), { ssr: false });
-const ActivityScreen = dynamic(() => import("@/components/app/activity-screen").then(m => ({ default: m.ActivityScreen })), { ssr: false });
+
 
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -41,10 +41,10 @@ function AppContent() {
   const [tab, setTab] = useState("home");
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
   const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
 
@@ -122,16 +122,9 @@ function AppContent() {
   const handleSidebarNavigate = (section: string, item?: string) => {
     if (section === 'calendar') {
       setShowCalendar(true);
-    } else if (section === 'notifications') {
-      setShowNotifications(true);
     } else if (section === 'gallery') {
       setGalleryCatId(null); // Reset filter when opening from sidebar
       setTab("gallery");
-    } else if (section === 'settings') {
-      setShowSettings(true);
-      setTab("settings");
-    } else if (section === 'activity') {
-      setTab("activity");
     } else if (item) {
       // Quick action for specific item
       handleQuickAction(section, item);
@@ -194,10 +187,7 @@ function AppContent() {
 
       <main className="min-h-dvh overflow-hidden">
         <div className="max-w-md mx-auto space-y-4">
-          <NotificationModal
-            isOpen={showNotifications}
-            onClose={() => setShowNotifications(false)}
-          />
+
           <CalendarModal
             isOpen={showCalendar}
             onClose={() => setShowCalendar(false)}
@@ -260,31 +250,9 @@ function AppContent() {
               </motion.div>
             )}
 
-            {tab === "settings" && (
-              <motion.div
-                key="settings-screen"
-                className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <MoreScreen onClose={() => setTab("home")} />
-              </motion.div>
-            )}
 
-            {tab === "activity" && (
-              <motion.div
-                key="activity-screen"
-                className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
-                initial={{ opacity: 0, y: "100%" }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: "100%" }}
-                transition={{ duration: 0.3, ease: "circOut" }}
-              >
-                <ActivityScreen onClose={() => setTab("home")} />
-              </motion.div>
-            )}
+
+
           </AnimatePresence>
         </div>
       </main>

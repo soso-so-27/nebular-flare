@@ -663,20 +663,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </div>
             )}
 
-            {/* Pickup Modal and Activity Modal */}
-            <AnimatePresence>
-                {showPickup && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <BubblePickupList onClose={() => setShowPickup(false)} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Pickup Modal - Self-contained AnimatePresence */}
+            <BubblePickupList
+                isOpen={showPickup}
+                onClose={() => setShowPickup(false)}
+            />
 
         </div>
     );

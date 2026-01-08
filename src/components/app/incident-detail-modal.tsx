@@ -208,40 +208,34 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                         </div>
                     )}
 
-                    {/* Add Update Form */}
-                    {!showUpdateForm ? (
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowUpdateForm(true);
-                            }}
-                            variant="outline"
-                            className="w-full"
-                        >
-                            + 更新を追加
-                        </Button>
-                    ) : (
-                        <div className="border-t pt-4 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-bold text-sm">新しい更新</h3>
-                                <Button
-                                    onClick={() => setShowUpdateForm(false)}
-                                    variant="ghost"
-                                    size="sm"
-                                >
-                                    キャンセル
-                                </Button>
-                            </div>
+                    {/* Add Update Form - Always Visible */}
+                    <div className="border-t pt-4 space-y-4">
+                        <div className="flex items-center gap-2">
+                            <div className="h-4 w-1 bg-slate-400 rounded-full" />
+                            <h3 className="font-bold text-sm text-slate-700">気づき・経過を記録</h3>
+                        </div>
 
-                            {/* Status Change */}
-                            <div className="grid gap-2">
-                                <Label>ステータス変更（任意）</Label>
+                        {/* Note */}
+                        <div className="grid gap-2">
+                            <Textarea
+                                id="update-note"
+                                placeholder="経過や変化を記録..."
+                                value={updateNote}
+                                onChange={(e) => setUpdateNote(e.target.value)}
+                                className="min-h-[80px] bg-slate-50 border-slate-200"
+                            />
+                        </div>
+
+                        {/* Status & Photos Row */}
+                        <div className="flex items-start gap-4">
+                            {/* Status Change - Compact */}
+                            <div className="flex-1">
                                 <Select value={statusChange} onValueChange={setStatusChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="変更しない" />
+                                    <SelectTrigger className="h-9 text-xs">
+                                        <SelectValue placeholder="ステータス変更" />
                                     </SelectTrigger>
                                     <SelectContent className="z-[10002]">
-                                        <SelectItem value="no_change">変更しない</SelectItem>
+                                        <SelectItem value="no_change">ステータス変更なし</SelectItem>
                                         {STATUS_OPTIONS.filter(s => s.id !== incident.status).map(opt => (
                                             <SelectItem key={opt.id} value={opt.id}>
                                                 {opt.label}
@@ -251,49 +245,38 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                 </Select>
                             </div>
 
-                            {/* Note */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="update-note">メモ</Label>
-                                <Textarea
-                                    id="update-note"
-                                    placeholder="経過や変化を記録..."
-                                    value={updateNote}
-                                    onChange={(e) => setUpdateNote(e.target.value)}
-                                    className="min-h-[100px]"
-                                />
-                            </div>
-
-                            {/* Photos */}
-                            <div className="grid gap-2">
-                                <Label>写真（任意）</Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {previewUrls.map((url, i) => (
-                                        <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border">
-                                            <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                                            <button
-                                                onClick={() => removePhoto(i)}
-                                                className="absolute top-0 right-0 bg-black/50 text-white p-0.5 rounded-bl-md hover:bg-black/70"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="w-16 h-16 flex flex-col items-center justify-center border border-dashed rounded-md hover:bg-muted text-muted-foreground transition-colors"
-                                    >
-                                        <Camera size={20} />
-                                        <span className="text-[10px] mt-1">追加</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <Button onClick={handleAddUpdate} disabled={loading} className="w-full">
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                更新を記録
-                            </Button>
+                            {/* Photo Button */}
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="h-9 px-3 flex items-center gap-2 border rounded-md hover:bg-slate-50 text-slate-600 transition-colors"
+                            >
+                                <Camera size={16} />
+                                <span className="text-xs">写真</span>
+                            </button>
                         </div>
-                    )}
+
+                        {/* Photo Previews */}
+                        {previewUrls.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {previewUrls.map((url, i) => (
+                                    <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border">
+                                        <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => removePhoto(i)}
+                                            className="absolute top-0 right-0 bg-black/50 text-white p-0.5 rounded-bl-md hover:bg-black/70"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <Button onClick={handleAddUpdate} disabled={loading} className="w-full bg-slate-800 hover:bg-slate-700 text-white">
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            更新を記録
+                        </Button>
+                    </div>
                     {/* Always render hidden input to ensure ref stability */}
                     <input
                         type="file"

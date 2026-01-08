@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Heart, ShoppingCart, X } from "lucide-react";
+import { Check, Heart, ShoppingCart, X, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -21,10 +21,11 @@ interface BubbleItem {
 }
 
 interface BubblePickupListProps {
+    isOpen: boolean;
     onClose: () => void;
 }
 
-export function BubblePickupList({ onClose }: BubblePickupListProps) {
+export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
     const {
         careLogs, addCareLog,
         careTaskDefs,
@@ -176,73 +177,120 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
         );
     };
 
+    // Animation Variants (Shared with SidebarMenu)
+    const sheetVariants = {
+        hidden: { y: "100%" },
+        visible: { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 300 } },
+        exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 300 } }
+    };
+
     return (
-        <div className="flex flex-col h-full bg-slate-50/95 backdrop-blur-sm rounded-t-3xl overflow-hidden">
-            <div className="p-4 bg-white/50 border-b flex items-center justify-between sticky top-0 z-10">
-                <h2 className="font-bold text-lg text-slate-800">今日のタスク</h2>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onClose();
-                    }}
-                    className="p-1 rounded-full hover:bg-slate-200 transition-colors"
-                >
-                    <X className="w-6 h-6 text-slate-500" />
-                </button>
-            </div>
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 z-[10000] bg-black/20 backdrop-blur-sm cursor-pointer"
+                    />
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {activeIncidents.length > 0 && (
-                    <div className="mb-4">
-                        <div className="text-xs font-bold text-slate-400 mb-2 px-1">対応が必要な気付き</div>
-                        {activeIncidents.map(inc => (
-                            <IncidentItem key={inc.id} incident={inc} />
-                        ))}
-                    </div>
-                )}
+                    {/* Bottom Sheet Container */}
+                    <motion.div
+                        variants={sheetVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="fixed inset-x-0 bottom-0 z-[10001]"
+                        drag="y"
+                        dragConstraints={{ top: 0 }}
+                        dragElastic={0.2}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y > 100) onClose();
+                        }}
+                    >
+                        {/* Sheet Visuals */}
+                        <div className="bg-[#FAF9F7]/80 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-2xl border-t border-white/40 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative">
+                            {/* Gradient Overlay for extra glass depth */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
-                <div className="text-xs font-bold text-slate-400 mb-2 px-1">本日のタスク・記録</div>
-                {allItems.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400">
-                        <p>現在提案できるアクションはありません</p>
-                        <p className="text-xs mt-1">記録はすべて完了しています！</p>
-                    </div>
-                ) : (
-                    <div className="grid gap-3">
-                        {allItems.map(item => (
-                            <div
-                                key={item.id}
-                                className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm", item.colorClass)}>
-                                        {item.icon}
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-slate-700">{item.label}</div>
-                                        {item.subLabel && <div className="text-xs text-slate-400">{item.subLabel}</div>}
-                                    </div>
-                                </div>
+                            {/* Drag Handle */}
+                            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 relative z-10" onClick={onClose}>
+                                <div className="w-12 h-1.5 rounded-full bg-slate-400/30" />
+                            </div>
+
+                            {/* Navigation Header */}
+                            <div className="px-6 py-2 flex items-center justify-between shrink-0 h-14 relative z-10">
+                                <h1 className="text-lg font-bold text-slate-800">今日のタスク</h1>
+
                                 <button
-                                    onClick={item.onAction}
-                                    className="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-full hover:bg-slate-200 transition-colors"
+                                    onClick={onClose}
+                                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
                                 >
-                                    完了
+                                    <X className="w-4 h-4 text-slate-500" />
                                 </button>
                             </div>
-                        ))}
-                    </div>
-                )}
-            </div>
 
-            <IncidentModal isOpen={showIncidentModal} onClose={() => setShowIncidentModal(false)} />
-            {selectedIncidentId && (
-                <IncidentDetailModal
-                    isOpen={!!selectedIncidentId}
-                    onClose={() => setSelectedIncidentId(null)}
-                    incidentId={selectedIncidentId}
-                />
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-6 pt-2 pb-10 relative z-10">
+                                {activeIncidents.length > 0 && (
+                                    <div className="mb-4">
+                                        <div className="text-xs font-bold text-slate-400 mb-2 px-1">対応が必要な気付き</div>
+                                        {activeIncidents.map(inc => (
+                                            <IncidentItem key={inc.id} incident={inc} />
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="text-xs font-bold text-slate-400 mb-2 px-1">本日のタスク・記録</div>
+                                {allItems.length === 0 ? (
+                                    <div className="text-center py-10 text-slate-400">
+                                        <p>現在提案できるアクションはありません</p>
+                                        <p className="text-xs mt-1">記録はすべて完了しています！</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {allItems.map(item => (
+                                            <div
+                                                key={item.id}
+                                                className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center justify-between"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm", item.colorClass)}>
+                                                        {item.icon}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-700">{item.label}</div>
+                                                        {item.subLabel && <div className="text-xs text-slate-400">{item.subLabel}</div>}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={item.onAction}
+                                                    className="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-full hover:bg-slate-200 transition-colors"
+                                                >
+                                                    完了
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modals */}
+                            <IncidentModal isOpen={showIncidentModal} onClose={() => setShowIncidentModal(false)} />
+                            {selectedIncidentId && (
+                                <IncidentDetailModal
+                                    isOpen={!!selectedIncidentId}
+                                    onClose={() => setSelectedIncidentId(null)}
+                                    incidentId={selectedIncidentId}
+                                />
+                            )}
+                        </div>
+                    </motion.div>
+                </>
             )}
-        </div>
+        </AnimatePresence>
     );
 }
