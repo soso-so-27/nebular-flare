@@ -263,8 +263,8 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                 />
                             </div>
 
-                            {/* Photos - DISABLED FOR DEBUGGING */}
-                            {/* <div className="grid gap-2">
+                            {/* Photos */}
+                            <div className="grid gap-2">
                                 <Label>写真（任意）</Label>
                                 <div className="flex flex-wrap gap-2">
                                     {previewUrls.map((url, i) => (
@@ -286,15 +286,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                         <span className="text-[10px] mt-1">追加</span>
                                     </button>
                                 </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleFileChange}
-                                />
-                            </div> */}
+                            </div>
 
                             <Button onClick={handleAddUpdate} disabled={loading} className="w-full">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -302,6 +294,15 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                             </Button>
                         </div>
                     )}
+                    {/* Always render hidden input to ensure ref stability */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                    />
                 </div>
             </DialogContent>
         </Dialog>
