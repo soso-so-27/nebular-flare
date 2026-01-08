@@ -217,7 +217,7 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                         }}
                     >
                         {/* Sheet Visuals */}
-                        <div className="bg-[#FAF9F7]/85 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
+                        <div className="bg-[#FAF9F7]/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
                             {/* Specular Elements */}
                             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
                             <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
@@ -274,7 +274,7 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                                         {allItems.map(item => (
                                             <div
                                                 key={item.id}
-                                                className="relative overflow-hidden bg-gradient-to-r from-white/80 to-white/50 backdrop-blur-xl rounded-[20px] p-4 shadow-sm border border-white/60 flex items-center gap-3 group transition-all hover:scale-[1.01] hover:shadow-md"
+                                                className="relative overflow-hidden bg-gradient-to-r from-white/80 to-white/40 backdrop-blur-xl rounded-[20px] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)] border border-white flex items-center gap-3 group transition-all hover:scale-[1.01] hover:shadow-xl"
                                             >
                                                 <div className="flex items-center gap-3 flex-1 min-w-0 relative z-10">
                                                     <div className={cn("w-11 h-11 shrink-0 rounded-full flex items-center justify-center border shadow-sm backdrop-blur-sm", item.colorClass)}>

@@ -209,70 +209,73 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 {/* Main Menu Cards */}
                 {/* Main Menu Cards */}
                 <div className="grid grid-cols-2 gap-4 px-2">
-                    {/* Activity (Drill-down) */}
+                    {/* Activity (Peach - Memory/Love) */}
                     <button
                         onClick={() => pushView('activity')}
                         className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-[#E8B4A0]/30 to-[#E8B4A0]/5 
-                            border-t border-l border-white/60 border-b border-r border-[#E8B4A0]/20
-                            shadow-[0_8px_24px_-6px_rgba(232,180,160,0.2)] 
+                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
+                            border border-white/80
+                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
                             hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
-                            <ActivityIcon className="w-5 h-5 text-[#D69E8A]" />
-                            <span className="font-bold text-slate-600 text-sm tracking-tight">お世話履歴</span>
+                        <div className="absolute inset-0 bg-[#E8B4A0]/10" />
+                        <div className="w-12 h-12 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
+                            <ActivityIcon className="w-6 h-6 text-[#D69E8A]" />
                         </div>
+                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">お世話履歴</span>
                     </button>
 
-                    {/* Inventory (Drill-down) */}
+                    {/* Inventory (Sage - Health/Life) */}
                     <button
                         onClick={() => pushView('inventory')}
                         className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-[#7CAA8E]/30 to-[#7CAA8E]/5 
-                            border-t border-l border-white/60 border-b border-r border-[#7CAA8E]/20
-                            shadow-[0_8px_24px_-6px_rgba(124,170,142,0.2)] 
+                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
+                            border border-white/80
+                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
                             hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
                         {urgentCount > 0 && (
-                            <span className="absolute top-3 right-3 w-3 h-3 rounded-full bg-red-400 shadow-sm animate-pulse box-content border-2 border-white/50" />
+                            <span className="absolute top-3 right-3 w-3 h-3 rounded-full bg-[#EF5350] shadow-sm animate-pulse border-2 border-white z-20" />
                         )}
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
-                            <ShoppingBag className="w-5 h-5 text-[#6B997D]" />
-                            <span className="font-bold text-slate-600 text-sm tracking-tight">在庫チェック</span>
+                        <div className="absolute inset-0 bg-[#7CAA8E]/10" />
+                        <div className="w-12 h-12 rounded-full bg-[#7CAA8E]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
+                            <ShoppingBag className="w-6 h-6 text-[#6B997D]" />
                         </div>
+                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">在庫チェック</span>
                     </button>
 
-                    {/* Gallery (Navigate Away) */}
+                    {/* Gallery (Peach - Memories - External) */}
                     <button
                         onClick={() => { onNavigate('gallery'); onClose(); }}
                         className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-[#64B5F6]/30 to-[#64B5F6]/5 
-                            border-t border-l border-white/60 border-b border-r border-[#64B5F6]/20
-                            shadow-[0_8px_24px_-6px_rgba(100,181,246,0.2)] 
+                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
+                            border border-white/80
+                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
                             hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#64B5F6]/60 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
-                            <Grid className="w-5 h-5 text-[#5C9AD8]" />
-                            <span className="font-bold text-slate-600 text-sm tracking-tight">ギャラリー</span>
+                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#D69E8A]/60 z-20" />
+                        <div className="absolute inset-0 bg-[#E8B4A0]/10" />
+                        <div className="w-12 h-12 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
+                            <Grid className="w-6 h-6 text-[#D69E8A]" />
                         </div>
+                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">ギャラリー</span>
                     </button>
 
-                    {/* Calendar (Navigate Away) */}
+                    {/* Calendar (Lavender - Time - External) */}
                     <button
                         onClick={() => { onNavigate('calendar'); onClose(); }}
                         className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-[#B8A6D9]/30 to-[#B8A6D9]/5 
-                            border-t border-l border-white/60 border-b border-r border-[#B8A6D9]/20
-                            shadow-[0_8px_24px_-6px_rgba(184,166,217,0.2)] 
+                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
+                            border border-white/80
+                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
                             hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#B8A6D9]/60 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
-                            <Calendar className="w-5 h-5 text-[#9D8CC2]" />
-                            <span className="font-bold text-slate-600 text-sm tracking-tight">カレンダー</span>
+                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#9D8CC2]/60 z-20" />
+                        <div className="absolute inset-0 bg-[#B8A6D9]/10" />
+                        <div className="w-12 h-12 rounded-full bg-[#B8A6D9]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
+                            <Calendar className="w-6 h-6 text-[#9D8CC2]" />
                         </div>
+                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">カレンダー</span>
                     </button>
                 </div>
 
@@ -605,7 +608,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             if (info.offset.y > 100) onClose();
                         }}
                     >
-                        <div className="bg-[#FAF9F7]/85 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
+                        <div className="bg-[#FAF9F7]/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
                             {/* Specular Elements */}
                             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
                             <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
