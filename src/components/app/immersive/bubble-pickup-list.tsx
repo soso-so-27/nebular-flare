@@ -176,27 +176,16 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
     return (
         <div className="flex flex-col h-full bg-slate-50/95 backdrop-blur-sm rounded-t-3xl overflow-hidden">
             <div className="p-4 bg-white/50 border-b flex items-center justify-between sticky top-0 z-10">
-                <h2 className="font-bold text-lg text-slate-800">まとめて記録 / チェック</h2>
-                <div className="flex gap-2">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowIncidentModal(true);
-                        }}
-                        className="text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1"
-                    >
-                        + 異変
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onClose();
-                        }}
-                        className="p-1 rounded-full hover:bg-slate-200 transition-colors"
-                    >
-                        <X className="w-6 h-6 text-slate-500" />
-                    </button>
-                </div>
+                <h2 className="font-bold text-lg text-slate-800">今日のタスク</h2>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}
+                    className="p-1 rounded-full hover:bg-slate-200 transition-colors"
+                >
+                    <X className="w-6 h-6 text-slate-500" />
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

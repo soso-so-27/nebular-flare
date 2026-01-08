@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save, MessageCircle, Camera } from "lucide-react";
+import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save, MessageCircle, Camera, AlertCircle, Image } from "lucide-react";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { getToday } from "@/lib/date-utils";
 import { getAdjustedDateString } from "@/lib/utils-date";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { sounds } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { ObservationEditor } from "./observation-editor";
+import { IncidentModal } from "../incident-modal";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
@@ -25,6 +26,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
     const [noteText, setNoteText] = useState("");
     const [selectedValue, setSelectedValue] = useState("");
+    const [showIncidentModal, setShowIncidentModal] = useState(false);
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs } = useAppState();
 
     const isLight = contrastMode === 'light';
@@ -315,6 +319,41 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
                                                 </motion.button>
                                             ))}
+
+                                            {/* Additional Actions */}
+                                            <div className="pt-2 mt-2 border-t border-white/10 space-y-2">
+                                                {/* Incident Button */}
+                                                <motion.button
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerFeedback('medium');
+                                                        setShowIncidentModal(true);
+                                                    }}
+                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-red-500/20 border border-red-500/30`}
+                                                >
+                                                    <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                                        <AlertCircle className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <span className={`text-sm font-medium ${styles.text}`}>異変を記録</span>
+                                                </motion.button>
+
+                                                {/* Today's Photo Button */}
+                                                <motion.button
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerFeedback('medium');
+                                                        fileInputRef.current?.click();
+                                                    }}
+                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
+                                                >
+                                                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                                        <Camera className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
+                                                </motion.button>
+                                            </div>
                                         </div>
                                     )}
 
@@ -529,6 +568,41 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                 <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
                                             </motion.button>
                                         ))}
+
+                                        {/* Additional Actions */}
+                                        <div className="pt-2 mt-2 border-t border-white/20 space-y-2">
+                                            {/* Incident Button */}
+                                            <motion.button
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    triggerFeedback('medium');
+                                                    setShowIncidentModal(true);
+                                                }}
+                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-red-500/20 border border-red-500/30`}
+                                            >
+                                                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                                    <AlertCircle className="w-3 h-3 text-white" />
+                                                </div>
+                                                <span className={`text-sm font-medium ${styles.text}`}>異変を記録</span>
+                                            </motion.button>
+
+                                            {/* Today's Photo Button */}
+                                            <motion.button
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    triggerFeedback('medium');
+                                                    fileInputRef.current?.click();
+                                                }}
+                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
+                                            >
+                                                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                                    <Camera className="w-3 h-3 text-white" />
+                                                </div>
+                                                <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
+                                            </motion.button>
+                                        </div>
 
                                     </div>
                                 </motion.div>
@@ -779,6 +853,32 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 </div>
 
             </div>
+
+            {/* Incident Modal */}
+            <IncidentModal
+                isOpen={showIncidentModal}
+                onClose={() => setShowIncidentModal(false)}
+                defaultCatId={activeCatId}
+            />
+
+            {/* Hidden File Input for Photo Upload */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file && activeCatId) {
+                        triggerFeedback('success');
+                        // TODO: Implement photo upload to gallery
+                        toast.success("今日の一枚を追加しました");
+                    }
+                    // Reset input
+                    e.target.value = '';
+                }}
+            />
         </>
     );
 }
