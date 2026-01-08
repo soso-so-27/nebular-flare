@@ -80,7 +80,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                 incidentId,
                 updateNote,
                 photos,
-                statusChange || undefined
+                (statusChange && statusChange !== 'no_change') ? statusChange : undefined
             );
             if (error) throw error;
 
@@ -236,7 +236,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                         <SelectValue placeholder="変更しない" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">変更しない</SelectItem>
+                                        <SelectItem value="no_change">変更しない</SelectItem>
                                         {STATUS_OPTIONS.filter(s => s.id !== incident.status).map(opt => (
                                             <SelectItem key={opt.id} value={opt.id}>
                                                 {opt.label}
