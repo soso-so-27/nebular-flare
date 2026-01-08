@@ -3,7 +3,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
     X, Bell, Settings, ChevronRight, Check,
     Heart, Cat, ShoppingCart, Calendar, Activity, Image as ImageIcon,
-    ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User
+    ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User, ArrowUpRight
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppState } from "@/store/app-store";
@@ -207,45 +207,71 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
             <div className="space-y-6 pt-2">
 
                 {/* Main Menu Cards */}
-                <div className="grid grid-cols-2 gap-3 px-1">
+                {/* Main Menu Cards */}
+                <div className="grid grid-cols-2 gap-4 px-2">
+                    {/* Activity (Drill-down) */}
                     <button
                         onClick={() => pushView('activity')}
-                        className="menu-card aspect-[1.6] flex flex-col items-center justify-center gap-2 bg-[#E8B4A0]/20 border border-[#E8B4A0]/30 hover:bg-[#E8B4A0]/30 active:scale-95 transition-all rounded-2xl group"
+                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                            bg-gradient-to-br from-[#E8B4A0]/30 to-[#E8B4A0]/5 
+                            border-t border-l border-white/60 border-b border-r border-[#E8B4A0]/20
+                            shadow-[0_8px_24px_-6px_rgba(232,180,160,0.2)] 
+                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/60 backdrop-blur-sm shadow-sm group-hover:bg-white/80 transition-colors">
-                            <ActivityIcon className="w-5 h-5 text-[#E8B4A0]" />
-                            <span className="font-bold text-[#D69E8A] text-sm">お世話履歴</span>
+                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
+                            <ActivityIcon className="w-5 h-5 text-[#D69E8A]" />
+                            <span className="font-bold text-slate-600 text-sm tracking-tight">お世話履歴</span>
                         </div>
                     </button>
 
+                    {/* Inventory (Drill-down) */}
                     <button
                         onClick={() => pushView('inventory')}
-                        className="menu-card aspect-[1.6] flex flex-col items-center justify-center gap-2 bg-[#7CAA8E]/20 border border-[#7CAA8E]/30 hover:bg-[#7CAA8E]/30 active:scale-95 transition-all rounded-2xl group relative overflow-hidden"
+                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                            bg-gradient-to-br from-[#7CAA8E]/30 to-[#7CAA8E]/5 
+                            border-t border-l border-white/60 border-b border-r border-[#7CAA8E]/20
+                            shadow-[0_8px_24px_-6px_rgba(124,170,142,0.2)] 
+                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        {urgentCount > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm animate-pulse" />}
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/60 backdrop-blur-sm shadow-sm group-hover:bg-white/80 transition-colors">
-                            <ShoppingBag className="w-5 h-5 text-[#7CAA8E]" />
-                            <span className="font-bold text-[#6B997D] text-sm">在庫チェック</span>
+                        {urgentCount > 0 && (
+                            <span className="absolute top-3 right-3 w-3 h-3 rounded-full bg-red-400 shadow-sm animate-pulse box-content border-2 border-white/50" />
+                        )}
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
+                            <ShoppingBag className="w-5 h-5 text-[#6B997D]" />
+                            <span className="font-bold text-slate-600 text-sm tracking-tight">在庫チェック</span>
                         </div>
                     </button>
 
+                    {/* Gallery (Navigate Away) */}
                     <button
                         onClick={() => { onNavigate('gallery'); onClose(); }}
-                        className="menu-card aspect-[1.6] flex flex-col items-center justify-center gap-2 bg-[#64B5F6]/20 border border-[#64B5F6]/30 hover:bg-[#64B5F6]/30 active:scale-95 transition-all rounded-2xl group"
+                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                            bg-gradient-to-br from-[#64B5F6]/30 to-[#64B5F6]/5 
+                            border-t border-l border-white/60 border-b border-r border-[#64B5F6]/20
+                            shadow-[0_8px_24px_-6px_rgba(100,181,246,0.2)] 
+                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/60 backdrop-blur-sm shadow-sm group-hover:bg-white/80 transition-colors">
-                            <Grid className="w-5 h-5 text-[#64B5F6]" />
-                            <span className="font-bold text-[#42A5F5] text-sm">ギャラリー</span>
+                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#64B5F6]/60 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
+                            <Grid className="w-5 h-5 text-[#5C9AD8]" />
+                            <span className="font-bold text-slate-600 text-sm tracking-tight">ギャラリー</span>
                         </div>
                     </button>
 
+                    {/* Calendar (Navigate Away) */}
                     <button
                         onClick={() => { onNavigate('calendar'); onClose(); }}
-                        className="menu-card aspect-[1.6] flex flex-col items-center justify-center gap-2 bg-[#B8A6D9]/20 border border-[#B8A6D9]/30 hover:bg-[#B8A6D9]/30 active:scale-95 transition-all rounded-2xl group"
+                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                            bg-gradient-to-br from-[#B8A6D9]/30 to-[#B8A6D9]/5 
+                            border-t border-l border-white/60 border-b border-r border-[#B8A6D9]/20
+                            shadow-[0_8px_24px_-6px_rgba(184,166,217,0.2)] 
+                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
                     >
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/60 backdrop-blur-sm shadow-sm group-hover:bg-white/80 transition-colors">
-                            <Calendar className="w-5 h-5 text-[#B8A6D9]" />
-                            <span className="font-bold text-[#9D8CC2] text-sm">カレンダー</span>
+                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#B8A6D9]/60 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-md shadow-sm group-hover:bg-white/90 transition-colors">
+                            <Calendar className="w-5 h-5 text-[#9D8CC2]" />
+                            <span className="font-bold text-slate-600 text-sm tracking-tight">カレンダー</span>
                         </div>
                     </button>
                 </div>

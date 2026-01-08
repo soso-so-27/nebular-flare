@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useAppState } from "@/store/app-store";
-import { Check, Heart, ShoppingCart, X, ChevronLeft, Sparkles } from "lucide-react";
+import { Check, Heart, ShoppingCart, X, ChevronLeft, Sparkles, ChevronRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
@@ -102,16 +102,19 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
             };
 
             // Determine color/icon
+            // Visual Style: Glassy Tint for Labels
             if (item.type === 'task') {
                 const isUrgent = item.severity >= 80;
-                colorClass = isUrgent ? "bg-[#B8A6D9]" : "bg-[#7CAA8E]"; // Lavender (urgent) or Sage (normal)
-                icon = <Check className="w-5 h-5 text-white" />;
+                colorClass = isUrgent
+                    ? "bg-[#B8A6D9]/15 border-[#B8A6D9]/30 text-[#8B7AAF]"
+                    : "bg-[#7CAA8E]/15 border-[#7CAA8E]/30 text-[#5A8C6E]";
+                icon = <Check className="w-5 h-5" />;
             } else if (item.type === 'notice' || item.type === 'unrecorded') {
-                colorClass = "bg-[#E8B4A0]";
-                icon = <Heart className="w-5 h-5 text-white" />;
+                colorClass = "bg-[#E8B4A0]/15 border-[#E8B4A0]/30 text-[#CF8E76]";
+                icon = <Heart className="w-5 h-5" />;
             } else if (item.type === 'inventory') {
-                colorClass = "bg-[#B8A6D9]";
-                icon = <ShoppingCart className="w-5 h-5 text-white" />;
+                colorClass = "bg-[#B8A6D9]/15 border-[#B8A6D9]/30 text-[#8B7AAF]";
+                icon = <ShoppingCart className="w-5 h-5" />;
             }
 
             return {
@@ -147,9 +150,9 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
         }[incident.type as string] || incident.type;
 
         return (
-            <div className="bg-[#B8A6D9]/10 border border-[#B8A6D9]/20 rounded-lg overflow-hidden mb-2">
+            <div className="bg-white/60 backdrop-blur-md border border-white/60 shadow-sm rounded-2xl overflow-hidden mb-3 group hover:bg-white/80 transition-all">
                 <div
-                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-[#B8A6D9]/20 transition-colors"
+                    className="p-3 pl-4 flex items-center justify-between cursor-pointer"
                     onClick={(e) => {
                         e.stopPropagation();
                         setSelectedIncidentId(incident.id);
@@ -157,20 +160,22 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                 >
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden text-xl flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden border border-white shadow-inner flex items-center justify-center">
                                 {cat ? <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" /> : '🐈'}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-[#B8A6D9] text-white text-[10px] px-1.5 py-0.5 rounded-full border border-white">
+                            <div className="absolute -bottom-1 -right-1 bg-[#B8A6D9] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                                 !
                             </div>
                         </div>
-                        <div>
-                            <div className="font-bold text-[#8B7AAF] text-sm">{typeLabel}</div>
-                            <div className="text-xs text-[#B8A6D9]/80">{new Date(incident.created_at).toLocaleDateString()}</div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-slate-800 text-sm">{cat?.name || '猫ちゃん'} : {typeLabel}</span>
+                            <span className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                {new Date(incident.created_at).toLocaleDateString()}
+                            </span>
                         </div>
                     </div>
-                    <div className="text-xs text-[#B8A6D9]">
-                        タップして詳細
+                    <div className="pr-2 text-slate-400 group-hover:text-slate-600 transition-colors">
+                        <ChevronRight className="w-5 h-5" />
                     </div>
                 </div>
             </div>
@@ -227,7 +232,7 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
 
                             {/* Navigation Header */}
                             <div className="px-6 py-2 flex items-center justify-between shrink-0 h-14 relative z-10">
-                                <h1 className="text-lg font-bold text-slate-800">今日のタスク</h1>
+                                <h1 className="text-lg font-bold text-slate-800">今日のピックアップ</h1>
 
                                 <button
                                     onClick={onClose}
@@ -242,8 +247,8 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                                 {activeIncidents.length > 0 && (
                                     <div className="mb-6">
                                         <div className="flex items-center gap-2 mb-3 px-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                                            <span className="text-xs font-bold text-slate-500">対応が必要な気付き</span>
+                                            <Eye className="w-4 h-4 text-rose-400" />
+                                            <span className="text-sm font-bold text-slate-700">気になっていること</span>
                                         </div>
                                         {activeIncidents.map(inc => (
                                             <IncidentItem key={inc.id} incident={inc} />
@@ -253,7 +258,7 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
 
                                 <div className="flex items-center gap-2 mb-3 px-1">
                                     <Check className="w-4 h-4 text-emerald-500" />
-                                    <span className="text-sm font-bold text-slate-700">今日のやること</span>
+                                    <span className="text-sm font-bold text-slate-700">今日のお世話</span>
                                 </div>
 
                                 {allItems.length === 0 ? (
@@ -269,23 +274,26 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                                         {allItems.map(item => (
                                             <div
                                                 key={item.id}
-                                                className="bg-white/60 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/60 flex items-center justify-between group transition-all hover:bg-white/80"
+                                                className="relative overflow-hidden bg-gradient-to-r from-white/80 to-white/50 backdrop-blur-xl rounded-[20px] p-4 shadow-sm border border-white/60 flex items-center gap-3 group transition-all hover:scale-[1.01] hover:shadow-md"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-inner", item.colorClass)}>
+                                                <div className="flex items-center gap-3 flex-1 min-w-0 relative z-10">
+                                                    <div className={cn("w-11 h-11 shrink-0 rounded-full flex items-center justify-center border shadow-sm backdrop-blur-sm", item.colorClass)}>
                                                         {item.icon}
                                                     </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-700 leading-tight">{item.label}</div>
-                                                        {item.subLabel && <div className="text-[10px] text-slate-500 mt-0.5">{item.subLabel}</div>}
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="font-bold text-slate-800 text-sm leading-tight tracking-tight break-words">{item.label}</div>
+                                                        {item.subLabel && <div className="text-[11px] font-medium text-slate-500 mt-0.5 break-words">{item.subLabel}</div>}
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={item.onAction}
-                                                    className="px-5 py-2 bg-[#7CAA8E] text-white text-xs font-bold rounded-full shadow-md hover:bg-[#6B997D] hover:scale-105 active:scale-95 transition-all"
+                                                    className="px-4 py-2 bg-gradient-to-b from-[#7CAA8E] to-[#609075] text-white text-xs font-bold rounded-full shadow-[0_4px_10px_-2px_rgba(124,170,142,0.4)] border-t border-white/30 hover:brightness-110 active:scale-95 transition-all shrink-0 whitespace-nowrap relative z-10"
                                                 >
                                                     完了
                                                 </button>
+
+                                                {/* Subtle Shine Effect on Card */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-50 pointer-events-none" />
                                             </div>
                                         ))}
                                     </div>
