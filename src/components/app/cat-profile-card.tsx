@@ -72,7 +72,7 @@ export function CatProfileCard() {
                                     <span className={cn(
                                         "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
                                         activeCat.sex === "オス"
-                                            ? "bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400"
+                                            ? "bg-[#7CAA8E]/10 dark:bg-[#7CAA8E]/20 text-[#5A8A6A] dark:text-[#7CAA8E]"
                                             : "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400"
                                     )}>
                                         {activeCat.sex === "オス" ? "♂" : "♀"} {activeCat.sex}

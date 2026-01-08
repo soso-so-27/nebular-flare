@@ -150,7 +150,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                         {/* 
                         <div className="px-4 py-3 flex items-center justify-between border-b border-slate-50">
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold">プラン <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
+                                <span className="text-xs font-bold">プラン <span className="text-[10px] text-[#B8A6D9] font-normal ml-1">(準備中)</span></span>
                                 <span className="text-[10px] text-muted-foreground">{isPro ? 'Proを利用中' : 'Freeプラン'}</span>
                             </div>
                             <div className="flex items-center gap-2 opacity-50 pointer-events-none">
@@ -171,7 +171,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                         {/* 
                         <div className="px-4 py-3 flex items-center justify-between">
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold">週1まとめ通知 <span className="text-[10px] text-amber-500 font-normal ml-1">(準備中)</span></span>
+                                <span className="text-xs font-bold">週1まとめ通知 <span className="text-[10px] text-[#B8A6D9] font-normal ml-1">(準備中)</span></span>
                                 <span className="text-[10px] text-muted-foreground">日曜 18:00に配信</span>
                             </div>
                             <Switch

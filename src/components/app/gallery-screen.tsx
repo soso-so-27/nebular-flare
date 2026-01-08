@@ -415,12 +415,12 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                                                 </div>
                                             )}
                                             {img.source === 'observation' && (
-                                                <div className="bg-amber-500/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
+                                                <div className="bg-[#7CAA8E]/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
                                                     <MessageCircle className="w-2.5 h-2.5" />
                                                 </div>
                                             )}
                                             {img.source === 'profile' && (
-                                                <div className="bg-blue-500/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
+                                                <div className="bg-[#E8B4A0]/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
                                                     <Camera className="w-2.5 h-2.5" />
                                                 </div>
                                             )}
@@ -434,7 +434,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                                         <div className={cn(
                                             "absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
                                             selectedImageIds.has(img.id)
-                                                ? "bg-blue-500 border-blue-500 shadow-lg scale-110"
+                                                ? "bg-[#E8B4A0] border-[#E8B4A0] shadow-lg scale-110"
                                                 : "border-white bg-black/20"
                                         )}>
                                             {selectedImageIds.has(img.id) && <CheckCircle2 className="w-4 h-4 text-white" />}
@@ -555,7 +555,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                         </p>
                         <button
                             onClick={() => setIsCatSettingsOpen(true)}
-                            className="mt-3 px-4 py-2 rounded-full bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 active:scale-95 transition-all"
+                            className="mt-3 px-4 py-2 rounded-full bg-[#7CAA8E] text-white text-sm font-bold hover:bg-[#6B9B7A] active:scale-95 transition-all"
                         >
                             猫を追加
                         </button>

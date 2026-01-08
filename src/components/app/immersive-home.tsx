@@ -607,23 +607,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 </>
             )}
 
-            {/* Incident Alert - Top Center */}
-            <AnimatePresence>
-                {activeIncidents.length > 0 && !showPickup && (
-                    <motion.button
-                        initial={{ y: -100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -100, opacity: 0 }}
-                        onClick={(e) => { e.stopPropagation(); setShowPickup(true); }}
-                        className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-white/20 flex items-center gap-2"
-                    >
-                        <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                        <span className="text-xs font-bold drop-shadow-md">
-                            {activeIncidents.length}件のインシデント
-                        </span>
-                    </motion.button>
-                )}
-            </AnimatePresence>
+
 
             {/* Interface Layer - Always MagicBubble (placement varies by mode) */}
             <MagicBubble

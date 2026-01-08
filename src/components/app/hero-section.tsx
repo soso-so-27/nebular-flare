@@ -44,7 +44,7 @@ export function HeroSection() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-amber-100 to-amber-50 shadow-sm"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#FAF9F7] to-[#F5F3F0] shadow-sm"
         >
             {/* Cat Photo */}
             <div className="relative aspect-[16/9] overflow-hidden">
@@ -55,7 +55,7 @@ export function HeroSection() {
                         className="w-full h-full object-cover"
                     />
                 ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-amber-200 to-amber-100 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#7CAA8E]/10 to-[#6B9B7A]/20 flex items-center justify-center">
                         <span className="text-6xl">🐱</span>
                     </div>
                 )}
@@ -101,8 +101,8 @@ export function HeroSection() {
                             key={cat.id}
                             onClick={() => setActiveCatId(cat.id)}
                             className={`w-2 h-2 rounded-full transition-all ${index === currentIndex
-                                    ? "bg-white w-4"
-                                    : "bg-white/50 hover:bg-white/70"
+                                ? "bg-white w-4"
+                                : "bg-white/50 hover:bg-white/70"
                                 }`}
                         />
                     ))}

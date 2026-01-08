@@ -50,8 +50,8 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
     if (cats.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center h-full">
-                <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                    <CatIcon className="h-8 w-8 text-amber-600" />
+                <div className="h-16 w-16 rounded-full bg-[#7CAA8E]/10 flex items-center justify-center mb-4">
+                    <CatIcon className="h-8 w-8 text-[#5A8A6A]" />
                 </div>
                 <h2 className="text-lg font-bold text-slate-900 mb-2">まだ猫がいません</h2>
                 <p className="text-sm text-slate-500 mb-4">設定から猫を追加してください</p>
@@ -81,7 +81,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                             className="w-full h-full object-cover"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-amber-900">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#7CAA8E]/30">
                             <span className="text-9xl">{selectedCat.avatar || "🐈"}</span>
                         </div>
                     )}
@@ -115,7 +115,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                                 className={cn(
                                     "w-10 h-10 rounded-full border border-white/20 overflow-hidden transition-all flex-shrink-0 shadow-lg relative",
                                     activeCatId === cat.id
-                                        ? "scale-110 ring-2 ring-amber-500 z-10"
+                                        ? "scale-110 ring-2 ring-[#7CAA8E] z-10"
                                         : "opacity-60 hover:opacity-100 scale-95 grayscale"
                                 )}
                             >
@@ -168,7 +168,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                         className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-2xl overflow-hidden relative"
                     >
                         {/* Decorative background glow */}
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#B8A6D9]/10 rounded-full blur-3xl pointer-events-none" />
 
                         <div className="relative z-10">
                             <WeightChart
@@ -190,7 +190,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                             transition={{ delay: 0.2 }}
                             className="rounded-3xl bg-black/20 backdrop-blur-lg border border-white/10 p-4 shadow-lg flex flex-col items-center justify-center text-center gap-2"
                         >
-                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-amber-300 mb-1">
+                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-[#B8A6D9] mb-1">
                                 <Cake className="w-5 h-5" />
                             </div>
                             <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Birthday</div>

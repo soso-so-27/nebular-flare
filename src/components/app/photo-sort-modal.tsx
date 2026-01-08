@@ -131,7 +131,7 @@ export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortM
                                 <X className="h-6 w-6" />
                             </button>
                             <div className="flex items-center gap-2 text-white">
-                                <Wand2 className="h-4 w-4 text-amber-400" />
+                                <Wand2 className="h-4 w-4 text-[#B8A6D9]" />
                                 <span className="text-sm font-medium">写真の振り分け</span>
                             </div>
                             <span className="text-white/60 text-sm">{currentIndex + 1}/{photos.length}</span>
@@ -140,7 +140,7 @@ export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortM
                         {/* Progress bar */}
                         <div className="h-1 bg-white/20">
                             <div
-                                className="h-full bg-amber-400 transition-all"
+                                className="h-full bg-[#B8A6D9] transition-all"
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
@@ -159,7 +159,7 @@ export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortM
                             {analyzing && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                     <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+                                        <Loader2 className="h-5 w-5 animate-spin text-[#B8A6D9]" />
                                         <span className="text-white text-sm">猫を識別中...</span>
                                     </div>
                                 </div>
@@ -169,14 +169,14 @@ export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortM
                         {/* AI Suggestion */}
                         {suggestedCat && !analyzing && (
                             <div className="px-4 pb-2">
-                                <div className="bg-amber-500/20 backdrop-blur rounded-xl p-3 flex items-center gap-3">
-                                    <Sparkles className="h-5 w-5 text-amber-400" />
+                                <div className="bg-[#B8A6D9]/20 backdrop-blur rounded-xl p-3 flex items-center gap-3">
+                                    <Sparkles className="h-5 w-5 text-[#B8A6D9]" />
                                     <span className="text-white text-sm flex-1">
                                         これは <span className="font-bold">{suggestedCat.name}</span> かも？
                                     </span>
                                     <button
                                         onClick={() => handleAssign(suggestedCat.id)}
-                                        className="px-3 py-1 rounded-full bg-amber-500 text-white text-sm font-medium"
+                                        className="px-3 py-1 rounded-full bg-[#B8A6D9] text-white text-sm font-medium"
                                     >
                                         はい
                                     </button>

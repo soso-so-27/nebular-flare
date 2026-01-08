@@ -261,7 +261,7 @@ export function CatObservationList() {
                                 "h-2 w-2 rounded-full transition-all duration-500",
                                 obs.done
                                     ? obs.isAbnormal
-                                        ? "bg-amber-500 scale-125"
+                                        ? "bg-[#E8B4A0] scale-125"
                                         : "bg-slate-300 dark:bg-slate-700"
                                     : "bg-slate-200 dark:bg-slate-800"
                             )}
@@ -282,7 +282,7 @@ export function CatObservationList() {
                             "relative overflow-hidden rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between min-h-[150px]",
                             obs.done
                                 ? obs.isAbnormal
-                                    ? "bg-amber-50 border border-amber-200/80 shadow-sm" // Done & Abnormal
+                                    ? "bg-[#E8B4A0]/10 border border-[#E8B4A0]/30 shadow-sm" // Done & Abnormal
                                     : "bg-card/50 border border-border/30 opacity-80" // Done & Normal
                                 : "bg-card border border-border shadow-md hover:shadow-lg hover:border-primary/20 active:scale-[0.98]" // Pending
                         )}
@@ -293,7 +293,7 @@ export function CatObservationList() {
                                 "p-2.5 rounded-xl transition-colors",
                                 obs.done
                                     ? obs.isAbnormal
-                                        ? "bg-amber-100 text-amber-600"
+                                        ? "bg-[#B8A6D9]/10 text-[#8B7AAF]"
                                         : "bg-muted text-muted-foreground"
                                     : "bg-primary/10 text-primary"
                             )}>
@@ -305,7 +305,7 @@ export function CatObservationList() {
                                     animate={{ scale: 1 }}
                                     className={cn(
                                         "px-2 py-1 rounded-full flex items-center gap-1",
-                                        obs.isAbnormal ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                                        obs.isAbnormal ? "bg-[#B8A6D9]/10 text-[#8B7AAF]" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
                                     )}>
                                     <span className="text-[10px] font-bold">{obs.value}</span>
                                     {obs.isAbnormal ? <AlertTriangle className="w-3 h-3" /> : <Check className="w-3 h-3" />}
@@ -362,7 +362,7 @@ export function CatObservationList() {
                                                         fileInputRef.current?.click();
                                                     }}
                                                     disabled={isUploading}
-                                                    className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
+                                                    className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl bg-gradient-to-r from-[#E8B4A0] to-[#C08A70] text-white shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
                                                 >
                                                     {isUploading && pendingPhotoObsId === obs.id ? (
                                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -381,7 +381,7 @@ export function CatObservationList() {
                                                     </button>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleQuickRecord(obs, 'ちょっと違う'); }}
-                                                        className="w-11 flex items-center justify-center rounded-xl bg-amber-50 border border-amber-200 text-amber-500 hover:bg-amber-100 active:scale-95 transition-all"
+                                                        className="w-11 flex items-center justify-center rounded-xl bg-[#E8B4A0]/10 border border-[#E8B4A0]/30 text-[#C08A70] hover:bg-[#E8B4A0]/20 active:scale-95 transition-all"
                                                     >
                                                         <AlertTriangle className="w-4 h-4" />
                                                     </button>

@@ -254,9 +254,9 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
             case 'care':
                 return "bg-rose-100 dark:bg-rose-900/30 text-rose-500";
             case 'observation':
-                return "bg-blue-100 dark:bg-blue-900/30 text-blue-500";
+                return "bg-[#7CAA8E]/10 dark:bg-[#7CAA8E]/20 text-[#5A8A6A]";
             case 'inventory':
-                return "bg-amber-100 dark:bg-amber-900/30 text-amber-500";
+                return "bg-[#E8B4A0]/10 dark:bg-[#E8B4A0]/20 text-[#C08A70]";
             default:
                 return "bg-slate-100 dark:bg-slate-800 text-slate-500";
         }

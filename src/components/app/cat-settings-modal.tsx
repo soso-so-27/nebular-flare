@@ -416,9 +416,9 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleDelete(cat.id, cat.name)}
-                                                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                            className="p-2 rounded-lg hover:bg-[#B8A6D9]/10 dark:hover:bg-[#B8A6D9]/20"
                                                         >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                                            <Trash2 className="h-4 w-4 text-[#B8A6D9]" />
                                                         </button>
                                                     </div>
                                                 )}

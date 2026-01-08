@@ -28,7 +28,7 @@ export function TwinFAB({ careCount, catCount, onCareClick, onCatClick }: TwinFA
                         whileHover={{ x: -4 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={onCareClick}
-                        className="flex items-center rounded-l-xl bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg pl-2 pr-1 py-2"
+                        className="flex items-center rounded-l-xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] shadow-lg pl-2 pr-1 py-2"
                     >
                         <Heart className="h-5 w-5 text-white" fill="white" />
                         <span className="ml-1 text-xs font-bold text-white min-w-[16px]">
@@ -46,7 +46,7 @@ export function TwinFAB({ careCount, catCount, onCareClick, onCatClick }: TwinFA
                         whileHover={{ x: -4 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={onCatClick}
-                        className="flex items-center rounded-l-xl bg-gradient-to-r from-amber-400 to-yellow-500 shadow-lg pl-2 pr-1 py-2"
+                        className="flex items-center rounded-l-xl bg-gradient-to-r from-[#E8B4A0] to-[#E8B4A0] shadow-lg pl-2 pr-1 py-2"
                     >
                         <Cat className="h-5 w-5 text-white" />
                         <span className="ml-1 text-xs font-bold text-white min-w-[16px]">

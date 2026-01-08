@@ -40,14 +40,14 @@ export function LogScreen() {
     return (
         <div className="space-y-6 pb-20">
             {/* Weekly Digest Preview */}
-            <Card className="rounded-3xl shadow-sm border-none bg-indigo-900 text-white overflow-hidden">
+            <Card className="rounded-3xl shadow-sm border-none bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-bold flex items-center justify-between">
                         <span className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             週1まとめ（日曜 18:00）
                         </span>
-                        <Badge variant="secondary" className="bg-indigo-700 text-[10px] text-indigo-100 hover:bg-indigo-600 border-none">
+                        <Badge variant="secondary" className="bg-[#7CAA8E]/20 text-[10px] text-[#5A8A6A] hover:bg-[#7CAA8E]/30 border-none">
                             プレビュー
                         </Badge>
                     </CardTitle>
@@ -55,24 +55,24 @@ export function LogScreen() {
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-white/10 rounded-2xl p-3">
-                            <div className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">気になる変化</div>
+                            <div className="text-[10px] text-[#5A8A6A] uppercase font-bold tracking-wider">気になる変化</div>
                             <div className="text-xl font-black mt-1">{digest.abnormalCount} <span className="text-[10px] font-normal">件</span></div>
                         </div>
                         <div className="bg-white/10 rounded-2xl p-3">
-                            <div className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">在庫注意</div>
+                            <div className="text-[10px] text-[#5A8A6A] uppercase font-bold tracking-wider">在庫注意</div>
                             <div className="text-xl font-black mt-1">{digest.lowStockCount} <span className="text-[10px] font-normal">種類</span></div>
                         </div>
                     </div>
 
-                    <div className="bg-indigo-800/50 rounded-2xl p-4 space-y-3">
+                    <div className="bg-[#7CAA8E]/10 rounded-2xl p-4 space-y-3">
                         <div className="flex items-start gap-2 text-xs leading-relaxed">
-                            <Info className="h-3 w-3 mt-1 shrink-0 text-indigo-300" />
-                            <p className="text-indigo-100 italic">
+                            <Info className="h-3 w-3 mt-1 shrink-0 text-[#7CAA8E]" />
+                            <p className="text-[#5A8A6A] italic">
                                 今週は {activeCat?.name} の食欲が少し変動したようです。
                                 {digest.openTasksCount > 0 ? `また、未完了のケアが ${digest.openTasksCount} 件あります。` : "すべてのケアが完了しました。"}
                             </p>
                         </div>
-                        <div className="text-[9px] text-indigo-400 flex items-center gap-1">
+                        <div className="text-[9px] text-[#5A8A6A] flex items-center gap-1">
                             <Sparkles className="h-2 w-2" />
                             AIにより直近の傾向を要約しています（Pro）
                         </div>

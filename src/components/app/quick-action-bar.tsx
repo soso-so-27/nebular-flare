@@ -186,7 +186,7 @@ export function QuickActionBar() {
                                         }
                                     }
                                 }}
-                                className="w-full mt-4 py-3 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 active:scale-95 transition-all"
+                                className="w-full mt-4 py-3 rounded-xl bg-[#7CAA8E] text-white font-bold hover:bg-[#6B9B7A] active:scale-95 transition-all"
                             >
                                 全員に記録
                             </button>

@@ -250,9 +250,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     }}
                                     className="aspect-video flex flex-col items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <ImageIcon className="w-6 h-6 text-indigo-200 mb-2 drop-shadow-md" />
-                                    <span className="font-bold text-xs text-indigo-100">ギャラリー</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#E8B4A0]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <ImageIcon className="w-6 h-6 text-[#C08A70] mb-2 drop-shadow-md" />
+                                    <span className="font-bold text-xs text-[#8A6A5A]">ギャラリー</span>
                                 </button>
 
                                 <button
@@ -262,9 +262,9 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     }}
                                     className="aspect-video flex flex-col items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all active:scale-95 group relative overflow-hidden"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <Calendar className="w-6 h-6 text-orange-200 mb-2 drop-shadow-md" />
-                                    <span className="font-bold text-xs text-orange-100">カレンダー</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#7CAA8E]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Calendar className="w-6 h-6 text-[#7CAA8E] mb-2 drop-shadow-md" />
+                                    <span className="font-bold text-xs text-[#5A8A6A]">カレンダー</span>
                                 </button>
                             </div>
 
@@ -315,7 +315,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                                                     <div className={cn(
                                                                         "w-2 h-2 rounded-full",
                                                                         item.status === 'danger' ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" :
-                                                                            item.status === 'warn' ? "bg-amber-500" :
+                                                                            item.status === 'warn' ? "bg-[#E8B4A0]" :
                                                                                 "bg-emerald-500/30"
                                                                     )} />
                                                                     <div className="flex flex-col">
@@ -366,7 +366,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     className="w-full p-4 rounded-[24px] bg-white/5 border border-white/5 flex items-center justify-between hover:bg-white/10 transition-colors group"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-300 border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
+                                        <div className="p-3 rounded-2xl bg-[#E8B4A0]/10 text-[#C08A70] border border-[#E8B4A0]/20 group-hover:bg-[#E8B4A0]/20 transition-colors">
                                             <Activity className="w-5 h-5" />
                                         </div>
                                         <div className="text-left">

@@ -61,8 +61,8 @@ function HeroCard() {
                     priority
                 />
             ) : (
-                <div className="w-full h-full bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 flex items-center justify-center">
-                    <span className="text-6xl opacity-80">🐱</span>
+                <div className="w-full h-full bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#E8B4A0]/20 flex items-center justify-center">
+                    <span className="text-6xl opacity-80">🐈</span>
                 </div>
             )}
 
@@ -126,18 +126,18 @@ function ActionButtons({
         <>
             <motion.button
                 onClick={onCare}
-                className="relative col-span-1 row-span-1 rounded-[2rem] bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 border border-white/50 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-2 p-2 active:scale-95 transition-transform"
+                className="relative col-span-1 row-span-1 rounded-[2rem] bg-gradient-to-br from-[#7CAA8E]/10 to-[#6B9B7A]/20 dark:from-[#7CAA8E]/20 dark:to-[#6B9B7A]/30 border border-white/50 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-2 p-2 active:scale-95 transition-transform"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
             >
                 <div className="w-10 h-10 rounded-full bg-white/60 dark:bg-white/10 flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <Heart className="w-5 h-5 text-[#6B9B7A] dark:text-[#7CAA8E]" />
                 </div>
-                <span className="text-sm font-bold text-amber-900 dark:text-amber-100">お世話</span>
+                <span className="text-sm font-bold text-[#5A8A6A] dark:text-[#9CCCAE]">お世話</span>
 
                 {careCount > 0 && (
-                    <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white dark:border-slate-900">
+                    <span className="absolute top-3 right-3 bg-[#B8A6D9] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white dark:border-slate-900">
                         {careCount}
                     </span>
                 )}
@@ -145,18 +145,18 @@ function ActionButtons({
 
             <motion.button
                 onClick={onObs}
-                className="relative col-span-1 row-span-1 rounded-[2rem] bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border border-white/50 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-2 p-2 active:scale-95 transition-transform"
+                className="relative col-span-1 row-span-1 rounded-[2rem] bg-gradient-to-br from-[#E8B4A0]/10 to-[#E8B4A0]/20 dark:from-[#E8B4A0]/20 dark:to-[#E8B4A0]/30 border border-white/50 dark:border-white/10 shadow-sm flex flex-col items-center justify-center gap-2 p-2 active:scale-95 transition-transform"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
             >
                 <div className="w-10 h-10 rounded-full bg-white/60 dark:bg-white/10 flex items-center justify-center">
-                    <Cat className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <Cat className="w-5 h-5 text-[#C08A70] dark:text-[#E8B4A0]" />
                 </div>
-                <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100">様子</span>
+                <span className="text-sm font-bold text-[#8A6A5A] dark:text-[#E8CDBC]">様子</span>
 
                 {obsCount > 0 && (
-                    <span className="absolute top-3 right-3 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white dark:border-slate-900">
+                    <span className="absolute top-3 right-3 bg-[#E8B4A0] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white dark:border-slate-900">
                         {obsCount}
                     </span>
                 )}

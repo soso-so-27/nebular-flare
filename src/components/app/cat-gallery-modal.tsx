@@ -205,7 +205,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                                                 <div className={cn(
                                                                     "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
                                                                     selectedImageIds.has(img.id)
-                                                                        ? "bg-blue-500 border-blue-500 text-white"
+                                                                        ? "bg-[#E8B4A0] border-[#E8B4A0] text-white"
                                                                         : "bg-black/20 border-white/50"
                                                                 )}>
                                                                     {selectedImageIds.has(img.id) && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -249,7 +249,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={uploading}
-                                        className="w-full h-12 rounded-xl bg-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                        className="w-full h-12 rounded-xl bg-[#E8B4A0] text-white font-bold shadow-lg shadow-[#E8B4A0]/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                                     >
                                         {uploading ? (
                                             <Loader2 className="h-5 w-5 animate-spin" />

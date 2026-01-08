@@ -69,7 +69,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             const { error } = await addIncident(catId, type, note, photos);
             if (error) throw error;
 
-            toast.success("インシデントを記録しました");
+            toast.success("気付きを記録しました");
             onClose();
             // Reset form
             setNote('');
@@ -106,8 +106,8 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                     key={cat.id}
                                     onClick={() => setCatId(cat.id)}
                                     className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all min-w-[60px] ${catId === cat.id
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-transparent hover:bg-muted'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-transparent hover:bg-muted'
                                         }`}
                                 >
                                     <Avatar className="w-10 h-10">
@@ -131,8 +131,8 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                     key={t.id}
                                     onClick={() => setType(t.id)}
                                     className={`flex flex-col items-center justify-center p-2 rounded-md border text-sm transition-all ${type === t.id
-                                            ? 'border-primary bg-primary/10 text-primary font-medium'
-                                            : 'border-border hover:bg-muted text-muted-foreground'
+                                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                                        : 'border-border hover:bg-muted text-muted-foreground'
                                         }`}
                                 >
                                     <span className="text-xl mb-1">{t.icon}</span>

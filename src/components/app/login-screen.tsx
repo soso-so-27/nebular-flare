@@ -34,10 +34,10 @@ export function LoginScreen() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             {/* Logo */}
             <div className="flex items-center gap-3 mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#7CAA8E] to-[#6B9B7A] flex items-center justify-center shadow-lg">
                     <Cat className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -66,7 +66,7 @@ export function LoginScreen() {
                                 placeholder="ニックネーム（例: パパ）"
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#7CAA8E] placeholder:text-slate-400"
                                 required
                             />
                         </div>
@@ -79,7 +79,7 @@ export function LoginScreen() {
                             placeholder="メールアドレス"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#7CAA8E] placeholder:text-slate-400"
                             required
                         />
                     </div>
@@ -91,7 +91,7 @@ export function LoginScreen() {
                             placeholder="パスワード"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#7CAA8E] placeholder:text-slate-400"
                             required
                             minLength={6}
                         />
@@ -106,7 +106,7 @@ export function LoginScreen() {
                     <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold"
                     >
                         {isSubmitting ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -121,7 +121,7 @@ export function LoginScreen() {
                 <div className="text-center">
                     <button
                         onClick={() => setIsSignUp(!isSignUp)}
-                        className="text-sm text-amber-600 hover:underline"
+                        className="text-sm text-[#5A8A6A] hover:underline"
                     >
                         {isSignUp
                             ? "すでにアカウントをお持ちですか？ログイン"

@@ -19,9 +19,9 @@ type IncidentDetailModalProps = {
 };
 
 const STATUS_OPTIONS = [
-    { id: 'watching', label: '様子見', color: 'bg-orange-500' },
-    { id: 'hospital', label: '通院中', color: 'bg-red-500' },
-    { id: 'resolved', label: '解決済み', color: 'bg-green-500' },
+    { id: 'watching', label: '様子見', color: 'bg-[#E8B4A0]' },  // Peach
+    { id: 'hospital', label: '通院中', color: 'bg-[#B8A6D9]' },  // Lavender
+    { id: 'resolved', label: '解決済み', color: 'bg-[#7CAA8E]' }, // Sage
 ];
 
 const TYPE_LABELS = {

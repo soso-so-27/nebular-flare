@@ -175,13 +175,13 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         text: 'text-white drop-shadow-[0_0_8px_rgba(0,0,0,0.9)] [text-shadow:0_0_4px_rgba(0,0,0,0.9),0_1px_2px_rgba(0,0,0,0.8)]',
         textSub: 'text-white/80 drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]',
         ringTrack: 'rgba(0,0,0,0.3)',
-        careColor: progress >= 1 ? '#10b981' : '#fbbf24',
+        careColor: progress >= 1 ? '#6B9B7A' : '#7CAA8E', // Sage green (brand color)
         obsColor: '#38bdf8', // No longer used but kept for compatibility
         iconFill: 'fill-white',
         iconStroke: 'text-white',
-        glassBg: 'bg-black/30 border-white/10 backdrop-blur-sm',
-        glassHover: 'hover:bg-black/40',
-        buttonBg: 'bg-black/30 backdrop-blur-sm',
+        glassBg: 'bg-white/30 border-white/30 backdrop-blur-xl', // Milky glass
+        glassHover: 'hover:bg-white/40',
+        buttonBg: 'bg-white/25 backdrop-blur-xl border border-white/30', // Enhanced glass
         buttonText: 'text-white',
         // Strong icon shadow for visibility
         iconShadow: 'drop-shadow-[0_0_6px_rgba(0,0,0,0.9)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
@@ -306,12 +306,12 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         triggerFeedback('medium');
                                                         setShowIncidentModal(true);
                                                     }}
-                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-red-500/20 border border-red-500/30`}
+                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-[#E8B4A0]/20 border border-[#E8B4A0]/30`}
                                                 >
-                                                    <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                         <AlertCircle className="w-3 h-3 text-white" />
                                                     </div>
-                                                    <span className={`text-sm font-medium ${styles.text}`}>異変を記録</span>
+                                                    <span className={`text-sm font-medium ${styles.text}`}>気付きを記録</span>
                                                 </motion.button>
 
                                                 {/* Today's Photo Button */}
@@ -322,9 +322,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         triggerFeedback('medium');
                                                         setShowPhotoModal(true);
                                                     }}
-                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
+                                                    className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-[#E8B4A0]/20 border border-[#E8B4A0]/30`}
                                                 >
-                                                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                         <Camera className="w-3 h-3 text-white" />
                                                     </div>
                                                     <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
@@ -430,12 +430,12 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     triggerFeedback('medium');
                                                     setShowIncidentModal(true);
                                                 }}
-                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-red-500/20 border border-red-500/30`}
+                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-[#E8B4A0]/20 border border-[#E8B4A0]/30`}
                                             >
-                                                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                     <AlertCircle className="w-3 h-3 text-white" />
                                                 </div>
-                                                <span className={`text-sm font-medium ${styles.text}`}>異変を記録</span>
+                                                <span className={`text-sm font-medium ${styles.text}`}>気付きを記録</span>
                                             </motion.button>
 
                                             {/* Today's Photo Button */}
@@ -446,9 +446,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     triggerFeedback('medium');
                                                     setShowPhotoModal(true);
                                                 }}
-                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
+                                                className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-[#E8B4A0]/20 border border-[#E8B4A0]/30`}
                                             >
-                                                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                     <Camera className="w-3 h-3 text-white" />
                                                 </div>
                                                 <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
@@ -489,7 +489,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             >
                                 {/* Main Icon Ring - Double Layer */}
                                 <div className={`w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all ${styles.glassBg} ${styles.glassHover}`}>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-rose-400 flex items-center justify-center shadow-inner ring-2 ring-black/10">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8B4A0] to-[#C08A70] flex items-center justify-center shadow-inner ring-2 ring-white/20">
                                         <span className="text-white font-bold text-sm font-sans drop-shadow-md">{activeCount}</span>
                                     </div>
                                 </div>

@@ -131,7 +131,7 @@ export default function ButtonDemoPage() {
                                 handleFeedback(starred ? sounds.toggleOff : sounds.bounce, haptics.impactMedium);
                             }}
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${starred
-                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/40'
+                                ? 'bg-gradient-to-br from-[#E8B4A0] to-[#C08A70] shadow-lg shadow-[#E8B4A0]/40'
                                 : 'bg-slate-700'
                                 }`}
                         >
@@ -225,7 +225,7 @@ export default function ButtonDemoPage() {
                         onClick={() => {
                             handleFeedback(sounds.success, haptics.impactHeavy);
                         }}
-                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-3"
+                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#7CAA8E] via-[#6B9B7A] to-[#E8B4A0] text-white font-bold text-lg shadow-xl shadow-[#7CAA8E]/30 flex items-center justify-center gap-3"
                     >
                         <Zap className="w-6 h-6" />
                         お世話完了！

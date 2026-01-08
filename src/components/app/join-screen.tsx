@@ -143,7 +143,7 @@ export function JoinScreen() {
     if (authLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#7CAA8E]" />
                 <p className="text-sm text-slate-500 mt-4">読み込み中...</p>
             </div>
         );
@@ -154,7 +154,7 @@ export function JoinScreen() {
         return (
             <div className="relative">
                 {/* Overlay Message */}
-                <div className="absolute top-0 left-0 right-0 z-10 bg-amber-500 text-white p-4 text-center text-sm font-bold shadow-md">
+                <div className="absolute top-0 left-0 right-0 z-10 bg-[#7CAA8E] text-white p-4 text-center text-sm font-bold shadow-md">
                     招待を受け取るにはログイン（または登録）してください
                 </div>
                 <div className="pt-10">
@@ -165,12 +165,12 @@ export function JoinScreen() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-6 text-center">
 
                 {status === 'loading' && (
                     <div className="py-10">
-                        <Loader2 className="h-10 w-10 animate-spin text-amber-500 mx-auto" />
+                        <Loader2 className="h-10 w-10 animate-spin text-[#7CAA8E] mx-auto" />
                         <p className="mt-4 text-slate-500 font-medium">招待を確認しています...</p>
                     </div>
                 )}
@@ -192,7 +192,7 @@ export function JoinScreen() {
 
                 {status === 'valid' && (
                     <div className="space-y-6">
-                        <div className="h-20 w-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-orange-200">
+                        <div className="h-20 w-20 bg-gradient-to-br from-[#7CAA8E] to-[#6B9B7A] rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-[#7CAA8E]/30">
                             <Home className="h-10 w-10 text-white" />
                         </div>
 
@@ -221,7 +221,7 @@ export function JoinScreen() {
                         <div className="space-y-3 pt-2">
                             <Button
                                 onClick={() => handleJoin()}
-                                className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-orange-200"
+                                className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold shadow-lg shadow-[#7CAA8E]/30"
                             >
                                 参加する
                             </Button>
@@ -258,7 +258,7 @@ export function JoinScreen() {
                         <div className="space-y-3 pt-2">
                             <Button
                                 onClick={() => handleJoin(true)}
-                                className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-orange-200"
+                                className="w-full h-14 text-lg rounded-2xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold shadow-lg shadow-[#7CAA8E]/30"
                             >
                                 移動する
                             </Button>

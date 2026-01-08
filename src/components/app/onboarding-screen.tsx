@@ -128,11 +128,11 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             {step === 'welcome' && (
                 <div className="text-center space-y-6 max-w-sm">
                     <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#7CAA8E] to-[#6B9B7A] flex items-center justify-center shadow-lg">
                             <Cat className="h-10 w-10 text-white" />
                         </div>
                     </div>
@@ -142,7 +142,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     </p>
                     <Button
                         onClick={() => setStep('household')}
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold"
                     >
                         はじめる <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -152,8 +152,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             {step === 'household' && (
                 <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-6 space-y-6">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                            <Home className="h-5 w-5 text-blue-600" />
+                        <div className="h-10 w-10 rounded-xl bg-[#7CAA8E]/10 flex items-center justify-center">
+                            <Home className="h-5 w-5 text-[#5A8A6A]" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">世帯を作成</h2>
@@ -166,13 +166,13 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                         placeholder="例: 中村家"
                         value={householdName}
                         onChange={(e) => setHouseholdName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#7CAA8E] placeholder:text-slate-400"
                     />
 
                     <Button
                         onClick={() => setStep('cats')}
                         disabled={!householdName.trim()}
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold"
                     >
                         次へ <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -182,8 +182,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             {step === 'cats' && (
                 <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-6 space-y-6">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                            <Cat className="h-5 w-5 text-amber-600" />
+                        <div className="h-10 w-10 rounded-xl bg-[#7CAA8E]/10 flex items-center justify-center">
+                            <Cat className="h-5 w-5 text-[#5A8A6A]" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">猫を登録</h2>
@@ -210,7 +210,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                                     placeholder="猫の名前"
                                     value={cat.name}
                                     onChange={(e) => updateCat(index, 'name', e.target.value)}
-                                    className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400"
+                                    className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#7CAA8E] placeholder:text-slate-400"
                                 />
                                 {cats.length > 1 && (
                                     <button
@@ -228,7 +228,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     <button
                         type="button"
                         onClick={addCat}
-                        className="w-full py-2 text-sm text-amber-600 font-medium flex items-center justify-center gap-1"
+                        className="w-full py-2 text-sm text-[#5A8A6A] font-medium flex items-center justify-center gap-1"
                     >
                         <Plus className="h-4 w-4" /> 猫ちゃんを追加
                     </button>
@@ -236,7 +236,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     <Button
                         onClick={handleCreateHousehold}
                         disabled={isSubmitting || cats.every(c => !c.name.trim())}
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#7CAA8E] to-[#6B9B7A] hover:from-[#6B9B7A] hover:to-[#5A8A6A] text-white font-bold"
                     >
                         {isSubmitting ? (
                             <Loader2 className="h-5 w-5 animate-spin" />

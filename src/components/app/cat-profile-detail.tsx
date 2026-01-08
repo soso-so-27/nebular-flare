@@ -127,7 +127,7 @@ export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailPro
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-8xl">
+                                <div className="w-full h-full bg-[#7CAA8E]/10 dark:bg-[#7CAA8E]/20 flex items-center justify-center text-8xl">
                                     {cat.avatar || "🐈"}
                                 </div>
                             )}
@@ -150,7 +150,7 @@ export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailPro
                                 ) : (
                                     <button
                                         onClick={handleSave}
-                                        className="p-2 bg-amber-500 rounded-full text-white hover:bg-amber-600 transition-colors shadow-lg"
+                                        className="p-2 bg-[#7CAA8E] rounded-full text-white hover:bg-[#6B9B7A] transition-colors shadow-lg"
                                     >
                                         <Save className="h-5 w-5" />
                                     </button>
@@ -182,7 +182,7 @@ export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailPro
                                                 type="date"
                                                 value={editData.birthday}
                                                 onChange={(e) => setEditData({ ...editData, birthday: e.target.value })}
-                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all"
                                             />
                                         </label>
 
@@ -195,7 +195,7 @@ export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailPro
                                                 type="text"
                                                 value={editData.microchip_id}
                                                 onChange={(e) => setEditData({ ...editData, microchip_id: e.target.value })}
-                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all"
                                                 placeholder="15桁の数字"
                                             />
                                         </label>
@@ -208,7 +208,7 @@ export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailPro
                                             <textarea
                                                 value={editData.notes}
                                                 onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 min-h-[80px] focus:ring-2 focus:ring-amber-500 outline-none transition-all resize-none"
+                                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 min-h-[80px] focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all resize-none"
                                                 placeholder="特徴や性格など..."
                                             />
                                         </label>

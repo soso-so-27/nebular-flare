@@ -408,16 +408,16 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                 >
                     <button
                         onClick={() => setOpenSection('care')}
-                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-[#7CAA8E]/10 to-[#6B9B7A]/20 hover:from-[#7CAA8E]/20 hover:to-[#6B9B7A]/30 text-[#5A8A6A] font-semibold rounded-2xl shadow-sm border border-[#7CAA8E]/20 transition-all active:scale-95"
                     >
-                        <Heart className="w-5 h-5 text-amber-600" />
+                        <Heart className="w-5 h-5 text-[#6B9B7A]" />
                         <span>お世話</span>
                     </button>
                     <button
                         onClick={() => setOpenSection('cat')}
-                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-50 to-yellow-100 hover:from-amber-100 hover:to-yellow-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-[#E8B4A0]/10 to-[#E8B4A0]/20 hover:from-[#E8B4A0]/20 hover:to-[#E8B4A0]/30 text-[#C08A70] font-semibold rounded-2xl shadow-sm border border-[#E8B4A0]/20 transition-all active:scale-95"
                     >
-                        <Cat className="w-5 h-5 text-amber-600" />
+                        <Cat className="w-5 h-5 text-[#E8B4A0]" />
                         <span>観察</span>
                     </button>
                 </motion.div>
@@ -702,7 +702,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                 key={obs.id}
                                                                 className={cn(
                                                                     "flex flex-col gap-2 px-4 py-3 rounded-xl transition-colors",
-                                                                    obs.isAbnormal ? "bg-amber-50 dark:bg-amber-900/10" : obs.done ? "bg-slate-50 dark:bg-slate-800/50" : "bg-white border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
+                                                                    obs.isAbnormal ? "bg-[#B8A6D9]/10 dark:bg-[#B8A6D9]/10" : obs.done ? "bg-slate-50 dark:bg-slate-800/50" : "bg-white border border-slate-100 dark:bg-slate-800 dark:border-slate-700"
                                                                 )}
                                                             >
                                                                 <div className="flex items-center justify-between">
@@ -713,12 +713,12 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                         {obs.done && (
                                                                             <span className={cn(
                                                                                 "text-xs font-bold px-2 py-0.5 rounded-full",
-                                                                                obs.isAbnormal ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-200"
+                                                                                obs.isAbnormal ? "bg-[#B8A6D9]/20 text-[#8B7AAF] dark:bg-[#B8A6D9]/20 dark:text-[#B8A6D9]" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-200"
                                                                             )}>{obs.value}</span>
                                                                         )}
                                                                     </div>
                                                                     {obs.done ? (
-                                                                        <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-amber-500" : "text-emerald-500")} />
+                                                                        <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-[#B8A6D9]" : "text-emerald-500")} />
                                                                     ) : (
                                                                         obs.required && <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded">必須</span>
                                                                     )}
@@ -847,8 +847,8 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                             <div className="flex items-center gap-3">
                                                                 <span className={cn(
                                                                     "text-xs font-bold px-2 py-0.5 rounded-full text-white min-w-[60px] text-center shadow-sm",
-                                                                    it.status === 'danger' ? "bg-red-500" :
-                                                                        it.status === 'warn' ? "bg-amber-500" : "bg-emerald-500"
+                                                                    it.status === 'danger' ? "bg-[#B8A6D9]" :
+                                                                        it.status === 'warn' ? "bg-[#E8B4A0]" : "bg-emerald-500"
                                                                 )}>
                                                                     あと{it.daysLeft}日
                                                                 </span>

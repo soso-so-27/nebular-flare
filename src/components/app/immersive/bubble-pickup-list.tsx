@@ -103,7 +103,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
             // Determine color/icon
             if (item.type === 'task') {
                 const isUrgent = item.severity >= 80;
-                colorClass = isUrgent ? "bg-red-500" : "bg-blue-500";
+                colorClass = isUrgent ? "bg-[#B8A6D9]" : "bg-[#7CAA8E]"; // Lavender (urgent) or Sage (normal)
                 icon = <Check className="w-5 h-5 text-white" />;
             } else if (item.type === 'notice' || item.type === 'unrecorded') {
                 colorClass = "bg-orange-400";
@@ -146,9 +146,9 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
         }[incident.type as string] || incident.type;
 
         return (
-            <div className="bg-red-50 border border-red-100 rounded-lg overflow-hidden mb-2">
+            <div className="bg-[#B8A6D9]/10 border border-[#B8A6D9]/20 rounded-lg overflow-hidden mb-2">
                 <div
-                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-red-100/50 transition-colors"
+                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-[#B8A6D9]/20 transition-colors"
                     onClick={(e) => {
                         e.stopPropagation();
                         setSelectedIncidentId(incident.id);
@@ -159,16 +159,16 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                             <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden text-xl flex items-center justify-center">
                                 {cat ? <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" /> : '🐈'}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full border border-white">
+                            <div className="absolute -bottom-1 -right-1 bg-[#B8A6D9] text-white text-[10px] px-1.5 py-0.5 rounded-full border border-white">
                                 !
                             </div>
                         </div>
                         <div>
-                            <div className="font-bold text-red-700 text-sm">{typeLabel}</div>
-                            <div className="text-xs text-red-600/80">{new Date(incident.created_at).toLocaleDateString()}</div>
+                            <div className="font-bold text-[#8B7AAF] text-sm">{typeLabel}</div>
+                            <div className="text-xs text-[#B8A6D9]/80">{new Date(incident.created_at).toLocaleDateString()}</div>
                         </div>
                     </div>
-                    <div className="text-xs text-red-400">
+                    <div className="text-xs text-[#B8A6D9]">
                         タップして詳細
                     </div>
                 </div>
@@ -194,7 +194,7 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {activeIncidents.length > 0 && (
                     <div className="mb-4">
-                        <div className="text-xs font-bold text-slate-400 mb-2 px-1">対応が必要なインシデント</div>
+                        <div className="text-xs font-bold text-slate-400 mb-2 px-1">対応が必要な気付き</div>
                         {activeIncidents.map(inc => (
                             <IncidentItem key={inc.id} incident={inc} />
                         ))}

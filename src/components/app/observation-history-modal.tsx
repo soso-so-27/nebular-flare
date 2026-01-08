@@ -194,7 +194,7 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
                                         </span>
                                         <span className="text-xs text-slate-400">{records.length}件</span>
                                         {records.some(r => isAbnormal(r.value)) && (
-                                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                            <AlertTriangle className="h-3.5 w-3.5 text-[#B8A6D9]" />
                                         )}
                                     </div>
                                     {expandedDays.has(date) ? (
@@ -251,7 +251,7 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
                                                             {obs.value}
                                                         </span>
                                                         {abnormal ? (
-                                                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                                            <AlertTriangle className="h-3.5 w-3.5 text-[#B8A6D9]" />
                                                         ) : (
                                                             <Check className="h-3.5 w-3.5 text-emerald-500" />
                                                         )}

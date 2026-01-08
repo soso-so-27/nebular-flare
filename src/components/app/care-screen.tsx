@@ -16,8 +16,8 @@ import { haptics } from "@/lib/haptics";
 import { sounds } from "@/lib/sounds";
 
 const careTypeConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-    breakfast: { icon: <Sun className="h-4 w-4" />, label: "朝ごはん", color: "text-orange-500 bg-orange-100" },
-    dinner: { icon: <Moon className="h-4 w-4" />, label: "夜ごはん", color: "text-indigo-500 bg-indigo-100" },
+    breakfast: { icon: <Sun className="h-4 w-4" />, label: "朝ごはん", color: "text-[#C08A70] bg-[#E8B4A0]/20" },
+    dinner: { icon: <Moon className="h-4 w-4" />, label: "夜ごはん", color: "text-[#8B7AAF] bg-[#B8A6D9]/20" },
     toilet_clean: { icon: <Trash2 className="h-4 w-4" />, label: "トイレ掃除", color: "text-green-500 bg-green-100" },
 };
 

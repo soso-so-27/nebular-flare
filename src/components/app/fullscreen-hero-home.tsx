@@ -67,7 +67,7 @@ function FullscreenHero() {
                         onError={() => setIsHeroImageLoaded(true)} // Fallback on error
                     />
                 ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-amber-200 via-amber-100 to-orange-100 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#E8B4A0]/10 flex items-center justify-center">
                         <span className="text-9xl opacity-80">🐱</span>
                     </div>
                 )}
@@ -164,7 +164,7 @@ function ActionButtons({
                 onClick={() => onOpenSection('care')}
                 className="flex items-center justify-center gap-2 px-4 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all active:scale-95"
             >
-                <div className="p-2 rounded-full bg-orange-100 text-orange-600">
+                <div className="p-2 rounded-full bg-[#E8B4A0]/10 text-[#C08A70]">
                     <Heart className="w-5 h-5" />
                 </div>
                 <span>お世話
@@ -175,7 +175,7 @@ function ActionButtons({
                 onClick={() => onOpenSection('cat')}
                 className="flex items-center justify-center gap-2 px-4 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all active:scale-95"
             >
-                <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                <div className="p-2 rounded-full bg-[#7CAA8E]/10 text-[#5A8A6A]">
                     <Cat className="w-5 h-5" />
                 </div>
                 <span>様子

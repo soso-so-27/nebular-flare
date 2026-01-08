@@ -26,7 +26,7 @@ function HeroWidget() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100 p-4 shadow-sm border border-amber-200/50"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF9F7] to-[#F5F3F0] p-4 shadow-sm border border-[#7CAA8E]/20"
         >
             <div className="flex items-center gap-4">
                 {/* Cat Avatar */}
@@ -34,19 +34,19 @@ function HeroWidget() {
                     {activeCat.avatar ? (
                         <img src={activeCat.avatar} alt={activeCat.name} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-amber-200 to-amber-100 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[#7CAA8E]/10 to-[#6B9B7A]/20 flex items-center justify-center">
                             <span className="text-2xl">🐱</span>
                         </div>
                     )}
                 </div>
                 {/* Info */}
                 <div className="flex-1">
-                    <h2 className="text-xl font-bold text-amber-900">{activeCat.name}</h2>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{activeCat.name}</h2>
                     {daysTogetherCount && (
-                        <p className="text-sm text-amber-700">一緒に {daysTogetherCount}日目 🧡</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">一緒に {daysTogetherCount}日目 🧡</p>
                     )}
                 </div>
-                <ChevronRight className="w-5 h-5 text-amber-400" />
+                <ChevronRight className="w-5 h-5 text-slate-400" />
             </div>
         </motion.div>
     );
@@ -154,7 +154,7 @@ function InventoryAlertWidget() {
                             <span className="text-sm text-gray-700">{item.label}</span>
                             <span className={cn(
                                 "text-xs font-bold px-2 py-0.5 rounded-full",
-                                item.daysLeft <= 3 ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                                item.daysLeft <= 3 ? "bg-[#B8A6D9]/10 text-[#B8A6D9]" : "bg-[#E8B4A0]/10 text-[#C08A70]"
                             )}>
                                 あと{item.daysLeft}日
                             </span>
@@ -199,7 +199,7 @@ function AnniversaryWidget() {
                 <p className="text-3xl font-bold text-amber-600">
                     {daysTogetherCount || '--'}
                 </p>
-                <p className="text-xs text-amber-500 mt-1">日目 🧡</p>
+                <p className="text-xs text-slate-500 mt-1">日目 🧡</p>
             </div>
         </motion.div>
     );
@@ -242,7 +242,7 @@ function ActionButtons({ onOpenSection }: { onOpenSection: (section: 'care' | 'c
         >
             <button
                 onClick={() => onOpenSection('care')}
-                className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-800 font-semibold rounded-2xl shadow-sm border border-amber-200/50 transition-all active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-[#7CAA8E]/10 to-[#6B9B7A]/20 hover:from-[#7CAA8E]/20 hover:to-[#6B9B7A]/30 text-[#5A8A6A] font-semibold rounded-2xl shadow-sm border border-[#7CAA8E]/20 transition-all active:scale-95"
             >
                 <Heart className="w-5 h-5 text-amber-600" />
                 <span>お世話</span>

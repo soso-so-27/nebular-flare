@@ -243,7 +243,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                                     {member.name}
                                                 </p>
                                                 {member.role === 'owner' && (
-                                                    <Crown className="h-4 w-4 text-amber-500" />
+                                                    <Crown className="h-4 w-4 text-[#E8B4A0]" />
                                                 )}
                                             </div>
                                             <p className="text-xs text-slate-500 truncate">{member.email}</p>
@@ -293,7 +293,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                     <button
                                         onClick={generateInviteLink}
                                         disabled={loading}
-                                        className="w-full py-3 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                        className="w-full py-3 rounded-xl bg-[#7CAA8E] text-white font-bold hover:bg-[#6B9B7A] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         {loading ? (
                                             <span className="animate-spin">⏳</span>

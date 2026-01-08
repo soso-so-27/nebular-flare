@@ -117,7 +117,7 @@ export function CalendarScreen() {
                     <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-full">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1 border-orange-200 text-orange-700 ml-2">
+                    <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1 border-[#7CAA8E]/30 text-[#6B9B7A] ml-2">
                         <Plus className="h-3 w-3" />
                         予定を追加
                     </Button>
@@ -134,7 +134,7 @@ export function CalendarScreen() {
                     <div>水</div>
                     <div>木</div>
                     <div>金</div>
-                    <div className="text-blue-400">土</div>
+                    <div className="text-slate-400">土</div>
                 </div>
 
                 {/* Days */}
@@ -156,12 +156,12 @@ export function CalendarScreen() {
                                 className={`
                                     relative flex flex-col items-center justify-start pt-2 h-14 rounded-xl transition-all
                                     ${!isCurrentMonth ? 'opacity-30' : ''}
-                                    ${isSelected ? 'bg-orange-50 ring-2 ring-orange-200' : 'hover:bg-slate-50'}
+                                    ${isSelected ? 'bg-[#7CAA8E]/10 ring-2 ring-[#7CAA8E]/30' : 'hover:bg-slate-50'}
                                 `}
                             >
                                 <span className={`
                                     text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full
-                                    ${isTodayDate ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-700'}
+                                    ${isTodayDate ? 'bg-[#7CAA8E] text-white shadow-md shadow-[#7CAA8E]/30' : 'text-slate-700'}
                                 `}>
                                     {format(day, 'd')}
                                 </span>
@@ -170,7 +170,7 @@ export function CalendarScreen() {
                                 <div className="flex items-center gap-0.5 mt-1">
                                     {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
                                     {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                                    {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                                    {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-[#B8A6D9] animate-pulse" />}
                                 </div>
                             </button>
                         );
@@ -210,8 +210,8 @@ export function CalendarScreen() {
                             <div className={`
                                 w-5 h-5 rounded-full flex items-center justify-center shrink-0
                                 ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' :
-                                    r.sourceType === 'incident' ? 'bg-red-100 text-red-600' :
-                                        'bg-blue-100 text-blue-600'}
+                                    r.sourceType === 'incident' ? 'bg-[#B8A6D9]/20 text-[#8B7AAF]' :
+                                        'bg-[#7CAA8E]/10 text-[#5A8A6A]'}
                             `}>
                                 {r.sourceType === 'care' ? <Check className="w-3 h-3" /> :
                                     r.sourceType === 'incident' ? <AlertCircle className="w-3 h-3" /> :

@@ -442,14 +442,14 @@ export function CheckSection() {
                                 </span>
                                 <span className={cn(
                                     "text-xs px-1.5 py-0.5 rounded-full font-medium",
-                                    item.stockLevel === 'empty' ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                                    item.stockLevel === 'empty' ? "bg-[#B8A6D9]/10 text-[#B8A6D9]" : "bg-[#E8B4A0]/10 text-[#C08A70]"
                                 )}>
                                     {item.stockLevel === 'empty' ? 'なし' : '少ない'}
                                 </span>
                             </div>
                             <button
                                 onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 active:bg-amber-300 active:scale-95 transition-all"
+                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#E8B4A0]/10 text-[#C08A70] hover:bg-[#E8B4A0]/20 active:bg-[#E8B4A0]/30 active:scale-95 transition-all"
                             >
                                 補充済み
                             </button>

@@ -54,7 +54,7 @@ export function AnomalyAlertBanner() {
             {visibleAnomalies.map((anomaly, idx) => (
                 <div
                     key={`${anomaly.catId}_${anomaly.value}_${idx}`}
-                    className="bg-gradient-to-r from-rose-500 to-orange-500 text-white rounded-2xl p-4 shadow-lg"
+                    className="bg-gradient-to-r from-[#B8A6D9] to-[#8B7AAF] text-white rounded-2xl p-4 shadow-lg"
                 >
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">

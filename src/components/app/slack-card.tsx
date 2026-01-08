@@ -20,7 +20,7 @@ const statusColors: Record<SlackCardStatus, string> = {
     danger: "bg-rose-500",
     warn: "bg-orange-500",
     success: "bg-emerald-500",
-    info: "bg-blue-500",
+    info: "bg-[#7CAA8E]",
     default: "bg-slate-300",
 };
 
@@ -127,7 +127,7 @@ export function SlackCardAction({
         <button
             onClick={onClick}
             className={cn(
-                "text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline px-1",
+                "text-[11px] font-bold text-[#5A8A6A] dark:text-[#7CAA8E] hover:underline px-1",
                 className
             )}
         >
@@ -145,9 +145,9 @@ export function SlackCardTag({
 }) {
     const badgeColors: Record<SlackCardStatus, string> = {
         danger: "bg-rose-50 text-rose-600 border-rose-100",
-        warn: "bg-orange-50 text-orange-600 border-orange-100",
+        warn: "bg-[#B8A6D9]/10 text-[#8B7AAF] border-[#B8A6D9]/20",
         success: "bg-emerald-50 text-emerald-600 border-emerald-100",
-        info: "bg-blue-50 text-blue-600 border-blue-100",
+        info: "bg-[#7CAA8E]/10 text-[#5A8A6A] border-[#7CAA8E]/20",
         default: "bg-slate-50 text-slate-600 border-slate-100",
     };
 

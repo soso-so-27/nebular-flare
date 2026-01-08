@@ -168,10 +168,10 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                             <Line
                                 type="monotone"
                                 dataKey="weight"
-                                stroke={isGlass ? "#fbbf24" : "#f59e0b"}
+                                stroke={isGlass ? "#7CAA8E" : "#6B9B7A"}
                                 strokeWidth={2}
-                                dot={{ fill: isGlass ? "#fbbf24" : "#f59e0b", strokeWidth: 0, r: 4 }}
-                                activeDot={{ r: 6, fill: isGlass ? "#fff" : "#d97706" }}
+                                dot={{ fill: isGlass ? "#7CAA8E" : "#6B9B7A", strokeWidth: 0, r: 4 }}
+                                activeDot={{ r: 6, fill: isGlass ? "#fff" : "#5A8A6A" }}
                             />
                         </LineChart>
                     </ResponsiveContainer>
@@ -240,7 +240,7 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                                 <button
                                     onClick={handleAdd}
                                     disabled={!newWeight || parseFloat(newWeight) <= 0}
-                                    className="flex-1 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold disabled:opacity-50"
+                                    className="flex-1 py-2 rounded-xl bg-[#7CAA8E] text-white text-sm font-bold disabled:opacity-50"
                                 >
                                     保存
                                 </button>
