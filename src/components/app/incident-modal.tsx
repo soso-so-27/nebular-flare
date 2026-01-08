@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppState } from '@/store/app-store';
-import { Loader2, Camera, X } from "lucide-react";
+import { Loader2, Camera, X, Sparkles, Wind, Bandage, Utensils, BatteryLow, Trash2, FileText, Cat } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CatAvatar } from "@/components/ui/cat-avatar";
 
 type IncidentModalProps = {
     isOpen: boolean;
@@ -18,13 +17,13 @@ type IncidentModalProps = {
 };
 
 const INCIDENT_TYPES = [
-    { id: 'vomit', label: '嘔吐', icon: '🤮' },
-    { id: 'diarrhea', label: '下痢', icon: '💩' },
-    { id: 'injury', label: '怪我', icon: '🤕' },
-    { id: 'appetite', label: '食欲不振', icon: '🍽️' },
-    { id: 'energy', label: '元気がない', icon: '💤' },
-    { id: 'toilet', label: 'トイレ失敗', icon: '🚽' },
-    { id: 'other', label: 'その他', icon: '📝' },
+    { id: 'vomit', label: '嘔吐', icon: Sparkles },
+    { id: 'diarrhea', label: '下痢', icon: Wind },
+    { id: 'injury', label: '怪我', icon: Bandage },
+    { id: 'appetite', label: '食欲不振', icon: Utensils },
+    { id: 'energy', label: '元気がない', icon: BatteryLow },
+    { id: 'toilet', label: 'トイレ失敗', icon: Trash2 },
+    { id: 'other', label: 'その他', icon: FileText },
 ];
 
 export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalProps) {
@@ -88,7 +87,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>気になるところを記録</DialogTitle>
                     <DialogDescription>
@@ -110,10 +109,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                         : 'border-transparent hover:bg-muted'
                                         }`}
                                 >
-                                    <Avatar className="w-10 h-10">
-                                        <AvatarImage src={cat.avatar} />
-                                        <AvatarFallback>{cat.name[0]}</AvatarFallback>
-                                    </Avatar>
+                                    <CatAvatar src={cat.avatar} alt={cat.name} size="md" />
                                     <span className="text-xs font-medium truncate w-full text-center">
                                         {cat.name}
                                     </span>
@@ -135,7 +131,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                         : 'border-border hover:bg-muted text-muted-foreground'
                                         }`}
                                 >
-                                    <span className="text-xl mb-1">{t.icon}</span>
+                                    <t.icon className="h-6 w-6 mb-1" />
                                     {t.label}
                                 </button>
                             ))}

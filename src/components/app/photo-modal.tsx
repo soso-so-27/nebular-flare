@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAppState } from '@/store/app-store';
 import { Camera, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CatAvatar } from "@/components/ui/cat-avatar";
 
 type PhotoModalProps = {
     isOpen: boolean;
@@ -96,7 +94,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[400px]">
+            <DialogContent className="sm:max-w-[400px] w-[95vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>今日の一枚</DialogTitle>
                 </DialogHeader>
@@ -113,10 +111,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                                 {cats.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id}>
                                         <div className="flex items-center gap-2">
-                                            <Avatar className="w-6 h-6">
-                                                <AvatarImage src={cat.avatar} />
-                                                <AvatarFallback>{cat.name[0]}</AvatarFallback>
-                                            </Avatar>
+                                            <CatAvatar src={cat.avatar} alt={cat.name} size="sm" />
                                             {cat.name}
                                         </div>
                                     </SelectItem>

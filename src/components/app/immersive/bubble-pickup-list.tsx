@@ -106,10 +106,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
                 colorClass = isUrgent ? "bg-[#B8A6D9]" : "bg-[#7CAA8E]"; // Lavender (urgent) or Sage (normal)
                 icon = <Check className="w-5 h-5 text-white" />;
             } else if (item.type === 'notice' || item.type === 'unrecorded') {
-                colorClass = "bg-orange-400";
+                colorClass = "bg-[#E8B4A0]";
                 icon = <Heart className="w-5 h-5 text-white" />;
             } else if (item.type === 'inventory') {
-                colorClass = "bg-emerald-500";
+                colorClass = "bg-[#B8A6D9]";
                 icon = <ShoppingCart className="w-5 h-5 text-white" />;
             }
 

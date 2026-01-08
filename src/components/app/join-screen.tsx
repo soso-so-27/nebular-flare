@@ -142,7 +142,7 @@ export function JoinScreen() {
 
     if (authLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF9F7]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#7CAA8E]" />
                 <p className="text-sm text-slate-500 mt-4">読み込み中...</p>
             </div>
