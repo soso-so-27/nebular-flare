@@ -307,4 +307,3 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
         </Dialog>
     );
 }
-```
