@@ -10,6 +10,7 @@ import { sounds } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { ObservationEditor } from "./observation-editor";
 import { IncidentModal } from "../incident-modal";
+import { PhotoModal } from "../photo-modal";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
@@ -28,7 +29,6 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const [selectedValue, setSelectedValue] = useState("");
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs } = useAppState();
 
     const isLight = contrastMode === 'light';
@@ -344,7 +344,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         triggerFeedback('medium');
-                                                        fileInputRef.current?.click();
+                                                        setShowPhotoModal(true);
                                                     }}
                                                     className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
                                                 >
@@ -593,7 +593,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     triggerFeedback('medium');
-                                                    fileInputRef.current?.click();
+                                                    setShowPhotoModal(true);
                                                 }}
                                                 className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all hover:bg-blue-500/20 border border-blue-500/30`}
                                             >
@@ -861,23 +861,10 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 defaultCatId={activeCatId}
             />
 
-            {/* Hidden File Input for Photo Upload */}
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file && activeCatId) {
-                        triggerFeedback('success');
-                        // TODO: Implement photo upload to gallery
-                        toast.success("今日の一枚を追加しました");
-                    }
-                    // Reset input
-                    e.target.value = '';
-                }}
+            <PhotoModal
+                isOpen={showPhotoModal}
+                onClose={() => setShowPhotoModal(false)}
+                preselectedCatId={activeCatId}
             />
         </>
     );

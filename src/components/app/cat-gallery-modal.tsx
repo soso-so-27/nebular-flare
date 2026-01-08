@@ -62,7 +62,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
         for (const file of files) {
             if (!file.type.startsWith('image/')) continue;
             // Skip refetch for individual uploads
-            const { error } = await uploadCatImage(catId, file, true);
+            const { error } = await uploadCatImage(catId, file, undefined, true);
             if (error) {
                 toast.error(`${file.name}のアップロードに失敗しました`);
             } else {

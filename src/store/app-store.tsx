@@ -68,7 +68,7 @@ type AppState = {
     // Cat Gallery
     // Cat Gallery
     // Cat Gallery
-    uploadCatImage: (catId: string, file: File, skipRefetch?: boolean) => Promise<{ error?: any; data?: any }>;
+    uploadCatImage: (catId: string, file: File, memo?: string, skipRefetch?: boolean) => Promise<{ error?: any; data?: any }>;
     updateCatImage: (imageId: string, updates: Record<string, any>) => Promise<{ error?: any }>;
     deleteCatImage: (imageId: string, storagePath: string) => Promise<{ error?: any }>;
     // Cat Profile
@@ -1073,7 +1073,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         }
     };
 
-    const uploadCatImage = async (catId: string, file: File, skipRefetch = false) => {
+    const uploadCatImage = async (catId: string, file: File, memo?: string, skipRefetch = false) => {
         if (isDemo) return { error: null }; // Mock success
 
         try {
@@ -1095,6 +1095,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 .insert({
                     cat_id: catId,
                     storage_path: fileName,
+                    memo: memo
                 })
                 .select()
                 .single();

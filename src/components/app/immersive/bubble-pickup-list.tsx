@@ -149,7 +149,10 @@ export function BubblePickupList({ onClose }: BubblePickupListProps) {
             <div className="bg-red-50 border border-red-100 rounded-lg overflow-hidden mb-2">
                 <div
                     className="p-3 flex items-center justify-between cursor-pointer hover:bg-red-100/50 transition-colors"
-                    onClick={() => setSelectedIncidentId(incident.id)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedIncidentId(incident.id);
+                    }}
                 >
                     <div className="flex items-center gap-3">
                         <div className="relative">
