@@ -240,7 +240,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                     <SelectTrigger>
                                         <SelectValue placeholder="変更しない" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[10002]">
                                         <SelectItem value="no_change">変更しない</SelectItem>
                                         {STATUS_OPTIONS.filter(s => s.id !== incident.status).map(opt => (
                                             <SelectItem key={opt.id} value={opt.id}>

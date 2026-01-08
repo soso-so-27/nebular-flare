@@ -109,7 +109,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                             <SelectTrigger>
                                 <SelectValue placeholder="猫を選択..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="z-[10002]">
                                 {cats.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id}>
                                         <div className="flex items-center gap-2">
