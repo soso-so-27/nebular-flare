@@ -65,7 +65,7 @@ export function useCats(householdId: string | null) {
                 if (catIds.length > 0) {
                     const { data: weights, error: weightError } = await supabase
                         .from('cat_weight_history')
-                        .select('id, cat_id, weight, recorded_at, note')
+                        .select('id, cat_id, weight, recorded_at, notes')
                         .in('cat_id', catIds)
                         .order('recorded_at', { ascending: false }); // Latest first
 

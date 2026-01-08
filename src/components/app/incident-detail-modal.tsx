@@ -233,7 +233,7 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                             {/* Status Change */}
                             <div className="grid gap-2">
                                 <Label>ステータス変更（任意）</Label>
-                                <Select value={statusChange} onValueChange={setStatusChange}>
+                                <Select value={statusChange || undefined} onValueChange={setStatusChange}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="変更しない" />
                                     </SelectTrigger>
