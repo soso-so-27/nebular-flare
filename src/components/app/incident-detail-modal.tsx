@@ -43,6 +43,8 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [showUpdateForm, setShowUpdateForm] = useState(false);
 
+    console.log("IncidentDetailModal Rendered. incidentId:", incidentId);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const incident = incidents.find(inc => inc.id === incidentId);
