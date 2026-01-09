@@ -176,7 +176,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         text: 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]',
         textSub: 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
         ringTrack: 'rgba(0,0,0,0.3)',
-        careColor: progress >= 1 ? '#6B9B7A' : '#7CAA8E', // Sage green (brand color)
+        careColor: progress >= 1 ? '#10B981' : '#34D399', // Vivid Emerald for visibility
         obsColor: '#38bdf8', // No longer used but kept for compatibility
         iconFill: 'fill-white',
         iconStroke: 'text-white',
@@ -230,11 +230,11 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
                                 <circle cx="30" cy="30" r={26} fill="none" stroke={styles.ringTrack} strokeWidth="4" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
                                 <motion.circle
-                                    cx="30" cy="30" r={26} fill="none" stroke={styles.careColor} strokeWidth="4" strokeLinecap="round"
+                                    cx="30" cy="30" r={26} fill="none" stroke={styles.careColor} strokeWidth="5" strokeLinecap="round"
                                     initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
                                     animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
                                     transition={{ duration: 1.5, ease: "easeOut" }}
-                                    style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
+                                    style={{ filter: "drop-shadow(0 0 2px rgba(52, 211, 153, 0.5))" }} /* Glow effect */
                                 />
                             </svg>
                             <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
@@ -356,11 +356,11 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
                                     <circle cx="30" cy="30" r={26} fill="none" stroke={styles.ringTrack} strokeWidth="4" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
                                     <motion.circle
-                                        cx="30" cy="30" r={26} fill="none" stroke={styles.careColor} strokeWidth="4" strokeLinecap="round"
+                                        cx="30" cy="30" r={26} fill="none" stroke={styles.careColor} strokeWidth="5" strokeLinecap="round"
                                         initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
                                         animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
                                         transition={{ duration: 1.5, ease: "easeOut" }}
-                                        style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.8))" }}
+                                        style={{ filter: "drop-shadow(0 0 2px rgba(52, 211, 153, 0.5))" }}
                                     />
                                 </svg>
                                 <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
