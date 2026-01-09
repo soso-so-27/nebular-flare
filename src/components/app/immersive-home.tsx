@@ -668,7 +668,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
             {
                 settings.homeViewMode === 'story' && (
-                    <div className="absolute bottom-[100px] left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pointer-events-auto">
+                    <div className="absolute bottom-12 left-6 z-30 flex justify-center items-center gap-1.5 pointer-events-auto">
                         {/* Glass pill container */}
                         <div className="flex items-center gap-2 px-3 py-2 rounded-full glass-panel">
                             {cats.map((cat, index) => (
