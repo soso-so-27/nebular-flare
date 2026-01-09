@@ -10,10 +10,10 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { ja } from "date-fns/locale";
 import { useCalendarData } from "@/hooks/use-calendar-data";
 import { useUserProfile, useDateLogs } from "@/hooks/use-supabase-data";
-import { ActivityFeed } from "./activity-feed";
+import { ActivityLogItem, ActivityItem } from "./activity-log-item";
 
 export function CalendarScreen() {
-    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident } = useAppState();
+    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident, householdUsers } = useAppState();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -39,39 +39,52 @@ export function CalendarScreen() {
     const selectedDayData = monthData[format(selectedDate, 'yyyy-MM-dd')];
 
     // Combine logs for list
-    const dayRecords = useMemo(() => {
-        const records: any[] = [];
+    const dayRecords: ActivityItem[] = useMemo(() => {
+        const records: ActivityItem[] = [];
 
-        dayCareLogs.forEach(l => {
+        dayCareLogs.forEach((l: any) => {
             const def = careTaskDefs.find(t => t.id === l.type) || careTaskDefs.find(t => l.type?.startsWith(t.id));
             const cat = cats.find(c => c.id === l.cat_id);
+            const user = l.done_by ? householdUsers.find((u: any) => u.id === l.done_by) : undefined;
+
             records.push({
                 id: l.id,
-                sourceType: 'care',
+                type: 'care',
                 title: def?.title || 'お世話',
-                subtitle: cat?.name || '不明な猫',
-                time: l.done_at,
-                catId: l.cat_id
+                catName: cat?.name,
+                timestamp: l.done_at,
+                userId: l.done_by,
+                userName: user?.display_name,
+                userAvatar: user?.avatar_url,
+                icon: def?.icon,
+                notes: l.notes,
+                showTime: true
             });
         });
 
-        dayObservations.forEach(o => {
+        dayObservations.forEach((o: any) => {
             const def = noticeDefs.find(n => n.id === o.type);
             const cat = cats.find(c => c.id === o.cat_id);
+            const user = o.recorded_by ? householdUsers.find((u: any) => u.id === o.recorded_by) : undefined;
+
             records.push({
                 id: o.id,
-                sourceType: 'observation',
-                title: def?.title || '様子',
-                subtitle: `${cat?.name || ''} ${o.value}`,
-                time: o.recorded_at,
-                catId: o.cat_id,
-                isAcknowledged: !!(o as any).acknowledged_at
+                type: 'observation',
+                title: def?.title || o.type === 'appetite' ? '食欲' : '様子',
+                catName: cat?.name,
+                timestamp: o.recorded_at,
+                userId: o.recorded_by,
+                userName: user?.display_name,
+                userAvatar: user?.avatar_url,
+                notes: o.value && o.value !== (def?.title) ? `${o.value}\n${o.notes || ''}` : o.notes,
+                showTime: true
             });
         });
 
         // Add Incidents
         incidents.filter(inc => isSameDay(new Date(inc.created_at), selectedDate)).forEach(inc => {
             const cat = cats.find(c => c.id === inc.cat_id);
+            const user = inc.created_by ? householdUsers.find((u: any) => u.id === inc.created_by) : undefined;
             const typeLabel = {
                 'vomit': '嘔吐',
                 'diarrhea': '下痢',
@@ -84,16 +97,21 @@ export function CalendarScreen() {
 
             records.push({
                 id: inc.id,
-                sourceType: 'incident',
+                type: 'incident',
                 title: `⚠️ ${typeLabel}`,
-                subtitle: `${cat?.name || ''} ${inc.note || ''}`,
-                time: inc.created_at,
-                catId: inc.cat_id
+                catName: cat?.name,
+                timestamp: inc.created_at,
+                userId: inc.created_by,
+                userName: user?.display_name,
+                userAvatar: user?.avatar_url,
+                notes: inc.note,
+                showTime: true,
+                icon: 'alert-circle'
             });
         });
 
-        return records.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-    }, [dayCareLogs, dayObservations, incidents, careTaskDefs, noticeDefs, cats, selectedDate]);
+        return records.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [dayCareLogs, dayObservations, incidents, careTaskDefs, noticeDefs, cats, selectedDate, householdUsers]);
 
     const handleDelete = async (id: string, type: 'care' | 'observation' | 'incident') => {
         if (!confirm("削除しますか？")) return;
@@ -205,45 +223,30 @@ export function CalendarScreen() {
                     }
 
                     {/* Past Records */}
-                    {dayRecords.map(r => (
-                        <div key={r.id} className="rounded-xl shadow-none border border-slate-100 bg-white px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0 hover:bg-slate-50 transition-colors group">
-                            <div className={`
-                                w-5 h-5 rounded-full flex items-center justify-center shrink-0
-                                ${r.sourceType === 'care' ? 'bg-emerald-100 text-emerald-600' :
-                                    r.sourceType === 'incident' ? 'bg-[#B8A6D9]/20 text-[#8B7AAF]' :
-                                        'bg-[#7CAA8E]/10 text-[#5A8A6A]'}
-                            `}>
-                                {r.sourceType === 'care' ? <Check className="w-3 h-3" /> :
-                                    r.sourceType === 'incident' ? <AlertCircle className="w-3 h-3" /> :
-                                        <Stethoscope className="w-3 h-3" />}
-                            </div>
-                            <div className="min-w-0 flex-1 flex flex-row items-center gap-2 overflow-hidden">
-                                <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                                    {format(new Date(r.time), 'HH:mm')}
-                                </span>
-                                <p className="text-xs font-bold text-slate-700 truncate">{r.title}</p>
-                                <span className="text-[10px] text-slate-400 truncate flex-1 text-right">
-                                    {r.subtitle}
-                                </span>
-                                {r.isAcknowledged && <span className="text-emerald-500 text-[10px]">✓</span>}
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleDelete(r.id, r.sourceType)}
-                            >
-                                <Trash2 className="w-3 h-3" />
-                            </Button>
-                        </div>
-                    ))}
+                    {/* Past Records */}
+                    <div className="mt-4 space-y-4 border-t border-dashed border-slate-100 dark:border-slate-800 pt-4">
+                        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 px-1">
+                            <span className="text-xl">{format(selectedDate, 'M/d')}</span>
+                            <span className="text-sm font-normal text-slate-500">の記録</span>
+                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-full font-mono">
+                                {dayRecords.length}
+                            </span>
+                        </h3>
 
-                    {/* Empty State */}
-                    {events.filter(e => isSameDay(new Date(e.at), selectedDate)).length === 0 && dayRecords.length === 0 && (
-                        <div className="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <p className="text-xs text-slate-400">記録はありません</p>
+                        <div className="space-y-1">
+                            {dayRecords.length === 0 ? (
+                                <div className="text-center py-8 text-slate-400 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                                    <p className="text-sm">この日の記録はありません</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                                    {dayRecords.map((record, i) => (
+                                        <ActivityLogItem key={record.id} item={record} index={i} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

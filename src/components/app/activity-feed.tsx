@@ -10,27 +10,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
     Activity,
-    Heart,
-    Eye,
-    ShoppingCart,
-    User,
     ChevronDown,
     ChevronUp
 } from "lucide-react";
-import { getIcon } from "@/lib/icon-utils";
-
-interface ActivityItem {
-    id: string;
-    type: 'care' | 'observation' | 'inventory';
-    title: string;
-    catName?: string;
-    userName?: string;
-    userId?: string;
-    userAvatar?: string;
-    timestamp: string;
-    icon?: string;
-    notes?: string;
-}
+import { ActivityLogItem, ActivityItem } from "./activity-log-item";
 
 export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: boolean; limit?: number }) {
     const {
@@ -231,43 +214,7 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
         return data.publicUrl;
     };
 
-    const getActivityIcon = (item: ActivityItem) => {
-        if (item.icon) {
-            const IconComponent = getIcon(item.icon);
-            return <IconComponent className="h-3.5 w-3.5" />;
-        }
 
-        switch (item.type) {
-            case 'care':
-                return <Heart className="h-3.5 w-3.5" />;
-            case 'observation':
-                return <Eye className="h-3.5 w-3.5" />;
-            case 'inventory':
-                return <ShoppingCart className="h-3.5 w-3.5" />;
-            default:
-                return <Activity className="h-3.5 w-3.5" />;
-        }
-    };
-
-    const getActivityColor = (type: string) => {
-        switch (type) {
-            case 'care':
-                return "bg-rose-100 dark:bg-rose-900/30 text-rose-500";
-            case 'observation':
-                return "bg-[#7CAA8E]/10 dark:bg-[#7CAA8E]/20 text-[#5A8A6A]";
-            case 'inventory':
-                return "bg-[#E8B4A0]/10 dark:bg-[#E8B4A0]/20 text-[#C08A70]";
-            default:
-                return "bg-slate-100 dark:bg-slate-800 text-slate-500";
-        }
-    };
-
-    // Get initials from user name or ID
-    const getUserInitials = (item: ActivityItem) => {
-        if (item.userName) return item.userName.slice(0, 1);
-        if (item.userId) return item.userId.slice(0, 2).toUpperCase();
-        return '?';
-    };
 
     return (
         <motion.div
@@ -322,65 +269,7 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
                                     </div>
                                 ) : (
                                     activities.map((item, index) => (
-                                        <motion.div
-                                            key={item.id}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: index * 0.03 }}
-                                            className="flex items-center gap-3 px-4 py-2.5"
-                                        >
-                                            {/* Icon */}
-                                            <div className={cn(
-                                                "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0",
-                                                getActivityColor(item.type)
-                                            )}>
-                                                {getActivityIcon(item)}
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-baseline justify-between">
-                                                    <p className="text-sm text-slate-700 dark:text-slate-200 truncate font-medium">
-                                                        {item.title}
-                                                    </p>
-                                                    <p className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
-                                                        {formatDistanceToNow(new Date(item.timestamp), {
-                                                            addSuffix: true,
-                                                            locale: ja
-                                                        })}
-                                                    </p>
-                                                </div>
-                                                {item.catName && (
-                                                    <p className="text-xs text-slate-400 truncate">
-                                                        {item.catName}
-                                                    </p>
-                                                )}
-                                                {item.notes && (
-                                                    <div className="mt-1 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-md border border-slate-100 dark:border-slate-800">
-                                                        <p className="text-xs text-slate-600 dark:text-slate-300 break-words whitespace-pre-wrap flex gap-1.5 items-start">
-                                                            <span className="opacity-70 text-[10px] mt-0.5">📝</span>
-                                                            <span>{item.notes}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* User indicator - smaller */}
-                                            {item.userId && (
-                                                <div
-                                                    className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden"
-                                                    title={item.userName || item.userId}
-                                                >
-                                                    {item.userAvatar ? (
-                                                        <Image src={item.userAvatar} alt={item.userName || ''} width={20} height={20} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <span className="text-[9px] text-slate-500 font-bold">
-                                                            {getUserInitials(item)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </motion.div>
+                                        <ActivityLogItem key={item.id} item={item} index={index} />
                                     ))
                                 )}
                             </div>
