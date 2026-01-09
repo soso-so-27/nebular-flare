@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { Cat, Home, Users, Plus, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { onboardingLogger } from "@/lib/logger";
 
 interface OnboardingScreenProps {
     onComplete: () => void;
@@ -25,32 +26,30 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
     async function handleCreateHousehold() {
         if (!householdName.trim() || !user) {
-            console.log('[Onboarding] Early return:', { householdName: householdName.trim(), userId: user?.id });
+            onboardingLogger.debug('Early return: missing data');
             return;
         }
         setIsSubmitting(true);
-        console.log('[Onboarding] Starting with user:', user.id);
+        onboardingLogger.debug('Starting setup');
 
         try {
             // Create household
-            console.log('[Onboarding] Creating household...');
+            onboardingLogger.debug('Creating household...');
             const { data: household, error: householdError } = await supabase
                 .from('households')
                 .insert({ name: householdName })
                 .select()
                 .single();
 
-            console.log('[Onboarding] Household result:', { household, error: householdError });
-
             if (householdError || !household) {
-                console.error('[Onboarding] Household creation failed:', householdError);
+                onboardingLogger.error('Household creation failed:', householdError);
                 toast.error("世帯の作成に失敗しました: " + (householdError?.message || 'Unknown error'));
                 setIsSubmitting(false);
                 return;
             }
 
             // Ensure user record exists (upsert) before updating household_id
-            console.log('[Onboarding] Ensuring user exists...');
+            onboardingLogger.debug('Ensuring user exists...');
             const { error: upsertError } = await supabase
                 .from('users')
                 .upsert({
@@ -61,10 +60,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     onConflict: 'id'
                 });
 
-            console.log('[Onboarding] User upsert result:', { error: upsertError });
-
             if (upsertError) {
-                console.error('[Onboarding] User upsert failed:', upsertError);
+                onboardingLogger.error('User upsert failed:', upsertError);
                 toast.error("ユーザー情報の更新に失敗しました: " + upsertError.message);
                 setIsSubmitting(false);
                 return;
@@ -72,7 +69,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
             // Create cats (without created_by to avoid FK issues, or use null)
             const validCats = cats.filter(c => c.name.trim());
-            console.log('[Onboarding] Creating cats:', validCats);
+            onboardingLogger.debug('Creating cats:', validCats.length);
             if (validCats.length > 0) {
                 const { error: catsError } = await supabase.from('cats').insert(
                     validCats.map(c => ({
@@ -82,19 +79,18 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                         // Removed created_by to avoid FK constraint issues
                     }))
                 );
-                console.log('[Onboarding] Cats result:', { error: catsError });
+                if (catsError) onboardingLogger.error('Cats creation error:', catsError);
             }
 
             // Create default inventory
-            console.log('[Onboarding] Creating inventory...');
-            const { error: inventoryError } = await supabase.from('inventory').insert([
+            onboardingLogger.debug('Creating inventory...');
+            await supabase.from('inventory').insert([
 
                 { household_id: household.id, label: '猫砂', range_min: 30, range_max: 45 },
                 { household_id: household.id, label: 'フード', range_min: 14, range_max: 21 },
             ]);
-            console.log('[Onboarding] Inventory result:', { error: inventoryError });
 
-            console.log('[Onboarding] Complete!');
+            onboardingLogger.debug('Complete!');
             toast.success("セットアップ完了！");
 
             // Small delay to ensure toast is visible
@@ -102,7 +98,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 onComplete();
             }, 500);
         } catch (error) {
-            console.error('[Onboarding] Unexpected error:', error);
+            onboardingLogger.error('Unexpected error:', error);
             toast.error("エラーが発生しました");
             setIsSubmitting(false);
         }

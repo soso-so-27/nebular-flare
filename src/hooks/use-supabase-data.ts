@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { getAdjustedDateString } from "@/lib/utils-date";
-import { validateFileUpload, ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@/lib/file-validation";
+import { uploadCatImage as uploadCatImageToStorage, uploadMultipleImages } from "@/lib/storage";
 import type { Database } from '@/types/database';
 
 import type { Cat } from '@/types';
@@ -32,62 +32,69 @@ export function useCats(householdId: string | null) {
         async function fetchCats() {
             setLoading(true);
 
-            // Fetch cats using RPC to bypass cache issues
-            const { data: rawCats, error: catsError } = await supabase
-                .rpc('get_all_cats', { target_household_id: householdId });
+            // Use optimized RPC that fetches cats, images, and weight history in one query
+            const { data: catsData, error: catsError } = await supabase
+                .rpc('get_cats_with_details', { target_household_id: householdId });
 
             if (catsError) {
-                console.error('Error fetching cats via RPC:', catsError);
+                // Fallback to old method if new RPC doesn't exist yet
+                console.warn('Optimized RPC not available, using fallback:', catsError.message);
+                await fetchCatsFallback();
+                return;
+            }
+
+            if (catsData) {
+                // RPC returns JSON with images and weight_history already included
+                setCats(catsData);
+            }
+            setLoading(false);
+        }
+
+        // Fallback function for backwards compatibility
+        async function fetchCatsFallback() {
+            const { data: rawCats, error: fallbackError } = await supabase
+                .rpc('get_all_cats', { target_household_id: householdId });
+
+            if (fallbackError) {
+                console.error('Error fetching cats via RPC:', fallbackError);
                 setLoading(false);
                 return;
             }
 
-
-            // Manually fetch images since we can't join in RPC easily
             let catsData = rawCats || [];
             if (catsData.length > 0) {
                 const catIds = catsData.map((c: any) => c.id);
-                const { data: images } = await supabase
-                    .from('cat_images')
-                    .select('id, storage_path, cat_id, created_at, is_favorite')
-                    .in('cat_id', catIds);
 
-                // Merge images into cats
-                catsData = catsData.map((cat: any) => ({
-                    ...cat,
-                    images: images?.filter((img: any) => img.cat_id === cat.id) || []
-                }));
-            }
-
-            // Fetch weight history safely (Non-critical)
-            let weightMap: Record<string, any[]> = {};
-            try {
-                const catIds = catsData.map((c: any) => c.id);
-                if (catIds.length > 0) {
-                    const { data: weights, error: weightError } = await supabase
-                        .from('cat_weight_history')
+                // Fetch images and weights in parallel
+                const [imagesResult, weightsResult] = await Promise.all([
+                    supabase.from('cat_images')
+                        .select('id, storage_path, cat_id, created_at, is_favorite')
+                        .in('cat_id', catIds),
+                    supabase.from('cat_weight_history')
                         .select('id, cat_id, weight, recorded_at, notes')
                         .in('cat_id', catIds)
-                        .order('recorded_at', { ascending: false }); // Latest first
+                        .order('recorded_at', { ascending: false })
+                ]);
 
-                    if (!weightError && weights) {
-                        weights.forEach((w: any) => {
-                            if (!weightMap[w.cat_id]) weightMap[w.cat_id] = [];
-                            weightMap[w.cat_id].push(w);
-                        });
-                    }
-                }
-            } catch (e) {
-                console.warn('Weight history fetch failed, ignoring:', e);
-            }
+                const images = imagesResult.data || [];
+                const weights = weightsResult.data || [];
 
-            if (catsData) {
-                const mergedCats = catsData.map((cat: any) => ({
+                // Build weight map
+                const weightMap: Record<string, any[]> = {};
+                weights.forEach((w: any) => {
+                    if (!weightMap[w.cat_id]) weightMap[w.cat_id] = [];
+                    weightMap[w.cat_id].push(w);
+                });
+
+                // Merge data
+                catsData = catsData.map((cat: any) => ({
                     ...cat,
+                    images: images.filter((img: any) => img.cat_id === cat.id),
                     weight_history: weightMap[cat.id] || []
                 }));
-                setCats(mergedCats);
             }
+
+            setCats(catsData);
             setLoading(false);
         }
 
@@ -178,60 +185,21 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         };
     }, [householdId, todayStr, dayStartHour]);
 
-    // Generic image upload helper - Duplicated here to avoid large refactor
-    async function uploadCatImage(catId: string, file: File): Promise<string | null> {
-        if (!householdId) return null;
-        const dateStr = new Date().toISOString().split('T')[0];
-        const timestamp = Date.now();
-        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const path = `cat-photos/${catId}/${dateStr}/${timestamp}-${cleanName}`;
-        const { error } = await supabase.storage.from('cat-images').upload(path, file, { cacheControl: '3600', upsert: false });
-        if (error) { console.error('Image upload failed:', error); return null; }
-        const { data: { publicUrl } } = supabase.storage.from('cat-images').getPublicUrl(path);
-        return publicUrl;
-    }
-
     // Add care log
     async function addCareLog(type: string, catId?: string, note?: string, images: File[] = []) {
         if (!householdId) return { error: { message: "Household ID not found" } };
 
         const { data: user } = await supabase.auth.getUser();
 
-        // Upload images if any (Only if catId is present, as generic household tasks don't have cat folder? 
-        // Actually, for household tasks, where to put images? 
-        // Let's use 'household/{householdId}' or just require catId for photos?
-        // User asked for "Care Photos", usually related to a cat. 
-        // If catId is missing (household task), let's use a 'household' folder.
-
+        // Upload images using shared storage utility
         let imageUrls: string[] = [];
         if (images.length > 0) {
             const targetId = catId || 'household-common';
-            const uploadPromises = images.map(async (file) => {
-                // Validate file before upload
-                const validation = validateFileUpload(file, {
-                    allowedTypes: ALLOWED_IMAGE_TYPES,
-                    maxSize: MAX_IMAGE_SIZE,
-                });
-                if (!validation.valid) {
-                    console.warn('File validation failed:', validation.error);
-                    return null;
-                }
-
-                const dateStr = new Date().toISOString().split('T')[0];
-                const timestamp = Date.now();
-                const cleanName = validation.sanitizedName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const path = `cat-photos/${targetId}/${dateStr}/${timestamp}-${cleanName}`;
-                const { error } = await supabase.storage.from('cat-images').upload(path, file, {
-                    cacheControl: '3600',
-                    upsert: false,
-                    contentType: file.type, // Explicitly set content type
-                });
-                if (error) return null;
-                const { data: { publicUrl } } = supabase.storage.from('cat-images').getPublicUrl(path);
-                return publicUrl;
-            });
-            const results = await Promise.all(uploadPromises);
-            imageUrls = results.filter((url): url is string => url !== null);
+            const { urls, errors } = await uploadMultipleImages(targetId, images);
+            imageUrls = urls;
+            if (errors.length > 0) {
+                console.warn('Some images failed to upload:', errors);
+            }
         }
 
         const { error } = await supabase.from('care_logs').insert({
@@ -334,58 +302,19 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         };
     }, [householdId, startIso, endIso]);
 
-    // Generic image upload helper
-    async function uploadCatImage(catId: string, file: File): Promise<string | null> {
-        if (!householdId) return null;
-
-        // Validate file before upload
-        const validation = validateFileUpload(file, {
-            allowedTypes: ALLOWED_IMAGE_TYPES,
-            maxSize: MAX_IMAGE_SIZE,
-        });
-        if (!validation.valid) {
-            console.warn('File validation failed:', validation.error);
-            return null;
-        }
-
-        // Generate a path: cat-photos/{catId}/{YYYY-MM-DD}/{timestamp}-{filename}
-        const dateStr = new Date().toISOString().split('T')[0];
-        const timestamp = Date.now();
-        const cleanName = validation.sanitizedName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const path = `cat-photos/${catId}/${dateStr}/${timestamp}-${cleanName}`;
-
-        const { data, error } = await supabase.storage
-            .from('cat-images')
-            .upload(path, file, {
-                cacheControl: '3600',
-                upsert: false,
-                contentType: file.type,
-            });
-
-        if (error) {
-            console.error('Image upload failed:', error);
-            return null;
-        }
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('cat-images')
-            .getPublicUrl(path);
-
-        return publicUrl;
-    }
-
     async function addObservation(catId: string, type: string, value: string, note?: string, images: File[] = []) {
         if (!householdId) return;
 
         const { data: user } = await supabase.auth.getUser();
 
-        // Upload images if any
+        // Upload images using shared storage utility
         let imageUrls: string[] = [];
         if (images.length > 0) {
-            const uploadPromises = images.map(file => uploadCatImage(catId, file));
-            const results = await Promise.all(uploadPromises);
-            imageUrls = results.filter((url): url is string => url !== null);
+            const { urls, errors } = await uploadMultipleImages(catId, images);
+            imageUrls = urls;
+            if (errors.length > 0) {
+                console.warn('Some images failed to upload:', errors);
+            }
         }
 
         const { error } = await supabase.from('observations').insert({

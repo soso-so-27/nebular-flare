@@ -3,6 +3,7 @@ import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { requestFcmToken } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { usePushToken, useNotificationPreferences } from '@/hooks/use-supabase-data';
+import { notificationLogger } from '@/lib/logger';
 
 export function NotificationSettings() {
     const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -15,10 +16,10 @@ export function NotificationSettings() {
         // Wait for Service Worker to be ready before allowing notification setup
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(() => {
-                console.log('[Notification] Service Worker is ready');
+                notificationLogger.debug('Service Worker is ready');
                 setSwReady(true);
             }).catch((err) => {
-                console.error('[Notification] Service Worker failed:', err);
+                notificationLogger.error('Service Worker failed:', err);
             });
         } else {
             // No SW support, allow anyway (will fail later with better error)
@@ -35,7 +36,7 @@ export function NotificationSettings() {
                     if (currentToken) {
                         setToken(currentToken);
                         await saveToken(currentToken);
-                        console.log('Token synced to server');
+                        notificationLogger.debug('Token synced to server');
                     }
                 });
             }
@@ -45,30 +46,30 @@ export function NotificationSettings() {
     const handleEnable = async () => {
         setLoading(true);
         try {
-            console.log('[Notification] Starting handleEnable...');
+            notificationLogger.debug('Starting handleEnable...');
             const currentToken = await requestFcmToken();
 
             if (currentToken) {
-                console.log('[Notification] Token received, saving to server...');
+                notificationLogger.debug('Token received, saving to server...');
                 setToken(currentToken);
 
                 const result = await saveToken(currentToken);
 
                 if (result.error) {
-                    console.error('[Notification] saveToken failed:', result.error);
+                    notificationLogger.error('saveToken failed:', result.error);
                     toast.error('トークンの保存に失敗しました');
                     return; // Don't mark as granted if save failed
                 }
 
-                console.log('[Notification] Token saved successfully');
+                notificationLogger.debug('Token saved successfully');
                 setPermission('granted');
                 toast.success('通知設定が完了しました！');
             } else {
-                console.error('[Notification] No token received from requestFcmToken');
+                notificationLogger.error('No token received from requestFcmToken');
                 toast.error('通知トークンの取得に失敗しました');
             }
         } catch (error) {
-            console.error('[Notification] handleEnable error:', error);
+            notificationLogger.error('handleEnable error:', error);
             toast.error('通知の設定に失敗しました');
         } finally {
             setLoading(false);

@@ -60,13 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         });
 
-        // Create user profile in our users table
-        if (data.user && !error) {
-            await supabase.from('users').insert({
-                id: data.user.id,
-                display_name: displayName,
-            });
-        }
+        // NOTE: User profile in public.users is now created automatically via DB trigger
+        // (see supabase/migrations/20260109_user_sync_trigger.sql)
+        // This ensures atomic user creation and prevents auth/db inconsistencies
 
         return { error };
     };

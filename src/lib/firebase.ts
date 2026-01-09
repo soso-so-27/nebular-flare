@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { fcmLogger } from "@/lib/logger";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,72 +12,72 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase App only (safe for SSR usually, but guard it)
-let app: any = null;
+let app: ReturnType<typeof initializeApp> | null = null;
 if (firebaseConfig.apiKey) {
     try {
         app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     } catch (e) {
-        console.error('Firebase initialization failed', e);
+        fcmLogger.error('Firebase initialization failed', e);
     }
 }
 
 export const requestFcmToken = async () => {
-    console.log('[FCM] Starting token request...');
+    fcmLogger.debug('Starting token request...');
 
     if (typeof window === 'undefined') {
-        console.log('[FCM] Skipped: window is undefined (SSR)');
+        fcmLogger.debug('Skipped: window is undefined (SSR)');
         return null;
     }
 
     if (!app) {
-        console.log('[FCM] Skipped: Firebase app not initialized. Check env vars.');
+        fcmLogger.debug('Skipped: Firebase app not initialized. Check env vars.');
         return null;
     }
 
     try {
-        console.log('[FCM] Importing firebase/messaging...');
+        fcmLogger.debug('Importing firebase/messaging...');
         const { getMessaging, getToken, isSupported } = await import("firebase/messaging");
 
-        console.log('[FCM] Checking if messaging is supported...');
+        fcmLogger.debug('Checking if messaging is supported...');
         const supported = await isSupported();
-        console.log('[FCM] isSupported:', supported);
+        fcmLogger.debug('isSupported:', supported);
 
         if (!supported) {
-            console.log('[FCM] Firebase Messaging is not supported in this browser/device.');
+            fcmLogger.debug('Firebase Messaging is not supported in this browser/device.');
             return null;
         }
 
-        console.log('[FCM] Getting messaging instance...');
+        fcmLogger.debug('Getting messaging instance...');
         const messaging = getMessaging(app);
 
-        console.log('[FCM] Waiting for Service Worker to be ready...');
+        fcmLogger.debug('Waiting for Service Worker to be ready...');
         const registration = await navigator.serviceWorker.ready;
-        console.log('[FCM] Service Worker ready:', registration.scope);
+        fcmLogger.debug('Service Worker ready');
 
-        console.log('[FCM] Requesting notification permission...');
+        fcmLogger.debug('Requesting notification permission...');
         const permission = await Notification.requestPermission();
-        console.log('[FCM] Permission status:', permission);
+        fcmLogger.debug('Permission status:', permission);
 
         if (permission !== 'granted') {
-            console.log('[FCM] Notification permission denied by user');
+            fcmLogger.debug('Notification permission denied by user');
             return null;
         }
 
-        console.log('[FCM] Getting FCM token with VAPID:', process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.substring(0, 20) + '...');
+        fcmLogger.debug('Getting FCM token...');
         const currentToken = await getToken(messaging, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             serviceWorkerRegistration: registration,
         });
 
         if (currentToken) {
-            console.log('[FCM] Token retrieved successfully:', currentToken.substring(0, 20) + '...');
+            fcmLogger.debug('Token retrieved successfully');
             return currentToken;
         } else {
-            console.log('[FCM] No registration token available.');
+            fcmLogger.debug('No registration token available.');
             return null;
         }
-    } catch (err: any) {
-        console.error('[FCM] Token retrieval failed:', err);
+    } catch (err: unknown) {
+        fcmLogger.error('Token retrieval failed:', err);
         return null;
     }
 };
@@ -92,7 +93,8 @@ export const getFirebaseMessaging = async () => {
             return getMessaging(app);
         }
     } catch (e) {
-        console.error('Failed to get messaging', e);
+        fcmLogger.error('Failed to get messaging', e);
     }
     return null;
 };
+
