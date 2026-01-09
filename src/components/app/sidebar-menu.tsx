@@ -282,16 +282,6 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 {/* Footer Links */}
                 <div className="border-t border-slate-200/50 pt-4 px-4 flex justify-around">
                     <button
-                        onClick={() => pushView('settings')}
-                        className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-700 transition-colors group"
-                    >
-                        <div className="p-3 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
-                            <Settings className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-bold">設定</span>
-                    </button>
-
-                    <button
                         onClick={() => pushView('notifications')}
                         className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-700 transition-colors group"
                     >
@@ -299,6 +289,16 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             <Bell className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-bold">通知</span>
+                    </button>
+
+                    <button
+                        onClick={() => pushView('settings')}
+                        className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-700 transition-colors group"
+                    >
+                        <div className="p-3 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                            <Settings className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold">設定</span>
                     </button>
                 </div>
             </div>

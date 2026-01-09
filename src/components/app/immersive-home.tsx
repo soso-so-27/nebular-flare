@@ -508,24 +508,51 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}
                             {cats.length > 1 && (
                                 <>
-                                    {/* Back card - rotated right */}
+                                    {/* Back card (Furthest) - rotated right */}
+                                    {cats.length > 2 && (
+                                        <div
+                                            className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-white/50 overflow-hidden"
+                                            style={{
+                                                transform: 'rotate(6deg) translateX(18px)',
+                                                transformOrigin: 'center bottom',
+                                                opacity: 0.6
+                                            }}
+                                        >
+                                            {/* Show next-next cat if available */}
+                                            {cats[(currentIndex + 2) % cats.length]?.avatar && (
+                                                <div className="w-full h-full relative">
+                                                    <img
+                                                        src={cats[(currentIndex + 2) % cats.length].avatar || ''}
+                                                        className="w-full h-full object-cover blur-[2px] opacity-60"
+                                                        alt=""
+                                                    />
+                                                    <div className="absolute inset-0 bg-white/40 dark:bg-black/40" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Middle card (Closest to back) - slightly rotated */}
                                     <div
-                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-white/50"
-                                        style={{
-                                            transform: 'rotate(6deg) translateX(18px)',
-                                            transformOrigin: 'center bottom',
-                                            opacity: 0.6
-                                        }}
-                                    />
-                                    {/* Middle card - slightly rotated */}
-                                    <div
-                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-700 shadow-xl border border-white/60"
+                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-700 shadow-xl border border-white/60 overflow-hidden"
                                         style={{
                                             transform: 'rotate(3deg) translateX(9px)',
                                             transformOrigin: 'center bottom',
                                             opacity: 0.8
                                         }}
-                                    />
+                                    >
+                                        {/* Show next cat */}
+                                        {cats[(currentIndex + 1) % cats.length]?.avatar && (
+                                            <div className="w-full h-full relative">
+                                                <img
+                                                    src={cats[(currentIndex + 1) % cats.length].avatar || ''}
+                                                    className="w-full h-full object-cover blur-[1px] opacity-70"
+                                                    alt=""
+                                                />
+                                                <div className="absolute inset-0 bg-white/30 dark:bg-black/30" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </>
                             )}
 
@@ -634,9 +661,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
             {
                 settings.homeViewMode === 'story' && (
-                    <div className="absolute top-4 left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pt-3 pointer-events-auto">
+                    <div className="absolute bottom-[100px] left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pointer-events-auto">
                         {/* Glass pill container */}
-                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-light">
+                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-light backdrop-blur-md shadow-lg">
                             {cats.map((cat, index) => (
                                 <motion.button
                                     key={cat.id}
