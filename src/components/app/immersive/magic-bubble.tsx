@@ -488,7 +488,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                 className="relative group"
                             >
                                 {/* Main Icon Ring - Double Layer */}
-                                <div className={`w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all ${styles.glassBg} ${styles.glassHover}`}>
+                                <div className={`glass-icon w-14 h-14 flex items-center justify-center ${styles.glassHover}`}>
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8B4A0] to-[#C08A70] flex items-center justify-center shadow-inner ring-2 ring-white/20">
                                         <span className="text-white font-bold text-sm font-sans drop-shadow-md">{activeCount}</span>
                                     </div>
@@ -515,7 +515,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             triggerFeedback('medium');
                             onOpenCare();
                         }}
-                        className={`group relative w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-2xl transition-all ${styles.glassBg} ${styles.glassHover}`}
+                        className={`group relative glass-icon w-14 h-14 flex items-center justify-center ${styles.glassHover}`}
                     >
                         {/* Inner Circle (For stylistic unity with Pickup) */}
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-inner transition-colors ${isLight ? 'bg-black/5 group-hover:bg-black/10' : 'bg-white/10 group-hover:bg-white/10'}`}>

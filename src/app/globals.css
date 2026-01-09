@@ -196,42 +196,64 @@
   --sidebar-ring: var(--sage);
 }
 
-/*
-  === Rive-like Liquid Glass Utilities ===
-  Enhanced blur, saturation, and fluid variables
+/* 
+  === Optical Glass Utilities (Vision Pro / iOS Folder Style) === 
+  Thick, physical transparency with bevels
 */
-.glass-panel {
+.glass-panel,
+.glass-optical {
   isolation: isolate;
   background-color: var(--glass-surface);
-  backdrop-filter: blur(24px) saturate(1.8);
-  /* Thick, premium glass */
-  box-shadow: var(--glass-shadow-floating);
-  background-image: linear-gradient(120deg, var(--glass-highlight) 0%, transparent 40%, transparent 100%);
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+  backdrop-filter: blur(32px) saturate(1.8);
+  /* Heavier blur for "thickness" */
 
-.glass-panel:hover {
-  backdrop-filter: blur(28px) saturate(2);
-  transform: translateY(-2px);
+  /* The "Thick Edge" Magic: Multiple shadows */
   box-shadow:
-    0 20px 50px -12px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-  /* brightness up */
+    var(--glass-shadow-floating),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+    /* Outer crisp edge */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  /* Top Bevel Light */
+
+  background-image: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.02) 40%,
+      transparent 100%);
+
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Icon button with specularity */
+.glass-panel:hover,
+.glass-optical:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 30px 60px -10px rgba(0, 0, 0, 0.2),
+    /* Lifted shadow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    /* Brighter edge */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(36px) saturate(2);
+}
+
+/* Icon button with optical thickness */
 .glass-icon {
   background: var(--glass-surface);
-  backdrop-filter: blur(16px) saturate(1.5);
-  box-shadow: var(--glass-shadow-floating);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow:
+    0 10px 20px -4px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    inset 0 2px 0 0 rgba(255, 255, 255, 0.4);
+  /* Strong top bevel */
   border-radius: 9999px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Bouncy */
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .glass-icon:active {
-  transform: scale(0.92);
-  backdrop-filter: blur(12px);
+  transform: scale(0.94) translateY(2px);
+  box-shadow:
+    0 2px 10px -2px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(16px);
 }
 
 @layer base {
