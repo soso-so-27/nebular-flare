@@ -223,11 +223,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             triggerFeedback('medium');
                             setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
-                        className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl backdrop-blur-md border shadow-sm transition-colors ${isLight
-                            ? 'bg-white/40 border-black/5 hover:bg-white/60'
-                            : 'bg-black/20 border-white/10 hover:bg-black/40'
-                            }`}
-                    >
+                        className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl glass-panel group`}>
                         {/* Combined Progress Ring */}
                         <div className="relative w-10 h-10">
                             <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
