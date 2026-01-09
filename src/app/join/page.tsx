@@ -3,8 +3,8 @@ import { JoinScreen } from '@/components/app/join-screen';
 import { Loader2 } from 'lucide-react';
 
 export const metadata = {
-    title: '家族に参加 - CatUp',
-    description: 'CatUpの招待を受け取る',
+    title: '家族に参加 - にゃるほど',
+    description: 'にゃるほどの招待を受け取る',
 };
 
 export default function JoinPage() {

@@ -41,8 +41,8 @@ export function LoginScreen() {
                     <Cat className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">CatUp</h1>
-                    <p className="text-xs text-slate-500">家族で猫のお世話を共有</p>
+                    <h1 className="text-2xl font-bold text-slate-900">にゃるほど</h1>
+                    <p className="text-xs text-slate-500">猫のいる暮らしに、余裕と楽しさを</p>
                 </div>
             </div>
 
