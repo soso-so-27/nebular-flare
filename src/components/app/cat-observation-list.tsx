@@ -305,7 +305,7 @@ export function CatObservationList() {
                                     animate={{ scale: 1 }}
                                     className={cn(
                                         "px-2 py-1 rounded-full flex items-center gap-1",
-                                        obs.isAbnormal ? "bg-[#B8A6D9]/10 text-[#8B7AAF]" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                                        obs.isAbnormal ? "bg-[#B8A6D9]/10 text-[#8B7AAF]" : "bg-[#E5F0EA] text-[#487058] dark:bg-[#2D4637]/50 dark:text-emerald-300"
                                     )}>
                                     <span className="text-[10px] font-bold">{obs.value}</span>
                                     {obs.isAbnormal ? <AlertTriangle className="w-3 h-3" /> : <Check className="w-3 h-3" />}

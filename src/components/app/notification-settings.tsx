@@ -97,14 +97,14 @@ export function NotificationSettings() {
     if (permission === 'granted') {
         return (
             <div className="space-y-3">
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                <div className="p-4 bg-[#F2F7F4] rounded-xl border border-[#E5F0EA] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
+                        <div className="p-2 bg-[#E5F0EA] rounded-full text-[#5A8C6E]">
                             <Bell className="w-5 h-5" />
                         </div>
                         <div>
                             <h3 className="font-bold text-emerald-900 text-sm">通知はオンです</h3>
-                            <p className="text-xs text-emerald-700">お世話の時間にお知らせします</p>
+                            <p className="text-xs text-[#487058]">お世話の時間にお知らせします</p>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ export function NotificationSettings() {
                             </div>
                             <button
                                 onClick={() => handleToggle('care_reminder')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.care_reminder ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.care_reminder ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.care_reminder ? 'left-6' : 'left-1'}`} />
                             </button>
@@ -138,7 +138,7 @@ export function NotificationSettings() {
                             </div>
                             <button
                                 onClick={() => handleToggle('health_alert')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.health_alert ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.health_alert ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
                             </button>
@@ -151,7 +151,7 @@ export function NotificationSettings() {
                             </div>
                             <button
                                 onClick={() => handleToggle('inventory_alert')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.inventory_alert !== false ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.inventory_alert !== false ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
                             </button>
@@ -166,7 +166,7 @@ export function NotificationSettings() {
                                 <select
                                     value={preferences.notification_hour ?? 20}
                                     onChange={(e) => updatePreference('notification_hour', parseInt(e.target.value))}
-                                    className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg border-none focus:ring-2 focus:ring-emerald-500"
+                                    className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg border-none focus:ring-2 focus:ring-[#7CAA8E]"
                                 >
                                     <option value={-1}>指定なし</option>
                                     <option value={8}>朝 8:00</option>

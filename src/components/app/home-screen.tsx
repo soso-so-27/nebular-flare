@@ -636,7 +636,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                     {item.done ? (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs text-slate-400">{item.doneBy} • {item.doneAt}</span>
-                                                            <Check className="h-5 w-5 text-emerald-500" />
+                                                            <Check className="h-5 w-5 text-[#7CAA8E]" />
                                                         </div>
                                                     ) : (
                                                         <button
@@ -713,12 +713,12 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                         {obs.done && (
                                                                             <span className={cn(
                                                                                 "text-xs font-bold px-2 py-0.5 rounded-full",
-                                                                                obs.isAbnormal ? "bg-[#B8A6D9]/20 text-[#8B7AAF] dark:bg-[#B8A6D9]/20 dark:text-[#B8A6D9]" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-200"
+                                                                                obs.isAbnormal ? "bg-[#B8A6D9]/20 text-[#8B7AAF] dark:bg-[#B8A6D9]/20 dark:text-[#B8A6D9]" : "bg-[#E5F0EA] text-[#5A8C6E] dark:bg-[#2D4637] dark:text-emerald-200"
                                                                             )}>{obs.value}</span>
                                                                         )}
                                                                     </div>
                                                                     {obs.done ? (
-                                                                        <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-[#B8A6D9]" : "text-emerald-500")} />
+                                                                        <Check className={cn("h-5 w-5", obs.isAbnormal ? "text-[#B8A6D9]" : "text-[#7CAA8E]")} />
                                                                     ) : (
                                                                         obs.required && <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded">必須</span>
                                                                     )}
@@ -768,7 +768,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                             <div className="flex gap-2">
                                                                                 <button
                                                                                     onClick={() => handleObservation(obs.id, obs.type, obs.label, 'いつも通り')}
-                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 transition-colors dark:bg-emerald-900/20 dark:border-emerald-900/50"
+                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-[#F2F7F4] text-[#5A8C6E] hover:bg-[#E5F0EA] border border-[#E5F0EA] transition-colors dark:bg-[#2D4637]/20 dark:border-emerald-900/50"
                                                                                 >OK</button>
                                                                                 <button
                                                                                     onClick={() => handleObservation(obs.id, obs.type, obs.label, 'ちょっと違う')}
@@ -848,7 +848,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                 <span className={cn(
                                                                     "text-xs font-bold px-2 py-0.5 rounded-full text-white min-w-[60px] text-center shadow-sm",
                                                                     it.status === 'danger' ? "bg-[#B8A6D9]" :
-                                                                        it.status === 'warn' ? "bg-[#E8B4A0]" : "bg-emerald-500"
+                                                                        it.status === 'warn' ? "bg-[#E8B4A0]" : "bg-[#7CAA8E]"
                                                                 )}>
                                                                     あと{it.daysLeft}日
                                                                 </span>

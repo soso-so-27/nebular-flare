@@ -209,26 +209,30 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 {/* Main Menu Cards */}
                 {/* Main Menu Cards */}
                 <div className="grid grid-cols-2 gap-4 px-2">
-                    {/* Activity (Peach - Memory/Love) */}
+                    {/* Calendar (Lavender - Time + Activity History Integrated) */}
                     <button
-                        onClick={() => pushView('activity')}
+                        onClick={() => { onNavigate('calendar'); onClose(); }}
                         className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
                             bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
                             border border-white/80
                             shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
-                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
+                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden col-span-2"
                     >
-                        <div className="absolute inset-0 bg-[#E8B4A0]/10" />
-                        <div className="w-12 h-12 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
-                            <ActivityIcon className="w-6 h-6 text-[#D69E8A]" />
+                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#9D8CC2]/60 z-20" />
+                        <div className="absolute inset-0 bg-[#B8A6D9]/10" />
+                        <div className="w-12 h-12 rounded-full bg-[#B8A6D9]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
+                            <Calendar className="w-6 h-6 text-[#9D8CC2]" />
                         </div>
-                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">お世話履歴</span>
+                        <div className="flex flex-col items-center z-10">
+                            <span className="font-bold text-slate-600 text-sm tracking-tight text-shadow-sm">カレンダー</span>
+                            <span className="text-[10px] text-slate-400 font-medium">お世話の記録と予定</span>
+                        </div>
                     </button>
 
                     {/* Inventory (Sage - Health/Life) */}
                     <button
                         onClick={() => pushView('inventory')}
-                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                        className="menu-card aspect-[1.1] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
                             bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
                             border border-white/80
                             shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
@@ -247,7 +251,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     {/* Gallery (Peach - Memories - External) */}
                     <button
                         onClick={() => { onNavigate('gallery'); onClose(); }}
-                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
+                        className="menu-card aspect-[1.1] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
                             bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
                             border border-white/80
                             shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
@@ -259,23 +263,6 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             <Grid className="w-6 h-6 text-[#D69E8A]" />
                         </div>
                         <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">ギャラリー</span>
-                    </button>
-
-                    {/* Calendar (Lavender - Time - External) */}
-                    <button
-                        onClick={() => { onNavigate('calendar'); onClose(); }}
-                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
-                            border border-white/80
-                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
-                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
-                    >
-                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#9D8CC2]/60 z-20" />
-                        <div className="absolute inset-0 bg-[#B8A6D9]/10" />
-                        <div className="w-12 h-12 rounded-full bg-[#B8A6D9]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
-                            <Calendar className="w-6 h-6 text-[#9D8CC2]" />
-                        </div>
-                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">カレンダー</span>
                     </button>
                 </div>
 
@@ -340,7 +327,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         {inventoryItemsFormatted.map(item => (
                             <div key={item.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${item.isLow ? 'bg-red-400 animate-pulse' : 'bg-emerald-400'}`} />
+                                    <div className={`w-2 h-2 rounded-full ${item.isLow ? 'bg-red-400 animate-pulse' : 'bg-[#7CAA8E]'}`} />
                                     <span className="text-sm font-bold text-slate-700">{item.label}</span>
                                     {item.isLow && <span className="text-[10px] text-red-500 font-bold bg-red-100 px-1.5 py-0.5 rounded-md">補充！</span>}
                                 </div>

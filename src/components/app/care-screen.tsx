@@ -316,7 +316,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
                                         handleCatchupAction(currentItem, 'done');
                                     }
                                 }}
-                                className="flex-1 py-4 px-6 rounded-full bg-white text-emerald-600 font-medium text-base hover:bg-white/90 active:scale-95 transition-all"
+                                className="flex-1 py-4 px-6 rounded-full bg-white text-[#5A8C6E] font-medium text-base hover:bg-white/90 active:scale-95 transition-all"
                             >
                                 完了
                             </button>
@@ -344,7 +344,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
                     <p className="text-white/70 mb-8">すべてのタスクが完了しました</p>
                     <button
                         onClick={() => setShowSwipeMode(false)}
-                        className="px-8 py-3 rounded-full bg-white text-emerald-600 font-medium hover:bg-white/90 active:scale-95 transition-all"
+                        className="px-8 py-3 rounded-full bg-white text-[#5A8C6E] font-medium hover:bg-white/90 active:scale-95 transition-all"
                     >
                         閉じる
                     </button>

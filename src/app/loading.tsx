@@ -58,6 +58,15 @@ export default function Loading() {
                             />
                         ))}
                     </div>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-4 text-[10px] font-bold tracking-[0.2em] text-[#7CAA8E]/60 animate-pulse"
+                    >
+                        LOADING...
+                    </motion.p>
                 </div>
             </div>
         </div>

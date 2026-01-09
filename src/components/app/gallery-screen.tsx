@@ -410,7 +410,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                                     {!isSelectMode && (
                                         <div className="absolute bottom-1 right-1">
                                             {img.source === 'care' && (
-                                                <div className="bg-emerald-500/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
+                                                <div className="bg-[#7CAA8E]/90 p-1 rounded-full text-white shadow-sm backdrop-blur-sm">
                                                     <Utensils className="w-2.5 h-2.5" />
                                                 </div>
                                             )}

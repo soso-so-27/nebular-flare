@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { CatUpLogo } from "@/components/ui/cat-up-logo";
 
 export function SplashScreen() {
     return (
@@ -28,17 +29,14 @@ export function SplashScreen() {
                     className="relative w-32 h-32 flex items-center justify-center"
                 >
                     {/* Glass Container */}
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-2xl rounded-[32px] border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]" />
+                    <div className="absolute inset-0 backdrop-blur-3xl rounded-[32px] border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]" />
 
                     {/* Inner Specular Highlight */}
                     <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-70" />
 
                     {/* App Icon */}
-                    <img
-                        src="/icon.svg"
-                        alt="CatUp Logo"
-                        className="w-20 h-20 relative z-20 drop-shadow-sm object-contain"
-                    />
+                    {/* App Icon */}
+                    <CatUpLogo className="w-20 h-20 relative z-20 drop-shadow-sm" />
                 </motion.div>
 
                 {/* Brand Text */}
@@ -58,6 +56,15 @@ export function SplashScreen() {
                             />
                         ))}
                     </div>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-4 text-[10px] font-bold tracking-[0.2em] text-[#7CAA8E]/60 animate-pulse"
+                    >
+                        LOADING...
+                    </motion.p>
                 </div>
             </div>
         </div>

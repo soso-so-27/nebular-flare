@@ -246,14 +246,14 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
                                                             "text-xs font-medium px-2 py-0.5 rounded-full",
                                                             abnormal
                                                                 ? "bg-amber-200 text-amber-700"
-                                                                : "bg-emerald-100 text-emerald-600"
+                                                                : "bg-[#E5F0EA] text-[#5A8C6E]"
                                                         )}>
                                                             {obs.value}
                                                         </span>
                                                         {abnormal ? (
                                                             <AlertTriangle className="h-3.5 w-3.5 text-[#B8A6D9]" />
                                                         ) : (
-                                                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                                            <Check className="h-3.5 w-3.5 text-[#7CAA8E]" />
                                                         )}
                                                     </div>
                                                 </div>

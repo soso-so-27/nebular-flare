@@ -50,10 +50,22 @@ function AppContent() {
 
   // Get data and functions for quick actions
   const {
-    tasks, noticeLogs, inventory, lastSeenAt, settings, cats,
+    tasks, noticeLogs, inventory, lastSeenAt, settings, cats, catsLoading,
     careTaskDefs, careLogs, noticeDefs, activeCatId,
     addCareLog, addObservation, setInventory, isDemo
   } = useAppState();
+
+  const [showSplashOverlay, setShowSplashOverlay] = useState(true);
+
+  // Perfect Load Logic: Wait for data + 0.8s safety buffer
+  useEffect(() => {
+    if (!catsLoading && cats.length > 0) {
+      const timer = setTimeout(() => {
+        setShowSplashOverlay(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [catsLoading, cats]);
 
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
@@ -200,6 +212,24 @@ function AppContent() {
             onOpenCalendar={() => setShowCalendar(true)}
             onCatClick={() => setTab("cat")}
           />
+
+          {/* Smart Splash Overlay - "Perfect Load" */}
+          <AnimatePresence mode="wait">
+            {showSplashOverlay && (
+              <motion.div
+                key="smart-splash"
+                className="fixed inset-0 z-[10005] flex items-center justify-center bg-[#FAF9F7]"
+                exit={{
+                  opacity: 0,
+                  scale: 1.1,
+                  filter: "blur(20px)",
+                  transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+                }}
+              >
+                <SplashScreen />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Overlays */}
           <AnimatePresence>

@@ -19,7 +19,7 @@ export interface SlackCardProps {
 const statusColors: Record<SlackCardStatus, string> = {
     danger: "bg-rose-500",
     warn: "bg-orange-500",
-    success: "bg-emerald-500",
+    success: "bg-[#7CAA8E]",
     info: "bg-[#7CAA8E]",
     default: "bg-slate-300",
 };
@@ -146,7 +146,7 @@ export function SlackCardTag({
     const badgeColors: Record<SlackCardStatus, string> = {
         danger: "bg-rose-50 text-rose-600 border-rose-100",
         warn: "bg-[#B8A6D9]/10 text-[#8B7AAF] border-[#B8A6D9]/20",
-        success: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        success: "bg-[#F2F7F4] text-[#5A8C6E] border-[#E5F0EA]",
         info: "bg-[#7CAA8E]/10 text-[#5A8A6A] border-[#7CAA8E]/20",
         default: "bg-slate-50 text-slate-600 border-slate-100",
     };

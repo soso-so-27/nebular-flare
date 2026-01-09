@@ -136,8 +136,8 @@ export function HouseholdCareList() {
             {/* Header Row */}
             <div className="px-5 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <Home className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="w-8 h-8 rounded-xl bg-[#E5F0EA] dark:bg-[#2D4637]/30 flex items-center justify-center">
+                        <Home className="h-4 w-4 text-[#5A8C6E] dark:text-[#7CAA8E]" />
                     </div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
                         今日のお世話
@@ -164,7 +164,7 @@ export function HouseholdCareList() {
                             className={cn(
                                 "flex-1 rounded-sm transition-all",
                                 item.done
-                                    ? "bg-emerald-400 dark:bg-emerald-500"
+                                    ? "bg-[#7CAA8E] dark:bg-[#7CAA8E]"
                                     : "bg-slate-200 dark:bg-slate-700"
                             )}
                             style={{ height: item.done ? '100%' : '40%' }}
@@ -205,7 +205,7 @@ export function HouseholdCareList() {
                             {item.done ? (
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-slate-400">{item.doneBy} • {item.doneAt}</span>
-                                    <Check className="h-4 w-4 text-emerald-500" />
+                                    <Check className="h-4 w-4 text-[#7CAA8E]" />
                                 </div>
                             ) : (
                                 <span className="text-xs text-slate-400">タップで完了</span>

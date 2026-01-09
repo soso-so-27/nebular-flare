@@ -257,14 +257,14 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                                 )}
 
                                 <div className="flex items-center gap-2 mb-3 px-1">
-                                    <Check className="w-4 h-4 text-emerald-500" />
+                                    <Check className="w-4 h-4 text-[#7CAA8E]" />
                                     <span className="text-sm font-bold text-slate-700">今日のお世話</span>
                                 </div>
 
                                 {allItems.length === 0 ? (
                                     <div className="text-center py-12 rounded-3xl bg-white/30 border border-white/40 border-dashed mx-1 flex flex-col items-center justify-center">
-                                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-3">
-                                            <Sparkles className="w-6 h-6 text-emerald-500" />
+                                        <div className="w-12 h-12 bg-[#E5F0EA] rounded-full flex items-center justify-center mb-3">
+                                            <Sparkles className="w-6 h-6 text-[#7CAA8E]" />
                                         </div>
                                         <p className="font-bold text-slate-600">すべて完了！</p>
                                         <p className="text-xs text-slate-400 mt-1">今日も一日お疲れ様でした ✨</p>

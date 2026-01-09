@@ -186,7 +186,7 @@ export function CalendarScreen() {
 
                                 {/* Indicators */}
                                 <div className="flex items-center gap-0.5 mt-1">
-                                    {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                                    {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-[#7CAA8E]" />}
                                     {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
                                     {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-[#B8A6D9] animate-pulse" />}
                                 </div>

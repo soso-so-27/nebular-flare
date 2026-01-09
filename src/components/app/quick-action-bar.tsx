@@ -106,7 +106,7 @@ export function QuickActionBar() {
                             className={cn(
                                 "flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full transition-all active:scale-95",
                                 done
-                                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600"
+                                    ? "bg-[#E5F0EA] dark:bg-[#2D4637]/30 text-[#5A8C6E]"
                                     : "bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
                             )}
                         >

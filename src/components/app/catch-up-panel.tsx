@@ -133,7 +133,7 @@ export function CatchUpPanel({
                         {careItems.length > 0 && (
                             <span className={cn(
                                 "min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-black",
-                                activeTab === 'care' ? "bg-emerald-500 text-white" : "bg-white/20 text-white"
+                                activeTab === 'care' ? "bg-[#7CAA8E] text-white" : "bg-white/20 text-white"
                             )}>
                                 {careItems.length}
                             </span>

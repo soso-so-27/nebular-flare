@@ -422,7 +422,7 @@ export function CheckSection() {
                             </div>
                             <button
                                 onClick={item.onAction}
-                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:bg-emerald-300 active:scale-95 transition-all"
+                                className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#E5F0EA] text-[#5A8C6E] hover:bg-[#Cce3d6] active:bg-[#a3cbb5] active:scale-95 transition-all"
                             >
                                 確認済
                             </button>

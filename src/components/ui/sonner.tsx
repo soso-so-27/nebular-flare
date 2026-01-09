@@ -44,7 +44,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "#ffffff",
           "--normal-border": "rgba(255, 255, 255, 0.1)",
           "--border-radius": "16px",
-          "--success-bg": "rgba(16, 185, 129, 0.9)",
+          "--success-bg": "rgba(124, 170, 142, 0.9)",
           "--success-text": "#ffffff",
           "--error-bg": "rgba(239, 68, 68, 0.9)",
           "--error-text": "#ffffff",

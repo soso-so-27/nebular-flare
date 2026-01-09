@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Cat } from "lucide-react";
+import { CatUpLogo } from "@/components/ui/cat-up-logo";
 
 interface BrandLoaderProps {
     onClick?: () => void;
@@ -34,11 +34,8 @@ export function BrandLoader({ onClick, className = "" }: BrandLoaderProps) {
                 <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-70" />
 
                 {/* App Icon - Use standardized icon */}
-                <img
-                    src="/icon.svg"
-                    alt="CatUp Logo"
-                    className="w-20 h-20 relative z-20 drop-shadow-sm object-contain"
-                />
+                {/* App Icon - Use standardized icon */}
+                <CatUpLogo className="w-20 h-20 relative z-20 drop-shadow-sm" />
             </motion.div>
 
             {/* Brand Text */}

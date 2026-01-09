@@ -176,15 +176,14 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         text: 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]',
         textSub: 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
         ringTrack: 'rgba(0,0,0,0.3)',
-        careColor: progress >= 1 ? '#10B981' : '#34D399', // Vivid Emerald for visibility
-        obsColor: '#38bdf8', // No longer used but kept for compatibility
+        careColor: progress >= 1 ? '#A78BFA' : '#C4B5FD', // Lavender (no green)
+        obsColor: '#38bdf8',
         iconFill: 'fill-white',
         iconStroke: 'text-white',
-        glassBg: 'bg-white/30 border-white/30 backdrop-blur-xl', // Milky glass
+        glassBg: 'bg-white/30 border-white/30 backdrop-blur-xl',
         glassHover: 'hover:bg-white/40',
-        buttonBg: 'bg-white/25 backdrop-blur-xl border border-white/30', // Enhanced glass
+        buttonBg: 'bg-white/25 backdrop-blur-xl border border-white/30',
         buttonText: 'text-white',
-        // Strong icon shadow for visibility
         iconShadow: 'drop-shadow-[0_0_6px_rgba(0,0,0,0.9)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]',
     };
 
@@ -217,37 +216,43 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 /* === CARD MODE: Consolidated Icon with Expandable List === */
                 <div className="absolute top-8 left-6 z-40 pointer-events-auto flex flex-col items-start gap-2">
                     <motion.button
-                        whileTap={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         onClick={(e) => {
                             e.stopPropagation();
                             triggerFeedback('medium');
                             setExpandedSection(expandedSection === 'care' ? null : 'care');
                         }}
-                        className={`relative flex items-center gap-3 px-3 py-2 rounded-2xl glass-panel group`}>
-                        {/* Combined Progress Ring */}
-                        <div className="relative w-10 h-10">
-                            <svg className="absolute inset-0 w-full h-full -rotate-90 overflow-visible" viewBox="0 0 60 60">
-                                <circle cx="30" cy="30" r={26} fill="none" stroke={styles.ringTrack} strokeWidth="4" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }} />
-                                <motion.circle
-                                    cx="30" cy="30" r={26} fill="none" stroke={styles.careColor} strokeWidth="5" strokeLinecap="round"
-                                    initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
-                                    animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
+                        className={`relative flex items-center px-2 py-2 rounded-full group transition-all hover:bg-white/40`}
+                        style={{
+                            background: 'rgba(250, 249, 247, 0.45)', // Tactile Glass: Milky
+                            backdropFilter: 'blur(16px) saturate(1.8)',
+                            boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
+                        }}>
+
+                        {/* Horizontal Bar Design A */}
+                        <div className="flex items-center gap-3 pr-2">
+                            {/* Icon Circle */}
+                            <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center shadow-sm backdrop-blur-md ring-1 ring-white/60">
+                                <Heart className="w-5 h-5 text-[#8B7AAF] drop-shadow-sm fill-white/20" />
+                            </div>
+
+                            {/* Percentage (if needed, or just bar) - User asked for "Heart -> 43% -> Bar" */}
+                            <span className="text-lg font-bold text-slate-600 drop-shadow-sm tabular-nums tracking-tight">
+                                {Math.round(progress * 100)}%
+                            </span>
+
+                            {/* Progress Bar */}
+                            <div className="h-2.5 w-20 bg-black/5 rounded-full overflow-hidden shadow-inner border border-black/5">
+                                <motion.div
+                                    className="h-full bg-gradient-to-r from-[#B8A6D9] to-[#A78BFA] shadow-[0_0_8px_rgba(167,139,250,0.4)]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min(progress * 100, 100)}%` }}
                                     transition={{ duration: 1.5, ease: "easeOut" }}
-                                    style={{ filter: "drop-shadow(0 0 2px rgba(52, 211, 153, 0.5))" }} /* Glow effect */
                                 />
-                            </svg>
-                            <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
-                                <Heart className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                             </div>
                         </div>
-                        {/* Combined Progress Text */}
-                        <div className="flex items-baseline gap-0.5">
-                            <span className={`text-lg font-bold ${styles.text}`}>
-                                {Math.round(progress * 100)}
-                            </span>
-                            <span className={`text-xs font-medium ${styles.text}`}>%</span>
-                        </div>
+
                     </motion.button>
                     {/* Expandable Consolidated List for Card Mode (Care + Observation) */}
                     <AnimatePresence>
@@ -286,7 +291,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     }}
                                                     className={`flex items-center gap-3 w-full text-left p-2 rounded-xl transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10`}`}
                                                 >
-                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-[#7CAA8E] border-[#7CAA8E]' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
                                                         {item.done && <Check className="w-3 h-3 text-white" />}
                                                     </div>
                                                     <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
@@ -360,7 +365,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                         initial={{ strokeDasharray: 2 * Math.PI * 26, strokeDashoffset: 2 * Math.PI * 26 }}
                                         animate={{ strokeDashoffset: (2 * Math.PI * 26) - (progress * (2 * Math.PI * 26)) }}
                                         transition={{ duration: 1.5, ease: "easeOut" }}
-                                        style={{ filter: "drop-shadow(0 0 2px rgba(52, 211, 153, 0.5))" }}
+                                        style={{ filter: "drop-shadow(0 0 2px rgba(124, 170, 142, 0.5))" }}
                                     />
                                 </svg>
                                 <div className={`absolute inset-0 flex items-center justify-center ${styles.text}`}>
@@ -410,7 +415,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                 }}
                                                 className={`flex items-center gap-3 w-full text-left transition-all ${item.done ? 'opacity-50' : `hover:bg-white/10 rounded-lg p-1 -m-1`}`}
                                             >
-                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-[#7CAA8E] border-[#7CAA8E]' : (isLight ? 'border-black/60' : 'border-white/60')}`}>
                                                     {item.done && <Check className="w-3 h-3 text-white" />}
                                                 </div>
                                                 <span className={`text-sm font-medium truncate ${styles.text}`}>{item.label}</span>
@@ -514,9 +519,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         }}
                         className={`group relative glass-icon w-14 h-14 flex items-center justify-center ${styles.glassHover}`}
                     >
-                        {/* Inner Circle (For stylistic unity with Pickup) */}
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-inner transition-colors ${isLight ? 'bg-black/5 group-hover:bg-black/10' : 'bg-white/10 group-hover:bg-white/10'}`}>
-                            <LayoutGrid className={`w-5 h-5 drop-shadow-md opacity-90 group-hover:opacity-100 ${styles.iconStroke}`} />
+                        {/* Inner Circle (Inverted for Visibility) */}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors ring-2 ring-white/60 bg-[#9D8CC2] group-hover:bg-[#8B7AAF]`}>
+                            <LayoutGrid className={`w-5 h-5 drop-shadow-sm text-white`} />
                         </div>
                     </motion.button>
                 </div>

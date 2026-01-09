@@ -52,12 +52,12 @@ export function TodayCareStatus() {
                 <div className="flex items-center gap-1.5">
                     <span className={cn(
                         "text-xs font-bold",
-                        completedCount === totalCount ? "text-emerald-500" : "text-slate-400"
+                        completedCount === totalCount ? "text-[#7CAA8E]" : "text-slate-400"
                     )}>
                         {completedCount}/{totalCount}
                     </span>
                     {completedCount === totalCount && (
-                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        <Check className="h-3.5 w-3.5 text-[#7CAA8E]" />
                     )}
                 </div>
             </div>
@@ -70,7 +70,7 @@ export function TodayCareStatus() {
                         className={cn(
                             "flex items-center justify-between px-3 py-2 rounded-xl transition-colors",
                             item.done
-                                ? "bg-emerald-50 dark:bg-emerald-900/20"
+                                ? "bg-[#F2F7F4] dark:bg-[#2D4637]/20"
                                 : "bg-slate-50 dark:bg-slate-800/50"
                         )}
                     >
@@ -88,14 +88,14 @@ export function TodayCareStatus() {
 
                         {item.done ? (
                             <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                <div className="flex items-center gap-1 text-[#5A8C6E] dark:text-[#7CAA8E]">
                                     <User className="h-3 w-3" />
                                     <span className="text-xs font-bold">{item.doneBy}</span>
                                 </div>
                                 <span className="text-[10px] text-slate-400">
                                     {item.doneAt}
                                 </span>
-                                <Check className="h-4 w-4 text-emerald-500" />
+                                <Check className="h-4 w-4 text-[#7CAA8E]" />
                             </div>
                         ) : (
                             <div className="flex items-center gap-1 text-slate-400">
