@@ -172,8 +172,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     // Enhanced styles with stronger shadows for visibility on any background
     const styles = {
         // Text always uses dual shadow (dark + light outline) for maximum readability
-        text: 'text-white drop-shadow-[0_0_8px_rgba(0,0,0,0.9)] [text-shadow:0_0_4px_rgba(0,0,0,0.9),0_1px_2px_rgba(0,0,0,0.8)]',
-        textSub: 'text-white/80 drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]',
+        // SHARPENED: Reduced blur radius significantly to fix "blurry" interpretation
+        text: 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]',
+        textSub: 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
         ringTrack: 'rgba(0,0,0,0.3)',
         careColor: progress >= 1 ? '#6B9B7A' : '#7CAA8E', // Sage green (brand color)
         obsColor: '#38bdf8', // No longer used but kept for compatibility

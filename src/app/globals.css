@@ -204,8 +204,8 @@
 .glass-optical {
   isolation: isolate;
   background-color: var(--glass-surface);
-  backdrop-filter: blur(32px) saturate(1.8);
-  /* Heavier blur for "thickness" */
+  backdrop-filter: blur(20px) saturate(1.4);
+  /* Heavier blur for "thickness" - REDUCED for text clarity */
 
   /* The "Thick Edge" Magic: Multiple shadows */
   box-shadow:
