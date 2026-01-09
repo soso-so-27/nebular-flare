@@ -670,7 +670,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 settings.homeViewMode === 'story' && (
                     <div className="absolute bottom-[100px] left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pointer-events-auto">
                         {/* Glass pill container */}
-                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-panel">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-full glass-panel">
                             {cats.map((cat, index) => (
                                 <motion.button
                                     key={cat.id}
@@ -680,13 +680,13 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                     }}
                                     initial={false}
                                     animate={{
-                                        scale: index === currentIndex ? 1.15 : 0.9,
+                                        scale: index === currentIndex ? 1.1 : 0.9,
                                         opacity: index === currentIndex ? 1 : 0.6,
                                     }}
                                     whileTap={{ scale: 0.95 }}
                                     className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all ${index === currentIndex
-                                        ? 'w-8 h-8 ring-2 ring-white shadow-lg'
-                                        : 'w-6 h-6 hover:opacity-100 hover:scale-100'
+                                        ? 'w-10 h-10 ring-2 ring-white shadow-lg'
+                                        : 'w-7 h-7 hover:opacity-100 hover:scale-100'
                                         }`}
                                     transition={{ duration: 0.2, ease: "easeOut" }}
                                 >
