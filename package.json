@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-sw.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-sw": "node scripts/generate-sw.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

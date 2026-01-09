@@ -4,6 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { getAdjustedDateString } from "@/lib/utils-date";
+import { validateFileUpload, ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@/lib/file-validation";
 import type { Database } from '@/types/database';
 
 import type { Cat } from '@/types';
@@ -205,15 +206,26 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         let imageUrls: string[] = [];
         if (images.length > 0) {
             const targetId = catId || 'household-common';
-            // We need a slight variation of the helper if catId is missing.
-            // Let's just inline logic.
             const uploadPromises = images.map(async (file) => {
+                // Validate file before upload
+                const validation = validateFileUpload(file, {
+                    allowedTypes: ALLOWED_IMAGE_TYPES,
+                    maxSize: MAX_IMAGE_SIZE,
+                });
+                if (!validation.valid) {
+                    console.warn('File validation failed:', validation.error);
+                    return null;
+                }
+
                 const dateStr = new Date().toISOString().split('T')[0];
                 const timestamp = Date.now();
-                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                // If catId is missing, use household_id as valid path segment
+                const cleanName = validation.sanitizedName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                 const path = `cat-photos/${targetId}/${dateStr}/${timestamp}-${cleanName}`;
-                const { error } = await supabase.storage.from('cat-images').upload(path, file, { cacheControl: '3600', upsert: false });
+                const { error } = await supabase.storage.from('cat-images').upload(path, file, {
+                    cacheControl: '3600',
+                    upsert: false,
+                    contentType: file.type, // Explicitly set content type
+                });
                 if (error) return null;
                 const { data: { publicUrl } } = supabase.storage.from('cat-images').getPublicUrl(path);
                 return publicUrl;
@@ -280,10 +292,6 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         }
 
         async function fetchObservations() {
-            // DEBUG LOGGING
-            console.log('Fetching observations for household:', householdId);
-            console.log('Date Range:', startIso, '~', endIso);
-
             // RLS handles access control via cat_id, no need to filter by household_id
             const { data, error } = await supabase
                 .from('observations')
@@ -293,10 +301,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
                 .lt('recorded_at', endIso)
                 .order('recorded_at', { ascending: false });
 
-            console.log('Observations fetch result:', { data, error });
-
             if (!error && data) {
-                console.log('Found', data.length, 'observations');
                 setObservations(data);
             }
             setLoading(false);
@@ -333,22 +338,28 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     async function uploadCatImage(catId: string, file: File): Promise<string | null> {
         if (!householdId) return null;
 
+        // Validate file before upload
+        const validation = validateFileUpload(file, {
+            allowedTypes: ALLOWED_IMAGE_TYPES,
+            maxSize: MAX_IMAGE_SIZE,
+        });
+        if (!validation.valid) {
+            console.warn('File validation failed:', validation.error);
+            return null;
+        }
+
         // Generate a path: cat-photos/{catId}/{YYYY-MM-DD}/{timestamp}-{filename}
         const dateStr = new Date().toISOString().split('T')[0];
         const timestamp = Date.now();
-        // Clean filename
-        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const cleanName = validation.sanitizedName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
         const path = `cat-photos/${catId}/${dateStr}/${timestamp}-${cleanName}`;
 
         const { data, error } = await supabase.storage
-            .from('cat-images') // Assuming 'cat-images' bucket is available/created. 
-            // If not available, we might need to fallback or user will see error. 
-            // For now, let's assume 'avatars' or a new bucket. 
-            // The prompt "fix-gallery" implied maybe 'avatars' was used for gallery?
-            // Let's use 'cat-images' as planned. If it fails, I'll need to create it or guide user.
+            .from('cat-images')
             .upload(path, file, {
                 cacheControl: '3600',
-                upsert: false
+                upsert: false,
+                contentType: file.type,
             });
 
         if (error) {
@@ -454,7 +465,7 @@ export function useInventory(householdId: string | null) {
         const channel = supabase
             .channel('inventory-changes')
             .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'inventory', filter: `household_id = eq.${householdId} ` },
+                { event: '*', schema: 'public', table: 'inventory', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
                     if (payload.eventType === 'INSERT') {
                         setInventory(prev => [...prev, payload.new as Inventory]);

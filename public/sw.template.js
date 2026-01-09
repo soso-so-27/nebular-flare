@@ -3,7 +3,7 @@
 // NOTE: This file is generated at build time. Do not edit directly.
 
 // Cache versioning - Build hash will be injected
-const CACHE_VERSION = 'b1a00a34';
+const CACHE_VERSION = '__BUILD_HASH__';
 const STATIC_CACHE = `catup-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `catup-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `catup-api-${CACHE_VERSION}`;
@@ -21,7 +21,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
 // Firebase config injected at build time
-const firebaseConfig = {"apiKey":"AIzaSyALDASAVoX6kKGt6I16mMbw-2cqE98Ylrw","authDomain":"catup-notification.firebaseapp.com","projectId":"catup-notification","storageBucket":"catup-notification.firebasestorage.app","messagingSenderId":"712780316086","appId":"1:712780316086:web:66f55c4bcda6ef10865517","measurementId":"G-ZFTDH8TDF8"};
+const firebaseConfig = __FIREBASE_CONFIG__;
 
 firebase.initializeApp(firebaseConfig);
 
