@@ -42,7 +42,7 @@ export function SplashScreen() {
                 {/* Brand Text */}
                 <div className="mt-8 flex flex-col items-center gap-3">
                     <h1 className="text-2xl font-black tracking-wider text-slate-700">
-                        CatUp
+                        Nyaruhodo
                     </h1>
 
                     {/* Loading Dots */}
