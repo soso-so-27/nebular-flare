@@ -176,7 +176,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
         text: 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]',
         textSub: 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
         ringTrack: 'rgba(0,0,0,0.3)',
-        careColor: progress >= 1 ? '#A78BFA' : '#C4B5FD', // Lavender (no green)
+        careColor: progress >= 1 ? '#D09B85' : '#E8B4A0', // Peach (unified)
         obsColor: '#38bdf8',
         iconFill: 'fill-white',
         iconStroke: 'text-white',
@@ -234,7 +234,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         <div className="flex items-center gap-3 pr-2">
                             {/* Icon Circle */}
                             <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center shadow-sm backdrop-blur-md ring-1 ring-white/60">
-                                <Heart className="w-5 h-5 text-[#8B7AAF] drop-shadow-sm fill-white/20" />
+                                <Heart className="w-5 h-5 text-[#E8B4A0] drop-shadow-sm fill-white/20" />
                             </div>
 
                             {/* Percentage (if needed, or just bar) - User asked for "Heart -> 43% -> Bar" */}
@@ -245,7 +245,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                             {/* Progress Bar */}
                             <div className="h-2.5 w-20 bg-black/5 rounded-full overflow-hidden shadow-inner border border-black/5">
                                 <motion.div
-                                    className="h-full bg-gradient-to-r from-[#B8A6D9] to-[#A78BFA] shadow-[0_0_8px_rgba(167,139,250,0.4)]"
+                                    className="h-full bg-gradient-to-r from-[#FFD6C0] to-[#E8B4A0] shadow-[0_0_8px_rgba(232,180,160,0.4)]"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min(progress * 100, 100)}%` }}
                                     transition={{ duration: 1.5, ease: "easeOut" }}
@@ -520,7 +520,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         className={`group relative glass-icon w-14 h-14 flex items-center justify-center ${styles.glassHover}`}
                     >
                         {/* Inner Circle (Inverted for Visibility) */}
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors ring-2 ring-white/60 bg-[#9D8CC2] group-hover:bg-[#8B7AAF]`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors ring-2 ring-white/60 bg-gradient-to-br from-[#E8B4A0] to-[#C08A70] group-hover:from-[#D69E8A] group-hover:to-[#B07A60]`}>
                             <LayoutGrid className={`w-5 h-5 drop-shadow-sm text-white`} />
                         </div>
                     </motion.button>
