@@ -463,150 +463,160 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             )}
 
             {/* Mode: Card (Tinder-style swipe, tilted stack, NO icons) */}
-            {settings.homeViewMode === 'parallax' && (
-                <div className="absolute inset-0 overflow-hidden bg-slate-900">
-                    {/* Background Blur */}
-                    <div className="absolute inset-0">
-                        <AnimatePresence mode="popLayout">
-                            <motion.div
-                                key={activeCatId}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.6 }}
-                                className="absolute inset-0"
-                            >
-                                {displayMedia && (
-                                    isVideo ? (
-                                        <BackgroundVideo
-                                            src={displayMedia}
-                                            className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
-                                        />
-                                    ) : (
-                                        <img
-                                            src={displayMedia}
-                                            className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
-                                            alt=""
-                                            loading="eager"
-                                            decoding="async"
-                                        />
-                                    )
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Card Stack - positioned higher since bottom icons are now horizontal */}
-                    <div
-                        className="absolute left-4 right-4 flex items-center justify-center"
-                        style={{
-                            top: '100px',  /* Reduced from 140px - more card space */
-                            bottom: '80px' /* Reduced from 100px - horizontal icons take less space */
-                        }}
-                    >
-                        {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}
-                        {cats.length > 1 && (
-                            <>
-                                {/* Back card - rotated right */}
-                                <div
-                                    className="absolute inset-0 rounded-2xl bg-slate-600 shadow-lg"
-                                    style={{
-                                        transform: 'rotate(5deg) translateX(15px)',
-                                        transformOrigin: 'center bottom'
-                                    }}
-                                />
-                                {/* Middle card - slightly rotated */}
-                                <div
-                                    className="absolute inset-0 rounded-2xl bg-slate-500 shadow-xl"
-                                    style={{
-                                        transform: 'rotate(2.5deg) translateX(8px)',
-                                        transformOrigin: 'center bottom'
-                                    }}
-                                />
-                            </>
-                        )}
-
-                        {/* Main Card */}
-                        <AnimatePresence initial={false} custom={direction}>
-                            <motion.div
-                                key={activeCatId}
-                                custom={direction}
-                                variants={{
-                                    enter: (d: number) => ({
-                                        x: d > 0 ? 500 : -500, // Cards fly in from further away
-                                        opacity: 0,
-                                        scale: 0.8,
-                                        rotate: d > 0 ? 20 : -20
-                                    }),
-                                    center: {
-                                        x: 0,
-                                        opacity: 1,
-                                        scale: 1,
-                                        rotate: 0,
-                                        transition: { type: "spring", stiffness: 300, damping: 20 }
-                                    },
-                                    exit: (d: number) => ({
-                                        x: d > 0 ? -500 : 500, // Cards fly out further
-                                        opacity: 0,
-                                        scale: 0.8,
-                                        rotate: d > 0 ? -20 : 20,
-                                        transition: { duration: 0.2 }
-                                    })
-                                }}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                drag="x"
-                                dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={0.7} // High elasticity for "throwing" feel
-                                onDragEnd={handleSwipe}
-                                onClick={() => onCatClick?.()}
-                                className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl bg-slate-800 cursor-pointer"
-                                style={{ zIndex: 10 }}
-                            >
-                                {displayMedia ? (
-                                    isVideo ? (
-                                        <BackgroundVideo
-                                            src={displayMedia}
-                                            poster={activeCat?.avatar}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <img
-                                            src={displayMedia}
-                                            className="w-full h-full object-cover"
-                                            alt={activeCat?.name || 'Cat'}
-                                            loading="eager"
-                                            decoding="sync"
-                                        />
-                                    )
-                                ) : (
-                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                        <BrandLoader className="scale-75 opacity-70" />
-                                    </div>
-                                )}
-                                {/* Gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                {/* Cat name + swipe hint */}
-                                <div className="absolute bottom-6 left-6 right-6">
-                                    <h2 className="text-3xl font-bold text-white drop-shadow-lg mb-1">{activeCat?.name}</h2>
-                                    {cats.length > 1 && (
-                                        <p className="text-white/50 text-sm">← スワイプで切り替え →</p>
+            {
+                settings.homeViewMode === 'parallax' && (
+                    <div className="absolute inset-0 overflow-hidden bg-[#FAF9F7] dark:bg-slate-950">
+                        {/* Background Blur */}
+                        <div className="absolute inset-0">
+                            <AnimatePresence mode="popLayout">
+                                <motion.div
+                                    key={activeCatId}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.6 }}
+                                    className="absolute inset-0"
+                                >
+                                    {displayMedia && (
+                                        isVideo ? (
+                                            <BackgroundVideo
+                                                src={displayMedia}
+                                                className="w-full h-full object-cover blur-3xl opacity-30 scale-125"
+                                            />
+                                        ) : (
+                                            <img
+                                                src={displayMedia}
+                                                className="w-full h-full object-cover blur-3xl opacity-30 scale-125"
+                                                alt=""
+                                                loading="eager"
+                                                decoding="async"
+                                            />
+                                        )
                                     )}
-                                </div>
-                            </motion.div>
-                        </AnimatePresence>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Card Stack - positioned higher since bottom icons are now horizontal */}
+                        <div
+                            className="absolute left-4 right-4 flex items-center justify-center"
+                            style={{
+                                top: '100px',  /* Reduced from 140px - more card space */
+                                bottom: '90px' /* Reduced from 100px - horizontal icons take less space */
+                            }}
+                        >
+                            {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}
+                            {cats.length > 1 && (
+                                <>
+                                    {/* Back card - rotated right */}
+                                    <div
+                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-white/50"
+                                        style={{
+                                            transform: 'rotate(6deg) translateX(18px)',
+                                            transformOrigin: 'center bottom',
+                                            opacity: 0.6
+                                        }}
+                                    />
+                                    {/* Middle card - slightly rotated */}
+                                    <div
+                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-700 shadow-xl border border-white/60"
+                                        style={{
+                                            transform: 'rotate(3deg) translateX(9px)',
+                                            transformOrigin: 'center bottom',
+                                            opacity: 0.8
+                                        }}
+                                    />
+                                </>
+                            )}
+
+                            {/* Main Card */}
+                            <AnimatePresence initial={false} custom={direction}>
+                                <motion.div
+                                    key={activeCatId}
+                                    custom={direction}
+                                    variants={{
+                                        enter: (d: number) => ({
+                                            x: d > 0 ? 500 : -500, // Cards fly in from further away
+                                            opacity: 0,
+                                            scale: 0.8,
+                                            rotate: d > 0 ? 20 : -20
+                                        }),
+                                        center: {
+                                            x: 0,
+                                            opacity: 1,
+                                            scale: 1,
+                                            rotate: 0,
+                                            transition: { type: "spring", stiffness: 300, damping: 20 }
+                                        },
+                                        exit: (d: number) => ({
+                                            x: d > 0 ? -500 : 500, // Cards fly out further
+                                            opacity: 0,
+                                            scale: 0.8,
+                                            rotate: d > 0 ? -20 : 20,
+                                            transition: { duration: 0.2 }
+                                        })
+                                    }}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    drag="x"
+                                    dragConstraints={{ left: 0, right: 0 }}
+                                    dragElastic={0.7} // High elasticity for "throwing" feel
+                                    onDragEnd={handleSwipe}
+                                    onClick={() => onCatClick?.()}
+                                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-slate-800 cursor-pointer border-[4px] border-white/30"
+                                    style={{ zIndex: 10 }}
+                                >
+                                    {displayMedia ? (
+                                        isVideo ? (
+                                            <BackgroundVideo
+                                                src={displayMedia}
+                                                poster={activeCat?.avatar}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <img
+                                                src={displayMedia}
+                                                className="w-full h-full object-cover"
+                                                alt={activeCat?.name || 'Cat'}
+                                                loading="eager"
+                                                decoding="sync"
+                                            />
+                                        )
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                            <BrandLoader className="scale-75 opacity-70" />
+                                        </div>
+                                    )}
+                                    {/* Gradient overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                                    {/* Cat name + swipe hint */}
+                                    <div className="absolute bottom-6 left-6 right-6">
+                                        <h2 className="text-3xl font-black text-white drop-shadow-md mb-1">{activeCat?.name}</h2>
+                                        {cats.length > 1 && (
+                                            <div className="flex items-center gap-2 text-white/70 text-sm font-medium">
+                                                <span>←</span>
+                                                <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md">Swipe</span>
+                                                <span>→</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Story Mode Tap Zones (Story Mode Only) */}
-            {settings.homeViewMode === 'story' && (
-                <>
-                    <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex - 1); resetHideTimer(); }} />
-                    <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex + 1); resetHideTimer(); }} />
-                </>
-            )}
+            {
+                settings.homeViewMode === 'story' && (
+                    <>
+                        <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex - 1); resetHideTimer(); }} />
+                        <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex + 1); resetHideTimer(); }} />
+                    </>
+                )
+            }
 
 
 
@@ -621,48 +631,75 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
             />
 
-            {/* Always visible: Story Indicators (If Story Mode) - Changed to Dots */}
-            {settings.homeViewMode === 'story' && (
-                <div className="absolute top-4 left-0 right-0 z-30 flex justify-center gap-2 px-3 pt-3 pointer-events-none">
-                    {cats.map((cat, index) => (
-                        <motion.div
-                            key={cat.id}
-                            initial={false}
-                            animate={{
-                                opacity: index === currentIndex ? 1 : 0.4,
-                                scale: index === currentIndex ? 1.2 : 1,
-                                backgroundColor: "#FFF"
-                            }}
-                            className="w-2 h-2 rounded-full bg-white shadow-[0_0_4px_rgba(0,0,0,0.3)] backdrop-blur-sm"
-                            transition={{ duration: 0.3 }}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
+            {
+                settings.homeViewMode === 'story' && (
+                    <div className="absolute top-4 left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pt-3 pointer-events-auto">
+                        {/* Glass pill container */}
+                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-light">
+                            {cats.map((cat, index) => (
+                                <motion.button
+                                    key={cat.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        goToCat(index);
+                                    }}
+                                    initial={false}
+                                    animate={{
+                                        scale: index === currentIndex ? 1.15 : 0.9,
+                                        opacity: index === currentIndex ? 1 : 0.6,
+                                    }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all ${index === currentIndex
+                                        ? 'w-8 h-8 ring-2 ring-white shadow-lg'
+                                        : 'w-6 h-6 hover:opacity-100 hover:scale-100'
+                                        }`}
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                >
+                                    {cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/') ? (
+                                        <img
+                                            src={cat.avatar}
+                                            className="w-full h-full object-cover"
+                                            alt={cat.name}
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center text-sm">
+                                            {cat.avatar || '🐈'}
+                                        </div>
+                                    )}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+                )
+            }
 
             {/* Always visible: Floating Avatars (If Icon Mode) */}
-            {settings.homeViewMode === 'icon' && (
-                <div
-                    className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
-                >
-                    {cats.map((cat, index) => (
-                        <motion.button
-                            key={cat.id}
-                            onClick={() => setActiveCatId(cat.id)}
-                            animate={{
-                                scale: index === currentIndex ? 1.3 : 1,
-                                y: index === currentIndex ? -10 : 0
-                            }}
-                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
-                                ? 'border-white ring-4 ring-white/30'
-                                : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
-                                }`}
-                        >
-                            <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
-                        </motion.button>
-                    ))}
-                </div>
-            )}
+            {
+                settings.homeViewMode === 'icon' && (
+                    <div
+                        className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
+                    >
+                        {cats.map((cat, index) => (
+                            <motion.button
+                                key={cat.id}
+                                onClick={() => setActiveCatId(cat.id)}
+                                animate={{
+                                    scale: index === currentIndex ? 1.3 : 1,
+                                    y: index === currentIndex ? -10 : 0
+                                }}
+                                className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
+                                    ? 'border-white ring-4 ring-white/30'
+                                    : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
+                                    }`}
+                            >
+                                <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
+                            </motion.button>
+                        ))}
+                    </div>
+                )
+            }
 
             {/* Pickup Modal - Self-contained AnimatePresence */}
             <BubblePickupList
@@ -670,6 +707,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 onClose={() => setShowPickup(false)}
             />
 
-        </div>
+        </div >
     );
 }
