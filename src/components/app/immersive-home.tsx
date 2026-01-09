@@ -511,11 +511,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                     {/* Back card (Furthest) - rotated right */}
                                     {cats.length > 2 && (
                                         <div
-                                            className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-white/50 overflow-hidden"
+                                            className="absolute inset-0 rounded-3xl glass-panel overflow-hidden"
                                             style={{
                                                 transform: 'rotate(6deg) translateX(18px)',
                                                 transformOrigin: 'center bottom',
-                                                opacity: 0.6
+                                                opacity: 0.6,
+                                                zIndex: 0
                                             }}
                                         >
                                             {/* Show next-next cat if available */}
@@ -523,10 +524,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                                 <div className="w-full h-full relative">
                                                     <img
                                                         src={cats[(currentIndex + 2) % cats.length].avatar || ''}
-                                                        className="w-full h-full object-cover blur-[2px] opacity-60"
+                                                        className="w-full h-full object-cover blur-[4px] opacity-80"
                                                         alt=""
                                                     />
-                                                    <div className="absolute inset-0 bg-white/40 dark:bg-black/40" />
+                                                    <div className="absolute inset-0 bg-white/10 dark:bg-black/20" />
                                                 </div>
                                             )}
                                         </div>
@@ -534,11 +535,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
                                     {/* Middle card (Closest to back) - slightly rotated */}
                                     <div
-                                        className="absolute inset-0 rounded-3xl bg-white dark:bg-slate-700 shadow-xl border border-white/60 overflow-hidden"
+                                        className="absolute inset-0 rounded-3xl glass-panel overflow-hidden"
                                         style={{
                                             transform: 'rotate(3deg) translateX(9px)',
                                             transformOrigin: 'center bottom',
-                                            opacity: 0.8
+                                            opacity: 0.8,
+                                            zIndex: 5
                                         }}
                                     >
                                         {/* Show next cat */}
@@ -546,10 +548,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                             <div className="w-full h-full relative">
                                                 <img
                                                     src={cats[(currentIndex + 1) % cats.length].avatar || ''}
-                                                    className="w-full h-full object-cover blur-[1px] opacity-70"
+                                                    className="w-full h-full object-cover blur-[2px] opacity-90"
                                                     alt=""
                                                 />
-                                                <div className="absolute inset-0 bg-white/30 dark:bg-black/30" />
+                                                <div className="absolute inset-0 bg-white/5 dark:bg-black/10" />
                                             </div>
                                         )}
                                     </div>
@@ -566,14 +568,19 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                             x: d > 0 ? 500 : -500, // Cards fly in from further away
                                             opacity: 0,
                                             scale: 0.8,
-                                            rotate: d > 0 ? 20 : -20
+                                            rotate: d > 0 ? 20 : -20,
+                                            y: 0
                                         }),
                                         center: {
                                             x: 0,
                                             opacity: 1,
                                             scale: 1,
                                             rotate: 0,
-                                            transition: { type: "spring", stiffness: 300, damping: 20 }
+                                            y: [0, -8, 0], // Breathing Floating Animation
+                                            transition: {
+                                                y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                                                default: { type: "spring", stiffness: 300, damping: 20 }
+                                            }
                                         },
                                         exit: (d: number) => ({
                                             x: d > 0 ? -500 : 500, // Cards fly out further
@@ -591,7 +598,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                                     dragElastic={0.7} // High elasticity for "throwing" feel
                                     onDragEnd={handleSwipe}
                                     onClick={() => onCatClick?.()}
-                                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-slate-800 cursor-pointer border-[4px] border-white/30"
+                                    className="absolute inset-0 rounded-3xl overflow-hidden glass-panel cursor-pointer"
                                     style={{ zIndex: 10 }}
                                 >
                                     {displayMedia ? (
@@ -663,7 +670,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 settings.homeViewMode === 'story' && (
                     <div className="absolute bottom-[100px] left-0 right-0 z-30 flex justify-center items-center gap-1.5 px-3 pointer-events-auto">
                         {/* Glass pill container */}
-                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-light backdrop-blur-md shadow-lg">
+                        <div className="flex items-center gap-1 px-2 py-1.5 rounded-full glass-panel">
                             {cats.map((cat, index) => (
                                 <motion.button
                                     key={cat.id}

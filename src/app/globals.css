@@ -124,6 +124,13 @@
   --sidebar-accent-foreground: oklch(0.28 0.015 45);
   --sidebar-border: oklch(0.91 0.012 70);
   --sidebar-ring: var(--sage);
+
+  /* Rive-like Liquid Glass System (Light) */
+  --glass-surface: rgba(255, 255, 255, 0.40);
+  --glass-highlight: rgba(255, 255, 255, 0.65);
+  --glass-shadow-floating:
+    0 10px 40px -10px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
 }
 
 .dark {
@@ -143,6 +150,13 @@
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
   --popover: rgba(25, 25, 30, 0.92);
   --popover-foreground: oklch(0.94 0.01 80);
+
+  /* Rive-like Liquid Glass System (Dark) */
+  --glass-surface: rgba(30, 30, 35, 0.60);
+  --glass-highlight: rgba(255, 255, 255, 0.15);
+  --glass-shadow-floating:
+    0 10px 40px -10px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
 
   /* Primary = Sage */
   --primary: var(--sage);
@@ -180,6 +194,44 @@
   --sidebar-accent-foreground: oklch(0.90 0.01 80);
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: var(--sage);
+}
+
+/*
+  === Rive-like Liquid Glass Utilities ===
+  Enhanced blur, saturation, and fluid variables
+*/
+.glass-panel {
+  isolation: isolate;
+  background-color: var(--glass-surface);
+  backdrop-filter: blur(24px) saturate(1.8);
+  /* Thick, premium glass */
+  box-shadow: var(--glass-shadow-floating);
+  background-image: linear-gradient(120deg, var(--glass-highlight) 0%, transparent 40%, transparent 100%);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-panel:hover {
+  backdrop-filter: blur(28px) saturate(2);
+  transform: translateY(-2px);
+  box-shadow:
+    0 20px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  /* brightness up */
+}
+
+/* Icon button with specularity */
+.glass-icon {
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px) saturate(1.5);
+  box-shadow: var(--glass-shadow-floating);
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Bouncy */
+}
+
+.glass-icon:active {
+  transform: scale(0.92);
+  backdrop-filter: blur(12px);
 }
 
 @layer base {
