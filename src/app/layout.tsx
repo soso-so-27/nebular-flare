@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 import { PwaRegister } from "@/components/pwa-register";
 
 export const metadata: Metadata = {
-  title: "CatUp - 家族で猫のお世話を共有",
-  description: "家族みんなで猫のお世話を記録・共有。誰が何をしたか一目でわかる。",
-  manifest: "/manifest.json?v=3",
+  title: "にゃるほど - 猫のいる暮らしに、余裕と楽しさを",
+  description: "猫のいる暮らしに、余裕と楽しさを。家族みんなで猫のお世話を記録・共有。",
+  manifest: "/manifest.json?v=4",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "CatUp",
+    title: "にゃるほど",
   },
   formatDetection: {
     telephone: false,
