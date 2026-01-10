@@ -205,8 +205,8 @@ serve(async (req) => {
             };
             const typeLabel = typeLabels[record.type] || record.type;
 
-            notificationTitle = `⚠️ ${catName}の気付き: ${typeLabel}`;
-            notificationBody = `${actorName}が気付きを記録しました。「${record.note || '詳細なし'}」`;
+            notificationTitle = `⚠️ ${catName}: ${typeLabel}`;
+            notificationBody = record.note ? `${actorName}より「${record.note}」` : `${actorName}が記録しました`;
 
             targetUserIds = users.filter((u: any) => {
                 const prefs = u.notification_preferences || {};
@@ -223,8 +223,8 @@ serve(async (req) => {
             const actor = users.find((u: any) => u.id === actorId);
             const actorName = actor?.display_name || "家族";
 
-            notificationTitle = `📸 ${catName}の今日の一枚`;
-            notificationBody = `${actorName}が新しい写真を投稿しました！`;
+            notificationTitle = `📸 ${catName}の新しい写真が届きました`;
+            notificationBody = record.memo ? `${actorName}「${record.memo}」` : `${actorName}より 💕 今すぐチェック！`;
 
             targetUserIds = users.filter((u: any) => {
                 const prefs = u.notification_preferences || {};
@@ -250,8 +250,8 @@ serve(async (req) => {
 
             if (isPhoto) {
                 // CASE A1: Photo posted (Daily Snap)
-                notificationTitle = `📷 ${actorName}が${catName}の写真を投稿しました`;
-                notificationBody = `今日の一枚が届きました！チェックしてみましょう。`;
+                notificationTitle = `📷 ${catName}の可愛い瞬間が届きました`;
+                notificationBody = `${actorName}より 🐾 今すぐ見てみよう！`;
 
                 targetUserIds = users.filter((u: any) => {
                     const prefs = u.notification_preferences || {};
@@ -262,8 +262,8 @@ serve(async (req) => {
                 }).map((u: any) => u.id);
             } else if (isAbnormal) {
                 // CASE A2: Abnormal observation (existing logic)
-                notificationTitle = `${catName}に気になる変化があります`;
-                notificationBody = `「${record.value}」が記録されました。確認してください。`;
+                notificationTitle = `⚠️ ${catName}: ${record.value}`;
+                notificationBody = `${actorName}が記録しました。様子を確認してあげてください`;
 
                 targetUserIds = users.filter((u: any) => {
                     const prefs = u.notification_preferences || {};
@@ -285,8 +285,8 @@ serve(async (req) => {
             const actor = users.find((u: any) => u.id === actorId);
             const actorName = actor?.display_name || "家族";
 
-            notificationTitle = `${actorName}が${actionName}を完了しました`;
-            notificationBody = "お世話ありがとうございます！";
+            notificationTitle = `✅ ${actionName}完了`;
+            notificationBody = `${actorName}が記録しました 🐾`;
 
             targetUserIds = users.filter((u: any) => {
                 const prefs = u.notification_preferences || {};
@@ -304,8 +304,8 @@ serve(async (req) => {
             const oldLevel = old_record?.stock_level;
 
             if ((newLevel === 'low' || newLevel === 'empty') && newLevel !== oldLevel) {
-                notificationTitle = `${record.label}が少なくなっています`;
-                notificationBody = `補充のタイミングかもしれません。`;
+                notificationTitle = `🛒 ${record.label}`;
+                notificationBody = newLevel === 'empty' ? '在庫切れです！補充してください' : 'そろそろ補充タイミングです';
 
                 targetUserIds = users.filter((u: any) => {
                     const prefs = u.notification_preferences || {};
