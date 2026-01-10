@@ -3,7 +3,7 @@
 // NOTE: This file is generated at build time. Do not edit directly.
 
 // Cache versioning - Build hash will be injected
-const CACHE_VERSION = '8357533a';
+const CACHE_VERSION = 'abe33c5b';
 const STATIC_CACHE = `catup-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `catup-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `catup-api-${CACHE_VERSION}`;
@@ -28,7 +28,7 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('[sw.js] Received background message', payload);
+    console.log('[sw.js] onBackgroundMessage received:', JSON.stringify(payload));
 
     // Read from data payload (data-only message from Edge Function)
     const data = payload.data || {};
@@ -40,8 +40,43 @@ messaging.onBackgroundMessage((payload) => {
         body: notificationBody,
         icon: notificationIcon,
         badge: '/icon.svg',
+        tag: 'catup-notification-' + Date.now(),
+        renotify: true,
     };
+
+    console.log('[sw.js] Showing notification:', notificationTitle, notificationOptions);
     self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Fallback push handler (in case Firebase SDK doesn't catch it)
+self.addEventListener('push', (event) => {
+    console.log('[sw.js] Push event received:', event);
+
+    // If Firebase SDK handled it, this might be a duplicate
+    // Check if payload exists
+    if (event.data) {
+        try {
+            const payload = event.data.json();
+            console.log('[sw.js] Push payload:', JSON.stringify(payload));
+
+            // Only show if notification field exists and Firebase didn't auto-show
+            if (payload.notification) {
+                const title = payload.notification.title || 'CatUp';
+                const body = payload.notification.body || '';
+
+                event.waitUntil(
+                    self.registration.showNotification(title, {
+                        body: body,
+                        icon: '/icon.svg',
+                        badge: '/icon.svg',
+                        tag: 'catup-push-' + Date.now(),
+                    })
+                );
+            }
+        } catch (e) {
+            console.log('[sw.js] Push data parse error:', e);
+        }
+    }
 });
 
 
