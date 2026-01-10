@@ -76,7 +76,7 @@ export function NotificationSettings() {
         toggleOff: 'bg-[#E8E4D9]',
         orange: { bg: 'bg-[#FFF4F0]', text: 'text-[#FF9F88]', highlight: 'bg-[#FF9F88]' },
         blue: { bg: 'bg-[#F0F8FF]', text: 'text-[#88C6FF]', highlight: 'bg-[#88C6FF]' },
-        yellow: { bg: 'bg-[#FFFDF0]', text: 'text-[#FFCC4D]', highlight: 'bg-[#FFCC4D]' },
+        lavender: { bg: 'bg-[#FDF4FF]', text: 'text-[#D0A4FF]', highlight: 'bg-[#D0A4FF]' }, // Lavender for Attention
         green: { bg: 'bg-[#F0F7F4]', text: 'text-[#7CAA8E]', highlight: 'bg-[#7CAA8E]' },
     };
 
@@ -147,7 +147,7 @@ export function NotificationSettings() {
                             {/* Inventory Alert */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
-                                    <div className={`mt-0.5 p-2 ${colors.yellow.bg} rounded-xl ${colors.yellow.text}`}>
+                                    <div className={`mt-0.5 p-2 ${colors.lavender.bg} rounded-xl ${colors.lavender.text}`}>
                                         <Package className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
@@ -157,7 +157,7 @@ export function NotificationSettings() {
                                 </div>
                                 <button
                                     onClick={() => handleToggle('inventory_alert')}
-                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.inventory_alert !== false ? colors.yellow.highlight + ' shadow-md' : colors.toggleOff}`}
+                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.inventory_alert !== false ? colors.lavender.highlight + ' shadow-md' : colors.toggleOff}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
                                 </button>
