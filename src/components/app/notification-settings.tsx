@@ -184,7 +184,7 @@ export function NotificationSettings() {
                         </div>
 
                         <div className={`pt-4 border-t ${colors.cardBorder}`}>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between mb-4">
                                 <div className="space-y-0.5">
                                     <span className={`text-sm font-bold ${colors.text}`}>通知時間</span>
                                     <p className={`text-xs ${colors.subText}`}>毎日この時間にお知らせ</p>
@@ -199,6 +199,35 @@ export function NotificationSettings() {
                                     <option value={20}>夜 20:00</option>
                                 </select>
                             </div>
+
+                            {/* Test Button */}
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        toast.loading('テスト通知を送信中...');
+                                        const { data: { user } } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
+                                        if (!user) throw new Error('ユーザーが見つかりません');
+
+                                        const { error } = await import('@/lib/supabase').then(m => m.supabase.functions.invoke('push-notification', {
+                                            body: {
+                                                type: 'TEST',
+                                                record: { created_by: user.id } // Simulate record
+                                            }
+                                        }));
+
+                                        if (error) throw error;
+                                        toast.dismiss();
+                                        toast.success('送信しました！通知が届くか確認してください');
+                                    } catch (e: any) {
+                                        toast.dismiss();
+                                        toast.error('テスト送信に失敗しました: ' + e.message);
+                                    }
+                                }}
+                                className={`w-full py-2 ${colors.bg} ${colors.subText} rounded-xl text-xs font-bold border ${colors.cardBorder} hover:bg-stone-100 transition-colors flex items-center justify-center gap-2`}
+                            >
+                                <Bell className="w-3 h-3" />
+                                <span>テスト通知を送る</span>
+                            </button>
                         </div>
                     </div>
                 )}
