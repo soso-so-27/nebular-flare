@@ -113,7 +113,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                                     onClick={() => setSelectedCatId(cat.id)}
                                     className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${selectedCatId === cat.id ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
                                 >
-                                    <div className={`relative rounded-full transition-all shadow-sm ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-transparent shadow-md' : 'grayscale-[0.5]'}`}>
+                                    <div className={`relative rounded-full transition-all shadow-sm ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7] shadow-md' : 'grayscale-[0.5]'}`}>
                                         <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
                                     </div>
                                     <span className={`text-[10px] font-bold tracking-wide transition-colors ${selectedCatId === cat.id ? 'text-[#D09B85]' : 'text-slate-400'}`}>
