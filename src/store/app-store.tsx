@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
+import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
 import { createClient } from '@/lib/supabase';
 import { toast } from "sonner";
 
@@ -1074,27 +1075,22 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     };
 
     const uploadCatImage = async (catId: string, file: File, memo?: string, skipRefetch = false) => {
-        if (isDemo) return { error: null }; // Mock success
+        if (isDemo) return { error: null };
 
         try {
-            // 1. Upload to Storage
-            const ext = file.name.split('.').pop();
-            const fileName = `${catId}/${crypto.randomUUID()}.${ext}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(fileName, file);
+            // 1. Upload to Storage using shared utility
+            // This handles validation, path generation, and bucket selection (cat-images)
+            const { publicUrl, storagePath, error: uploadError } = await uploadCatImageToStorage(catId, file);
 
-            if (uploadError) throw uploadError;
+            if (uploadError) throw new Error(uploadError);
+            if (!publicUrl || !storagePath) throw new Error("Upload failed: No URL returned");
 
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-
-            // 3. Insert into DB
+            // 2. Insert into DB
             const { data: dbData, error: dbError } = await supabase
                 .from('cat_images')
                 .insert({
                     cat_id: catId,
-                    storage_path: fileName,
+                    storage_path: storagePath,
                     memo: memo
                 })
                 .select()
@@ -1111,7 +1107,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 }
             });
 
-            // 4. Update Cat Avatar if it's currently default
+            // 3. Update Cat Avatar if it's currently default
             const currentCat = cats.find(c => c.id === catId);
             const isDefaultAvatar = currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar);
 
@@ -1119,18 +1115,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 await supabase.from('cats').update({ avatar: publicUrl }).eq('id', catId);
             }
 
-            // 5. Refresh cats to update UI
-            if (!skipRefetch && !isDefaultAvatar) {
-                // Only refetch if not skipping AND not already updating avatar (avatar update triggers realtime)
-                refetchCats();
-            } else if (isDefaultAvatar) {
-                // If we updated avatar, realtime handles it? 
-                // Wait, realtime "cats" table update triggers fetchCats(). 
-                // So we can skip manual refetch even if skipRefetch is false.
-                // But let's be safe. If skipRefetch is true, we assume caller handles it.
-            }
-
-            // Simplified logic:
+            // 4. Refresh cats to update UI
             if (!skipRefetch) {
                 refetchCats();
             }
@@ -1139,7 +1124,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
         } catch (e: any) {
             console.error(e);
-            return { error: e.message };
+            return { error: e.message || e.toString() };
         }
     };
 

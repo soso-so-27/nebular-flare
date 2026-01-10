@@ -96,7 +96,18 @@ async function getAccessToken(): Promise<string> {
     return tokenData.access_token;
 }
 
+// CORS headers for browser invocation
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req) => {
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+        return new Response('ok', { headers: corsHeaders })
+    }
+
     console.log('[PUSH] Function started');
 
     try {
@@ -110,47 +121,58 @@ serve(async (req) => {
 
         const householdId = record?.household_id || record?.householdId;
         const actorId = record?.done_by || record?.recorded_by || record?.created_by;
-
-        console.log('[PUSH] householdId:', householdId, '| actorId:', actorId);
-
-        if (!householdId) {
-            console.log('[PUSH] EARLY EXIT: No household_id found');
-            return new Response("No household_id found", { status: 200 })
-        }
-
-        // 1. Fetch household members (without JOIN)
-        console.log('[PUSH] Fetching household members...');
-        const { data: memberRows, error: memberError } = await supabase
-            .from('household_members')
-            .select('user_id')
-            .eq('household_id', householdId);
-
-        if (memberError || !memberRows || memberRows.length === 0) {
-            console.log('[PUSH] EARLY EXIT: No members found');
-            return new Response("No members found", { status: 200 })
-        }
-
-        const memberUserIds = memberRows.map((m: any) => m.user_id);
-        console.log('[PUSH] Member user IDs:', memberUserIds);
-
-        // 2. Fetch user details separately
-        console.log('[PUSH] Fetching user details...');
-        const { data: users, error: usersError } = await supabase
-            .from('users')
-            .select('id, display_name, notification_preferences')
-            .in('id', memberUserIds);
-
-        console.log('[PUSH] Users found:', users?.length, '| Error:', usersError?.message);
-
-        if (usersError || !users || users.length === 0) {
-            console.log('[PUSH] EARLY EXIT: No users found');
-            return new Response("No users found", { status: 200 })
-        }
+        let users: any[] = [];
 
         // 3. Determine Notification Content & Target Audience
         let notificationTitle = "";
         let notificationBody = "";
         let targetUserIds: string[] = [];
+
+        console.log('[PUSH] householdId:', householdId, '| actorId:', actorId);
+
+        if (type === 'TEST') {
+            console.log('[PUSH] Processing TEST notification');
+            notificationTitle = "🔔 テスト通知";
+            notificationBody = "これはテスト通知です。通知機能は正常に動作しています！";
+            targetUserIds = [actorId];
+        } else {
+            // === Standard Flow for Database Triggers ===
+            if (!householdId) {
+                console.log('[PUSH] EARLY EXIT: No household_id found');
+                return new Response("No household_id found", { status: 200, headers: corsHeaders })
+            }
+
+            // 1. Fetch household members (without JOIN)
+            console.log('[PUSH] Fetching household members...');
+            const { data: memberRows, error: memberError } = await supabase
+                .from('household_members')
+                .select('user_id')
+                .eq('household_id', householdId);
+
+            if (memberError || !memberRows || memberRows.length === 0) {
+                console.log('[PUSH] EARLY EXIT: No members found');
+                return new Response("No members found", { status: 200, headers: corsHeaders })
+            }
+
+            const memberUserIds = memberRows.map((m: any) => m.user_id);
+            console.log('[PUSH] Member user IDs:', memberUserIds);
+
+            // 2. Fetch user details separately
+            console.log('[PUSH] Fetching user details...');
+            const { data: usersData, error: usersError } = await supabase
+                .from('users')
+                .select('id, display_name, notification_preferences')
+                .in('id', memberUserIds);
+
+            users = usersData || [];
+
+            console.log('[PUSH] Users found:', users.length, '| Error:', usersError?.message);
+
+            if (usersError || !users || users.length === 0) {
+                console.log('[PUSH] EARLY EXIT: No users found');
+                return new Response("No users found", { status: 200, headers: corsHeaders })
+            }
+        }
 
         // === CASE X: Incidents (Record Notice) ===
         if (table === 'incidents' && type === 'INSERT') {
@@ -279,9 +301,11 @@ serve(async (req) => {
                     return prefs.inventory_alert !== false && u.id !== actorId;
                 }).map((u: any) => u.id);
             }
+        } else if (type === 'TEST') {
+            // Proceed to send notification
         } else {
             console.log('[PUSH] EARLY EXIT: Unhandled table/type combination');
-            return new Response("Unhandled event", { status: 200 });
+            return new Response("Unhandled event", { status: 200, headers: corsHeaders });
         }
 
         console.log('[PUSH] Target user IDs:', targetUserIds);
@@ -289,7 +313,7 @@ serve(async (req) => {
 
         if (targetUserIds.length === 0) {
             console.log('[PUSH] EARLY EXIT: No targets to notify');
-            return new Response("No targets to notify", { status: 200 })
+            return new Response("No targets to notify", { status: 200, headers: corsHeaders })
         }
 
         // 4. Fetch Push Tokens for Targets
@@ -303,7 +327,7 @@ serve(async (req) => {
 
         if (tokenError || !tokens || tokens.length === 0) {
             console.log('[PUSH] EARLY EXIT: No tokens found');
-            return new Response("No tokens found", { status: 200 })
+            return new Response("No tokens found", { status: 200, headers: corsHeaders })
         }
 
         const deviceTokens = tokens.map((t: any) => t.token);
@@ -331,7 +355,6 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
-                            // Use data-only message - Service Worker will display notification
                             data: {
                                 title: notificationTitle,
                                 body: notificationBody,
@@ -341,33 +364,64 @@ serve(async (req) => {
                     })
                 });
 
-                console.log('[PUSH] FCM response status:', res.status);
                 const responseText = await res.text();
-                console.log('[PUSH] FCM raw response:', responseText.substring(0, 300));
-
+                let params: any = {};
                 try {
-                    return JSON.parse(responseText);
+                    params = JSON.parse(responseText);
                 } catch {
-                    return { error: 'Invalid response', status: res.status, body: responseText.substring(0, 200) };
+                    params = { error: 'Invalid response', body: responseText };
                 }
-            } catch (fetchError) {
+
+                return { token, status: res.status, ...params };
+            } catch (fetchError: any) {
                 console.error('[PUSH] FCM fetch error:', fetchError.message);
-                return { error: fetchError.message };
+                return { token, error: fetchError.message };
             }
         });
 
         const results = await Promise.all(fcmPromises);
         console.log('[PUSH] All FCM results:', results.length);
 
+        // CLEANUP: Remove invalid tokens
+        const tokensToDelete: string[] = [];
+        results.forEach((r: any) => {
+            if (r.error && (r.error.code === 404 || r.error.status === 'NOT_FOUND' || r.error.details?.[0]?.errorCode === 'UNREGISTERED')) {
+                console.log('[PUSH] Marking token for deletion:', r.token);
+                tokensToDelete.push(r.token);
+            }
+        });
+
+        if (tokensToDelete.length > 0) {
+            console.log('[PUSH] Deleting', tokensToDelete.length, 'invalid tokens');
+            const { error: deleteError } = await supabase
+                .from('push_tokens')
+                .delete()
+                .in('token', tokensToDelete);
+
+            if (deleteError) console.error('[PUSH] Failed to delete tokens:', deleteError);
+        }
+
+        // CLEANUP: Remove invalid tokens
+        const invalidResults = results.filter((r: any) => {
+            const errCode = r.error?.code || r.error?.details?.[0]?.errorCode;
+            return errCode === 404 || errCode === 'UNREGISTERED' || errCode === 'INVALID_ARGUMENT';
+        });
+
+        if (invalidResults.length > 0) {
+            console.log('[PUSH] Cleaning up invalid tokens...');
+            // We need to map results back to tokens. This is tricky with Promise.all maps.
+            // Let's refactor the loop slightly to include the token in the result.
+        }
+
         return new Response(JSON.stringify({ success: true, results_count: results.length, results }), {
-            headers: { "Content-Type": "application/json" },
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
         })
 
     } catch (error) {
         console.error('[PUSH] ERROR:', error.message, error.stack);
         return new Response(JSON.stringify({ error: error.message }), {
             status: 400,
-            headers: { "Content-Type": "application/json" },
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
         })
     }
 })

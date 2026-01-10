@@ -73,9 +73,9 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
             toast.success("写真を保存しました");
             handleClose();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            toast.error("保存に失敗しました");
+            toast.error("保存に失敗しました: " + (e.message || e.toString()));
         } finally {
             setLoading(false);
         }
