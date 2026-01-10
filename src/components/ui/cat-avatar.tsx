@@ -32,24 +32,22 @@ export function CatAvatar({ src, alt, className, size = "md" }: CatAvatarProps) 
     };
 
     return (
-        <Avatar className={cn(sizeClasses[size], "bg-slate-100 items-center justify-center", className)}>
+        <div className={cn("relative flex shrink-0 overflow-hidden rounded-full bg-slate-100 items-center justify-center", sizeClasses[size], className)}>
             {isUrl ? (
-                <AvatarImage src={src} alt={alt} className="object-cover" />
+                <img
+                    src={src}
+                    alt={alt}
+                    className="aspect-square h-full w-full object-cover"
+                    onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                />
             ) : null}
-            <AvatarFallback className="bg-transparent">
-                {/* If it's a known default emoji or transparent/null, show the Icon */}
-                {(!src || src === "🐈") ? (
-                    <Cat className={cn(iconSizes[size], "text-slate-400")} />
-                ) : (
-                    // If user set a specific emoji that isn't the default, display it? 
-                    // Or enforcing the icon? User said "remove emojis". 
-                    // Let's stick to showing the generic icon for now to be safe with "remove emojis".
-                    // But if it's '🐈‍⬛', maybe they want that? 
-                    // Strategy: If it looks like an emoji, try to show the icon, unless we modify the store.
-                    // For now, let's treat ALMOST EVERYTHING as the icon fallback unless it's an image URL.
-                    <Cat className={cn(iconSizes[size], "text-slate-400")} />
-                )}
-            </AvatarFallback>
-        </Avatar>
+
+            <div className={cn("flex flex-col items-center justify-center absolute inset-0 text-slate-400", isUrl ? "hidden" : "")}>
+                <Cat className={iconSizes[size]} />
+            </div>
+        </div>
     );
 }
