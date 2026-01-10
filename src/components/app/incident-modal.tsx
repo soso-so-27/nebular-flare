@@ -90,15 +90,15 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl rounded-[32px] p-0 gap-0">
                 <DialogHeader className="px-6 pt-6 pb-2">
                     <DialogTitle className="text-xl font-bold text-slate-800">気付きを記録</DialogTitle>
-                    <DialogDescription className="text-slate-500 text-xs">
+                    <div className="text-slate-500 text-xs">
                         気になる体調や様子を記録します
-                    </DialogDescription>
+                    </div>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-6 px-6 py-4">
                     {/* Cat Selection - Horizontal Scroll with Bounce */}
                     <div className="flex flex-col gap-2">
-                        <Label className="text-slate-600 text-xs font-bold pl-1">誰の記録？</Label>
+                        <Label className="text-slate-600 text-xs font-bold pl-1">モデルは誰？</Label>
                         <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
                             {cats.map(cat => (
                                 <button
