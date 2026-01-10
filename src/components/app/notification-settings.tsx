@@ -66,7 +66,7 @@ export function NotificationSettings() {
         updatePreference(key, !preferences[key]);
     };
 
-    // Nyaruhodo Theme Colors
+    // Nyaruhodo Theme Colors - ONLY core palette
     const colors = {
         bg: 'bg-[#FAF9F7]', // Warm White
         text: 'text-[#4A4036]', // Mocha
@@ -74,19 +74,18 @@ export function NotificationSettings() {
         cardBg: 'bg-white/80',
         cardBorder: 'border-[#E8E4D9]',
         toggleOff: 'bg-[#E8E4D9]',
-        orange: { bg: 'bg-[#FFF4F0]', text: 'text-[#FF9F88]', highlight: 'bg-[#FF9F88]' },
-        blue: { bg: 'bg-[#F0F8FF]', text: 'text-[#88C6FF]', highlight: 'bg-[#88C6FF]' },
-        lavender: { bg: 'bg-[#FDF4FF]', text: 'text-[#D0A4FF]', highlight: 'bg-[#D0A4FF]' }, // Lavender for Attention
-        green: { bg: 'bg-[#F0F7F4]', text: 'text-[#7CAA8E]', highlight: 'bg-[#7CAA8E]' },
+        // Core accent colors only
+        peach: { bg: 'bg-[#FCE8E0]', text: 'text-[#E8B4A0]', highlight: 'bg-[#E8B4A0]' },
+        sage: { bg: 'bg-[#E8F0EB]', text: 'text-[#7CAA8E]', highlight: 'bg-[#7CAA8E]' },
     };
 
     if (permission === 'granted') {
         return (
             <div className="space-y-4">
-                {/* Status Card - Nyaruhodo Style */}
-                <div className={`p-4 ${colors.green.bg} rounded-2xl border border-white/50 flex items-center justify-between`}>
+                {/* Status Card - Sage (success state) */}
+                <div className={`p-4 ${colors.sage.bg} rounded-2xl border border-white/50 flex items-center justify-between`}>
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 bg-white rounded-full ${colors.green.text} shadow-sm`}>
+                        <div className={`p-2 bg-white rounded-full ${colors.sage.text} shadow-sm`}>
                             <Bell className="w-5 h-5" />
                         </div>
                         <div>
@@ -109,7 +108,7 @@ export function NotificationSettings() {
                             {/* Physical Condition / Notice */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
-                                    <div className={`mt-0.5 p-2 ${colors.orange.bg} rounded-xl ${colors.orange.text}`}>
+                                    <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
                                         <AlertTriangle className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
@@ -119,7 +118,7 @@ export function NotificationSettings() {
                                 </div>
                                 <button
                                     onClick={() => handleToggle('health_alert')}
-                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.health_alert ? colors.orange.highlight + ' shadow-md' : colors.toggleOff}`}
+                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.health_alert ? colors.peach.highlight + ' shadow-md' : colors.toggleOff}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
                                 </button>
@@ -128,7 +127,7 @@ export function NotificationSettings() {
                             {/* Today's Photo */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
-                                    <div className={`mt-0.5 p-2 ${colors.blue.bg} rounded-xl ${colors.blue.text}`}>
+                                    <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
                                         <Camera className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
@@ -138,7 +137,7 @@ export function NotificationSettings() {
                                 </div>
                                 <button
                                     onClick={() => handleToggle('photo_alert')}
-                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.photo_alert !== false ? colors.blue.highlight + ' shadow-md' : colors.toggleOff}`}
+                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.photo_alert !== false ? colors.peach.highlight + ' shadow-md' : colors.toggleOff}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.photo_alert !== false ? 'left-6' : 'left-1'}`} />
                                 </button>
@@ -147,7 +146,7 @@ export function NotificationSettings() {
                             {/* Inventory Alert */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
-                                    <div className={`mt-0.5 p-2 ${colors.lavender.bg} rounded-xl ${colors.lavender.text}`}>
+                                    <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
                                         <Package className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
@@ -157,7 +156,7 @@ export function NotificationSettings() {
                                 </div>
                                 <button
                                     onClick={() => handleToggle('inventory_alert')}
-                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.inventory_alert !== false ? colors.lavender.highlight + ' shadow-md' : colors.toggleOff}`}
+                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.inventory_alert !== false ? colors.peach.highlight + ' shadow-md' : colors.toggleOff}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
                                 </button>
@@ -166,7 +165,7 @@ export function NotificationSettings() {
                             {/* Care Reminder */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
-                                    <div className={`mt-0.5 p-2 ${colors.green.bg} rounded-xl ${colors.green.text}`}>
+                                    <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
                                         <Calendar className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
@@ -176,7 +175,7 @@ export function NotificationSettings() {
                                 </div>
                                 <button
                                     onClick={() => handleToggle('care_reminder')}
-                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.care_reminder ? colors.green.highlight + ' shadow-md' : colors.toggleOff}`}
+                                    className={`w-12 h-7 rounded-full transition-all duration-300 relative ${preferences.care_reminder ? colors.peach.highlight + ' shadow-md' : colors.toggleOff}`}
                                 >
                                     <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.care_reminder ? 'left-6' : 'left-1'}`} />
                                 </button>
@@ -267,7 +266,7 @@ export function NotificationSettings() {
     return (
         <div className={`p-6 ${colors.cardBg} backdrop-blur-md rounded-3xl border ${colors.cardBorder} shadow-sm space-y-4 text-center`}>
             <div className="flex flex-col items-center gap-3 mb-2">
-                <div className={`p-4 ${colors.green.bg} rounded-full ${colors.green.text}`}>
+                <div className={`p-4 ${colors.sage.bg} rounded-full ${colors.sage.text}`}>
                     <Bell className="w-8 h-8" />
                 </div>
                 <div>
@@ -278,7 +277,7 @@ export function NotificationSettings() {
             <button
                 onClick={handleEnable}
                 disabled={loading || !swReady}
-                className={`w-full py-3 ${colors.green.highlight} text-white rounded-xl text-sm font-bold shadow-lg shadow-[#7CAA8E]/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
+                className={`w-full py-3 ${colors.sage.highlight} text-white rounded-xl text-sm font-bold shadow-lg shadow-[#7CAA8E]/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
             >
                 {(loading || !swReady) && <Loader2 className="w-4 h-4 animate-spin" />}
                 {!swReady ? '準備中...' : '通知をオンにする'}
