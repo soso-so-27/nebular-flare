@@ -119,9 +119,20 @@ serve(async (req) => {
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-        const householdId = record?.household_id || record?.householdId;
-        const actorId = record?.done_by || record?.recorded_by || record?.created_by;
+        // Extract IDs - special handling for cat_images which doesn't have household_id directly
+        let householdId = record?.household_id || record?.householdId;
+        let actorId = record?.done_by || record?.recorded_by || record?.created_by;
         let users: any[] = [];
+
+        // Special handling for cat_images: lookup household via cat
+        if (table === 'cat_images' && record?.cat_id && !householdId) {
+            console.log('[PUSH] Looking up household for cat_images via cat_id:', record.cat_id);
+            const { data: cat } = await supabase.from('cats').select('household_id').eq('id', record.cat_id).single();
+            if (cat?.household_id) {
+                householdId = cat.household_id;
+                console.log('[PUSH] Found household_id via cat:', householdId);
+            }
+        }
 
         // 3. Determine Notification Content & Target Audience
         let notificationTitle = "";
