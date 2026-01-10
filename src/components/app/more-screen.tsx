@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Sparkles, User, Info, Cat, LogOut, X } from "lucide-react";
+import { Settings as SettingsIcon, Sparkles, User, Info, Cat, LogOut, X, Bell } from "lucide-react";
 import { useAppState } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { CatSettingsModal } from "./cat-settings-modal";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { CareSettingsModal } from "./care-settings-modal";
 import { NoticeSettingsModal } from "./notice-settings-modal";
 import { InventorySettingsModal } from "./inventory-settings-modal";
+import { NotificationSettingsModal } from "./notification-settings-modal";
 
 // Unified Header Component
 function ScreenHeader({ title, onClose }: { title: string; onClose?: () => void }) {
@@ -47,6 +48,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
     const [isCareModalOpen, setIsCareModalOpen] = useState(false);
     const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
     const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
     const handleLogout = async () => {
         if (isDemo) {
@@ -255,13 +257,23 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                         </button>
                         <button
                             onClick={() => setIsInventoryModalOpen(true)}
-                            className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                            className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
                         >
                             <div className="flex flex-col">
                                 <span className="text-xs font-medium text-slate-900 dark:text-white">在庫の管理</span>
                                 <span className="text-[10px] text-muted-foreground">消耗品の管理・通知</span>
                             </div>
                             <SettingsIcon className="h-4 w-4 text-slate-300" />
+                        </button>
+                        <button
+                            onClick={() => setIsNotificationModalOpen(true)}
+                            className="w-full px-4 py-3 flex items-center justify-between active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">通知設定</span>
+                                <span className="text-[10px] text-muted-foreground">リマインダーやアラートの管理</span>
+                            </div>
+                            <Bell className="h-4 w-4 text-slate-300" />
                         </button>
                     </CardContent>
                 </Card>
@@ -301,7 +313,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                 <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
                 <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
                 <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
-
+                <NotificationSettingsModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} />
             </div>
         </div>
     );

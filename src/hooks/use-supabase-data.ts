@@ -624,6 +624,16 @@ export function useIncidents(householdId: string | null) {
                 .single();
 
             if (error) throw error;
+
+            // Trigger Notification
+            await supabase.functions.invoke('push-notification', {
+                body: {
+                    type: 'INSERT',
+                    table: 'incidents',
+                    record: data,
+                }
+            });
+
             fetchIncidents();
             return { data };
         } catch (e) {
@@ -736,9 +746,10 @@ export function useNotificationPreferences() {
         care_reminder: boolean;
         health_alert: boolean;
         inventory_alert: boolean;
+        photo_alert: boolean;
         notification_hour: number;
         day_start_hour: number;
-    }>({ care_reminder: true, health_alert: true, inventory_alert: true, notification_hour: 20, day_start_hour: 0 });
+    }>({ care_reminder: true, health_alert: true, inventory_alert: true, photo_alert: true, notification_hour: 20, day_start_hour: 0 });
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 

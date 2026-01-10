@@ -1102,6 +1102,15 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
             if (dbError) throw dbError;
 
+            // Trigger Notification
+            await supabase.functions.invoke('push-notification', {
+                body: {
+                    type: 'INSERT',
+                    table: 'cat_images',
+                    record: dbData,
+                }
+            });
+
             // 4. Update Cat Avatar if it's currently default
             const currentCat = cats.find(c => c.id === catId);
             const isDefaultAvatar = currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar);

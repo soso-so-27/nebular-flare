@@ -125,8 +125,6 @@ serve(async (req) => {
             .select('user_id')
             .eq('household_id', householdId);
 
-        console.log('[PUSH] Member rows found:', memberRows?.length, '| Error:', memberError?.message);
-
         if (memberError || !memberRows || memberRows.length === 0) {
             console.log('[PUSH] EARLY EXIT: No members found');
             return new Response("No members found", { status: 200 })
@@ -153,6 +151,54 @@ serve(async (req) => {
         let notificationTitle = "";
         let notificationBody = "";
         let targetUserIds: string[] = [];
+
+        // === CASE X: Incidents (Record Notice) ===
+        if (table === 'incidents' && type === 'INSERT') {
+            const { data: cat } = await supabase.from('cats').select('name').eq('id', record.cat_id).single();
+            const catName = cat?.name || "猫";
+
+            const actor = users.find((u: any) => u.id === actorId);
+            const actorName = actor?.display_name || "家族";
+
+            // Map incident types to readable labels
+            const typeLabels: Record<string, string> = {
+                vomit: '嘔吐',
+                diarrhea: '下痢',
+                injury: '怪我',
+                appetite: '食欲不振',
+                energy: '元気がない',
+                toilet: 'トイレ失敗',
+                other: 'その他'
+            };
+            const typeLabel = typeLabels[record.type] || record.type;
+
+            notificationTitle = `⚠️ ${catName}の気付き: ${typeLabel}`;
+            notificationBody = `${actorName}が気付きを記録しました。「${record.note || '詳細なし'}」`;
+
+            targetUserIds = users.filter((u: any) => {
+                const prefs = u.notification_preferences || {};
+                // Use health_alert as default preference
+                return prefs.health_alert !== false && u.id !== actorId;
+            }).map((u: any) => u.id);
+        }
+
+        // === CASE Y: Today's Photo (cat_images) ===
+        else if (table === 'cat_images' && type === 'INSERT') {
+            const { data: cat } = await supabase.from('cats').select('name').eq('id', record.cat_id).single();
+            const catName = cat?.name || "猫";
+
+            const actor = users.find((u: any) => u.id === actorId);
+            const actorName = actor?.display_name || "家族";
+
+            notificationTitle = `📸 ${catName}の今日の一枚`;
+            notificationBody = `${actorName}が新しい写真を投稿しました！`;
+
+            targetUserIds = users.filter((u: any) => {
+                const prefs = u.notification_preferences || {};
+                // New preference: photo_alert (default true if undefined)
+                return prefs.photo_alert !== false && u.id !== actorId;
+            }).map((u: any) => u.id);
+        }
 
         // CASE A: Health Alert (Observations)
         if (table === 'observations' && type === 'INSERT') {

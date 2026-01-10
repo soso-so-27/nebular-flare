@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { Bell, BellOff, Loader2, Camera, AlertTriangle, Package, Calendar } from 'lucide-react';
 import { requestFcmToken } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { usePushToken, useNotificationPreferences } from '@/hooks/use-supabase-data';
@@ -90,13 +90,13 @@ export function NotificationSettings() {
 
     const { preferences, loading: prefsLoading, updatePreference } = useNotificationPreferences();
 
-    const handleToggle = (key: 'care_reminder' | 'health_alert' | 'inventory_alert') => {
+    const handleToggle = (key: 'care_reminder' | 'health_alert' | 'inventory_alert' | 'photo_alert') => {
         updatePreference(key, !preferences[key]);
     };
 
     if (permission === 'granted') {
         return (
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <div className="p-4 bg-[#F2F7F4] rounded-xl border border-[#E5F0EA] flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-[#E5F0EA] rounded-full text-[#5A8C6E]">
@@ -104,69 +104,108 @@ export function NotificationSettings() {
                         </div>
                         <div>
                             <h3 className="font-bold text-emerald-900 text-sm">通知はオンです</h3>
-                            <p className="text-xs text-[#487058]">お世話の時間にお知らせします</p>
+                            <p className="text-xs text-[#487058]">最新の情報をお届けします</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Settings Toggles */}
                 {prefsLoading ? (
-                    <div className="p-8 text-center text-slate-400">
+                    <div className="p-8 text-center text-stone-400">
                         <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                     </div>
                 ) : (
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
-                        <h4 className="text-sm font-bold text-slate-700">通知の受け取り設定</h4>
+                    <div className="p-4 bg-white/60 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm space-y-5">
+                        <h4 className="text-sm font-bold text-stone-700 ml-1">受け取る通知</h4>
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <span className="text-sm font-medium text-slate-800">お世話リマインダー</span>
-                                <p className="text-xs text-slate-500">ごはんやトイレ掃除の忘れ防止</p>
+                        <div className="space-y-4">
+                            {/* Physical Condition / Notice */}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                                        <AlertTriangle className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <span className="text-sm font-bold text-stone-700 group-hover:text-stone-900 transition-colors">体調・気付き</span>
+                                        <p className="text-xs text-stone-500">嘔吐や食欲不振、気になる様子の記録</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleToggle('health_alert')}
+                                    className={`w-11 h-6 rounded-full transition-all duration-300 relative ${preferences.health_alert ? 'bg-[#FF9F88] shadow-[0_0_8px_rgba(255,159,136,0.4)]' : 'bg-stone-200'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleToggle('care_reminder')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.care_reminder ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
-                            >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.care_reminder ? 'left-6' : 'left-1'}`} />
-                            </button>
+
+                            {/* Today's Photo */}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 p-1.5 bg-sky-100 rounded-lg text-sky-600">
+                                        <Camera className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <span className="text-sm font-bold text-stone-700 group-hover:text-stone-900 transition-colors">今日の一枚</span>
+                                        <p className="text-xs text-stone-500">家族がアップロードした新しい写真</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleToggle('photo_alert')}
+                                    className={`w-11 h-6 rounded-full transition-all duration-300 relative ${preferences.photo_alert !== false ? 'bg-[#88C6FF] shadow-[0_0_8px_rgba(136,198,255,0.4)]' : 'bg-stone-200'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.photo_alert !== false ? 'left-6' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {/* Inventory Alert */}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 p-1.5 bg-yellow-100 rounded-lg text-yellow-600">
+                                        <Package className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <span className="text-sm font-bold text-stone-700 group-hover:text-stone-900 transition-colors">在庫アラート</span>
+                                        <p className="text-xs text-stone-500">フードや猫砂の補充タイミング</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleToggle('inventory_alert')}
+                                    className={`w-11 h-6 rounded-full transition-all duration-300 relative ${preferences.inventory_alert !== false ? 'bg-[#FFCC4D] shadow-[0_0_8px_rgba(255,204,77,0.4)]' : 'bg-stone-200'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {/* Care Reminder */}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
+                                        <Calendar className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <span className="text-sm font-bold text-stone-700 group-hover:text-stone-900 transition-colors">お世話リマインダー</span>
+                                        <p className="text-xs text-stone-500">ごはんやトイレ掃除の忘れ防止</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleToggle('care_reminder')}
+                                    className={`w-11 h-6 rounded-full transition-all duration-300 relative ${preferences.care_reminder ? 'bg-[#7CAA8E] shadow-[0_0_8px_rgba(124,170,142,0.4)]' : 'bg-stone-200'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 shadow-sm ${preferences.care_reminder ? 'left-6' : 'left-1'}`} />
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <span className="text-sm font-medium text-slate-800">健康アラート</span>
-                                <p className="text-xs text-slate-500">嘔吐や食欲不振を検知した時</p>
-                            </div>
-                            <button
-                                onClick={() => handleToggle('health_alert')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.health_alert ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
-                            >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.health_alert ? 'left-6' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <span className="text-sm font-medium text-slate-800">在庫アラート</span>
-                                <p className="text-xs text-slate-500">フードや猫砂の補充タイミング</p>
-                            </div>
-                            <button
-                                onClick={() => handleToggle('inventory_alert')}
-                                className={`w-11 h-6 rounded-full transition-colors relative ${preferences.inventory_alert !== false ? 'bg-[#7CAA8E]' : 'bg-slate-200'}`}
-                            >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${preferences.inventory_alert !== false ? 'left-6' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-100">
+                        <div className="pt-2 border-t border-stone-100">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <span className="text-sm font-medium text-slate-800">通知時間</span>
-                                    <p className="text-xs text-slate-500">毎日この時間にお知らせ</p>
+                                    <span className="text-sm font-bold text-stone-700">通知時間</span>
+                                    <p className="text-xs text-stone-500">毎日この時間にお知らせ</p>
                                 </div>
                                 <select
                                     value={preferences.notification_hour ?? 20}
                                     onChange={(e) => updatePreference('notification_hour', parseInt(e.target.value))}
-                                    className="px-3 py-1.5 text-sm bg-slate-100 rounded-lg border-none focus:ring-2 focus:ring-[#7CAA8E]"
+                                    className="px-3 py-1.5 text-sm bg-stone-100 rounded-lg border-none focus:ring-2 focus:ring-[#7CAA8E] text-stone-700 cursor-pointer"
                                 >
                                     <option value={-1}>指定なし</option>
                                     <option value={8}>朝 8:00</option>
@@ -217,7 +256,7 @@ export function NotificationSettings() {
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => window.location.reload()}
-                        className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold border border-slate-200 transition-colors flex items-center justify-center gap-2"
+                        className="py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-sm font-bold border border-stone-200 transition-colors flex items-center justify-center gap-2"
                     >
                         <Loader2 className="w-4 h-4" />
                         <span>再読み込み</span>
@@ -236,14 +275,14 @@ export function NotificationSettings() {
     }
 
     return (
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div className="p-4 bg-white/60 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm space-y-3">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-full text-primary">
                     <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-800 text-sm">通知を受け取る</h3>
-                    <p className="text-xs text-slate-500">お世話の忘れ防止に役立ちます</p>
+                    <h3 className="font-bold text-stone-800 text-sm">通知を受け取る</h3>
+                    <p className="text-xs text-stone-500">お世話の忘れ防止に役立ちます</p>
                 </div>
             </div>
             <button
