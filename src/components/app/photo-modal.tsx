@@ -107,36 +107,20 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                     <div className="flex flex-col gap-2">
                         <Label className="text-slate-600 text-xs font-bold pl-1">モデルは誰？</Label>
                         <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
-                            {cats.map((cat, index) => {
-                                // Colored rings matching concept: pink, blue, green, purple
-                                const ringColors = ['#F8BBD9', '#90CAF9', '#A5D6A7', '#CE93D8'];
-                                const ringColor = ringColors[index % ringColors.length];
-                                const isSelected = selectedCatId === cat.id;
-
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => setSelectedCatId(cat.id)}
-                                        className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${isSelected ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
-                                    >
-                                        <div
-                                            className="relative rounded-full transition-all shadow-sm"
-                                            style={{
-                                                boxShadow: isSelected ? `0 0 0 3px ${ringColor}, 0 0 0 5px white` : 'none',
-                                                filter: isSelected ? 'none' : 'grayscale(0.5)',
-                                            }}
-                                        >
-                                            <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
-                                        </div>
-                                        <span
-                                            className="text-[10px] font-bold tracking-wide transition-colors"
-                                            style={{ color: isSelected ? ringColor : '#94a3b8' }}
-                                        >
-                                            {cat.name}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                            {cats.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setSelectedCatId(cat.id)}
+                                    className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${selectedCatId === cat.id ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
+                                >
+                                    <div className={`relative rounded-full transition-all shadow-sm ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7] shadow-md' : 'grayscale-[0.5]'}`}>
+                                        <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
+                                    </div>
+                                    <span className={`text-[10px] font-bold tracking-wide transition-colors ${selectedCatId === cat.id ? 'text-[#D09B85]' : 'text-slate-400'}`}>
+                                        {cat.name}
+                                    </span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 

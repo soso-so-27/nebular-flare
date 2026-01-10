@@ -17,13 +17,13 @@ type IncidentModalProps = {
 };
 
 const INCIDENT_TYPES = [
-    { id: 'vomit', label: '嘔吐', icon: Sparkles, bgColor: '#FDF6E3', activeColor: '#F9DC5C' },
-    { id: 'diarrhea', label: '下痢', icon: Wind, bgColor: '#F5E6D3', activeColor: '#D4A574' },
-    { id: 'injury', label: '怪我', icon: Bandage, bgColor: '#EDE7F6', activeColor: '#B39DDB' },
-    { id: 'appetite', label: '食欲不振', icon: Utensils, bgColor: '#FCE4D6', activeColor: '#E8B4A0' },
-    { id: 'energy', label: '元気がない', icon: BatteryLow, bgColor: '#F5EBE0', activeColor: '#C9B896' },
-    { id: 'toilet', label: 'トイレ失敗', icon: Trash2, bgColor: '#E0F2F1', activeColor: '#80CBC4' },
-    { id: 'other', label: 'その他', icon: FileText, bgColor: '#F3E5F5', activeColor: '#CE93D8' },
+    { id: 'vomit', label: '嘔吐', icon: Sparkles },
+    { id: 'diarrhea', label: '下痢', icon: Wind },
+    { id: 'injury', label: '怪我', icon: Bandage },
+    { id: 'appetite', label: '食欲不振', icon: Utensils },
+    { id: 'energy', label: '元気がない', icon: BatteryLow },
+    { id: 'toilet', label: 'トイレ失敗', icon: Trash2 },
+    { id: 'other', label: 'その他', icon: FileText },
 ];
 
 export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalProps) {
@@ -112,36 +112,20 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                     <div className="flex flex-col gap-2">
                         <Label className="text-slate-600 text-xs font-bold pl-1">モデルは誰？</Label>
                         <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
-                            {cats.map((cat, index) => {
-                                // Colored rings matching concept: pink, blue, green, purple
-                                const ringColors = ['#F8BBD9', '#90CAF9', '#A5D6A7', '#CE93D8'];
-                                const ringColor = ringColors[index % ringColors.length];
-                                const isSelected = catId === cat.id;
-
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => setCatId(cat.id)}
-                                        className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${isSelected ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
-                                    >
-                                        <div
-                                            className="relative rounded-full transition-all shadow-sm"
-                                            style={{
-                                                boxShadow: isSelected ? `0 0 0 3px ${ringColor}, 0 0 0 5px white` : 'none',
-                                                filter: isSelected ? 'none' : 'grayscale(0.5)',
-                                            }}
-                                        >
-                                            <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
-                                        </div>
-                                        <span
-                                            className="text-[10px] font-bold tracking-wide transition-colors"
-                                            style={{ color: isSelected ? ringColor : '#94a3b8' }}
-                                        >
-                                            {cat.name}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                            {cats.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setCatId(cat.id)}
+                                    className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${catId === cat.id ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
+                                >
+                                    <div className={`relative rounded-full transition-all shadow-sm ${catId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7] shadow-md' : 'grayscale-[0.5]'}`}>
+                                        <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
+                                    </div>
+                                    <span className={`text-[10px] font-bold tracking-wide transition-colors ${catId === cat.id ? 'text-[#D09B85]' : 'text-slate-400'}`}>
+                                        {cat.name}
+                                    </span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -155,25 +139,15 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                     <button
                                         key={t.id}
                                         onClick={() => setType(t.id)}
-                                        className="flex flex-col items-center justify-center aspect-square rounded-2xl border transition-all duration-200 shadow-sm"
-                                        style={{
-                                            backgroundColor: isActive ? `${t.activeColor}20` : t.bgColor,
-                                            borderColor: isActive ? t.activeColor : 'rgba(255,255,255,0.4)',
-                                            transform: isActive ? 'scale(0.95)' : 'scale(1)',
-                                        }}
+                                        className={`flex flex-col items-center justify-center aspect-square rounded-2xl border transition-all duration-200 ${isActive
+                                            ? 'bg-gradient-to-br from-[#E8B4A0]/20 to-[#E8B4A0]/10 border-[#E8B4A0] shadow-sm scale-95'
+                                            : 'bg-white/40 border-white/40 hover:bg-white/60 text-slate-500'
+                                            }`}
                                     >
-                                        <div
-                                            className="p-2.5 rounded-full mb-1.5 transition-all shadow-sm"
-                                            style={{
-                                                backgroundColor: isActive ? t.activeColor : 'transparent',
-                                            }}
-                                        >
-                                            <t.icon className="h-5 w-5" style={{ color: isActive ? 'white' : t.activeColor }} />
+                                        <div className={`p-2.5 rounded-full mb-1.5 ${isActive ? 'bg-[#E8B4A0] text-white shadow-sm' : 'bg-transparent'}`}>
+                                            <t.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                                         </div>
-                                        <span
-                                            className="text-[10px] font-bold"
-                                            style={{ color: isActive ? t.activeColor : '#64748b' }}
-                                        >
+                                        <span className={`text-[10px] font-bold ${isActive ? 'text-[#D09B85]' : 'text-slate-500'}`}>
                                             {t.label}
                                         </span>
                                     </button>

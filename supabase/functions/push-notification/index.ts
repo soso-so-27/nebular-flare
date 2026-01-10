@@ -234,7 +234,7 @@ serve(async (req) => {
         }
 
         // CASE A: Health Alert (Observations)
-        if (table === 'observations' && type === 'INSERT') {
+        else if (table === 'observations' && type === 'INSERT') {
             console.log('[PUSH] Processing observation. Value:', record.value);
             const isAbnormal = record.value !== "いつも通り" && record.value !== "なし" && record.value !== "記録した" && record.value !== "撮影した";
             const isPhoto = record.value === "撮影した" || (record.images && record.images.length > 0);
