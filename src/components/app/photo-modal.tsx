@@ -94,70 +94,72 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[400px] w-[95vw] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>今日の一枚</DialogTitle>
+            <DialogContent className="sm:max-w-[400px] w-[95vw] max-h-[90vh] overflow-y-auto bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl rounded-[32px] p-0 gap-0">
+                <DialogHeader className="px-6 pt-6 pb-2">
+                    <DialogTitle className="text-xl font-bold text-slate-800">今日の一枚</DialogTitle>
+                    <div className="text-slate-500 text-xs">
+                        可愛い瞬間を残しましょう
+                    </div>
                 </DialogHeader>
 
-                <div className="space-y-4 py-4">
-                    {/* Cat Selection */}
-                    <div className="grid gap-2">
-                        <Label>対象猫</Label>
-                        <Select value={selectedCatId} onValueChange={setSelectedCatId}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="猫を選択..." />
-                            </SelectTrigger>
-                            <SelectContent className="z-[10002]">
-                                {cats.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>
-                                        <div className="flex items-center gap-2">
-                                            <CatAvatar src={cat.avatar} alt={cat.name} size="sm" />
-                                            {cat.name}
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Memo */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="memo">メモ入力...</Label>
-                        <Textarea
-                            id="memo"
-                            placeholder="メモを入力..."
-                            value={memo}
-                            onChange={(e) => setMemo(e.target.value)}
-                            className="min-h-[80px]"
-                        />
-                    </div>
-
-                    {/* Photo */}
-                    <div className="grid gap-2">
-                        <Label>写真（必須）</Label>
-                        {previewUrl ? (
-                            <div className="relative w-full aspect-square rounded-lg overflow-hidden border bg-muted">
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover"
-                                />
+                <div className="flex flex-col gap-6 px-6 py-4">
+                    {/* Cat Selection - Horizontal Scroll */}
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-slate-600 text-xs font-bold pl-1">モデルは誰？</Label>
+                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
+                            {cats.map(cat => (
                                 <button
-                                    onClick={removePhoto}
-                                    className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70 transition-colors"
+                                    key={cat.id}
+                                    onClick={() => setSelectedCatId(cat.id)}
+                                    className={`flex flex-col items-center gap-2 transition-all relative group flex-shrink-0 ${selectedCatId === cat.id ? 'scale-105' : 'scale-100 opacity-60 hover:opacity-100'}`}
                                 >
-                                    <X size={16} />
+                                    <div className={`relative p-1 rounded-full transition-all ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7]' : ''}`}>
+                                        <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
+                                        {selectedCatId === cat.id && (
+                                            <div className="absolute -bottom-1 -right-1 bg-[#E8B4A0] text-white rounded-full p-0.5 shadow-sm">
+                                                <Camera size={10} fill="currentColor" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className={`text-xs font-bold ${selectedCatId === cat.id ? 'text-slate-800' : 'text-slate-400'}`}>
+                                        {cat.name}
+                                    </span>
                                 </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-lg hover:bg-muted text-muted-foreground transition-colors"
-                            >
-                                <Camera size={40} className="mb-2" />
-                                <span className="text-sm font-medium">写真を撮る</span>
-                            </button>
-                        )}
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Photo - Card Style */}
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-slate-600 text-xs font-bold pl-1">写真</Label>
+                        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-white/40 bg-white/40 group transition-all hover:bg-white/60">
+                            {previewUrl ? (
+                                <>
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                    <button
+                                        onClick={removePhoto}
+                                        className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md transition-all shadow-lg"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full h-full flex flex-col items-center justify-center text-[#E8B4A0] hover:scale-[1.02] transition-transform active:scale-95"
+                                >
+                                    <div className="w-16 h-16 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center mb-3">
+                                        <Camera size={32} />
+                                    </div>
+                                    <span className="text-sm font-bold opacity-80">ここをタップして撮影</span>
+                                </button>
+                            )}
+                        </div>
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -167,23 +169,36 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                         />
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
+                    {/* Memo */}
+                    <div className="space-y-2">
+                        <Label htmlFor="memo" className="text-slate-600 text-xs font-bold pl-1">メモ</Label>
+                        <Textarea
+                            id="memo"
+                            placeholder="ひとことメモ..."
+                            value={memo}
+                            onChange={(e) => setMemo(e.target.value)}
+                            className="min-h-[80px] bg-white/40 border-white/40 focus:bg-white/60 focus:ring-[#E8B4A0] rounded-2xl resize-none shadow-inner"
+                        />
+                    </div>
+                </div>
+
+                <div className="p-6 pt-2 bg-gradient-to-t from-[#FAF9F7] to-transparent">
+                    <div className="flex gap-3">
                         <Button
                             onClick={handleClose}
-                            variant="outline"
-                            className="flex-1"
+                            variant="ghost"
+                            className="flex-1 rounded-full hover:bg-slate-100 text-slate-500"
                             disabled={loading}
                         >
                             キャンセル
                         </Button>
                         <Button
                             onClick={handleSave}
-                            className="flex-1"
+                            className="flex-[2] rounded-full bg-gradient-to-r from-[#E8B4A0] to-[#C08A70] hover:from-[#D69E8A] hover:to-[#B07A60] text-white shadow-lg shadow-[#E8B4A0]/30 border-none"
                             disabled={loading}
                         >
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            保存
+                            保存する
                         </Button>
                     </div>
                 </div>

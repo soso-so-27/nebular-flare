@@ -87,30 +87,34 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>気になるところを記録</DialogTitle>
-                    <DialogDescription>
-                        猫の体調不良や気になる行動を記録して、家族と共有しましょう。
+            <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl rounded-[32px] p-0 gap-0">
+                <DialogHeader className="px-6 pt-6 pb-2">
+                    <DialogTitle className="text-xl font-bold text-slate-800">気付きを記録</DialogTitle>
+                    <DialogDescription className="text-slate-500 text-xs">
+                        気になる体調や様子を記録します
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-4 py-4">
-                    {/* Cat Selection */}
-                    <div className="grid gap-2">
-                        <Label>対象の猫</Label>
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex flex-col gap-6 px-6 py-4">
+                    {/* Cat Selection - Horizontal Scroll with Bounce */}
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-slate-600 text-xs font-bold pl-1">誰の記録？</Label>
+                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
                             {cats.map(cat => (
                                 <button
                                     key={cat.id}
                                     onClick={() => setCatId(cat.id)}
-                                    className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all min-w-[60px] ${catId === cat.id
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-transparent hover:bg-muted'
-                                        }`}
+                                    className={`flex flex-col items-center gap-2 transition-all relative group flex-shrink-0 ${catId === cat.id ? 'scale-105' : 'scale-100 opacity-60 hover:opacity-100'}`}
                                 >
-                                    <CatAvatar src={cat.avatar} alt={cat.name} size="md" />
-                                    <span className="text-xs font-medium truncate w-full text-center">
+                                    <div className={`relative p-1 rounded-full transition-all ${catId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7]' : ''}`}>
+                                        <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
+                                        {catId === cat.id && (
+                                            <div className="absolute -bottom-1 -right-1 bg-[#E8B4A0] text-white rounded-full p-0.5 shadow-sm">
+                                                <Sparkles size={10} fill="currentColor" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className={`text-xs font-bold ${catId === cat.id ? 'text-slate-800' : 'text-slate-400'}`}>
                                         {cat.name}
                                     </span>
                                 </button>
@@ -118,81 +122,100 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         </div>
                     </div>
 
-                    {/* Incident Type */}
-                    <div className="grid gap-2">
-                        <Label>種類</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {INCIDENT_TYPES.map(t => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setType(t.id)}
-                                    className={`flex flex-col items-center justify-center p-2 rounded-md border text-sm transition-all ${type === t.id
-                                        ? 'border-primary bg-primary/10 text-primary font-medium'
-                                        : 'border-border hover:bg-muted text-muted-foreground'
-                                        }`}
-                                >
-                                    <t.icon className="h-6 w-6 mb-1" />
-                                    {t.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Note */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="note">詳細メモ</Label>
-                        <Textarea
-                            id="note"
-                            placeholder="状況や様子を詳しく..."
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            className="min-h-[100px]"
-                        />
-                    </div>
-
-                    {/* Photos */}
-                    <div className="grid gap-2">
-                        <Label>写真 (任意)</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {previewUrls.map((url, i) => (
-                                <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border">
-                                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                    {/* Incident Type - Icon Grid */}
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-slate-600 text-xs font-bold pl-1">どうしたの？</Label>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            {INCIDENT_TYPES.map(t => {
+                                const isActive = type === t.id;
+                                return (
                                     <button
-                                        onClick={() => removePhoto(i)}
-                                        className="absolute top-0 right-0 bg-black/50 text-white p-0.5 rounded-bl-md hover:bg-black/70"
+                                        key={t.id}
+                                        onClick={() => setType(t.id)}
+                                        className={`flex flex-col items-center justify-center aspect-square rounded-2xl border transition-all duration-200 ${isActive
+                                            ? 'bg-gradient-to-br from-[#E8B4A0]/20 to-[#E8B4A0]/10 border-[#E8B4A0] shadow-sm scale-95'
+                                            : 'bg-white/40 border-white/40 hover:bg-white/60 text-slate-500'
+                                            }`}
                                     >
-                                        <X size={12} />
+                                        <div className={`p-2.5 rounded-full mb-1.5 ${isActive ? 'bg-[#E8B4A0] text-white shadow-sm' : 'bg-transparent'}`}>
+                                            <t.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                                        </div>
+                                        <span className={`text-[10px] font-bold ${isActive ? 'text-[#D09B85]' : 'text-slate-500'}`}>
+                                            {t.label}
+                                        </span>
                                     </button>
-                                </div>
-                            ))}
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-16 h-16 flex flex-col items-center justify-center border border-dashed rounded-md hover:bg-muted text-muted-foreground transition-colors"
-                            >
-                                <Camera size={20} />
-                                <span className="text-[10px] mt-1">追加</span>
-                            </button>
+                                );
+                            })}
                         </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            multiple
-                            onChange={handleFileChange}
-                        />
+                    </div>
+
+                    {/* Note & Photos */}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="note" className="text-slate-600 text-xs font-bold pl-1">詳細メモ</Label>
+                            <Textarea
+                                id="note"
+                                placeholder="詳しい状況を入力..."
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                className="min-h-[80px] bg-white/40 border-white/40 focus:bg-white/60 focus:ring-[#E8B4A0] rounded-2xl resize-none shadow-inner"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-slate-600 text-xs font-bold pl-1">写真</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {previewUrls.map((url, i) => (
+                                    <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/40 shadow-sm group">
+                                        <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => removePhoto(i)}
+                                            className="absolute top-1 right-1 bg-black/40 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X size={10} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-[#E8B4A0]/40 rounded-xl hover:bg-[#E8B4A0]/10 text-[#E8B4A0] transition-colors bg-white/20"
+                                >
+                                    <Camera size={20} />
+                                    <span className="text-[9px] mt-0.5 font-bold">追加</span>
+                                </button>
+                            </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFileChange}
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={loading}>
-                        キャンセル
-                    </Button>
-                    <Button onClick={handleSubmit} disabled={loading}>
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        記録する
-                    </Button>
-                </DialogFooter>
+                <div className="p-6 pt-2 bg-gradient-to-t from-[#FAF9F7] to-transparent">
+                    <div className="flex gap-3">
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 rounded-full hover:bg-slate-100 text-slate-500"
+                        >
+                            キャンセル
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="flex-[2] rounded-full bg-gradient-to-r from-[#E8B4A0] to-[#C08A70] hover:from-[#D69E8A] hover:to-[#B07A60] text-white shadow-lg shadow-[#E8B4A0]/30 border-none"
+                        >
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            記録する
+                        </Button>
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     );
