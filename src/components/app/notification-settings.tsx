@@ -205,22 +205,25 @@ export function NotificationSettings() {
                                 onClick={async () => {
                                     try {
                                         toast.loading('テスト通知を送信中...');
-                                        const { data: { user } } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
+                                        const { createClient } = await import('@/lib/supabase');
+                                        const supabase = createClient();
+
+                                        const { data: { user } } = await supabase.auth.getUser();
                                         if (!user) throw new Error('ユーザーが見つかりません');
 
-                                        const { error } = await import('@/lib/supabase').then(m => m.supabase.functions.invoke('push-notification', {
+                                        const { error } = await supabase.functions.invoke('push-notification', {
                                             body: {
                                                 type: 'TEST',
                                                 record: { created_by: user.id } // Simulate record
                                             }
-                                        }));
+                                        });
 
                                         if (error) throw error;
                                         toast.dismiss();
                                         toast.success('送信しました！通知が届くか確認してください');
                                     } catch (e: any) {
                                         toast.dismiss();
-                                        toast.error('テスト送信に失敗しました: ' + e.message);
+                                        toast.error('テスト送信に失敗しました: ' + (e.message || e));
                                     }
                                 }}
                                 className={`w-full py-2 ${colors.bg} ${colors.subText} rounded-xl text-xs font-bold border ${colors.cardBorder} hover:bg-stone-100 transition-colors flex items-center justify-center gap-2`}
