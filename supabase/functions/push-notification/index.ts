@@ -366,10 +366,23 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
+                            // Native notification for better delivery
+                            notification: {
+                                title: notificationTitle,
+                                body: notificationBody
+                            },
+                            // Data for custom handling
                             data: {
                                 title: notificationTitle,
                                 body: notificationBody,
                                 icon: '/icon.svg'
+                            },
+                            // Web push specific config
+                            webpush: {
+                                notification: {
+                                    icon: '/icon-192.png',
+                                    badge: '/icon-192.png'
+                                }
                             }
                         }
                     })
@@ -383,6 +396,8 @@ serve(async (req) => {
                     params = { error: 'Invalid response', body: responseText };
                 }
 
+                const result = { token: token.substring(0, 20) + '...', status: res.status, ...params };
+                console.log('[PUSH] FCM result:', JSON.stringify(result));
                 return { token, status: res.status, ...params };
             } catch (fetchError: any) {
                 console.error('[PUSH] FCM fetch error:', fetchError.message);
@@ -391,7 +406,7 @@ serve(async (req) => {
         });
 
         const results = await Promise.all(fcmPromises);
-        console.log('[PUSH] All FCM results:', results.length);
+        console.log('[PUSH] All FCM results:', results.length, 'sent');
 
         // CLEANUP: Remove invalid tokens
         const tokensToDelete: string[] = [];
