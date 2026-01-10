@@ -111,17 +111,12 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                                 <button
                                     key={cat.id}
                                     onClick={() => setSelectedCatId(cat.id)}
-                                    className={`flex flex-col items-center gap-2 transition-all relative group flex-shrink-0 ${selectedCatId === cat.id ? 'scale-105' : 'scale-100 opacity-60 hover:opacity-100'}`}
+                                    className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 ${selectedCatId === cat.id ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
                                 >
-                                    <div className={`relative p-1 rounded-full transition-all ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7]' : ''}`}>
+                                    <div className={`relative rounded-full transition-all shadow-sm ${selectedCatId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-transparent shadow-md' : 'grayscale-[0.5]'}`}>
                                         <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
-                                        {selectedCatId === cat.id && (
-                                            <div className="absolute -bottom-1 -right-1 bg-[#E8B4A0] text-white rounded-full p-0.5 shadow-sm">
-                                                <Camera size={10} fill="currentColor" />
-                                            </div>
-                                        )}
                                     </div>
-                                    <span className={`text-xs font-bold ${selectedCatId === cat.id ? 'text-slate-800' : 'text-slate-400'}`}>
+                                    <span className={`text-[10px] font-bold tracking-wide transition-colors ${selectedCatId === cat.id ? 'text-[#D09B85]' : 'text-slate-400'}`}>
                                         {cat.name}
                                     </span>
                                 </button>
