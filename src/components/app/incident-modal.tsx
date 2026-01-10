@@ -34,8 +34,20 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
     const [note, setNote] = useState('');
     const [photos, setPhotos] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+
+    // Sync catId with cats when modal opens or cats load
+    React.useEffect(() => {
+        if (isOpen) {
+            if (defaultCatId) {
+                setCatId(defaultCatId);
+            } else if (cats.length > 0 && !catId) {
+                setCatId(cats[0].id);
+            }
+        }
+    }, [defaultCatId, isOpen, cats, catId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
