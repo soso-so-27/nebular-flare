@@ -48,33 +48,18 @@ messaging.onBackgroundMessage((payload) => {
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Fallback push handler (in case Firebase SDK doesn't catch it)
+// Fallback push handler - for debugging only (Firebase SDK handles display)
 self.addEventListener('push', (event) => {
-    console.log('[sw.js] Push event received:', event);
+    console.log('[sw.js] Push event received (Firebase SDK will handle display)');
 
-    // If Firebase SDK handled it, this might be a duplicate
-    // Check if payload exists
+    // Log payload for debugging but don't show notification
+    // Firebase SDK's onBackgroundMessage will handle the display
     if (event.data) {
         try {
             const payload = event.data.json();
-            console.log('[sw.js] Push payload:', JSON.stringify(payload));
-
-            // Only show if notification field exists and Firebase didn't auto-show
-            if (payload.notification) {
-                const title = payload.notification.title || 'CatUp';
-                const body = payload.notification.body || '';
-
-                event.waitUntil(
-                    self.registration.showNotification(title, {
-                        body: body,
-                        icon: '/icon.svg',
-                        badge: '/icon.svg',
-                        tag: 'catup-push-' + Date.now(),
-                    })
-                );
-            }
+            console.log('[sw.js] Push payload for debugging:', JSON.stringify(payload));
         } catch (e) {
-            console.log('[sw.js] Push data parse error:', e);
+            console.log('[sw.js] Push data (text):', event.data.text());
         }
     }
 });
