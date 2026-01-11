@@ -377,11 +377,25 @@ serve(async (req) => {
                                 body: notificationBody,
                                 icon: '/icon.svg'
                             },
-                            // Web push specific config
+                            // Android specific - HIGH priority to wake device
+                            android: {
+                                priority: 'high',
+                                notification: {
+                                    sound: 'default',
+                                    defaultSound: true,
+                                    defaultVibrateTimings: true
+                                }
+                            },
+                            // Web push specific config with urgency
                             webpush: {
+                                headers: {
+                                    'TTL': '86400',
+                                    'Urgency': 'high'
+                                },
                                 notification: {
                                     icon: '/icon-192.png',
-                                    badge: '/icon-192.png'
+                                    badge: '/icon-192.png',
+                                    requireInteraction: true
                                 }
                             }
                         }
