@@ -325,8 +325,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                     {/* Alerts Section */}
                                     {alertItems.length > 0 && (
                                         <div className="space-y-2 mb-4">
-                                            <div className="flex items-center gap-2 text-xs font-bold text-rose-500 animate-pulse">
-                                                <AlertCircle className="w-3 h-3" />
+                                            <div className="flex items-center gap-2 text-rose-300 text-xs font-bold pl-1 animate-pulse">
+                                                <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
                                                 <span>要確認</span>
                                             </div>
                                             {alertItems.map(item => (
@@ -338,14 +338,14 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                         triggerFeedback('medium');
                                                         onOpenPickup(); // Open pickup modal for details
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/90 to-red-600/90 shadow-lg border border-red-400/50"
+                                                    className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-900/40 border border-rose-500/30 shadow-md backdrop-blur-sm"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                                                        <AlertCircle className="w-5 h-5 text-white" />
+                                                    <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-rose-500/10">
+                                                        <span className="text-rose-200 text-xs">!</span>
                                                     </div>
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="text-sm font-bold text-white truncate">{item.label}</span>
-                                                        <span className="text-xs text-white/90 truncate">{item.subLabel}</span>
+                                                        <span className="text-xs font-bold text-rose-100 leading-tight mb-0.5">{item.label}</span>
+                                                        <span className="text-[10px] text-rose-200/70 truncate">{item.subLabel}</span>
                                                     </div>
                                                 </motion.button>
                                             ))}
@@ -497,13 +497,13 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             triggerFeedback('medium');
                                                             onOpenPickup();
                                                         }}
-                                                        className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/80 to-red-600/80 shadow-md border border-red-400/30"
+                                                        className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-900/40 border border-rose-500/30 shadow-sm backdrop-blur-sm"
                                                     >
-                                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                                                            <AlertCircle className="w-3 h-3 text-white" />
+                                                        <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-rose-500/10">
+                                                            <span className="text-rose-200 text-xs">!</span>
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="text-xs font-bold text-white truncate">{item.label}</span>
+                                                            <span className="text-xs font-bold text-rose-100 truncate">{item.label}</span>
                                                         </div>
                                                     </motion.button>
                                                 ))}
