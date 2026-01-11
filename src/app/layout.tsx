@@ -50,6 +50,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="にゃるほど" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <meta name="apple-touch-fullscreen" content="yes" />
         {/* Theme color should match the app background for seamless status bar */}
         <meta name="theme-color" content="#FAF9F7" />
