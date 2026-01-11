@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import { Heart, Camera, Grid3X3, ChevronDown } from "lucide-react";
 import { useFootprintContext } from "@/providers/footprint-provider";
 
@@ -12,15 +12,15 @@ interface LayoutIslandProps {
     onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
-    onOpenCareList: () => void; // Opens expandable care list like MagicBubble
+    onOpenCareList: () => void;
 }
 
 /**
  * ダイナミックアイランド型レイアウト
  * - 上部中央: 統合ステータスピル
- *   - 進捗部分タップ → 下に展開するお世話一覧
+ *   - 進捗部分タップ → MagicBubble風のお世話一覧展開
  *   - 足あと部分タップ → 交換所
- * - 下部中央: フローティングDock
+ * - 下部中央: フローティングDock（全て同程度の目立ち方）
  */
 export function LayoutIsland({
     progress,
@@ -32,16 +32,11 @@ export function LayoutIsland({
     onOpenCareList,
 }: LayoutIslandProps) {
     const { stats } = useFootprintContext();
-    const [showCareList, setShowCareList] = useState(false);
 
     const glassStyle = {
         background: 'rgba(250, 249, 247, 0.65)',
         backdropFilter: 'blur(20px) saturate(1.8)',
         boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
-    };
-
-    const handleProgressClick = () => {
-        onOpenCareList();
     };
 
     return (
@@ -72,10 +67,10 @@ export function LayoutIsland({
                     {/* Separator */}
                     <div className="w-px h-6 bg-slate-300/50" />
 
-                    {/* Progress - Tap to open care list (expands down) */}
+                    {/* Progress - Tap to open care list (MagicBubble style) */}
                     <motion.button
                         whileTap={{ scale: 0.95 }}
-                        onClick={handleProgressClick}
+                        onClick={onOpenCareList}
                         className="flex items-center gap-2 px-4 py-2.5 hover:bg-white/30 transition-colors"
                     >
                         <Heart className="w-4 h-4" style={{ color: 'var(--peach)' }} />
@@ -96,7 +91,7 @@ export function LayoutIsland({
                 </div>
             </motion.div>
 
-            {/* Bottom Center: Floating Dock */}
+            {/* Bottom Center: Floating Dock - All buttons equally styled */}
             <motion.div
                 className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
                 initial={{ opacity: 0, y: 20 }}
@@ -104,20 +99,19 @@ export function LayoutIsland({
                 transition={{ duration: 0.4, delay: 0.2 }}
             >
                 <div
-                    className="flex items-center gap-4 px-5 py-3 rounded-full"
+                    className="flex items-center gap-3 px-4 py-3 rounded-full"
                     style={glassStyle}
                 >
-                    {/* Pickup Button (Heart icon for care) */}
+                    {/* Pickup Button (Heart - not prominent) */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenPickup}
-                        className="w-11 h-11 rounded-full flex items-center justify-center"
-                        style={{ background: 'var(--peach)' }}
+                        className="w-11 h-11 rounded-full bg-white/60 flex items-center justify-center shadow-sm"
                     >
-                        <Heart className="w-6 h-6 text-white fill-white/30" />
+                        <Heart className="w-5 h-5" style={{ color: 'var(--peach)' }} />
                     </motion.button>
 
-                    {/* Today's Photo Button (Opens photo modal) */}
+                    {/* Today's Photo Button */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenPhoto}
@@ -126,7 +120,7 @@ export function LayoutIsland({
                         <Camera className="w-5 h-5 text-slate-600" />
                     </motion.button>
 
-                    {/* Menu Button (Opens gallery/menu) */}
+                    {/* Menu Button */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenMenu}

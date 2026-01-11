@@ -11,13 +11,13 @@ interface LayoutBottomNavProps {
     onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
-    onOpenCareList: () => void; // Opens top-left care list
+    onOpenCareList: () => void;
 }
 
 /**
  * ボトムナビゲーション型レイアウト
- * - 左上: お世話進捗ボタン（展開するケアリスト）
- * - 下部: ナビゲーションバー（ピックアップ、📷、メニュー、🐾）
+ * - 左上: お世話進捗ボタン（→MagicBubble風のお世話一覧展開）
+ * - 下部: ナビゲーションバー（全て同程度の目立ち方）
  */
 export function LayoutBottomNav({
     progress,
@@ -43,7 +43,7 @@ export function LayoutBottomNav({
 
     return (
         <>
-            {/* Top Left: Care Progress Button */}
+            {/* Top Left: Care Progress Button - Opens MagicBubble style care list */}
             <motion.div
                 className="absolute top-[2.5rem] left-6 z-40 pointer-events-auto"
                 initial={{ opacity: 0, y: -10 }}
@@ -70,7 +70,7 @@ export function LayoutBottomNav({
                 </motion.button>
             </motion.div>
 
-            {/* Bottom Navigation Bar */}
+            {/* Bottom Navigation Bar - All buttons equally styled */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 z-40 pointer-events-auto pb-safe"
                 initial={{ opacity: 0, y: 40 }}
@@ -92,14 +92,14 @@ export function LayoutBottomNav({
                             <span className="text-[10px] text-slate-500">ピックアップ</span>
                         </motion.button>
 
-                        {/* Center: Photo Button (Camera) */}
+                        {/* Photo Button (Camera - same level as others) */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenPhoto}
-                            className="relative -mt-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-                            style={{ background: 'var(--peach)' }}
+                            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
                         >
-                            <Camera className="w-7 h-7 text-white" />
+                            <Camera className="w-6 h-6 text-slate-500" />
+                            <span className="text-[10px] text-slate-500">今日の一枚</span>
                         </motion.button>
 
                         {/* Menu */}
@@ -112,7 +112,7 @@ export function LayoutBottomNav({
                             <span className="text-[10px] text-slate-500">メニュー</span>
                         </motion.button>
 
-                        {/* Footprints / Exchange */}
+                        {/* Footprints / Exchange - Label changed to 足あと */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenExchange}
@@ -124,7 +124,7 @@ export function LayoutBottomNav({
                                     {stats.householdTotal}
                                 </div>
                             </div>
-                            <span className="text-[10px] text-slate-500">交換</span>
+                            <span className="text-[10px] text-slate-500">足あと</span>
                         </motion.button>
                     </div>
                 </div>
