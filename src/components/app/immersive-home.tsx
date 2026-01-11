@@ -27,6 +27,7 @@ import { LayoutIsland } from "./immersive/layout-island";
 import { LayoutBottomNav } from "./immersive/layout-bottom-nav";
 import { PhotoModal } from "./photo-modal";
 import { IncidentModal } from "./incident-modal";
+import { IncidentDetailModal } from "./incident-detail-modal";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -92,6 +93,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const [showThemeExchange, setShowThemeExchange] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
     const [showIncidentModal, setShowIncidentModal] = useState(false);
+    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [direction, setDirection] = useState(0);
 
     const activeIncidents = React.useMemo(() => {
@@ -698,6 +700,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenMenu={() => handleOpenSidebar('care')}
                     onOpenExchange={() => setShowThemeExchange(true)}
                     onOpenIncident={() => setShowIncidentModal(true)}
+                    onOpenIncidentDetail={(id) => setSelectedIncidentId(id)}
                 />
             )}
 
@@ -709,6 +712,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenMenu={() => handleOpenSidebar('care')}
                     onOpenExchange={() => setShowThemeExchange(true)}
                     onOpenIncident={() => setShowIncidentModal(true)}
+                    onOpenIncidentDetail={(id) => setSelectedIncidentId(id)}
                 />
             )}
 
@@ -759,12 +763,21 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 onClose={() => setShowPhotoModal(false)}
             />
 
-            {/* Incident Modal */}
+            {/* Incident Creation Modal */}
             <IncidentModal
                 isOpen={showIncidentModal}
                 onClose={() => setShowIncidentModal(false)}
                 defaultCatId={activeCatId}
             />
+
+            {/* Incident Detail Modal */}
+            {selectedIncidentId && (
+                <IncidentDetailModal
+                    isOpen={!!selectedIncidentId}
+                    onClose={() => setSelectedIncidentId(null)}
+                    incidentId={selectedIncidentId}
+                />
+            )}
 
         </div >
     );

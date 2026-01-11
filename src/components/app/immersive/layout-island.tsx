@@ -15,6 +15,7 @@ interface LayoutIslandProps {
     onOpenMenu: () => void;
     onOpenExchange: () => void;
     onOpenIncident: () => void;
+    onOpenIncidentDetail: (id: string) => void;
 }
 
 export function LayoutIsland({
@@ -25,6 +26,7 @@ export function LayoutIsland({
     onOpenMenu,
     onOpenExchange,
     onOpenIncident,
+    onOpenIncidentDetail,
 }: LayoutIslandProps) {
     const { stats } = useFootprintContext();
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -124,6 +126,7 @@ export function LayoutIsland({
                             careItems={careItems}
                             onOpenPickup={onOpenPickup}
                             onOpenIncident={onOpenIncident}
+                            onOpenIncidentDetail={onOpenIncidentDetail}
                             onOpenPhoto={onOpenPhoto}
                             addCareLog={addCareLog}
                             activeCatId={activeCatId}

@@ -175,6 +175,7 @@ interface UnifiedCareListProps {
     onOpenPickup: () => void;
     onOpenIncident: () => void;
     onOpenPhoto: () => void;
+    onOpenIncidentDetail?: (id: string) => void;
     addCareLog: any;
     activeCatId: string | null;
     awardForCare: (catId?: string) => void;
@@ -187,6 +188,7 @@ export function UnifiedCareList({
     careItems,
     onOpenPickup,
     onOpenIncident,
+    onOpenIncidentDetail,
     onOpenPhoto,
     addCareLog,
     activeCatId,
@@ -216,7 +218,11 @@ export function UnifiedCareList({
     // Action Handler
     const handleAction = (item: any) => {
         triggerFeedback('medium');
-        onOpenPickup();
+        if (item.type === 'incident' && onOpenIncidentDetail) {
+            onOpenIncidentDetail(item.id);
+        } else {
+            onOpenPickup();
+        }
     };
 
     // Styles (Island Base)
@@ -299,13 +305,13 @@ export function UnifiedCareList({
                                 }
                             }}
                             className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all border ${item.done
-                                    ? 'bg-black/20 border-white/5 opacity-50'
-                                    : 'bg-[#3A322E]/80 border-white/10 hover:bg-[#4A403A] hover:border-[#E8B4A0]/30'
+                                ? 'bg-black/20 border-white/5 opacity-50'
+                                : 'bg-[#3A322E]/80 border-white/10 hover:bg-[#4A403A] hover:border-[#E8B4A0]/30'
                                 }`}
                         >
                             <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${item.done
-                                    ? 'bg-[#7CAA8E] border-[#7CAA8E]'
-                                    : 'border-[#E8B4A0]/40 group-hover:border-[#E8B4A0]'
+                                ? 'bg-[#7CAA8E] border-[#7CAA8E]'
+                                : 'border-[#E8B4A0]/40 group-hover:border-[#E8B4A0]'
                                 }`}>
                                 {item.done && <Check className="w-3 h-3 text-white" />}
                             </div>

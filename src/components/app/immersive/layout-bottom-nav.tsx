@@ -14,6 +14,7 @@ interface LayoutBottomNavProps {
     onOpenMenu: () => void;
     onOpenExchange: () => void;
     onOpenIncident: () => void;
+    onOpenIncidentDetail: (id: string) => void;
 }
 
 export function LayoutBottomNav({
@@ -22,7 +23,8 @@ export function LayoutBottomNav({
     onOpenPhoto,
     onOpenMenu,
     onOpenExchange,
-    onOpenIncident
+    onOpenIncident,
+    onOpenIncidentDetail
 }: LayoutBottomNavProps) {
     const { stats } = useFootprintContext();
     const [isExpanded, setIsExpanded] = useState(false);
@@ -94,6 +96,7 @@ export function LayoutBottomNav({
                             careItems={careItems}
                             onOpenPickup={onOpenPickup} // Full list
                             onOpenIncident={onOpenIncident}
+                            onOpenIncidentDetail={onOpenIncidentDetail}
                             onOpenPhoto={onOpenPhoto}
                             addCareLog={addCareLog}
                             activeCatId={activeCatId}
