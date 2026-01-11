@@ -2,13 +2,14 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Heart, Camera, Grid3X3, Plus } from "lucide-react";
+import { Heart, Camera, Grid3X3 } from "lucide-react";
 import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface LayoutIslandProps {
     progress: number;
     onOpenPickup: () => void;
     onOpenGallery: () => void;
+    onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
 }
@@ -16,12 +17,15 @@ interface LayoutIslandProps {
 /**
  * ダイナミックアイランド型レイアウト
  * - 上部中央: 統合ステータスピル（足あと + 進捗）
+ *   - 足あと部分タップ → 交換所
+ *   - 進捗部分タップ → ピックアップ
  * - 下部中央: フローティングDock
  */
 export function LayoutIsland({
     progress,
     onOpenPickup,
     onOpenGallery,
+    onOpenPhoto,
     onOpenMenu,
     onOpenExchange,
 }: LayoutIslandProps) {
@@ -42,25 +46,31 @@ export function LayoutIsland({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
             >
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={onOpenExchange}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-full"
+                <div
+                    className="flex items-center gap-0 rounded-full overflow-hidden"
                     style={glassStyle}
                 >
-                    {/* Footprint Points */}
-                    <div className="flex items-center gap-1.5">
+                    {/* Footprint Points - Tap to open exchange */}
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={onOpenExchange}
+                        className="flex items-center gap-1.5 px-4 py-2.5 hover:bg-white/30 transition-colors"
+                    >
                         <span className="text-lg">🐾</span>
                         <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--peach)' }}>
                             {stats.householdTotal}
                         </span>
-                    </div>
+                    </motion.button>
 
                     {/* Separator */}
-                    <div className="w-px h-4 bg-slate-300/50" />
+                    <div className="w-px h-6 bg-slate-300/50" />
 
-                    {/* Progress */}
-                    <div className="flex items-center gap-2">
+                    {/* Progress - Tap to open pickup */}
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={onOpenPickup}
+                        className="flex items-center gap-2 px-4 py-2.5 hover:bg-white/30 transition-colors"
+                    >
                         <Heart className="w-4 h-4" style={{ color: 'var(--peach)' }} />
                         <span className="text-sm font-bold text-slate-600 tabular-nums">
                             {Math.round(progress * 100)}%
@@ -74,8 +84,8 @@ export function LayoutIsland({
                                 transition={{ duration: 1, ease: "easeOut" }}
                             />
                         </div>
-                    </div>
-                </motion.button>
+                    </motion.button>
+                </div>
             </motion.div>
 
             {/* Bottom Center: Floating Dock */}
@@ -89,26 +99,26 @@ export function LayoutIsland({
                     className="flex items-center gap-4 px-5 py-3 rounded-full"
                     style={glassStyle}
                 >
-                    {/* Add Button */}
+                    {/* Pickup Button (Heart icon for care) */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenPickup}
                         className="w-11 h-11 rounded-full flex items-center justify-center"
                         style={{ background: 'var(--peach)' }}
                     >
-                        <Plus className="w-6 h-6 text-white" />
+                        <Heart className="w-6 h-6 text-white fill-white/30" />
                     </motion.button>
 
-                    {/* Camera Button */}
+                    {/* Today's Photo Button (Opens photo modal) */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={onOpenGallery}
+                        onClick={onOpenPhoto}
                         className="w-11 h-11 rounded-full bg-white/60 flex items-center justify-center shadow-sm"
                     >
                         <Camera className="w-5 h-5 text-slate-600" />
                     </motion.button>
 
-                    {/* Menu Button */}
+                    {/* Menu Button (Opens gallery/menu) */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenMenu}

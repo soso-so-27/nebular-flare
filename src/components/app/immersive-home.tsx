@@ -25,6 +25,7 @@ import { FootprintBadge } from "./footprint-badge";
 import { ThemeExchangeModal } from "./theme-exchange-modal";
 import { LayoutIsland } from "./immersive/layout-island";
 import { LayoutBottomNav } from "./immersive/layout-bottom-nav";
+import { PhotoModal } from "./photo-modal";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -88,6 +89,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings, incidents } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
     const [showThemeExchange, setShowThemeExchange] = useState(false);
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
     const [direction, setDirection] = useState(0);
 
     const activeIncidents = React.useMemo(() => {
@@ -690,6 +692,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     progress={0.43}
                     onOpenPickup={handleTogglePickup}
                     onOpenGallery={() => onNavigate?.('gallery')}
+                    onOpenPhoto={() => setShowPhotoModal(true)}
                     onOpenMenu={() => handleOpenSidebar('care')}
                     onOpenExchange={() => setShowThemeExchange(true)}
                 />
@@ -786,6 +789,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             <ThemeExchangeModal
                 isOpen={showThemeExchange}
                 onClose={() => setShowThemeExchange(false)}
+            />
+
+            {/* Photo Modal */}
+            <PhotoModal
+                isOpen={showPhotoModal}
+                onClose={() => setShowPhotoModal(false)}
             />
 
         </div >
