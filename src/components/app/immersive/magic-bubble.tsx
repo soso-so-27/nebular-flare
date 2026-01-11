@@ -217,7 +217,8 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
             {/* === SOCIAL RIGHT STACK (Right-Edge Actions) === */}
             <div className={`fixed right-4 bottom-10 z-50 flex items-center pointer-events-none ${placement === 'bottom-center' ? 'flex-row gap-4' : 'flex-col gap-5'}`}>
 
-                {/* Pickup Widget */}
+                {/* Pickup Widget - HIDDEN as per user request to declutter (Redundant with Island/Bottom-Nav list) */}
+                {/* 
                 <div className="pointer-events-auto">
                     <AnimatePresence>
                         {activeCount > 0 && (
@@ -242,6 +243,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         )}
                     </AnimatePresence>
                 </div>
+                */}
 
                 {/* Menu Trigger */}
                 <div className="pointer-events-auto">

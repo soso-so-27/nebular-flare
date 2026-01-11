@@ -130,27 +130,7 @@ export function LayoutBottomNav({
                             </motion.button>
                         )}
 
-                        {/* Photo Button (Camera - same level as others) */}
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={onOpenPhoto}
-                            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
-                        >
-                            <Camera className="w-6 h-6 text-slate-500" />
-                            <span className="text-[10px] text-slate-500">今日の一枚</span>
-                        </motion.button>
-
-                        {/* Menu */}
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={onOpenMenu}
-                            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
-                        >
-                            <Grid3X3 className="w-6 h-6 text-slate-500" />
-                            <span className="text-[10px] text-slate-500">メニュー</span>
-                        </motion.button>
-
-                        {/* Footprints / Exchange - Label changed to 足あと */}
+                        {/* Footprints / Exchange - FIRST */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenExchange}
@@ -163,6 +143,26 @@ export function LayoutBottomNav({
                                 </div>
                             </div>
                             <span className="text-[10px] text-slate-500">足あと</span>
+                        </motion.button>
+
+                        {/* Photo Button (Camera) - SECOND */}
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onOpenPhoto}
+                            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
+                        >
+                            <Camera className="w-6 h-6 text-slate-500" />
+                            <span className="text-[10px] text-slate-500">今日の一枚</span>
+                        </motion.button>
+
+                        {/* Menu - THIRD */}
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onOpenMenu}
+                            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
+                        >
+                            <Grid3X3 className="w-6 h-6 text-slate-500" />
+                            <span className="text-[10px] text-slate-500">メニュー</span>
                         </motion.button>
                     </div>
                 </div>
