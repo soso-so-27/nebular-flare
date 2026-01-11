@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { IncidentModal } from "../incident-modal";
 import { IncidentDetailModal } from "../incident-detail-modal";
+import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface BubbleItem {
     id: string;
@@ -36,6 +37,8 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
         settings,
         incidents, resolveIncident
     } = useAppState();
+
+    const { awardForCare, awardForObservation } = useFootprintContext();
 
     const today = useMemo(() => getToday(settings.dayStartHour), [settings.dayStartHour]);
 
@@ -79,6 +82,8 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
 
                         await addCareLog(logType, targetCatId);
                         toast.success(`${item.title} 完了`);
+                        // Award footprint
+                        awardForCare(targetCatId);
                     }
                 } else if (item.type === 'unrecorded' || item.type === 'notice') {
                     if (item.payload) {
@@ -90,6 +95,8 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                         } else {
                             await addObservation(item.catId || activeCatId, nId, "OK");
                             toast.success("記録しました");
+                            // Award footprint for observation
+                            awardForObservation(item.catId || activeCatId);
                         }
                     }
                 } else if (item.type === 'inventory') {

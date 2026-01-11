@@ -20,6 +20,7 @@ import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/splash-screen";
 import { SidebarMenu } from "@/components/app/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/immersive-home";
+import { FootprintProvider } from "@/providers/footprint-provider";
 
 // Lazy load heavy components
 const WidgetHomeScreen = dynamic(() => import("@/components/app/widget-home-screen").then(m => ({ default: m.WidgetHomeScreen })), { ssr: false });
@@ -335,10 +336,16 @@ function AuthenticatedAppWithProfile({ user }: { user: any }) {
   }
 
   return (
-    <AppProvider householdId={profile?.householdId ?? null} isDemo={false}>
-      <AppContent />
-      <Toaster />
-    </AppProvider>
+    <FootprintProvider
+      userId={user?.id}
+      householdId={profile?.householdId ?? undefined}
+      isDemo={false}
+    >
+      <AppProvider householdId={profile?.householdId ?? null} isDemo={false}>
+        <AppContent />
+        <Toaster />
+      </AppProvider>
+    </FootprintProvider>
   );
 }
 
@@ -369,10 +376,12 @@ function AuthenticatedApp() {
   // Demo mode: skip profile check
   if (isDemo) {
     return (
-      <AppProvider householdId={null} isDemo={true}>
-        <AppContent />
-        <Toaster />
-      </AppProvider>
+      <FootprintProvider isDemo={true}>
+        <AppProvider householdId={null} isDemo={true}>
+          <AppContent />
+          <Toaster />
+        </AppProvider>
+      </FootprintProvider>
     );
   }
 

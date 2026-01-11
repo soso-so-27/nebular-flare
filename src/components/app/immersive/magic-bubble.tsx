@@ -11,6 +11,7 @@ import { haptics } from "@/lib/haptics";
 import { ObservationEditor } from "./observation-editor";
 import { IncidentModal } from "../incident-modal";
 import { PhotoModal } from "../photo-modal";
+import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface MagicBubbleProps {
     onOpenPickup: () => void;
@@ -30,6 +31,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
     const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs } = useAppState();
+    const { awardForCare, awardForObservation } = useFootprintContext();
 
     const isLight = contrastMode === 'light';
 
@@ -286,6 +288,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                             const result = await addCareLog(targetId, item.perCat ? activeCatId : undefined);
                                                             if (result && result.error) {
                                                                 toast.error(result.error.message || "記録できませんでした");
+                                                            } else {
+                                                                // Award footprint on success
+                                                                awardForCare(item.perCat ? activeCatId : undefined);
                                                             }
                                                         }
                                                     }}

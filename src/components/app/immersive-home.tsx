@@ -21,6 +21,7 @@ import { BubblePickupList } from "./immersive/bubble-pickup-list";
 import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
+import { FootprintBadge } from "./footprint-badge";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -664,6 +665,16 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 contrastMode={contrastMode}
                 placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
             />
+
+            {/* Footprint Badge - Top Right */}
+            <motion.div
+                className="absolute top-4 right-4 z-40 pointer-events-auto"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: uiVisible ? 1 : 0.3, y: 0 }}
+                transition={{ duration: 0.3 }}
+            >
+                <FootprintBadge />
+            </motion.div>
 
             {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
             {

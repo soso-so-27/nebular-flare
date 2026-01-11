@@ -8,6 +8,7 @@ import { useAppState } from '@/store/app-store';
 import { Camera, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CatAvatar } from "@/components/ui/cat-avatar";
+import { useFootprintContext } from "@/providers/footprint-provider";
 
 type PhotoModalProps = {
     isOpen: boolean;
@@ -17,6 +18,7 @@ type PhotoModalProps = {
 
 export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProps) {
     const { cats, uploadCatImage } = useAppState();
+    const { awardForPhoto } = useFootprintContext();
     const [loading, setLoading] = useState(false);
     const [selectedCatId, setSelectedCatId] = useState<string>(() => {
         if (preselectedCatId) return preselectedCatId;
@@ -71,6 +73,8 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
             const { error } = await uploadCatImage(selectedCatId, photo, memo);
             if (error) throw error;
 
+            // Award footprint for photo (2pts)
+            awardForPhoto(selectedCatId);
             toast.success("写真を保存しました");
             handleClose();
         } catch (e: any) {

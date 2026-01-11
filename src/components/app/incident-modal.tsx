@@ -9,6 +9,7 @@ import { Loader2, Camera, X, Sparkles, Wind, Bandage, Utensils, BatteryLow, Tras
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CatAvatar } from "@/components/ui/cat-avatar";
+import { useFootprintContext } from "@/providers/footprint-provider";
 
 type IncidentModalProps = {
     isOpen: boolean;
@@ -28,6 +29,7 @@ const INCIDENT_TYPES = [
 
 export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalProps) {
     const { cats, addIncident } = useAppState();
+    const { awardForIncident } = useFootprintContext();
     const [loading, setLoading] = useState(false);
     const [catId, setCatId] = useState(defaultCatId || (cats.length > 0 ? cats[0].id : ''));
     const [type, setType] = useState('vomit');
@@ -80,6 +82,8 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             const { error } = await addIncident(catId, type, note, photos);
             if (error) throw error;
 
+            // Award footprint for incident (2pts)
+            awardForIncident(catId);
             toast.success("気付きを記録しました");
             onClose();
             // Reset form

@@ -4,6 +4,7 @@ import React from "react";
 import { useAppState } from "@/store/app-store";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FootprintBadge } from "./footprint-badge";
 
 export function HeroSection() {
     const { cats, activeCatId, setActiveCatId } = useAppState();
@@ -62,6 +63,9 @@ export function HeroSection() {
 
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                {/* Footprint Badge - Top Right */}
+                <FootprintBadge className="absolute top-3 right-3 z-10" />
 
                 {/* Text overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">

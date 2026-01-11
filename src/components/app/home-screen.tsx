@@ -41,6 +41,7 @@ import { QuickActionBar } from "./quick-action-bar";
 import { ActivityFeed } from "./activity-feed";
 import { HeroSection } from "./hero-section";
 import { Image as ImageIcon } from "lucide-react";
+import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface HomeScreenProps {
     externalOpenSection?: 'care' | 'cat' | 'inventory' | null;
@@ -79,6 +80,8 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
         deleteInventoryItem,
         updateInvThreshold
     } = useAppState();
+
+    const { awardForCare, awardForObservation } = useFootprintContext();
 
     // Use external control if provided, otherwise use local state
     const [localOpenSection, setLocalOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
@@ -230,6 +233,8 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
         if (result?.error) {
             toast.error("記録に失敗しました");
         } else {
+            // Award footprint for care
+            awardForCare(item.perCat ? activeCatId : undefined);
             toast.success(`${item.label} 完了！`);
         }
     }
@@ -308,6 +313,8 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
             if (result?.error) {
                 toast.error("記録に失敗しました");
             } else {
+                // Award footprint for observation
+                awardForObservation(activeCatId);
                 toast.success(`${label}: ${value}`);
             }
         }
