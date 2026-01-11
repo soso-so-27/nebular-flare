@@ -9,20 +9,20 @@ import { useAppState } from "@/store/app-store";
 import { toast } from "sonner";
 import type { LayoutType } from "@/types";
 
-type TabType = 'theme' | 'layout' | 'goods' | 'supplies' | 'donation';
+type TabType = 'layout' | 'theme' | 'goods' | 'supplies' | 'donation';
 
 const TABS: { id: TabType; label: string; icon: React.ReactNode; ready: boolean }[] = [
-    { id: 'theme', label: 'テーマ', icon: <Palette className="w-4 h-4" />, ready: true },
     { id: 'layout', label: 'レイアウト', icon: <Layout className="w-4 h-4" />, ready: true },
+    { id: 'theme', label: 'テーマ', icon: <Palette className="w-4 h-4" />, ready: true },
     { id: 'goods', label: '猫グッズ', icon: <Gift className="w-4 h-4" />, ready: false },
     { id: 'supplies', label: '猫用品', icon: <ShoppingBag className="w-4 h-4" />, ready: false },
     { id: 'donation', label: '寄付', icon: <Heart className="w-4 h-4" />, ready: false },
 ];
 
-const LAYOUT_OPTIONS: { id: LayoutType; name: string; description: string; preview: string }[] = [
-    { id: 'classic', name: '現在の型', description: '左上進捗・右上バッジ・右下ボタン', preview: '📍' },
-    { id: 'island', name: 'ダイナミックアイランド型', description: '上部中央ステータス・下部Dock', preview: '🌟' },
-    { id: 'bottom-nav', name: 'ボトムナビゲーション型', description: '下部に全機能統合バー', preview: '📱' },
+const LAYOUT_OPTIONS: { id: LayoutType; name: string; description: string }[] = [
+    { id: 'classic', name: '現在の型', description: '左上にお世話進捗、右上に足あとバッジ、右下にボタン' },
+    { id: 'island', name: 'ダイナミックアイランド型', description: '上部中央にステータス表示、下部にボタン' },
+    { id: 'bottom-nav', name: 'ボトムナビゲーション型', description: '左上にお世話進捗、下部にナビゲーションバー' },
 ];
 
 interface ThemeItem {
@@ -45,7 +45,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
     const [themes, setThemes] = useState<ThemeItem[]>([]);
     const [unlockedThemeIds, setUnlockedThemeIds] = useState<Set<string>>(new Set());
     const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<TabType>('theme');
+    const [activeTab, setActiveTab] = useState<TabType>('layout');
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState<string | null>(null);
     const { stats, refreshStats } = useFootprintContext();
@@ -322,15 +322,15 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                             key={layout.id}
                                             onClick={() => setSettings(s => ({ ...s, layoutType: layout.id }))}
                                             className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${settings.layoutType === layout.id
-                                                    ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5'
-                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                                                ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5'
+                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                 }`}
                                             whileTap={{ scale: 0.98 }}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">
-                                                        {layout.preview}
+                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                        <Layout className="w-6 h-6 text-slate-500" />
                                                     </div>
                                                     <div>
                                                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
