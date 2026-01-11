@@ -14,7 +14,6 @@ interface LayoutIslandProps {
     onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
-    onOpenCareList: () => void;
 }
 
 /**
@@ -31,7 +30,6 @@ export function LayoutIsland({
     onOpenPhoto,
     onOpenMenu,
     onOpenExchange,
-    onOpenCareList, // Keep for backward compatibility but might not use for main action
 }: LayoutIslandProps) {
     const { stats } = useFootprintContext();
     const [isExpanded, setIsExpanded] = React.useState(false);

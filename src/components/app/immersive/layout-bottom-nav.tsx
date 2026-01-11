@@ -13,7 +13,6 @@ interface LayoutBottomNavProps {
     onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
-    onOpenCareList: () => void;
 }
 
 /**
@@ -27,7 +26,6 @@ export function LayoutBottomNav({
     onOpenPhoto,
     onOpenMenu,
     onOpenExchange,
-    onOpenCareList, // Keep for backward compatibility
 }: LayoutBottomNavProps) {
     const { stats } = useFootprintContext();
     const [isExpanded, setIsExpanded] = React.useState(false);
