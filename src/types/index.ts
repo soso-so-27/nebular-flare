@@ -181,6 +181,8 @@ export type AppEvent = {
   archived: boolean;
 };
 
+export type LayoutType = 'classic' | 'island' | 'bottom-nav';
+
 export type AppSettings = {
   plan: 'Free' | 'Pro';
   aiEnabled: boolean;
@@ -188,6 +190,8 @@ export type AppSettings = {
   homeMode: 'checklist' | 'cards' | 'immersive';
   // Unified view mode: Display style + Bubble placement combined
   homeViewMode: 'story' | 'parallax' | 'icon';
+  // Layout style for UI elements
+  layoutType: LayoutType;
   weeklySummaryEnabled: boolean;
   quietHours: { start: number; end: number };
   invThresholds: { soon: number; urgent: number; critical: number };

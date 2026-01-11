@@ -114,6 +114,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             engagement: 'passive',
             homeMode: 'checklist',
             homeViewMode: savedViewMode,
+            layoutType: 'classic' as const,
             weeklySummaryEnabled: true,
             quietHours: { start: 23, end: 7 },
             invThresholds: { soon: 7, urgent: 3, critical: 1 },

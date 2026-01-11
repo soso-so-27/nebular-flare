@@ -23,6 +23,8 @@ import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
 import { FootprintBadge } from "./footprint-badge";
 import { ThemeExchangeModal } from "./theme-exchange-modal";
+import { LayoutIsland } from "./immersive/layout-island";
+import { LayoutBottomNav } from "./immersive/layout-bottom-nav";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -657,26 +659,52 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
 
 
-            {/* Interface Layer - Always MagicBubble (placement varies by mode) */}
-            <MagicBubble
-                onOpenPickup={handleTogglePickup}
-                onOpenCalendar={() => onOpenCalendar?.()}
-                onOpenGallery={() => onNavigate?.('gallery')}
-                onOpenCare={() => handleOpenSidebar('care')}
-                onOpenActivity={() => handleOpenSidebar('activity')}
-                contrastMode={contrastMode}
-                placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
-            />
+            {/* Layout Layer - Based on layoutType setting */}
+            {settings.layoutType === 'classic' && (
+                <>
+                    {/* Classic: MagicBubble + FootprintBadge */}
+                    <MagicBubble
+                        onOpenPickup={handleTogglePickup}
+                        onOpenCalendar={() => onOpenCalendar?.()}
+                        onOpenGallery={() => onNavigate?.('gallery')}
+                        onOpenCare={() => handleOpenSidebar('care')}
+                        onOpenActivity={() => handleOpenSidebar('activity')}
+                        contrastMode={contrastMode}
+                        placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
+                    />
 
-            {/* Footprint Badge - Top Right */}
-            <motion.div
-                className="absolute top-[2.5rem] right-6 z-40 pointer-events-auto"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-            >
-                <FootprintBadge onClick={() => setShowThemeExchange(true)} />
-            </motion.div>
+                    {/* Footprint Badge - Top Right */}
+                    <motion.div
+                        className="absolute top-[2.5rem] right-6 z-40 pointer-events-auto"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <FootprintBadge onClick={() => setShowThemeExchange(true)} />
+                    </motion.div>
+                </>
+            )}
+
+            {settings.layoutType === 'island' && (
+                <LayoutIsland
+                    progress={0.43}
+                    onOpenPickup={handleTogglePickup}
+                    onOpenGallery={() => onNavigate?.('gallery')}
+                    onOpenMenu={() => handleOpenSidebar('care')}
+                    onOpenExchange={() => setShowThemeExchange(true)}
+                />
+            )}
+
+            {settings.layoutType === 'bottom-nav' && (
+                <LayoutBottomNav
+                    progress={0.43}
+                    onOpenPickup={handleTogglePickup}
+                    onOpenGallery={() => onNavigate?.('gallery')}
+                    onOpenMenu={() => handleOpenSidebar('care')}
+                    onOpenCalendar={() => onOpenCalendar?.()}
+                    onOpenExchange={() => setShowThemeExchange(true)}
+                />
+            )}
 
             {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
             {
