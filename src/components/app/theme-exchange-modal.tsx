@@ -158,7 +158,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden"
+                        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl min-h-[50vh] max-h-[85vh] overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}

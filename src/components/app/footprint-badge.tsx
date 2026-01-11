@@ -38,8 +38,8 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
         return (
             <motion.div
                 className={`flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg border border-white/60 cursor-pointer ${className}`}
-                animate={showPulse ? { scale: [1, 1.1, 1] } : {}}
-                transition={{ duration: 0.3 }}
+                animate={showPulse ? { scale: 1.1 } : { scale: 1 }}
+                transition={{ duration: 0.15, type: 'spring', stiffness: 400, damping: 10 }}
                 onClick={onClick}
                 whileTap={{ scale: 0.95 }}
             >
@@ -69,10 +69,10 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
                 backdropFilter: 'blur(16px) saturate(1.8)',
                 boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4)'
             }}
-            animate={showPulse ? { scale: [1, 1.15, 1] } : {}}
-            transition={{ duration: 0.3, type: 'spring' }}
+            animate={showPulse ? { scale: 1.1 } : { scale: 1 }}
+            transition={{ duration: 0.15, type: 'spring', stiffness: 400, damping: 10 }}
             onClick={onClick}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
         >
             {/* Paw emoji */}
             <span className="text-base drop-shadow-sm">🐾</span>
