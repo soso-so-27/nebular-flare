@@ -22,6 +22,7 @@ import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
 import { FootprintBadge } from "./footprint-badge";
+import { ThemeExchangeModal } from "./theme-exchange-modal";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -84,6 +85,7 @@ const BackgroundVideo = ({ src, poster, className, onClick, onLoadedData }: { sr
 export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings, incidents } = useAppState();
     const [showPickup, setShowPickup] = useState(false);
+    const [showThemeExchange, setShowThemeExchange] = useState(false);
     const [direction, setDirection] = useState(0);
 
     const activeIncidents = React.useMemo(() => {
@@ -673,7 +675,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 animate={{ opacity: uiVisible ? 1 : 0.3, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
-                <FootprintBadge />
+                <FootprintBadge onClick={() => setShowThemeExchange(true)} />
             </motion.div>
 
             {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
@@ -750,6 +752,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             <BubblePickupList
                 isOpen={showPickup}
                 onClose={() => setShowPickup(false)}
+            />
+
+            {/* Theme Exchange Modal */}
+            <ThemeExchangeModal
+                isOpen={showThemeExchange}
+                onClose={() => setShowThemeExchange(false)}
             />
 
         </div >

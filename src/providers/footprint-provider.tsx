@@ -20,6 +20,7 @@ interface FootprintContextValue {
     };
     loading: boolean;
     loginBonusAvailable: boolean;
+    refreshStats: () => Promise<void>;
     claimLoginBonus: () => Promise<boolean>;
     awardForCare: (catId?: string, actionId?: string) => Promise<void>;
     awardForObservation: (catId: string, actionId?: string) => Promise<void>;
@@ -37,6 +38,7 @@ export function useFootprintContext() {
             stats: { userTotal: 0, householdTotal: 0, breakdown: [] },
             loading: false,
             loginBonusAvailable: false,
+            refreshStats: async () => { },
             claimLoginBonus: async () => false,
             awardForCare: async () => { },
             awardForObservation: async () => { },
@@ -160,6 +162,7 @@ export function FootprintProvider({
         stats,
         loading,
         loginBonusAvailable,
+        refreshStats: refresh,
         claimLoginBonus,
         awardForCare,
         awardForObservation,

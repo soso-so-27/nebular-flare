@@ -7,9 +7,10 @@ import { useFootprintContext } from '@/providers/footprint-provider';
 interface FootprintBadgeProps {
     className?: string;
     variant?: 'compact' | 'full';
+    onClick?: () => void;
 }
 
-export function FootprintBadge({ className = '', variant = 'compact' }: FootprintBadgeProps) {
+export function FootprintBadge({ className = '', variant = 'compact', onClick }: FootprintBadgeProps) {
     const { stats, loading } = useFootprintContext();
 
     // Animate when points change
@@ -27,9 +28,8 @@ export function FootprintBadge({ className = '', variant = 'compact' }: Footprin
 
     if (loading) {
         return (
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md ${className}`}>
-                <span className="text-lg">🐾</span>
-                <span className="text-sm font-bold text-white/60">---</span>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md ${className}`}>
+                <span className="text-base">🐾</span>
             </div>
         );
     }
@@ -37,9 +37,11 @@ export function FootprintBadge({ className = '', variant = 'compact' }: Footprin
     if (variant === 'full') {
         return (
             <motion.div
-                className={`flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg border border-white/60 ${className}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg border border-white/60 cursor-pointer ${className}`}
                 animate={showPulse ? { scale: [1, 1.1, 1] } : {}}
                 transition={{ duration: 0.3 }}
+                onClick={onClick}
+                whileTap={{ scale: 0.95 }}
             >
                 <span className="text-2xl">🐾</span>
                 <div className="flex flex-col">
@@ -58,35 +60,48 @@ export function FootprintBadge({ className = '', variant = 'compact' }: Footprin
         );
     }
 
-    // Compact variant (default)
+    // Compact variant (default) - Matches other UI icons (w-10 h-10)
     return (
-        <motion.div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 ${className}`}
+        <motion.button
+            className={`relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer group ${className}`}
+            style={{
+                background: 'rgba(250, 249, 247, 0.45)',
+                backdropFilter: 'blur(16px) saturate(1.8)',
+                boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4)'
+            }}
             animate={showPulse ? { scale: [1, 1.15, 1] } : {}}
             transition={{ duration: 0.3, type: 'spring' }}
+            onClick={onClick}
+            whileTap={{ scale: 0.9 }}
         >
-            <span className="text-sm">🐾</span>
-            <motion.span
-                className="text-sm font-bold text-white drop-shadow-sm"
+            {/* Paw emoji */}
+            <span className="text-base drop-shadow-sm">🐾</span>
+
+            {/* Point count badge */}
+            <motion.div
+                className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8B4A0] flex items-center justify-center shadow-md ring-2 ring-white"
                 key={stats.householdTotal}
-                initial={{ opacity: 0.5, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
             >
-                {stats.householdTotal.toLocaleString()}
-            </motion.span>
+                <span className="text-[10px] font-bold text-white tabular-nums">
+                    {stats.householdTotal > 999 ? '999+' : stats.householdTotal}
+                </span>
+            </motion.div>
 
             {/* Pulse ring on point gain */}
             <AnimatePresence>
                 {showPulse && (
                     <motion.div
-                        className="absolute inset-0 rounded-full border-2 border-white/60"
+                        className="absolute inset-0 rounded-full border-2 border-[#E8B4A0]"
                         initial={{ scale: 1, opacity: 1 }}
-                        animate={{ scale: 1.5, opacity: 0 }}
+                        animate={{ scale: 1.6, opacity: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.6 }}
                     />
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.button>
     );
 }
+
