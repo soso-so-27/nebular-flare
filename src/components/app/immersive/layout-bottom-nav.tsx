@@ -38,7 +38,8 @@ export function LayoutBottomNav({
         observations,
         inventory,
         activeCatId, cats,
-        settings
+        settings,
+        incidents, // Added incidents
     } = useAppState();
     const { awardForCare } = useFootprintContext();
 
@@ -89,7 +90,34 @@ export function LayoutBottomNav({
         // Filter alerts (inv, notices) only if integrated
         let alerts: any[] = [];
         if (ENABLE_INTEGRATED_PICKUP) {
-            alerts = all
+            // 1. Incidents (Direct from Supabase)
+            const activeIncidents = incidents ? incidents.filter(inc => inc.status !== 'resolved') : [];
+            const incidentAlerts = activeIncidents.map(inc => {
+                const cat = cats.find(c => c.id === inc.cat_id);
+                const typeLabel = {
+                    'vomit': '嘔吐',
+                    'diarrhea': '下痢',
+                    'injury': '怪我',
+                    'appetite': '食欲不振',
+                    'energy': '元気がない',
+                    'toilet': 'トイレ失敗',
+                    'other': 'その他'
+                }[inc.type as string] || inc.type;
+
+                return {
+                    id: inc.id,
+                    actionId: inc.id,
+                    label: `${cat?.name || '猫ちゃん'} : ${typeLabel}`,
+                    subLabel: new Date(inc.created_at).toLocaleDateString(),
+                    type: 'incident',
+                    severity: 100, // Highest priority
+                    catId: inc.cat_id,
+                    payload: inc
+                };
+            });
+
+            // 2. CatchUp Alerts (Notices, Inventory)
+            const catchUpAlerts = all
                 .filter(item => item.type !== 'task' && item.severity >= 60) // Critical/Urgent items
                 .map(item => ({
                     id: item.id,
@@ -101,10 +129,13 @@ export function LayoutBottomNav({
                     catId: item.catId,
                     payload: item.payload
                 }));
+
+            // Merge and sort
+            alerts = [...incidentAlerts, ...catchUpAlerts].sort((a, b) => b.severity - a.severity);
         }
 
         return { careItems: tasks, alertItems: alerts };
-    }, [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, observations, ENABLE_INTEGRATED_PICKUP]);
+    }, [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, observations, incidents, ENABLE_INTEGRATED_PICKUP]);
 
     const handleAction = async (item: any) => {
         if (item.type === 'task') {

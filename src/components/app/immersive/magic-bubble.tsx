@@ -30,7 +30,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     const [selectedValue, setSelectedValue] = useState("");
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
-    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs } = useAppState();
+    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, addObservation, inventory, noticeLogs, incidents } = useAppState();
     const { awardForCare, awardForObservation } = useFootprintContext();
 
     const isLight = contrastMode === 'light';
@@ -83,8 +83,9 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
     }, [noticeLogs, inventory, settings, cats, careTaskDefs, careLogs, noticeDefs, observations, dayStartHour]);
 
     // Filter care tasks from catchUpData
-    const careItems = useMemo(() => {
-        return catchUpData.allItems
+    // Filter care tasks and alerts (if integrated)
+    const { careItems, alertItems } = useMemo(() => {
+        const tasks = catchUpData.allItems
             .filter(item => item.type === 'task')
             .map(item => ({
                 id: item.id,
@@ -94,9 +95,61 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                 perCat: item.payload?.perCat,
                 done: false, // Items in catchUp are NOT done
                 slot: item.payload?.slot,
-                catId: item.catId
+                catId: item.catId,
+                severity: item.severity
             }));
-    }, [catchUpData]);
+
+        // Filter alerts (inv, notices, incidents)
+        // Feature flag for consistency, defaulting to true here as requested for "all layouts"
+        const ENABLE_INTEGRATED_PICKUP = true;
+        let alerts: any[] = [];
+
+        if (ENABLE_INTEGRATED_PICKUP) {
+            // 1. Incidents (Direct from Supabase)
+            const activeIncidents = incidents ? incidents.filter(inc => inc.status !== 'resolved') : [];
+            const incidentAlerts = activeIncidents.map(inc => {
+                const cat = cats.find(c => c.id === inc.cat_id);
+                const typeLabel = {
+                    'vomit': '嘔吐',
+                    'diarrhea': '下痢',
+                    'injury': '怪我',
+                    'appetite': '食欲不振',
+                    'energy': '元気がない',
+                    'toilet': 'トイレ失敗',
+                    'other': 'その他'
+                }[inc.type as string] || inc.type;
+
+                return {
+                    id: inc.id,
+                    actionId: inc.id,
+                    label: `${cat?.name || '猫ちゃん'} : ${typeLabel}`,
+                    subLabel: new Date(inc.created_at).toLocaleDateString(),
+                    type: 'incident',
+                    severity: 100, // Highest priority
+                    catId: inc.cat_id,
+                    payload: inc
+                };
+            });
+
+            // 2. CatchUp Alerts (Notices, Inventory)
+            const catchUpAlerts = catchUpData.allItems
+                .filter(item => item.type !== 'task' && item.severity >= 60)
+                .map(item => ({
+                    id: item.id,
+                    actionId: item.actionId,
+                    label: item.title,
+                    subLabel: item.body,
+                    type: item.type,
+                    severity: item.severity,
+                    catId: item.catId,
+                    payload: item.payload
+                }));
+
+            alerts = [...incidentAlerts, ...catchUpAlerts].sort((a, b) => b.severity - a.severity);
+        }
+
+        return { careItems: tasks, alertItems: alerts };
+    }, [catchUpData, incidents, cats]);
 
     // Calculate total care tasks (done + pending)
     // We need to count both completed and pending tasks
@@ -269,6 +322,37 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                     className="py-2 space-y-4 w-max min-w-[160px] max-w-[80vw] max-h-[75vh] overflow-y-auto no-scrollbar [&::-webkit-scrollbar]:hidden pr-1"
                                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
                                 >
+                                    {/* Alerts Section */}
+                                    {alertItems.length > 0 && (
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex items-center gap-2 text-xs font-bold text-rose-500 animate-pulse">
+                                                <AlertCircle className="w-3 h-3" />
+                                                <span>要確認</span>
+                                            </div>
+                                            {alertItems.map(item => (
+                                                <motion.button
+                                                    key={item.id}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerFeedback('medium');
+                                                        onOpenPickup(); // Open pickup modal for details
+                                                    }}
+                                                    className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/90 to-red-600/90 shadow-lg border border-red-400/50"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                                                        <AlertCircle className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-sm font-bold text-white truncate">{item.label}</span>
+                                                        <span className="text-xs text-white/90 truncate">{item.subLabel}</span>
+                                                    </div>
+                                                </motion.button>
+                                            ))}
+                                            <div className="h-px bg-white/20 my-2" />
+                                        </div>
+                                    )}
+
                                     {/* Care Section - Same as other modes */}
                                     {careItems.length > 0 && (
                                         <div className="space-y-2">
@@ -401,6 +485,31 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                     className={`ml-2 pl-2 border-l-2 ${isLight ? 'border-black/20' : 'border-white/20'} overflow-hidden`}
                                 >
                                     <div className="py-2 space-y-3 w-max min-w-[140px] pr-2">
+                                        {/* Alerts Section (Stack Mode) */}
+                                        {alertItems.length > 0 && (
+                                            <div className="space-y-2 mb-2">
+                                                {alertItems.map(item => (
+                                                    <motion.button
+                                                        key={item.id}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            triggerFeedback('medium');
+                                                            onOpenPickup();
+                                                        }}
+                                                        className="flex items-center gap-3 w-full text-left p-2 rounded-xl bg-gradient-to-br from-rose-500/80 to-red-600/80 shadow-md border border-red-400/30"
+                                                    >
+                                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                                            <AlertCircle className="w-3 h-3 text-white" />
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-xs font-bold text-white truncate">{item.label}</span>
+                                                        </div>
+                                                    </motion.button>
+                                                ))}
+                                                <div className={`h-px ${isLight ? 'bg-black/10' : 'bg-white/10'} my-1`} />
+                                            </div>
+                                        )}
                                         {careItems.map(item => (
                                             <motion.button
                                                 key={item.id}
