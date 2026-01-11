@@ -695,6 +695,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     onOpenPhoto={() => setShowPhotoModal(true)}
                     onOpenMenu={() => handleOpenSidebar('care')}
                     onOpenExchange={() => setShowThemeExchange(true)}
+                    onOpenCareList={handleTogglePickup}
                 />
             )}
 
@@ -702,11 +703,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 <LayoutBottomNav
                     progress={0.43}
                     onOpenPickup={handleTogglePickup}
-                    onOpenGallery={() => onNavigate?.('gallery')}
                     onOpenPhoto={() => setShowPhotoModal(true)}
                     onOpenMenu={() => handleOpenSidebar('care')}
-                    onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenExchange={() => setShowThemeExchange(true)}
+                    onOpenCareList={handleTogglePickup}
                 />
             )}
 

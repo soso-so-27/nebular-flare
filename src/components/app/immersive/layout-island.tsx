@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Heart, Camera, Grid3X3 } from "lucide-react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, Camera, Grid3X3, ChevronDown } from "lucide-react";
 import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface LayoutIslandProps {
@@ -12,13 +12,14 @@ interface LayoutIslandProps {
     onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenExchange: () => void;
+    onOpenCareList: () => void; // Opens expandable care list like MagicBubble
 }
 
 /**
  * ダイナミックアイランド型レイアウト
- * - 上部中央: 統合ステータスピル（足あと + 進捗）
+ * - 上部中央: 統合ステータスピル
+ *   - 進捗部分タップ → 下に展開するお世話一覧
  *   - 足あと部分タップ → 交換所
- *   - 進捗部分タップ → ピックアップ
  * - 下部中央: フローティングDock
  */
 export function LayoutIsland({
@@ -28,13 +29,19 @@ export function LayoutIsland({
     onOpenPhoto,
     onOpenMenu,
     onOpenExchange,
+    onOpenCareList,
 }: LayoutIslandProps) {
     const { stats } = useFootprintContext();
+    const [showCareList, setShowCareList] = useState(false);
 
     const glassStyle = {
         background: 'rgba(250, 249, 247, 0.65)',
         backdropFilter: 'blur(20px) saturate(1.8)',
         boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
+    };
+
+    const handleProgressClick = () => {
+        onOpenCareList();
     };
 
     return (
@@ -65,10 +72,10 @@ export function LayoutIsland({
                     {/* Separator */}
                     <div className="w-px h-6 bg-slate-300/50" />
 
-                    {/* Progress - Tap to open pickup */}
+                    {/* Progress - Tap to open care list (expands down) */}
                     <motion.button
                         whileTap={{ scale: 0.95 }}
-                        onClick={onOpenPickup}
+                        onClick={handleProgressClick}
                         className="flex items-center gap-2 px-4 py-2.5 hover:bg-white/30 transition-colors"
                     >
                         <Heart className="w-4 h-4" style={{ color: 'var(--peach)' }} />
@@ -84,6 +91,7 @@ export function LayoutIsland({
                                 transition={{ duration: 1, ease: "easeOut" }}
                             />
                         </div>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
                     </motion.button>
                 </div>
             </motion.div>
