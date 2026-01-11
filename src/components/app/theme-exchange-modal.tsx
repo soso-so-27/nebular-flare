@@ -174,7 +174,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8B4A0] to-[#C08A70] flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--peach)' }}>
                                     <Sparkles className="w-5 h-5 text-white" />
                                 </div>
                                 <div>
@@ -197,7 +197,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === tab.id
-                                        ? 'text-[#E8B4A0]'
+                                        ? 'text-[color:var(--peach)]'
                                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
@@ -211,7 +211,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                     {activeTab === tab.id && (
                                         <motion.div
                                             layoutId="activeTabIndicator"
-                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8B4A0]"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--peach)' }}
                                         />
                                     )}
                                 </button>
@@ -224,14 +224,14 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                 // Theme tab content
                                 loading ? (
                                     <div className="flex items-center justify-center py-12">
-                                        <div className="w-8 h-8 border-2 border-[#E8B4A0] border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--peach)', borderTopColor: 'transparent' }} />
                                     </div>
                                 ) : (
                                     themes.map((theme) => (
                                         <motion.div
                                             key={theme.id}
                                             className={`relative p-4 rounded-2xl border-2 transition-all ${isActive(theme.id)
-                                                ? 'border-[#7CAA8E] bg-[#7CAA8E]/5'
+                                                ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5'
                                                 : isUnlocked(theme.id)
                                                     ? 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                     : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'
@@ -258,7 +258,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                                             {theme.name}
                                                             {isActive(theme.id) && (
-                                                                <span className="text-xs px-2 py-0.5 rounded-full bg-[#7CAA8E] text-white">
+                                                                <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ background: 'var(--sage)' }}>
                                                                     使用中
                                                                 </span>
                                                             )}
@@ -270,7 +270,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                                 {/* Action Button */}
                                                 {isUnlocked(theme.id) ? (
                                                     isActive(theme.id) ? (
-                                                        <div className="w-10 h-10 rounded-full bg-[#7CAA8E] flex items-center justify-center">
+                                                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--sage)' }}>
                                                             <Check className="w-5 h-5 text-white" />
                                                         </div>
                                                     ) : (
