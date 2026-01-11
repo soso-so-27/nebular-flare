@@ -102,10 +102,15 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [settings, setSettings] = useState<AppSettings>(() => {
         // Load homeViewMode from localStorage if available
         let savedViewMode: 'story' | 'parallax' | 'icon' = 'story';
+        let savedLayoutType: 'classic' | 'island' | 'bottom-nav' = 'classic';
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('homeViewMode');
             if (saved === 'story' || saved === 'parallax' || saved === 'icon') {
                 savedViewMode = saved;
+            }
+            const savedLayout = localStorage.getItem('layoutType');
+            if (savedLayout === 'classic' || savedLayout === 'island' || savedLayout === 'bottom-nav') {
+                savedLayoutType = savedLayout;
             }
         }
         return {
@@ -114,7 +119,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             engagement: 'passive',
             homeMode: 'checklist',
             homeViewMode: savedViewMode,
-            layoutType: 'classic' as const,
+            layoutType: savedLayoutType,
             weeklySummaryEnabled: true,
             quietHours: { start: 23, end: 7 },
             invThresholds: { soon: 7, urgent: 3, critical: 1 },
@@ -132,6 +137,13 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             localStorage.setItem('homeViewMode', settings.homeViewMode);
         }
     }, [settings.homeViewMode]);
+
+    // Persist layoutType to localStorage when changed
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('layoutType', settings.layoutType);
+        }
+    }, [settings.layoutType]);
 
     // Notification Preferences (DB Sync)
     const { preferences, updatePreference } = useNotificationPreferences();
