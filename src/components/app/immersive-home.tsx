@@ -703,6 +703,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     progress={0.43}
                     onOpenPickup={handleTogglePickup}
                     onOpenGallery={() => onNavigate?.('gallery')}
+                    onOpenPhoto={() => setShowPhotoModal(true)}
                     onOpenMenu={() => handleOpenSidebar('care')}
                     onOpenCalendar={() => onOpenCalendar?.()}
                     onOpenExchange={() => setShowThemeExchange(true)}

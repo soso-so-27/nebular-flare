@@ -2,13 +2,14 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Heart, Camera, Grid3X3, Plus, Home, Calendar } from "lucide-react";
+import { Heart, Camera, Grid3X3, Calendar, Image } from "lucide-react";
 import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface LayoutBottomNavProps {
     progress: number;
     onOpenPickup: () => void;
     onOpenGallery: () => void;
+    onOpenPhoto: () => void;
     onOpenMenu: () => void;
     onOpenCalendar: () => void;
     onOpenExchange: () => void;
@@ -24,6 +25,7 @@ export function LayoutBottomNav({
     progress,
     onOpenPickup,
     onOpenGallery,
+    onOpenPhoto,
     onOpenMenu,
     onOpenCalendar,
     onOpenExchange,
@@ -51,7 +53,7 @@ export function LayoutBottomNav({
                     style={glassStyle}
                 >
                     <div className="flex items-center justify-around">
-                        {/* Progress */}
+                        {/* Pickup / Care (Heart) */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenPickup}
@@ -66,29 +68,24 @@ export function LayoutBottomNav({
                             <span className="text-[10px] text-slate-500">お世話</span>
                         </motion.button>
 
-                        {/* Gallery */}
+                        {/* Gallery (View all photos) */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenGallery}
                             className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl"
                         >
-                            <Camera className="w-6 h-6 text-slate-500" />
-                            <span className="text-[10px] text-slate-500">写真</span>
+                            <Image className="w-6 h-6 text-slate-500" />
+                            <span className="text-[10px] text-slate-500">ギャラリー</span>
                         </motion.button>
 
-                        {/* Center: Add Button */}
+                        {/* Center: Add Photo Button (Camera) */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
-                            onClick={onOpenPickup}
+                            onClick={onOpenPhoto}
                             className="relative -mt-4 w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                             style={{ background: 'var(--peach)' }}
                         >
-                            <Plus className="w-7 h-7 text-white" />
-                            {activeCount > 0 && (
-                                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                    {activeCount}
-                                </div>
-                            )}
+                            <Camera className="w-7 h-7 text-white" />
                         </motion.button>
 
                         {/* Calendar */}
