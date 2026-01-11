@@ -672,7 +672,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             <motion.div
                 className="absolute top-[2.5rem] right-6 z-40 pointer-events-auto"
                 initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: uiVisible ? 1 : 0.3, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
                 <FootprintBadge onClick={() => setShowThemeExchange(true)} />
