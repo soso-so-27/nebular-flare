@@ -195,7 +195,7 @@ export interface Database {
                     cat_id: string;
                     weight: number;
                     recorded_at: string;
-                    notes: string | null;
+                    note: string | null;
                     created_by: string | null;
                 };
                 Insert: {
@@ -203,7 +203,7 @@ export interface Database {
                     cat_id: string;
                     weight: number;
                     recorded_at?: string;
-                    notes?: string | null;
+                    note?: string | null;
                     created_by?: string | null;
                 };
                 Update: {
@@ -211,7 +211,7 @@ export interface Database {
                     cat_id?: string;
                     weight?: number;
                     recorded_at?: string;
-                    notes?: string | null;
+                    note?: string | null;
                     created_by?: string | null;
                 };
             };

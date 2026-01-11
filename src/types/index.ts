@@ -3,7 +3,7 @@ export type CatWeightRecord = {
   cat_id: string;
   weight: number;
   recorded_at: string;
-  notes?: string;
+  note?: string;
 };
 
 export type Cat = {

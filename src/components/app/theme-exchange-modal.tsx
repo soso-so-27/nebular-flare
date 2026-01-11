@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout } from "lucide-react";
+import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout, Sun, Moon, TreePine, Flower2, Smartphone, Layers } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useFootprintContext } from "@/providers/footprint-provider";
 import { useAppState } from "@/store/app-store";
@@ -13,7 +13,7 @@ type TabType = 'layout' | 'theme' | 'goods' | 'supplies' | 'donation';
 
 const TABS: { id: TabType; label: string; icon: React.ReactNode; ready: boolean }[] = [
     { id: 'layout', label: 'レイアウト', icon: <Layout className="w-4 h-4" />, ready: true },
-    { id: 'theme', label: 'テーマ', icon: <Palette className="w-4 h-4" />, ready: true },
+    { id: 'theme', label: 'テーマ', icon: <Palette className="w-4 h-4" />, ready: false },
     { id: 'goods', label: '猫グッズ', icon: <Gift className="w-4 h-4" />, ready: false },
     { id: 'supplies', label: '猫用品', icon: <ShoppingBag className="w-4 h-4" />, ready: false },
     { id: 'donation', label: '寄付', icon: <Heart className="w-4 h-4" />, ready: false },
@@ -178,11 +178,11 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl min-h-[50vh] max-h-[85vh] overflow-hidden"
+                        className="w-full max-w-lg bg-[#FAF9F7]/85 dark:bg-[#1E1E23]/85 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-t-3xl shadow-2xl min-h-[50vh] max-h-[85vh] overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--peach)' }}>
                                     <Sparkles className="w-5 h-5 text-white" />
@@ -251,19 +251,20 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     {/* Color Preview */}
-                                                    <div
-                                                        className="w-12 h-12 rounded-xl shadow-inner flex items-center justify-center ring-1 ring-black/5"
-                                                        style={{
-                                                            background: theme.css_variables?.['--theme-bg'] || '#FAF9F7'
-                                                        }}
-                                                    >
-                                                        <div
-                                                            className="w-6 h-6 rounded-full"
-                                                            style={{
-                                                                background: theme.css_variables?.['--theme-primary'] || '#7CAA8E'
-                                                            }}
-                                                        />
-                                                    </div>
+                                                    {(() => {
+                                                        const visuals = getThemeVisuals(theme);
+                                                        const Icon = visuals.icon;
+                                                        return (
+                                                            <div
+                                                                className="w-12 h-12 rounded-xl shadow-inner flex items-center justify-center ring-1 ring-black/5 text-white"
+                                                                style={{
+                                                                    background: visuals.gradient
+                                                                }}
+                                                            >
+                                                                <Icon className="w-6 h-6 drop-shadow-sm" />
+                                                            </div>
+                                                        );
+                                                    })()}
                                                     <div>
                                                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                                             {theme.name}
@@ -293,21 +294,11 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                                     )
                                                 ) : (
                                                     <button
-                                                        onClick={() => handlePurchase(theme)}
-                                                        disabled={purchasing === theme.id || stats.householdTotal < theme.cost}
-                                                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all ${stats.householdTotal >= theme.cost
-                                                            ? 'bg-[#E8B4A0] text-white hover:bg-[#D09B85]'
-                                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                                            }`}
+                                                        disabled={true}
+                                                        className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all bg-slate-200 text-slate-400 cursor-not-allowed"
                                                     >
-                                                        {purchasing === theme.id ? (
-                                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                        ) : (
-                                                            <>
-                                                                <Lock className="w-4 h-4" />
-                                                                {theme.cost} pt
-                                                            </>
-                                                        )}
+                                                        <span className="text-xs">準備中</span>
+                                                        <Lock className="w-3.5 h-3.5" />
                                                     </button>
                                                 )}
                                             </div>
@@ -375,4 +366,43 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
             )}
         </AnimatePresence>
     );
+}
+
+// Helper for theme visuals
+function getThemeVisuals(theme: ThemeItem) {
+    if (theme.name.includes('夕暮れ')) {
+        return {
+            gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            icon: Sun
+        };
+    }
+    if (theme.name.includes('森')) {
+        return {
+            gradient: 'linear-gradient(135deg, #22C55E 0%, #166534 100%)',
+            icon: TreePine
+        };
+    }
+    if (theme.name.includes('夜空')) {
+        return {
+            gradient: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)',
+            icon: Moon
+        };
+    }
+    if (theme.name.includes('桜')) {
+        return {
+            gradient: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)',
+            icon: Flower2
+        };
+    }
+    if (theme.name.includes('ラベンダー')) {
+        return {
+            gradient: 'linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%)',
+            icon: Sparkles
+        };
+    }
+    // Default
+    return {
+        gradient: 'linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%)',
+        icon: Smartphone
+    };
 }

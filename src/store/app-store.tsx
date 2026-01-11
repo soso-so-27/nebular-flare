@@ -532,7 +532,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 id: wh.id,
                 weight: wh.weight,
                 recorded_at: wh.recorded_at,
-                notes: wh.notes
+                note: wh.note
             })) || [],
             // Map new profile fields
             weight: (c as any).weight,
@@ -1250,7 +1250,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 .insert({
                     cat_id: catId,
                     weight: weight,
-                    notes: notes,
+                    note: notes,
                     recorded_at: new Date().toISOString()
                 });
 

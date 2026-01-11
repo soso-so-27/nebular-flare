@@ -191,60 +191,38 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 99999,
-                        backgroundColor: 'rgba(0,0,0,0.6)',
-                        backdropFilter: 'blur(4px)',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'center',
-                    }}
-                    onClick={onClose}
-                >
+                <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-[2px]"
+                        onClick={onClose}
+                    />
                     <motion.div
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        style={{
-                            backgroundColor: 'white',
-                            borderTopLeftRadius: '24px',
-                            borderTopRightRadius: '24px',
-                            width: '100%',
-                            maxWidth: '28rem',
-                            maxHeight: '85dvh',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
-                        }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col relative"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="bg-white dark:bg-slate-900 px-5 py-4 border-b flex items-center justify-between shrink-0">
+                        <div className="px-5 py-4 border-b border-black/5 flex items-center justify-between shrink-0 z-10">
                             <div className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-slate-500" />
-                                <h2 className="text-lg font-bold text-slate-900 dark:text-white">家族メンバー</h2>
+                                <h2 className="text-lg font-bold text-slate-800">家族メンバー</h2>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-black/5 transition-colors"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="p-5 overflow-y-auto flex-1 pb-10">
+                        <div className="p-5 overflow-y-auto flex-1 pb-10 scrollbar-thin scrollbar-thumb-slate-200">
                             {/* Footprint Stats Card */}
                             <div className="mb-5">
                                 <FootprintStatsCard
@@ -261,14 +239,14 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                 {members.map(member => (
                                     <div
                                         key={member.id}
-                                        className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800"
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-white/50 border border-black/5"
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg">
+                                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-lg">
                                             {member.avatar || member.name[0]}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <p className="font-medium text-slate-800 dark:text-white truncate">
+                                                <p className="font-medium text-slate-800 truncate">
                                                     {member.name}
                                                 </p>
                                                 {member.role === 'owner' && (
@@ -290,14 +268,14 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                             </div>
 
                             {/* Invite Section */}
-                            <div className="pt-4 border-t mt-4">
+                            <div className="pt-4 border-t border-black/5 mt-4">
                                 <h3 className="text-sm font-medium text-slate-700 mb-3">
                                     家族を招待
                                 </h3>
 
                                 {inviteUrl ? (
                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-100">
+                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-white/50 border border-black/5">
                                             <Link2 className="h-4 w-4 text-slate-400 flex-shrink-0" />
                                             <p className="text-sm text-slate-600 truncate flex-1">
                                                 {inviteUrl}
@@ -322,7 +300,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                                     <button
                                         onClick={generateInviteLink}
                                         disabled={loading}
-                                        className="w-full py-3 rounded-xl bg-[#7CAA8E] text-white font-bold hover:bg-[#6B9B7A] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                        className="w-full py-3 rounded-xl bg-[#7CAA8E] text-white font-bold hover:bg-[#6B9B7A] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[#7CAA8E]/20"
                                     >
                                         {loading ? (
                                             <span className="animate-spin">⏳</span>
@@ -335,7 +313,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                             </div>
                         </div>
                     </motion.div>
-                </motion.div>
+                </div>
             )}
         </AnimatePresence>
     );

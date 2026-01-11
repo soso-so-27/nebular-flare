@@ -22,10 +22,10 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
-                        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
+                        className="bg-[#FAF9F7]/85 dark:bg-[#1E1E23]/85 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50">
+                        <div className="p-4 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
                             <h3 className="font-bold text-slate-900 dark:text-white">通知設定</h3>
                             <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 text-slate-500">
                                 <X className="w-5 h-5" />

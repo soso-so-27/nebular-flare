@@ -14,17 +14,20 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div
-                    className="fixed inset-0 z-[10002] flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-6"
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-[2px]"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 w-full h-full md:h-full md:max-h-[800px] md:max-w-md md:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-                        onClick={e => e.stopPropagation()}
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-[#FAF9F7]/90 dark:bg-[#1E1E23]/90 backdrop-blur-xl border border-white/40 dark:border-white/10 w-full md:max-w-md h-[90vh] md:h-auto md:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
                     >
                         {/* Header */}
                         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-transparent z-10 shrink-0">
@@ -46,7 +49,7 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                             </div>
                         </div>
                     </motion.div>
-                </div>
+                </motion.div>
             )}
         </AnimatePresence>
     );

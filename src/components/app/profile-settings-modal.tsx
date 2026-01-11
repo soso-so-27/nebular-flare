@@ -99,11 +99,11 @@ export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalPr
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-lg bg-[#FAF9F7]/85 dark:bg-[#1E1E23]/85 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-t-3xl shadow-2xl overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-white/5">
                             <h2 className="text-base font-bold text-slate-900 dark:text-white">
                                 プロフィール編集
                             </h2>

@@ -71,7 +71,7 @@ export function useCats(householdId: string | null) {
                         .select('id, storage_path, cat_id, created_at, is_favorite')
                         .in('cat_id', catIds),
                     supabase.from('cat_weight_history')
-                        .select('id, cat_id, weight, recorded_at, notes')
+                        .select('id, cat_id, weight, recorded_at, note')
                         .in('cat_id', catIds)
                         .order('recorded_at', { ascending: false })
                 ]);
@@ -749,7 +749,7 @@ export function useNotificationPreferences() {
         photo_alert: boolean;
         notification_hour: number;
         day_start_hour: number;
-    }>({ care_reminder: true, health_alert: true, inventory_alert: true, photo_alert: true, notification_hour: 20, day_start_hour: 0 });
+    }>({ care_reminder: true, health_alert: true, inventory_alert: true, photo_alert: true, notification_hour: 20, day_start_hour: 4 });
     const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
 

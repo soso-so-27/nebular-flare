@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -81,39 +82,44 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
         onClose();
     };
 
-    return (
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4"
-                    onClick={onClose}
-                >
+                <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center">
                     <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.95, opacity: 0 }}
-                        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-[2px]"
+                        onClick={onClose}
+                    />
+
+                    <motion.div
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col relative"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">プロフィール編集</h2>
+                        <div className="px-6 py-4 border-b border-black/5 flex items-center justify-between shrink-0">
+                            <h2 className="text-lg font-bold text-slate-800">プロフィール編集</h2>
                             <button
                                 onClick={onClose}
-                                className="p-2 -mr-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                className="p-2 -mr-2 rounded-full hover:bg-black/5 transition-colors"
                             >
                                 <X className="h-5 w-5 text-slate-500" />
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 space-y-6">
+                        <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
                             <div className="space-y-4">
                                 <label className="block space-y-2">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                    <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
                                         <Cake className="w-3.5 h-3.5" />
                                         誕生日
                                     </span>
@@ -121,12 +127,12 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                         type="date"
                                         value={editData.birthday}
                                         onChange={(e) => setEditData({ ...editData, birthday: e.target.value })}
-                                        className="w-full text-base bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 min-h-[100px] focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all resize-none text-slate-800 dark:text-white"
+                                        className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 min-h-[50px] focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all resize-none text-slate-800"
                                     />
                                 </label>
 
                                 <label className="block space-y-2">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                    <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
                                         <Cpu className="w-3.5 h-3.5" />
                                         マイクロチップID
                                     </span>
@@ -134,20 +140,20 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                         type="text"
                                         value={editData.microchip_id}
                                         onChange={(e) => setEditData({ ...editData, microchip_id: e.target.value })}
-                                        className="w-full text-base bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-mono text-slate-800 dark:text-white"
+                                        className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all font-mono text-slate-800"
                                         placeholder="15桁の数字"
                                     />
                                 </label>
 
                                 <label className="block space-y-2">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                    <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
                                         <FileText className="w-3.5 h-3.5" />
                                         メモ
                                     </span>
                                     <textarea
                                         value={editData.notes}
                                         onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                                        className="w-full text-base bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 min-h-[100px] focus:ring-2 focus:ring-amber-500 outline-none transition-all resize-none text-slate-800 dark:text-white"
+                                        className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 min-h-[100px] focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all resize-none text-slate-800"
                                         placeholder="特徴や性格など..."
                                     />
                                 </label>
@@ -155,7 +161,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
 
                             <button
                                 onClick={handleDelete}
-                                className="w-full py-3 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                className="w-full py-3 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 この猫を削除する
@@ -163,7 +169,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                         </div>
 
                         {/* Footer Action */}
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                        <div className="p-4 border-t border-black/5 shrink-0 bg-[#FAF9F7]/95 backdrop-blur-md safe-area-pb">
                             <button
                                 onClick={handleSave}
                                 className="w-full py-3.5 bg-[#7CAA8E] hover:bg-[#6B9B7A] active:scale-[0.98] text-white rounded-xl font-bold text-lg shadow-lg shadow-[#7CAA8E]/30 transition-all flex items-center justify-center gap-2"
@@ -173,8 +179,9 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                             </button>
                         </div>
                     </motion.div>
-                </motion.div>
+                </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

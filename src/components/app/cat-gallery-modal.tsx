@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAppState } from "@/store/app-store";
 import { X, Plus, Trash2, Image as ImageIcon, Loader2, CheckCircle2, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -107,36 +108,38 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
         setSelectedImageIds(newSet);
     };
 
-    return (
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4">
+                <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-[2px]"
                         onClick={onClose}
                     />
 
                     <motion.div
-                        initial={{ y: '100%' }}
+                        initial={{ y: "100%" }}
                         animate={{ y: 0 }}
-                        exit={{ y: '100%' }}
+                        exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="bg-white dark:bg-slate-900 w-full h-full sm:h-[85vh] sm:max-w-2xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden relative"
+                        className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col relative"
                     >
                         {/* Header */}
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-10">
+                        <div className="px-4 py-3 border-b border-black/5 shrink-0 flex items-center justify-between z-10">
                             <button
                                 onClick={onClose}
-                                className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500"
+                                className="p-2 -ml-2 rounded-full hover:bg-black/5 transition-colors text-slate-500"
                             >
                                 <ChevronLeft className="h-6 w-6" />
                             </button>
 
                             <div className="flex flex-col items-center">
-                                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                <h2 className="text-base font-bold text-slate-800">
                                     {catName}
                                 </h2>
                                 <span className="text-[10px] text-slate-500">
@@ -152,8 +155,8 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                 className={cn(
                                     "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
                                     isSelectMode
-                                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+                                        ? "bg-slate-800 text-white"
+                                        : "bg-white/50 text-slate-600 hover:bg-white/80"
                                 )}
                             >
                                 {isSelectMode ? "完了" : "選択"}
@@ -161,27 +164,27 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                         </div>
 
                         {/* Grid Content */}
-                        <div className="flex-1 overflow-y-auto pb-24">
+                        <div className="flex-1 overflow-y-auto pb-24 scrollbar-thin scrollbar-thumb-slate-200">
                             {images.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400">
-                                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                                    <div className="w-20 h-20 bg-white/50 rounded-full flex items-center justify-center mb-4">
                                         <ImageIcon className="h-8 w-8 opacity-40" />
                                     </div>
-                                    <p className="text-base font-bold text-slate-600 dark:text-slate-300">写真がありません</p>
+                                    <p className="text-base font-bold text-slate-600">写真がありません</p>
                                     <p className="text-xs mt-1">最初の写真を追加してアルバムを作りましょう</p>
                                 </div>
                             ) : (
                                 <div className="p-0.5 space-y-6">
                                     {Object.entries(groupedImages).map(([dateLabel, groupImages]) => (
                                         <div key={dateLabel}>
-                                            <div className="sticky top-0 z-10 px-4 py-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm mb-0.5">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">{dateLabel}</h3>
+                                            <div className="sticky top-0 z-10 px-4 py-2 bg-[#FAF9F7]/90 backdrop-blur-sm mb-0.5">
+                                                <h3 className="text-sm font-bold text-slate-800">{dateLabel}</h3>
                                             </div>
                                             <div className="grid grid-cols-3 gap-0.5">
                                                 {groupImages.map(img => (
                                                     <div
                                                         key={img.id}
-                                                        className="relative aspect-square bg-slate-100 dark:bg-slate-800 cursor-pointer overflow-hidden"
+                                                        className="relative aspect-square bg-slate-100 cursor-pointer overflow-hidden"
                                                         onClick={() => {
                                                             if (isSelectMode) {
                                                                 toggleSelection(img.id);
@@ -222,7 +225,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                         </div>
 
                         {/* Bottom Toolbar */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 p-4 pb-8 sm:pb-4 safe-area-pb">
+                        <div className="absolute bottom-0 left-0 right-0 bg-[#FAF9F7]/95 backdrop-blur-md border-t border-black/5 p-4 pb-8 sm:pb-4 safe-area-pb z-20">
                             {isSelectMode ? (
                                 <div className="flex items-center justify-between px-4">
                                     <span className="text-xs text-slate-500 font-bold">
@@ -266,6 +269,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
