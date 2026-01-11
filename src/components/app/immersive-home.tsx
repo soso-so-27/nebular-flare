@@ -710,49 +710,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 />
             )}
 
-            {/* Always visible: Story Indicators (If Story Mode) - Enhanced Mini Thumbnails */}
-            {
-                settings.homeViewMode === 'story' && (
-                    <div className="absolute bottom-12 left-6 z-30 flex justify-center items-center gap-1.5 pointer-events-auto">
-                        {/* Glass pill container */}
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-full glass-panel">
-                            {cats.map((cat, index) => (
-                                <motion.button
-                                    key={cat.id}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        goToCat(index);
-                                    }}
-                                    initial={false}
-                                    animate={{
-                                        scale: index === currentIndex ? 1.1 : 0.9,
-                                        opacity: index === currentIndex ? 1 : 0.6,
-                                    }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all ${index === currentIndex
-                                        ? 'w-10 h-10 ring-2 ring-white shadow-lg'
-                                        : 'w-7 h-7 hover:opacity-100 hover:scale-100'
-                                        }`}
-                                    transition={{ duration: 0.2, ease: "easeOut" }}
-                                >
-                                    {cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/') ? (
-                                        <img
-                                            src={cat.avatar}
-                                            className="w-full h-full object-cover"
-                                            alt={cat.name}
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center text-sm">
-                                            {cat.avatar || '🐈'}
-                                        </div>
-                                    )}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </div>
-                )
-            }
+            {/* Note: Story mode cat switching is handled by swipe gestures */}
 
             {/* Always visible: Floating Avatars (If Icon Mode) */}
             {
