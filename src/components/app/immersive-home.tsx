@@ -742,6 +742,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             <BubblePickupList
                 isOpen={showPickup}
                 onClose={() => setShowPickup(false)}
+                variant={settings.layoutType === 'island' ? 'top' : 'bottom'}
             />
 
             {/* Theme Exchange Modal */}

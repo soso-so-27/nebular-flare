@@ -24,9 +24,10 @@ interface BubbleItem {
 interface BubblePickupListProps {
     isOpen: boolean;
     onClose: () => void;
+    variant?: 'bottom' | 'top';
 }
 
-export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
+export function BubblePickupList({ isOpen, onClose, variant = 'bottom' }: BubblePickupListProps) {
     const {
         careLogs, addCareLog,
         careTaskDefs,
@@ -190,10 +191,15 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
     };
 
     // Animation Variants (Shared with SidebarMenu)
+    // Animation Variants
     const sheetVariants = {
-        hidden: { y: "100%" },
-        visible: { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 300 } },
-        exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 300 } }
+        hidden: variant === 'bottom' ? { y: "100%" } : { y: "-120%", opacity: 0 },
+        visible: variant === 'bottom'
+            ? { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 300 } }
+            : { y: 0, opacity: 1, transition: { type: "spring" as const, damping: 25, stiffness: 200 } },
+        exit: variant === 'bottom'
+            ? { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 300 } }
+            : { y: "-120%", opacity: 0, transition: { type: "spring" as const, damping: 25, stiffness: 200 } }
     };
 
     return (
@@ -209,22 +215,34 @@ export function BubblePickupList({ isOpen, onClose }: BubblePickupListProps) {
                         className="fixed inset-0 z-[10000] bg-black/20 backdrop-blur-sm cursor-pointer"
                     />
 
-                    {/* Bottom Sheet Container */}
+                    {/* Bottom/Top Sheet Container */}
                     <motion.div
                         variants={sheetVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="fixed inset-x-0 bottom-0 z-[10001]"
+                        className={cn(
+                            "fixed inset-x-0 z-[10001] pointer-events-auto",
+                            variant === 'bottom' ? "bottom-0" : "top-24 px-4"
+                        )}
                         drag="y"
-                        dragConstraints={{ top: 0 }}
+                        dragConstraints={variant === 'bottom' ? { top: 0 } : { bottom: 0 }}
                         dragElastic={0.2}
                         onDragEnd={(_, info) => {
-                            if (info.offset.y > 100) onClose();
+                            if (variant === 'bottom') {
+                                if (info.offset.y > 100) onClose();
+                            } else {
+                                if (info.offset.y < -50) onClose();
+                            }
                         }}
                     >
                         {/* Sheet Visuals */}
-                        <div className="bg-[#FAF9F7]/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[85vh] max-h-[600px] flex flex-col w-full max-w-lg mx-auto relative group">
+                        <div className={cn(
+                            "bg-[#FAF9F7]/85 backdrop-blur-3xl overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] flex flex-col w-full max-w-lg mx-auto relative group border-white/60",
+                            variant === 'bottom'
+                                ? "rounded-t-[32px] border-t h-[85vh] max-h-[600px]"
+                                : "rounded-[32px] border h-[70vh] max-h-[500px]"
+                        )}>
                             {/* Specular Elements */}
                             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
                             <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />

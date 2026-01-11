@@ -20,9 +20,9 @@ const TABS: { id: TabType; label: string; icon: React.ReactNode; ready: boolean 
 ];
 
 const LAYOUT_OPTIONS: { id: LayoutType; name: string; description: string }[] = [
-    { id: 'classic', name: '現在の型', description: '左上にお世話進捗、右上に足あとバッジ、右下にボタン' },
-    { id: 'island', name: 'ダイナミックアイランド型', description: '上部中央にステータス表示、下部にボタン' },
-    { id: 'bottom-nav', name: 'ボトムナビゲーション型', description: '左上にお世話進捗、下部にナビゲーションバー' },
+    { id: 'classic', name: 'スタンダード', description: '左上にお世話進捗、右上に足あとバッジ、右下にボタン' },
+    { id: 'island', name: 'スマート', description: '上部中央にステータス表示、下部にボタン' },
+    { id: 'bottom-nav', name: 'ボトム', description: '左上にお世話進捗、下部にナビゲーションバー' },
 ];
 
 interface ThemeItem {
