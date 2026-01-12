@@ -515,32 +515,37 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     // Convert Supabase cats to local Cat type - memoize to avoid infinite loops
     const cats: Cat[] = useMemo(() => {
         if (isDemo) return demoCats;
-        return supabaseCats.map(c => ({
-            id: c.id,
-            name: c.name,
-            age: c.birthday ? `${Math.floor((Date.now() - new Date(c.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}才` : '年齢不明',
-            sex: c.sex || 'オス',
-            avatar: c.avatar || '🐈',
-            birthday: c.birthday || undefined,
-            images: (c as any).images?.map((img: any) => ({
-                id: img.id,
-                storagePath: img.storage_path,
-                createdAt: img.created_at,
-                isFavorite: img.is_favorite,
-            })) || [],
-            weightHistory: (c as any).weight_history?.map((wh: any) => ({
-                id: wh.id,
-                weight: wh.weight,
-                recorded_at: wh.recorded_at,
-                note: wh.note
-            })) || [],
-            // Map new profile fields
-            weight: (c as any).weight,
-            microchip_id: (c as any).microchip_id,
-            notes: (c as any).notes,
-            background_mode: (c as any).background_mode,
-            background_media: (c as any).background_media,
-        }));
+        return supabaseCats.map(c => {
+            const rawImages = (c as any).images || [];
+            const rawWeightHistory = (c as any).weightHistory || (c as any).weight_history || [];
+
+            return {
+                id: c.id,
+                name: c.name,
+                age: c.birthday ? `${Math.floor((Date.now() - new Date(c.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}才` : '年齢不明',
+                sex: c.sex || 'オス',
+                avatar: c.avatar || '🐈',
+                birthday: c.birthday || undefined,
+                images: rawImages.map((img: any) => ({
+                    id: img.id,
+                    storagePath: img.storagePath || img.storage_path,
+                    createdAt: img.createdAt || img.created_at,
+                    isFavorite: img.isFavorite || img.is_favorite,
+                })),
+                weightHistory: rawWeightHistory.map((wh: any) => ({
+                    id: wh.id,
+                    weight: typeof wh.weight === 'string' ? parseFloat(wh.weight) : wh.weight,
+                    recorded_at: wh.recordedAt || wh.recorded_at,
+                    notes: wh.notes || wh.note
+                })),
+                // Map new profile fields
+                weight: typeof (c as any).weight === 'string' ? parseFloat((c as any).weight) : (c as any).weight,
+                microchip_id: (c as any).microchip_id,
+                notes: (c as any).notes,
+                background_mode: (c as any).background_mode,
+                background_media: (c as any).background_media,
+            };
+        });
     }, [isDemo, supabaseCats, demoCats]);
 
     // Stable cat IDs for dependency tracking

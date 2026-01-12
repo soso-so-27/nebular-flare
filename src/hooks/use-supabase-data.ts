@@ -45,7 +45,24 @@ export function useCats(householdId: string | null) {
 
             if (catsData) {
                 // RPC returns JSON with images and weight_history already included
-                setCats(catsData);
+                // Map snake_case to camelCase where expected by frontend types
+                const mappedCats = catsData.map((cat: any) => ({
+                    ...cat,
+                    weightHistory: (cat.weightHistory || cat.weight_history || []).map((wh: any) => ({
+                        ...wh,
+                        weight: typeof wh.weight === 'string' ? parseFloat(wh.weight) : wh.weight,
+                        notes: wh.notes || wh.note
+                    })),
+                    images: (cat.images || []).map((img: any) => ({
+                        id: img.id,
+                        catId: img.cat_id || img.catId,
+                        storagePath: img.storage_path || img.storagePath,
+                        createdAt: img.created_at || img.createdAt,
+                        isFavorite: img.is_favorite || img.isFavorite,
+                        memo: img.memo
+                    }))
+                }));
+                setCats(mappedCats);
             }
             setLoading(false);
         }
@@ -71,7 +88,7 @@ export function useCats(householdId: string | null) {
                         .select('id, storage_path, cat_id, created_at, is_favorite')
                         .in('cat_id', catIds),
                     supabase.from('cat_weight_history')
-                        .select('id, cat_id, weight, recorded_at, note')
+                        .select('id, cat_id, weight, recorded_at, notes')
                         .in('cat_id', catIds)
                         .order('recorded_at', { ascending: false })
                 ]);
@@ -82,15 +99,26 @@ export function useCats(householdId: string | null) {
                 // Build weight map
                 const weightMap: Record<string, any[]> = {};
                 weights.forEach((w: any) => {
+                    const mappedW = {
+                        ...w,
+                        weight: typeof w.weight === 'string' ? parseFloat(w.weight) : w.weight,
+                        notes: w.notes || w.note
+                    };
                     if (!weightMap[w.cat_id]) weightMap[w.cat_id] = [];
-                    weightMap[w.cat_id].push(w);
+                    weightMap[w.cat_id].push(mappedW);
                 });
 
                 // Merge data
                 catsData = catsData.map((cat: any) => ({
                     ...cat,
-                    images: images.filter((img: any) => img.cat_id === cat.id),
-                    weight_history: weightMap[cat.id] || []
+                    weightHistory: weightMap[cat.id] || [],
+                    images: images.filter((img: any) => img.cat_id === cat.id).map((img: any) => ({
+                        id: img.id,
+                        catId: img.cat_id,
+                        storagePath: img.storage_path,
+                        createdAt: img.created_at,
+                        isFavorite: img.is_favorite
+                    }))
                 }));
             }
 
