@@ -297,7 +297,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                 </div>
 
                 <div className="text-center pt-4">
-                    <p className="text-[10px] text-muted-foreground opacity-50">Nyaruhodo v1.0.0</p>
+                    <p className="text-[10px] text-muted-foreground opacity-50">NyaruHD v1.0.0</p>
                 </div>
 
                 {/* Cat Settings Modal */}

@@ -238,15 +238,16 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                     </div>
                                 ) : (
                                     themes.map((theme) => (
-                                        <motion.div
+                                        <motion.button
                                             key={theme.id}
-                                            className={`relative p-4 rounded-2xl border-2 transition-all ${isActive(theme.id)
+                                            onClick={() => isUnlocked(theme.id) && !isActive(theme.id) && handleApplyTheme(theme)}
+                                            className={`w-full relative p-4 rounded-2xl border-2 transition-all text-left ${isActive(theme.id)
                                                 ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5'
                                                 : isUnlocked(theme.id)
                                                     ? 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'
+                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed opacity-70'
                                                 }`}
-                                            whileTap={{ scale: 0.98 }}
+                                            whileTap={isUnlocked(theme.id) ? { scale: 0.98 } : {}}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -266,43 +267,37 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                                         );
                                                     })()}
                                                     <div>
-                                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 text-sm sm:text-base">
                                                             {theme.name}
                                                             {isActive(theme.id) && (
-                                                                <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ background: 'var(--sage)' }}>
+                                                                <span className="text-[10px] px-2 py-0.5 rounded-full text-white" style={{ background: 'var(--sage)' }}>
                                                                     使用中
                                                                 </span>
                                                             )}
+                                                            {!isUnlocked(theme.id) && (
+                                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500">
+                                                                    ロック
+                                                                </span>
+                                                            )}
                                                         </h3>
-                                                        <p className="text-sm text-slate-500">{theme.description}</p>
+                                                        <p className="text-xs sm:text-sm text-slate-500 line-clamp-1">{theme.description}</p>
                                                     </div>
                                                 </div>
 
-                                                {/* Action Button */}
+                                                {/* Status Indicator */}
                                                 {isUnlocked(theme.id) ? (
-                                                    isActive(theme.id) ? (
+                                                    isActive(theme.id) && (
                                                         <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--sage)' }}>
                                                             <Check className="w-5 h-5 text-white" />
                                                         </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handleApplyTheme(theme)}
-                                                            className="px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                                        >
-                                                            適用
-                                                        </button>
                                                     )
                                                 ) : (
-                                                    <button
-                                                        disabled={true}
-                                                        className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all bg-slate-200 text-slate-400 cursor-not-allowed"
-                                                    >
-                                                        <span className="text-xs">準備中</span>
-                                                        <Lock className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800">
+                                                        <Lock className="w-4 h-4 text-slate-400" />
+                                                    </div>
                                                 )}
                                             </div>
-                                        </motion.div>
+                                        </motion.button>
                                     ))
                                 )
                             ) : activeTab === 'layout' ? (

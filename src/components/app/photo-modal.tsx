@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppState } from '@/store/app-store';
-import { Camera, X, Loader2 } from "lucide-react";
+import { MessageCircle, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CatAvatar } from "@/components/ui/cat-avatar";
 import { useFootprintContext } from "@/providers/footprint-provider";
@@ -122,7 +122,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                         className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col"
                     >
                         <div className="px-6 pt-6 pb-2 border-b border-white/10">
-                            <h2 className="text-xl font-bold text-slate-800">今日の一枚</h2>
+                            <h2 className="text-xl font-bold text-slate-800">様子を共有</h2>
                             <div className="text-slate-500 text-xs">
                                 可愛い瞬間を残しましょう
                             </div>
@@ -175,9 +175,9 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                                             className="w-full h-full flex flex-col items-center justify-center text-[#E8B4A0] hover:scale-[1.02] transition-transform active:scale-95"
                                         >
                                             <div className="w-16 h-16 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center mb-3">
-                                                <Camera size={32} />
+                                                <MessageCircle size={32} />
                                             </div>
-                                            <span className="text-sm font-bold opacity-80">ここをタップして撮影</span>
+                                            <span className="text-sm font-bold opacity-80">ここをタップして投稿</span>
                                         </button>
                                     )}
                                 </div>

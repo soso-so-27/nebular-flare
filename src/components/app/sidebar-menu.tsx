@@ -555,7 +555,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 </div>
 
                 <div className="text-center pt-4 pb-8">
-                    <p className="text-[10px] text-slate-400">Nyaruhodo v1.0.0</p>
+                    <p className="text-[10px] text-slate-400">NyaruHD v1.0.0</p>
                 </div>
 
                 {/* Modals */}

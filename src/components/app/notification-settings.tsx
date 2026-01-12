@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, BellOff, Loader2, Camera, AlertTriangle, Package, Calendar } from 'lucide-react';
+import { Bell, BellOff, Loader2, MessageCircle, AlertTriangle, Package, Calendar } from 'lucide-react';
 import { requestFcmToken } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { usePushToken, useNotificationPreferences } from '@/hooks/use-supabase-data';
@@ -128,11 +128,11 @@ export function NotificationSettings() {
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
-                                        <Camera className="w-5 h-5" />
+                                        <MessageCircle className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <span className={`text-sm font-bold ${colors.text}`}>今日の一枚</span>
-                                        <p className={`text-xs ${colors.subText}`}>家族がアップロードした新しい写真</p>
+                                        <span className={`text-sm font-bold ${colors.text}`}>様子を共有</span>
+                                        <p className={`text-xs ${colors.subText}`}>家族が投稿した新しい写真や様子</p>
                                     </div>
                                 </div>
                                 <button

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Camera, Grid3X3 } from "lucide-react";
+import { Heart, MessageCircle, Grid3X3 } from "lucide-react";
 import { useAppState } from "@/store/app-store";
 import { UnifiedCareList, useCareData } from "./unified-care-list";
 import { useFootprintContext } from "@/providers/footprint-provider";
@@ -145,14 +145,14 @@ export function LayoutBottomNav({
                             <span className="text-[10px] text-slate-500">足あと</span>
                         </motion.button>
 
-                        {/* Photo Button (Camera) - SECOND */}
+                        {/* Photo Button (MessageCircle) - SECOND */}
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={onOpenPhoto}
                             className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
                         >
-                            <Camera className="w-6 h-6 text-slate-500" />
-                            <span className="text-[10px] text-slate-500">今日の一枚</span>
+                            <MessageCircle className="w-6 h-6 text-slate-500" />
+                            <span className="text-[10px] text-slate-500">様子を共有</span>
                         </motion.button>
 
                         {/* Menu - THIRD */}

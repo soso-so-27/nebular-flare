@@ -36,7 +36,7 @@ export default function Loading() {
                     {/* App Icon */}
                     <img
                         src="/icon.svg"
-                        alt="CatUp Logo"
+                        alt="NyaruHD Logo"
                         className="w-20 h-20 relative z-20 drop-shadow-sm object-contain"
                     />
                 </motion.div>
@@ -44,7 +44,7 @@ export default function Loading() {
                 {/* Brand Text */}
                 <div className="mt-8 flex flex-col items-center gap-3">
                     <h1 className="text-2xl font-black tracking-wider text-slate-700">
-                        Nyaruhodo
+                        NyaruHD
                     </h1>
 
                     {/* Loading Dots */}

@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 import { PwaRegister } from "@/components/pwa-register";
 
 export const metadata: Metadata = {
-  title: "にゃるほど - 猫のいる暮らしに、余裕と楽しさを",
+  title: "NyaruHD (にゃるほど) - 猫のいる暮らしに、余裕と楽しさを",
   description: "猫のいる暮らしに、余裕と楽しさを。家族みんなで猫のお世話を記録・共有。",
   manifest: "/manifest.json?v=4",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "にゃるほど",
+    title: "NyaruHD",
   },
   formatDetection: {
     telephone: false,
@@ -47,7 +47,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="にゃるほど" />
+        <meta name="apple-mobile-web-app-title" content="NyaruHD" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
