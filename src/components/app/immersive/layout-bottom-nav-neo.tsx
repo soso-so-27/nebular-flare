@@ -29,8 +29,8 @@ export function LayoutBottomNavNeo({
     onOpenIncidentDetail,
     onOpenActionMenu
 }: LayoutBottomNavNeoProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [initialTab, setInitialTab] = useState<'care' | 'notifications'>('notifications');
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showCareList, setShowCareList] = useState(false);
 
     const { cats, settings } = useAppState();
     const { stats } = useFootprintContext();
@@ -72,21 +72,49 @@ export function LayoutBottomNavNeo({
                     <IntegratedNotificationPill
                         progress={progress}
                         alertItems={alertItems}
-                        isExpanded={isExpanded}
+                        isExpanded={showNotifications}
                         footprints={stats.householdTotal}
                         onToggle={() => {
                             triggerFeedback('medium');
-                            setInitialTab('notifications');
-                            setIsExpanded(!isExpanded);
+                            setShowNotifications(!showNotifications);
+                            if (showCareList) setShowCareList(false);
                         }}
                         onFootprintClick={onOpenExchange}
                     />
                 </motion.div>
+
+                {/* Notifications Overlay (From Top) */}
+                <AnimatePresence>
+                    {showNotifications && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="w-[calc(100vw-48px)] max-w-sm mt-3"
+                        >
+                            <UnifiedCareList
+                                alertItems={alertItems}
+                                careItems={[]}
+                                onOpenPickup={onOpenPickup}
+                                onOpenIncident={onOpenIncident}
+                                onOpenIncidentDetail={onOpenIncidentDetail}
+                                onOpenPhoto={onOpenPhoto}
+                                addCareLog={addCareLog}
+                                activeCatId={activeCatId}
+                                awardForCare={awardForCare}
+                                markPhotosAsSeen={markPhotosAsSeen}
+                                initialTab="notifications"
+                                contrastMode="dark"
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* Care List Overlay (Centered Modal) */}
+            {/* Care List Overlay (From Bottom) */}
             <AnimatePresence>
-                {isExpanded && (
+                {showCareList && (
                     <motion.div
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -95,7 +123,7 @@ export function LayoutBottomNavNeo({
                         className="fixed left-1/2 -translate-x-1/2 bottom-28 z-[100] w-[calc(100%-48px)] max-w-sm pointer-events-auto"
                     >
                         <UnifiedCareList
-                            alertItems={alertItems}
+                            alertItems={[]}
                             careItems={careItems}
                             onOpenPickup={onOpenPickup}
                             onOpenIncident={onOpenIncident}
@@ -105,7 +133,7 @@ export function LayoutBottomNavNeo({
                             activeCatId={activeCatId}
                             awardForCare={awardForCare}
                             markPhotosAsSeen={markPhotosAsSeen}
-                            initialTab={initialTab}
+                            initialTab="care"
                             contrastMode="dark"
                         />
                     </motion.div>
@@ -131,8 +159,8 @@ export function LayoutBottomNavNeo({
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => {
                                         triggerFeedback('medium');
-                                        setInitialTab('care');
-                                        setIsExpanded(!isExpanded);
+                                        setShowCareList(!showCareList);
+                                        if (showNotifications) setShowNotifications(false);
                                     }}
                                     className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
                                 >
@@ -176,8 +204,7 @@ export function LayoutBottomNavNeo({
                                 <motion.button
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => {
-                                        setInitialTab('care');
-                                        setIsExpanded(!isExpanded);
+                                        setShowCareList(!showCareList);
                                     }}
                                     className="w-14 h-14 rounded-full flex items-center justify-center -mt-8 shadow-lg border-4 border-white"
                                     style={{ background: 'var(--peach)' }}
@@ -198,13 +225,13 @@ export function LayoutBottomNavNeo({
 
             {/* Backdrop for outside click to close */}
             <AnimatePresence>
-                {isExpanded && (
+                {(showNotifications || showCareList) && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 pointer-events-auto"
-                        onClick={() => setIsExpanded(false)}
+                        onClick={() => { setShowNotifications(false); setShowCareList(false); }}
                     />
                 )}
             </AnimatePresence>

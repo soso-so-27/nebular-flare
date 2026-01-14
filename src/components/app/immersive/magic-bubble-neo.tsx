@@ -39,7 +39,7 @@ export function MagicBubbleNeo({
 }: MagicBubbleNeoProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showCareList, setShowCareList] = useState(false);
-    const [initialTab, setInitialTab] = useState<'care' | 'notifications'>('notifications');
+    const [showNotifications, setShowNotifications] = useState(false);
 
     // Use Centralized Data Hook
     const { stats } = useFootprintContext();
@@ -97,32 +97,59 @@ export function MagicBubbleNeo({
     return (
         <>
             {/* Top Center: Notification Pill (Neo Standard) */}
-            <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[70] pointer-events-auto">
+            <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[70] pointer-events-auto flex flex-col items-center">
                 <IntegratedNotificationPill
                     progress={progress}
                     alertItems={alertItems}
-                    isExpanded={showCareList}
+                    isExpanded={showNotifications}
                     footprints={stats.householdTotal}
                     onToggle={() => {
                         triggerFeedback('medium');
-                        setInitialTab('notifications');
-                        setShowCareList(!showCareList);
+                        setShowNotifications(!showNotifications);
+                        if (showCareList) setShowCareList(false);
                         setIsExpanded(false);
                     }}
                     onFootprintClick={onOpenExchange}
                 />
+
+                {/* Notifications Overlay (From Top) */}
+                <AnimatePresence>
+                    {showNotifications && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="w-[calc(100vw-48px)] max-w-sm mt-3"
+                        >
+                            <UnifiedCareList
+                                alertItems={alertItems}
+                                careItems={[]}
+                                onOpenPickup={onOpenPickup}
+                                onOpenIncident={onOpenIncident || (() => { })}
+                                onOpenPhoto={onOpenPhoto || (() => { })}
+                                addCareLog={addCareLog}
+                                activeCatId={activeCatId}
+                                awardForCare={awardForCare}
+                                markPhotosAsSeen={markPhotosAsSeen}
+                                initialTab="notifications"
+                                contrastMode="dark"
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
 
             {/* Backdrop for Care List */}
             <AnimatePresence>
-                {showCareList && (
+                {(showCareList || showNotifications) && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-                        onClick={() => setShowCareList(false)}
+                        onClick={() => { setShowCareList(false); setShowNotifications(false); }}
                     />
                 )}
             </AnimatePresence>
@@ -141,8 +168,8 @@ export function MagicBubbleNeo({
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => {
                                     triggerFeedback('medium');
-                                    setInitialTab('care');
                                     setShowCareList(!showCareList);
+                                    if (showNotifications) setShowNotifications(false);
                                     setIsExpanded(false);
                                 }}
                                 className="flex items-center gap-3 group"
@@ -212,7 +239,7 @@ export function MagicBubbleNeo({
                             className="fixed left-1/2 -translate-x-1/2 bottom-24 z-[100] w-[calc(100%-48px)] max-w-sm pointer-events-auto"
                         >
                             <UnifiedCareList
-                                alertItems={alertItems}
+                                alertItems={[]}
                                 careItems={careItems}
                                 onOpenPickup={onOpenPickup}
                                 onOpenIncident={onOpenIncident || (() => { })}
@@ -221,6 +248,8 @@ export function MagicBubbleNeo({
                                 activeCatId={activeCatId}
                                 awardForCare={awardForCare}
                                 markPhotosAsSeen={markPhotosAsSeen}
+                                initialTab="care"
+                                contrastMode="dark"
                             />
                         </motion.div>
                     )}

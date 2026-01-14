@@ -30,8 +30,8 @@ export function LayoutIslandNeo({
     onOpenIncidentDetail,
     onOpenActionMenu
 }: LayoutIslandNeoProps) {
-    const [isExpanded, setIsExpanded] = React.useState(false);
-    const [initialTab, setInitialTab] = React.useState<'care' | 'notifications'>('notifications');
+    const [showNotifications, setShowNotifications] = React.useState(false);
+    const [showCareList, setShowCareList] = React.useState(false);
 
     const { cats, settings } = useAppState();
     const { stats } = useFootprintContext();
@@ -75,22 +75,48 @@ export function LayoutIslandNeo({
                 <IntegratedNotificationPill
                     progress={progress}
                     alertItems={alertItems}
-                    isExpanded={isExpanded}
+                    isExpanded={showNotifications}
                     footprints={stats.householdTotal}
                     onToggle={() => {
                         triggerFeedback('medium');
-                        setInitialTab('notifications');
-                        setIsExpanded(!isExpanded);
+                        setShowNotifications(!showNotifications);
+                        if (showCareList) setShowCareList(false);
                     }}
                     onFootprintClick={onOpenExchange}
                 />
 
-                {/* Care List placement moved to modal overlay for Neo layouts */}
+                {/* Notifications Overlay (From Top) */}
+                <AnimatePresence>
+                    {showNotifications && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="w-[calc(100vw-48px)] max-w-sm mt-3"
+                        >
+                            <UnifiedCareList
+                                alertItems={alertItems}
+                                careItems={[]}
+                                onOpenPickup={onOpenPickup}
+                                onOpenIncident={onOpenIncident}
+                                onOpenIncidentDetail={onOpenIncidentDetail}
+                                onOpenPhoto={onOpenPhoto}
+                                addCareLog={addCareLog}
+                                activeCatId={activeCatId}
+                                awardForCare={awardForCare}
+                                markPhotosAsSeen={markPhotosAsSeen}
+                                initialTab="notifications"
+                                contrastMode="dark"
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
-            {/* Care List Overlay (Centered Modal) */}
+            {/* Care List Overlay (From Bottom) */}
             <AnimatePresence>
-                {isExpanded && (
+                {showCareList && (
                     <motion.div
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -99,7 +125,7 @@ export function LayoutIslandNeo({
                         className="fixed left-1/2 -translate-x-1/2 bottom-24 z-[100] w-[calc(100%-48px)] max-w-sm pointer-events-auto"
                     >
                         <UnifiedCareList
-                            alertItems={alertItems}
+                            alertItems={[]}
                             careItems={careItems}
                             onOpenPickup={onOpenPickup}
                             onOpenIncident={onOpenIncident}
@@ -109,7 +135,7 @@ export function LayoutIslandNeo({
                             activeCatId={activeCatId}
                             awardForCare={awardForCare}
                             markPhotosAsSeen={markPhotosAsSeen}
-                            initialTab={initialTab}
+                            initialTab="care"
                             contrastMode="dark"
                         />
                     </motion.div>
@@ -134,8 +160,8 @@ export function LayoutIslandNeo({
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => {
                                     triggerFeedback('medium');
-                                    setInitialTab('care');
-                                    setIsExpanded(!isExpanded);
+                                    setShowCareList(!showCareList);
+                                    if (showNotifications) setShowNotifications(false);
                                 }}
                                 className="flex flex-col items-center gap-0.5"
                             >
@@ -182,8 +208,7 @@ export function LayoutIslandNeo({
                             <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => {
-                                    setInitialTab('care');
-                                    setIsExpanded(!isExpanded);
+                                    setShowCareList(!showCareList);
                                 }}
                                 className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
                                 style={{ background: 'var(--peach)' }}
@@ -203,13 +228,13 @@ export function LayoutIslandNeo({
 
             {/* Backdrop for outside click to close */}
             <AnimatePresence>
-                {isExpanded && (
+                {(showNotifications || showCareList) && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 pointer-events-auto"
-                        onClick={() => setIsExpanded(false)}
+                        onClick={() => { setShowNotifications(false); setShowCareList(false); }}
                     />
                 )}
             </AnimatePresence>
