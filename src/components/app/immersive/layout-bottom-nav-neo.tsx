@@ -47,15 +47,15 @@ export function LayoutBottomNavNeo({
     const ENABLE_INTEGRATED_PICKUP = true;
 
     const pillStyle = {
-        background: 'rgba(250, 249, 247, 0.45)',
-        backdropFilter: 'blur(20px) saturate(1.8)',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
+        background: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(32px) saturate(1.8)',
+        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)'
     };
 
     const glassStyle = {
-        background: 'rgba(250, 249, 247, 0.85)',
-        backdropFilter: 'blur(24px) saturate(1.8)',
-        boxShadow: '0 -4px 32px -4px rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.6)'
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(40px) saturate(1.8)',
+        boxShadow: '0 -8px 48px -12px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)'
     };
 
     const isV2 = settings.layoutType.startsWith('v2-');
@@ -162,10 +162,10 @@ export function LayoutBottomNavNeo({
                                         setShowCareList(!showCareList);
                                         if (showNotifications) setShowNotifications(false);
                                     }}
-                                    className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
+                                    className="flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl group transition-all"
                                 >
-                                    <Heart className="w-6 h-6 text-slate-500" />
-                                    <span className="text-[10px] text-slate-500 font-bold">care</span>
+                                    <Heart className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
+                                    <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">care</span>
                                 </motion.button>
 
                                 <motion.button
@@ -174,9 +174,9 @@ export function LayoutBottomNavNeo({
                                         triggerFeedback('medium');
                                         onOpenActionMenu();
                                     }}
-                                    className="flex flex-col items-center justify-center w-11 h-11 rounded-full -mt-6 bg-slate-200/80 border border-slate-300/50"
+                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-full -mt-10 bg-slate-900/10 hover:bg-slate-900/20 border border-slate-900/10 backdrop-blur-md transition-all shadow-lg"
                                 >
-                                    <span className="text-slate-600 text-xl font-medium">＋</span>
+                                    <span className="text-slate-800 text-2xl font-light">＋</span>
                                 </motion.button>
 
                                 <motion.button
@@ -185,10 +185,10 @@ export function LayoutBottomNavNeo({
                                         triggerFeedback('light');
                                         onOpenMenu();
                                     }}
-                                    className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
+                                    className="flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl group transition-all"
                                 >
-                                    <Grid3X3 className="w-6 h-6 text-slate-500" />
-                                    <span className="text-[10px] text-slate-500 font-bold">menu</span>
+                                    <Grid3X3 className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
+                                    <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">menu</span>
                                 </motion.button>
                             </>
                         ) : (

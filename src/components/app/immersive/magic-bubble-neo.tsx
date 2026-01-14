@@ -87,9 +87,9 @@ export function MagicBubbleNeo({
     };
 
     const cardStyle = {
-        background: 'rgba(250, 249, 247, 0.45)', // Tactile Glass: Milky
-        backdropFilter: 'blur(16px) saturate(1.8)',
-        boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
+        background: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(32px) saturate(1.8)',
+        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)'
     };
 
 
@@ -175,7 +175,7 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">care</span>
-                                <div className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-md flex items-center justify-center shadow-lg ring-1 ring-white/60">
+                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
                                     <Heart className="w-5 h-5 text-slate-100" />
                                 </div>
                             </motion.button>
@@ -186,8 +186,8 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">plus</span>
-                                <div className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-md flex items-center justify-center shadow-lg ring-1 ring-white/60">
-                                    <span className="text-slate-100 text-xl font-medium">＋</span>
+                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
+                                    <span className="text-slate-100 text-xl font-light">＋</span>
                                 </div>
                             </motion.button>
 
@@ -197,7 +197,7 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">menu</span>
-                                <div className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-md flex items-center justify-center shadow-lg ring-1 ring-white/60">
+                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
                                     <LayoutGrid className="w-5 h-5 text-slate-100" />
                                 </div>
                             </motion.button>

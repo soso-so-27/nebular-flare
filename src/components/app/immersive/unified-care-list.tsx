@@ -272,12 +272,11 @@ export function UnifiedCareList({
         }
     };
 
-    // Styles (Island Base)
-    // Warm Glass Theme
     const listStyle = {
-        background: 'rgba(42, 37, 34, 0.85)', // Warm Dark Brown
-        backdropFilter: 'blur(24px) saturate(1.2)',
-        boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+        background: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(32px) saturate(1.8)',
+        boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
+        borderRadius: '28px',
         ...style
     };
 

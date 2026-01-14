@@ -32,17 +32,19 @@ export function IntegratedNotificationPill({
     const latestAlertText = alertItems[0]?.label || "件の通知があります";
 
     const glassStyle = {
-        background: hasAlerts ? 'rgba(232, 180, 160, 0.98)' : 'rgba(250, 249, 247, 0.75)',
-        backdropFilter: 'blur(20px) saturate(1.8)',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4)',
+        background: hasAlerts ? 'rgba(232, 180, 160, 0.95)' : 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(32px) saturate(1.8)',
+        boxShadow: hasAlerts
+            ? '0 12px 40px -8px rgba(232, 180, 160, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.3)'
+            : '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)',
         color: hasAlerts ? 'white' : 'inherit'
     };
 
     return (
         <motion.div
             className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-2.5 cursor-pointer shadow-lg hover:shadow-xl transition-all",
-                hasAlerts ? "max-w-[320px] ring-2 ring-white/50" : "max-w-fit"
+                "flex items-center gap-2 rounded-full px-4 py-2 cursor-pointer shadow-lg transition-all",
+                hasAlerts ? "max-w-[320px]" : "max-w-fit"
             )}
             style={glassStyle}
             onClick={onToggle}
@@ -91,7 +93,7 @@ export function IntegratedNotificationPill({
             {/* Middle: Progress Bar */}
             <div className={cn(
                 "flex items-center gap-2 border-l pl-3 mr-1 transition-colors",
-                hasAlerts ? "border-white/30" : "border-slate-200"
+                hasAlerts ? "border-white/20" : "border-slate-400/20"
             )}>
                 <span className={cn(
                     "text-[10px] font-bold tabular-nums",
@@ -121,10 +123,10 @@ export function IntegratedNotificationPill({
                     }}
                     className={cn(
                         "flex items-center gap-1 border-l pl-3 transition-colors cursor-pointer hover:opacity-70",
-                        hasAlerts ? "border-white/30" : "border-slate-200"
+                        hasAlerts ? "border-white/20" : "border-slate-400/20"
                     )}
                 >
-                    <PawPrint className={cn("w-3 h-3", hasAlerts ? "text-white/70" : "text-[#D97706]")} />
+                    <PawPrint className={cn("w-3 h-3", hasAlerts ? "text-white/70" : "text-slate-700")} />
                     <span className={cn(
                         "text-[10px] font-bold tabular-nums",
                         hasAlerts ? "text-white" : "text-slate-700"

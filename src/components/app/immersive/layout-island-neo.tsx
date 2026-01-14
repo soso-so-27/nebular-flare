@@ -46,17 +46,18 @@ export function LayoutIslandNeo({
     } = useCareData();
 
     const glassStyle = {
-        background: 'rgba(250, 249, 247, 0.65)',
-        backdropFilter: 'blur(20px) saturate(1.8)',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 2px 0 0 rgba(255, 255, 255, 0.5)'
+        background: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(32px) saturate(1.8)',
+        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)'
     };
 
     // Style for passing to UnifiedCareList to match Island aesthetic
     const expandedListStyle = {
-        background: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(24px) saturate(1.2)',
-        boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
-        marginTop: '8px'
+        background: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(40px) saturate(1.6)',
+        boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
+        marginTop: '12px',
+        borderRadius: '28px'
     };
 
     const ENABLE_INTEGRATED_PICKUP = true;
@@ -144,13 +145,13 @@ export function LayoutIslandNeo({
 
             {/* Bottom Center: Floating Dock */}
             <motion.div
-                className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
+                className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
             >
                 <div
-                    className="flex items-center gap-6 px-6 py-3 rounded-full shadow-2xl"
+                    className="flex items-center gap-8 px-8 py-3.5 rounded-[32px] shadow-2xl"
                     style={glassStyle}
                 >
                     {isV2 ? (
@@ -163,10 +164,10 @@ export function LayoutIslandNeo({
                                     setShowCareList(!showCareList);
                                     if (showNotifications) setShowNotifications(false);
                                 }}
-                                className="flex flex-col items-center gap-0.5"
+                                className="flex flex-col items-center gap-1 group"
                             >
-                                <Heart className="w-6 h-6 text-slate-600" />
-                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">care</span>
+                                <Heart className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
+                                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">care</span>
                             </motion.button>
 
                             <motion.button
@@ -175,9 +176,9 @@ export function LayoutIslandNeo({
                                     triggerFeedback('medium');
                                     onOpenActionMenu();
                                 }}
-                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200/80 border border-slate-300/50"
+                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-900/10 hover:bg-slate-900/20 border border-slate-900/10 transition-colors"
                             >
-                                <span className="text-slate-600 text-lg font-medium">＋</span>
+                                <span className="text-slate-800 text-xl font-light">＋</span>
                             </motion.button>
 
                             <motion.button
@@ -186,10 +187,10 @@ export function LayoutIslandNeo({
                                     triggerFeedback('light');
                                     onOpenMenu();
                                 }}
-                                className="flex flex-col items-center gap-0.5"
+                                className="flex flex-col items-center gap-1 group"
                             >
-                                <Grid3X3 className="w-6 h-6 text-slate-600" />
-                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">menu</span>
+                                <Grid3X3 className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
+                                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">menu</span>
                             </motion.button>
                         </>
                     ) : (
