@@ -14,9 +14,7 @@ interface LayoutIslandProps {
 }
 
 /**
- * ダイナミックアイランド型レイアウト
- * - 上部中央: 統合ステータスピル（足あと + 進捗）
- * - 下部中央: フローティングDock
+ * ダイナミチE��アイランド型レイアウチE * - 上部中央: 統合スチE�Eタスピル�E�足あと + 進捗！E * - 下部中央: フローチE��ングDock
  */
 export function LayoutIsland({
     progress,

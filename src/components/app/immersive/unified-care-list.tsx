@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ChevronDown, Check, AlertCircle, MessageCircle } from 'lucide-react';
+import { Heart, ChevronDown, Check, AlertCircle, MessageCircle, Bell } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAppState } from '@/store/app-store';
 import { useFootprintContext } from '@/providers/footprint-provider';
 import { getCatchUpItems } from '@/lib/utils-catchup';
@@ -10,7 +11,7 @@ import { sounds } from "@/lib/sounds";
 
 // --- HOOK: Centralized Data Logic ---
 export function useCareData() {
-    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, addCareLog, inventory, noticeLogs, incidents } = useAppState();
+    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, setSettings, addCareLog, inventory, noticeLogs, incidents } = useAppState();
     const { awardForCare } = useFootprintContext();
     const { dayStartHour } = settings;
 
@@ -98,7 +99,28 @@ export function useCareData() {
                     payload: item.payload
                 }));
 
-            alerts = [...incidentAlerts, ...catchUpAlerts].sort((a, b) => b.severity - a.severity);
+            // New Photo Alerts (New!)
+            const photoAlerts = cats.flatMap(cat => {
+                if (!cat.images) return [];
+                const unseen = cat.images.filter(img =>
+                    img.createdAt > settings.lastSeenPhotoAt
+                ).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+                if (unseen.length === 0) return [];
+
+                return [{
+                    id: `photo-${cat.id}`,
+                    actionId: `photo-${cat.id}`,
+                    label: `${cat.name}の新しい写真`,
+                    subLabel: `家族が${unseen.length}枚の写真を届けました`,
+                    type: 'notice',
+                    severity: 90, // High priority
+                    catId: cat.id,
+                    payload: { unseenPhotos: unseen }
+                }];
+            });
+
+            alerts = [...incidentAlerts, ...catchUpAlerts, ...photoAlerts].sort((a, b) => b.severity - a.severity);
         }
 
         return { careItems: tasks, alertItems: alerts };
@@ -157,13 +179,18 @@ export function useCareData() {
 
     const progress = totalCareTasks > 0 ? completedCareTasks / totalCareTasks : 1;
 
+    const markPhotosAsSeen = () => {
+        setSettings(s => ({ ...s, lastSeenPhotoAt: new Date().toISOString() }));
+    };
+
     return {
         careItems,
         alertItems,
         progress,
         addCareLog,
         activeCatId,
-        awardForCare
+        awardForCare,
+        markPhotosAsSeen
     };
 }
 
@@ -179,8 +206,10 @@ interface UnifiedCareListProps {
     addCareLog: any;
     activeCatId: string | null;
     awardForCare: (catId?: string) => void;
-    style?: React.CSSProperties; // Optional inline overrides
+    markPhotosAsSeen?: () => void;
+    initialTab?: 'care' | 'notifications';
     contrastMode?: 'light' | 'dark';
+    style?: React.CSSProperties;
 }
 
 export function UnifiedCareList({
@@ -193,11 +222,26 @@ export function UnifiedCareList({
     addCareLog,
     activeCatId,
     awardForCare,
-    style,
-    contrastMode = 'light'
+    markPhotosAsSeen,
+    initialTab = 'notifications',
+    contrastMode = 'light',
+    style
 }: UnifiedCareListProps) {
 
+    const [activeTab, setActiveTab] = useState<'care' | 'notifications'>(initialTab);
+
+    useEffect(() => {
+        setActiveTab(initialTab);
+    }, [initialTab]);
+
     const isLight = contrastMode === 'light';
+    const [pendingIds, setPendingIds] = React.useState<Set<string>>(new Set());
+
+    const { totalCareTasks, completedCareTasks } = useMemo(() => {
+        const total = careItems.length;
+        const completed = careItems.filter(i => i.done).length;
+        return { totalCareTasks: total, completedCareTasks: completed };
+    }, [careItems]);
 
     // Feedback Helper
     const triggerFeedback = (type: 'light' | 'medium' | 'success' = 'light') => {
@@ -220,6 +264,9 @@ export function UnifiedCareList({
         triggerFeedback('medium');
         if (item.type === 'incident' && onOpenIncidentDetail) {
             onOpenIncidentDetail(item.id);
+        } else if (item.id.startsWith('photo-')) {
+            if (markPhotosAsSeen) markPhotosAsSeen();
+            onOpenPhoto();
         } else {
             onOpenPickup();
         }
@@ -244,123 +291,198 @@ export function UnifiedCareList({
             style={listStyle}
             onClick={(e) => e.stopPropagation()}
         >
-            <div className="p-4 space-y-4">
-                {/* 1. Alerts Section - Unified to Peach */}
-                {alertItems.length > 0 && (
-                    <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-[#FFD6C0] text-xs font-bold pl-1 animate-pulse">
-                            <span className="w-2 h-2 rounded-full bg-[#E8B4A0] inline-block" />
-                            <span>要確認</span>
-                        </div>
-                        <div className="space-y-2">
-                            {alertItems.map(item => (
-                                <motion.button
-                                    key={item.id}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleAction(item)}
-                                    // Unified Glassmorphism Style - Alert (Peach)
-                                    className="w-full text-left p-3 rounded-xl bg-gradient-to-br from-[#E8B4A0]/20 to-[#C08A70]/40 border border-[#E8B4A0]/30 flex items-start gap-3 backdrop-blur-sm shadow-md transition-colors hover:border-[#E8B4A0]/50"
-                                >
-                                    <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center shrink-0 mt-0.5 border border-[#E8B4A0]/10">
-                                        <span className="text-[#FFD6C0] text-xs text-center !leading-none flex items-center justify-center">!</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-[#FFD6C0] leading-tight mb-1">
-                                            {item.label}
-                                        </div>
-                                        <div className="text-[10px] text-[#FFD6C0]/70 leading-tight">
-                                            {item.subLabel}
-                                        </div>
-                                    </div>
-                                </motion.button>
-                            ))}
-                        </div>
-                        <div className="h-px bg-white/10 w-full mt-2" />
-                    </div>
-                )}
-
-                {/* 2. Care Header */}
-                <div className="flex items-center gap-2 text-[#E8B4A0] text-xs font-bold pl-1">
-                    <Heart className="w-3 h-3 text-[#E8B4A0]" />
-                    <span>お世話</span>
-                </div>
-
-                {/* 3. Care List */}
-                <div className="space-y-2">
-                    {careItems.map(item => (
-                        <motion.button
-                            key={item.id}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={async (e) => {
-                                e.stopPropagation();
-                                triggerFeedback('success');
-                                if (!item.done && addCareLog) {
-                                    const targetId = (item as any).actionId || item.id;
-                                    const result = await addCareLog(targetId, item.perCat ? (activeCatId ?? undefined) : undefined);
-                                    if (result && result.error) {
-                                        toast.error(result.error.message || "記録できませんでした");
-                                    } else {
-                                        awardForCare(item.perCat ? (activeCatId ?? undefined) : undefined);
-                                    }
-                                }
-                            }}
-                            className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all border ${item.done
-                                ? 'bg-black/20 border-white/5 opacity-50'
-                                : 'bg-[#3A322E]/80 border-white/10 hover:bg-[#4A403A] hover:border-[#E8B4A0]/30'
-                                }`}
-                        >
-                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${item.done
-                                ? 'bg-[#7CAA8E] border-[#7CAA8E]'
-                                : 'border-[#E8B4A0]/40 group-hover:border-[#E8B4A0]'
-                                }`}>
-                                {item.done && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            <span className={`text-sm font-medium truncate transition-colors ${item.done ? 'text-white/40 line-through' : 'text-[#F5E6E0]'}`}>
-                                {item.label}
-                            </span>
-                        </motion.button>
-                    ))}
-                    {careItems.length === 0 && (
-                        <div className="text-center py-4 text-white/30 text-xs italic">
-                            お世話タスク完了！
-                        </div>
+            {/* Tab Header */}
+            <div className="flex border-b border-white/10">
+                <button
+                    onClick={() => { triggerFeedback('light'); setActiveTab('notifications'); }}
+                    className={cn(
+                        "flex-1 py-3 text-[10px] font-bold tracking-wider uppercase transition-all relative",
+                        activeTab === 'notifications' ? "text-[#E8B4A0]" : "text-white/40 hover:text-white/60"
                     )}
-                </div>
+                >
+                    通知
+                    {alertItems.length > 0 && activeTab !== 'notifications' && (
+                        <span className="absolute top-2 right-4 w-1.5 h-1.5 rounded-full bg-[#E8B4A0] animate-pulse" />
+                    )}
+                    {activeTab === 'notifications' && (
+                        <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8B4A0]" />
+                    )}
+                </button>
+                <button
+                    onClick={() => { triggerFeedback('light'); setActiveTab('care'); }}
+                    className={cn(
+                        "flex-1 py-3 text-[10px] font-bold tracking-wider uppercase transition-all relative",
+                        activeTab === 'care' ? "text-[#E8B4A0]" : "text-white/40 hover:text-white/60"
+                    )}
+                >
+                    お世話
+                    {careItems.filter(i => !i.done).length > 0 && activeTab !== 'care' && (
+                        <span className="absolute top-2 right-4 w-1.5 h-1.5 rounded-full bg-[#7CAA8E] animate-pulse" />
+                    )}
+                    {activeTab === 'care' && (
+                        <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8B4A0]" />
+                    )}
+                </button>
+            </div>
 
-                {/* 4. Additional Actions - Warm Buttons */}
-                <div className="pt-2 mt-2 border-t border-white/5 space-y-2">
-                    {/* Notice Button - Standardized Style */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            triggerFeedback('medium');
-                            onOpenIncident();
-                        }}
-                        className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
-                    >
-                        <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E8B4A0]/20 transition-colors">
-                            <AlertCircle className="w-3 h-3 text-[#E8B4A0] group-hover:text-[#FFD6C0] transition-colors" />
-                        </div>
-                        <span className="text-sm font-medium text-white/70 group-hover:text-white">気付きを記録</span>
-                    </motion.button>
+            <div className="p-4 space-y-4 max-h-[480px] overflow-y-auto no-scrollbar">
+                <AnimatePresence mode="wait">
+                    {activeTab === 'notifications' ? (
+                        <motion.div
+                            key="notifications-tab"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            className="space-y-4"
+                        >
+                            {/* 1. Alerts Section (Prioritized) */}
+                            {alertItems.length > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="space-y-2">
+                                        {alertItems.map(item => (
+                                            <motion.button
+                                                key={item.id}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => handleAction(item)}
+                                                className="w-full text-left p-3 rounded-xl bg-gradient-to-br from-[#E8B4A0]/20 to-[#C08A70]/40 border border-[#E8B4A0]/30 flex items-start gap-3 backdrop-blur-sm shadow-md transition-colors hover:border-[#E8B4A0]/50"
+                                            >
+                                                <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center shrink-0 mt-0.5 border border-[#E8B4A0]/10">
+                                                    <span className="text-[#FFD6C0] text-xs">!</span>
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-[#FFD6C0] leading-tight mb-1">
+                                                        {item.label}
+                                                    </div>
+                                                    <div className="text-[10px] text-[#FFD6C0]/70 leading-tight">
+                                                        {item.subLabel}
+                                                    </div>
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 space-y-3">
+                                    <div className="w-12 h-12 rounded-full bg-white/5 mx-auto flex items-center justify-center">
+                                        <Bell className="w-6 h-6 text-white/20" />
+                                    </div>
+                                    <p className="text-xs text-white/30 italic">通知はありません</p>
+                                </div>
+                            )}
 
-                    {/* Status Share Button */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            triggerFeedback('medium');
-                            onOpenPhoto();
-                        }}
-                        className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
-                    >
-                        <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
-                            <MessageCircle className="w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
-                        </div>
-                        <span className="text-sm font-medium text-white/70 group-hover:text-white">様子を共有</span>
-                    </motion.button>
-                </div>
+                            {/* Move footer actions to Notifications for cleaner care view */}
+                            <div className="pt-2 mt-2 border-t border-white/5 space-y-2">
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        triggerFeedback('medium');
+                                        onOpenIncident();
+                                    }}
+                                    className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
+                                >
+                                    <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E8B4A0]/20 transition-colors">
+                                        <AlertCircle className="w-3 h-3 text-[#E8B4A0] group-hover:text-[#FFD6C0] transition-colors" />
+                                    </div>
+                                    <span className="text-sm font-medium text-white/70 group-hover:text-white">家族に相談 (記録)</span>
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="care-tab"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="space-y-4"
+                        >
+                            {/* 2. Care Header */}
+                            <div className="flex items-center gap-2 text-[#E8B4A0] text-xs font-bold pl-1">
+                                <Heart className="w-3 h-3 text-[#E8B4A0]" />
+                                <span>今日のお世話</span>
+                                <span className="ml-auto text-[10px] text-white/40">{completedCareTasks}/{totalCareTasks}</span>
+                            </div>
+
+                            {/* 3. Care List */}
+                            <div className="space-y-2">
+                                {careItems.map(item => (
+                                    <motion.button
+                                        key={item.id}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (item.done || pendingIds.has(item.id)) return;
+
+                                            setPendingIds(prev => new Set(prev).add(item.id));
+                                            triggerFeedback('success');
+
+                                            if (addCareLog) {
+                                                const targetId = (item as any).actionId || item.id;
+                                                const result = await addCareLog(targetId, item.perCat ? (activeCatId ?? undefined) : undefined);
+                                                if (result && result.error) {
+                                                    toast.error(result.error.message || "記録できませんでした");
+                                                    setPendingIds(prev => {
+                                                        const next = new Set(prev);
+                                                        next.delete(item.id);
+                                                        return next;
+                                                    });
+                                                } else {
+                                                    awardForCare(item.perCat ? (activeCatId ?? undefined) : undefined);
+                                                    setTimeout(() => {
+                                                        setPendingIds(prev => {
+                                                            const next = new Set(prev);
+                                                            next.delete(item.id);
+                                                            return next;
+                                                        });
+                                                    }, 1000);
+                                                }
+                                            }
+                                        }}
+                                        className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all border ${(item.done || pendingIds.has(item.id))
+                                            ? 'bg-black/20 border-white/5 opacity-50'
+                                            : 'bg-[#3A322E]/80 border-white/10 hover:bg-[#4A403A] hover:border-[#E8B4A0]/30'
+                                            }`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${(item.done || pendingIds.has(item.id))
+                                            ? 'bg-[#7CAA8E] border-[#7CAA8E]'
+                                            : 'border-[#E8B4A0]/40 group-hover:border-[#E8B4A0]'
+                                            }`}>
+                                            {(item.done || pendingIds.has(item.id)) && <Check className="w-3 h-3 text-white" />}
+                                        </div>
+                                        <span className={`text-sm font-medium truncate transition-colors ${(item.done || pendingIds.has(item.id)) ? 'text-white/40 line-through' : 'text-[#F5E6E0]'}`}>
+                                            {item.label}
+                                        </span>
+                                    </motion.button>
+                                ))}
+                                {careItems.length === 0 && (
+                                    <div className="text-center py-12 space-y-3">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 mx-auto flex items-center justify-center">
+                                            <Heart className="w-6 h-6 text-white/20" />
+                                        </div>
+                                        <p className="text-xs text-white/30 italic">今日のお世話は完了しています</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-2 mt-2 border-t border-white/5">
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        triggerFeedback('medium');
+                                        onOpenPhoto();
+                                    }}
+                                    className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
+                                >
+                                    <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
+                                        <MessageCircle className="w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
+                                    </div>
+                                    <span className="text-sm font-medium text-white/70 group-hover:text-white">今日の猫を届ける</span>
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </motion.div>
     );

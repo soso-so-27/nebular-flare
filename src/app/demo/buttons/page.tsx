@@ -94,7 +94,7 @@ export default function ButtonDemoPage() {
                                 setCounter(counter + 1);
                                 handleFeedback(sounds.pop, haptics.impactMedium);
                             }}
-                            className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-2xl font-bold shadow-lg shadow-emerald-500/30"
+                            className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7CAA8E] to-[#5A8A6A] text-white text-2xl font-bold shadow-lg shadow-[#7CAA8E]/30"
                         >
                             +
                         </motion.button>
@@ -181,7 +181,7 @@ export default function ButtonDemoPage() {
                                     }
                                 }}
                                 className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all ${completed.includes(item)
-                                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-2 border-[#7CAA8E]'
+                                    ? 'bg-gradient-to-r from-[#7CAA8E]/20 to-[#5A8A6A]/20 border-2 border-[#7CAA8E]'
                                     : 'bg-white/5 border-2 border-white/10'
                                     }`}
                             >
@@ -189,7 +189,7 @@ export default function ButtonDemoPage() {
                                     animate={completed.includes(item) ? { scale: [1, 1.4, 1] } : {}}
                                     transition={{ type: "spring", stiffness: 500 }}
                                     className={`w-8 h-8 rounded-full flex items-center justify-center ${completed.includes(item)
-                                        ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
+                                        ? 'bg-gradient-to-br from-[#7CAA8E] to-[#5A8A6A]'
                                         : 'bg-slate-600'
                                         }`}
                                 >

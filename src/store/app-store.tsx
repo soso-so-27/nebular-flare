@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
-import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef } from '@/types';
+import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
 import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
@@ -102,15 +102,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const [settings, setSettings] = useState<AppSettings>(() => {
         // Load homeViewMode from localStorage if available
         let savedViewMode: 'story' | 'parallax' | 'icon' = 'story';
-        let savedLayoutType: 'classic' | 'island' | 'bottom-nav' = 'classic';
+        let savedLayoutType: LayoutType = 'v2-island';
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('homeViewMode');
             if (saved === 'story' || saved === 'parallax' || saved === 'icon') {
                 savedViewMode = saved;
             }
             const savedLayout = localStorage.getItem('layoutType');
-            if (savedLayout === 'classic' || savedLayout === 'island' || savedLayout === 'bottom-nav') {
-                savedLayoutType = savedLayout;
+            const validLayouts: LayoutType[] = ['classic', 'island', 'bottom-nav', 'v2-classic', 'v2-island', 'v2-bottom'];
+            if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
+                savedLayoutType = savedLayout as LayoutType;
             }
         }
         return {
@@ -128,6 +129,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             skinMode: 'default',
             photoTagAssist: true,
             dayStartHour: 4,
+            lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
         };
     });
 
@@ -144,6 +146,13 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             localStorage.setItem('layoutType', settings.layoutType);
         }
     }, [settings.layoutType]);
+
+    // Persist lastSeenPhotoAt to localStorage when changed
+    useEffect(() => {
+        if (typeof window !== 'undefined' && settings.lastSeenPhotoAt) {
+            localStorage.setItem('lastSeenPhotoAt', settings.lastSeenPhotoAt);
+        }
+    }, [settings.lastSeenPhotoAt]);
 
     // Notification Preferences (DB Sync)
     const { preferences, updatePreference } = useNotificationPreferences();
@@ -311,7 +320,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'care_task_defs', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
-                    toast.info("ケアタスクが更新されました");
                     if (payload.eventType === 'INSERT') {
                         setCareTaskDefs(prev => {
                             if (prev.some(p => p.id === payload.new.id)) return prev;
@@ -355,7 +363,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'notice_defs', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
-                    toast.info("記録項目が更新されました");
                     if (payload.eventType === 'INSERT') {
                         setNoticeDefs(prev => {
                             if (prev.some(p => p.id === payload.new.id)) return prev;
@@ -401,7 +408,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'inventory', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
-                    toast.info("在庫リストが更新されました");
                     if (payload.eventType === 'INSERT') {
                         setInventory(prev => {
                             if (prev.some(p => p.id === payload.new.id)) return prev;
@@ -474,7 +480,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 { event: '*', schema: 'public', table: 'household_members', filter: `household_id=eq.${householdId}` },
                 () => {
                     fetchMembers();
-                    toast.info("家族メンバーが更新されました");
                 }
             )
             .subscribe();
@@ -528,9 +533,13 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 birthday: c.birthday || undefined,
                 images: rawImages.map((img: any) => ({
                     id: img.id,
+                    catId: img.catId || img.cat_id,
+                    catIds: img.catIds || img.cat_ids || (img.cat_id ? [img.cat_id] : []),
                     storagePath: img.storagePath || img.storage_path,
                     createdAt: img.createdAt || img.created_at,
                     isFavorite: img.isFavorite || img.is_favorite,
+                    memo: img.memo,
+                    tags: img.tags
                 })),
                 weightHistory: rawWeightHistory.map((wh: any) => ({
                     id: wh.id,
@@ -877,7 +886,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             if (updates.perCat !== undefined) dbUpdates.per_cat = updates.perCat;
             if (updates.targetCatIds !== undefined) dbUpdates.target_cat_ids = updates.targetCatIds;
             if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
-            // Also update meal_slots if auto-updated? 
+            // Also update meal_slots if auto-updated?
             // The map logic above handles auto-update in local state 'updated' object.
             // We should use 'updated' object logic here?
             // Actually, we should just replicate the logic or pass specific updates.
@@ -1096,41 +1105,43 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (isDemo) return { error: null };
 
         try {
-            // 1. Upload to Storage using shared utility
-            // This handles validation, path generation, and bucket selection (cat-images)
-            const { publicUrl, storagePath, error: uploadError } = await uploadCatImageToStorage(catId, file);
+            // Support multiple cat IDs (comma separated)
+            const catIds = catId.includes(',') ? catId.split(',') : [catId];
+            const primaryCatId = catIds[0];
+
+            // 1. Upload to Storage using shared utility (use first catId for path)
+            const { publicUrl, storagePath, error: uploadError } = await uploadCatImageToStorage(primaryCatId, file);
 
             if (uploadError) throw new Error(uploadError);
             if (!publicUrl || !storagePath) throw new Error("Upload failed: No URL returned");
 
-            // 2. Insert into DB
+            // 2. Insert into DB (Single record for multiple cats)
+            const insertPayload = {
+                cat_id: catIds[0], // Primary cat
+                cat_ids: catIds,    // All tagged cats
+                storage_path: storagePath,
+                memo: memo
+            };
+
             const { data: dbData, error: dbError } = await supabase
                 .from('cat_images')
-                .insert({
-                    cat_id: catId,
-                    storage_path: storagePath,
-                    memo: memo
-                })
-                .select()
-                .single();
+                .insert([insertPayload])
+                .select();
 
             if (dbError) throw dbError;
 
-            // Trigger Notification
-            await supabase.functions.invoke('push-notification', {
-                body: {
-                    type: 'INSERT',
-                    table: 'cat_images',
-                    record: dbData,
+            // Note: Notifications and AI Analysis are now handled automatically by 
+            // Database Webhooks on the 'cat_images' table. This prevents duplicates
+            // and improves frontend performance.
+
+            // 3. Update Cat Avatar if it's currently default (for all selected cats)
+            for (const id of catIds) {
+                const currentCat = cats.find(c => c.id === id);
+                const isDefaultAvatar = currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar);
+
+                if (isDefaultAvatar) {
+                    await supabase.from('cats').update({ avatar: publicUrl }).eq('id', id);
                 }
-            });
-
-            // 3. Update Cat Avatar if it's currently default
-            const currentCat = cats.find(c => c.id === catId);
-            const isDefaultAvatar = currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar);
-
-            if (isDefaultAvatar) {
-                await supabase.from('cats').update({ avatar: publicUrl }).eq('id', catId);
             }
 
             // 4. Refresh cats to update UI
@@ -1138,7 +1149,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 refetchCats();
             }
 
-            return { data: dbData };
+            return { data: dbData[0] };
 
         } catch (e: any) {
             console.error(e);

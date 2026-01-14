@@ -1,6 +1,9 @@
--- Migration: Create unified gallery RPC with pagination
--- Created: 2026-01-12
+-- 1. 古いバージョンの関数を完全に削除します
+-- 引数の構成が違うものが複数存在すると、どちらを呼ぶか迷ってエラー（Ambiguous Function）になるためです
+DROP FUNCTION IF EXISTS get_unified_gallery(uuid, uuid, int, int);
+DROP FUNCTION IF EXISTS get_unified_gallery(uuid, uuid, text, int, int);
 
+-- 2. 最新の関数（タグ対応版）を作成します
 CREATE OR REPLACE FUNCTION get_unified_gallery(
     target_household_id uuid,
     filter_cat_id uuid DEFAULT NULL,
@@ -27,7 +30,7 @@ AS $$
 BEGIN
     RETURN QUERY
     WITH unified AS (
-        -- 1. Profile Images
+        -- 1. 投稿写真
         SELECT
             img.id::text as id,
             img.cat_id,
@@ -47,7 +50,7 @@ BEGIN
         
         UNION ALL
         
-        -- 2. Care Log Images (Unnested)
+        -- 2. お世話記録の写真
         SELECT
             (cl.id || '_' || u.url)::text as id,
             cl.cat_id,
@@ -69,7 +72,7 @@ BEGIN
         
         UNION ALL
         
-        -- 3. Observation Images (Unnested)
+        -- 3. 気づき記録の写真
         SELECT
             (o.id || '_' || u.url)::text as id,
             o.cat_id,
@@ -92,7 +95,6 @@ BEGIN
     SELECT * FROM unified
     WHERE (filter_cat_id IS NULL OR unified.cat_id = filter_cat_id)
     AND (filter_tag IS NULL OR unified.tags @> jsonb_build_array(jsonb_build_object('name', filter_tag)))
-    -- Note: This @> check works for the JSONB structure we defined: [{ "name": "...", ... }]
     ORDER BY created_at DESC
     LIMIT limit_count
     OFFSET offset_count;

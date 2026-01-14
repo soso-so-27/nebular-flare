@@ -12,17 +12,22 @@ import type { LayoutType } from "@/types";
 type TabType = 'layout' | 'theme' | 'goods' | 'supplies' | 'donation';
 
 const TABS: { id: TabType; label: string; icon: React.ReactNode; ready: boolean }[] = [
-    { id: 'layout', label: 'レイアウト', icon: <Layout className="w-4 h-4" />, ready: true },
-    { id: 'theme', label: 'テーマ', icon: <Palette className="w-4 h-4" />, ready: false },
-    { id: 'goods', label: '猫グッズ', icon: <Gift className="w-4 h-4" />, ready: false },
-    { id: 'supplies', label: '猫用品', icon: <ShoppingBag className="w-4 h-4" />, ready: false },
-    { id: 'donation', label: '寄付', icon: <Heart className="w-4 h-4" />, ready: false },
+    { id: 'layout', label: 'レイアウト', icon: <Layout className="w-3.5 h-3.5" />, ready: true },
+    { id: 'theme', label: 'テーマ', icon: <Palette className="w-3.5 h-3.5" />, ready: false },
+    { id: 'goods', label: '猫グッズ', icon: <Gift className="w-3.5 h-3.5" />, ready: false },
+    { id: 'supplies', label: '猫用品', icon: <ShoppingBag className="w-3.5 h-3.5" />, ready: false },
+    { id: 'donation', label: '寄付', icon: <Heart className="w-3.5 h-3.5" />, ready: false },
 ];
 
-const LAYOUT_OPTIONS: { id: LayoutType; name: string; description: string }[] = [
-    { id: 'classic', name: 'スタンダード', description: '左上にお世話進捗、右上に足あとバッジ、右下にボタン' },
-    { id: 'island', name: 'スマート', description: '上部中央にステータス表示、下部にボタン' },
-    { id: 'bottom-nav', name: 'ボトム', description: '左上にお世話進捗、下部にナビゲーションバー' },
+const LAYOUT_OPTIONS: { id: LayoutType; name: string; description: string; version: 'legacy' | 'v1' | 'v2' }[] = [
+    // Legacy Layouts (Original)
+    { id: 'classic', name: 'スタンダード (Legacy)', description: '拡張されたリングメニュー。', version: 'legacy' },
+    { id: 'island', name: 'アイランド (Legacy)', description: '5アクションのドック。', version: 'legacy' },
+    { id: 'bottom-nav', name: 'ボトム・ナビ (Legacy)', description: '5アクションのボトムバー。', version: 'legacy' },
+    // Optimized (v2 - Neo Components)
+    { id: 'v2-classic', name: 'スタンダード (v2)', description: '3アクションのシンプル設計。', version: 'v2' },
+    { id: 'v2-island', name: 'アイランド (v2)', description: '3アクションのシンプル設計。', version: 'v2' },
+    { id: 'v2-bottom', name: 'ボトム・ナビ (v2)', description: '3アクションのシンプル設計。', version: 'v2' },
 ];
 
 interface ThemeItem {
@@ -182,21 +187,21 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--peach)' }}>
-                                    <Sparkles className="w-5 h-5 text-white" />
+                        <div className="flex items-center justify-between p-5 border-b border-white/10 dark:border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/40 dark:bg-white/5 shadow-inner">
+                                    <Sparkles className="w-5 h-5 text-[color:var(--peach)]" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800 dark:text-white">足あと交換所</h2>
-                                    <p className="text-sm text-slate-500">🐾 {stats.householdTotal} pt</p>
+                                    <h2 className="text-lg font-bold text-slate-700 dark:text-slate-200">足あと交換所</h2>
+                                    <p className="text-sm font-medium text-slate-400">🐾 {stats.householdTotal} pt</p>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                className="p-2 rounded-full hover:bg-slate-200/50 dark:hover:bg-white/5 transition-colors"
                             >
-                                <X className="w-5 h-5 text-slate-500" />
+                                <X className="w-5 h-5 text-slate-400" />
                             </button>
                         </div>
 
@@ -212,11 +217,9 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                         }`}
                                 >
                                     {tab.icon}
-                                    {tab.label}
+                                    <span className={!tab.ready ? 'opacity-50' : ''}>{tab.label}</span>
                                     {!tab.ready && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 ml-1">
-                                            準備中
-                                        </span>
+                                        <Lock className="w-2.5 h-2.5 opacity-30 ml-1" />
                                     )}
                                     {activeTab === tab.id && (
                                         <motion.div
@@ -301,45 +304,127 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                     ))
                                 )
                             ) : activeTab === 'layout' ? (
-                                // Layout tab content
-                                <div className="space-y-3">
-                                    {LAYOUT_OPTIONS.map((layout) => (
-                                        <motion.button
-                                            key={layout.id}
-                                            onClick={() => setSettings(s => ({ ...s, layoutType: layout.id }))}
-                                            className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${settings.layoutType === layout.id
-                                                ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                                                }`}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                        <Layout className="w-6 h-6 text-slate-500" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                            {layout.name}
-                                                            {settings.layoutType === layout.id && (
-                                                                <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ background: 'var(--sage)' }}>
-                                                                    使用中
-                                                                </span>
-                                                            )}
-                                                        </h3>
-                                                        <p className="text-sm text-slate-500">{layout.description}</p>
-                                                    </div>
-                                                </div>
-                                                {settings.layoutType === layout.id && (
-                                                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--sage)' }}>
-                                                        <Check className="w-5 h-5 text-white" />
-                                                    </div>
-                                                )}
+                                <div className="space-y-6">
+                                    {/* Layout Options */}
+                                    {/* Layout Options */}
+                                    <div className="space-y-8">
+
+                                        {/* v1 Section */}
+                                        <div className="space-y-3">
+                                            <div className="text-xs font-bold text-[color:var(--sage)] mb-1 flex items-center gap-2">
+                                                <Layout className="w-4 h-4" />
+                                                標準 (Standard v1)
                                             </div>
-                                        </motion.button>
-                                    ))}
-                                    <p className="text-xs text-center text-slate-400 mt-4">
-                                        レイアウトはいつでも変更できます
+                                            {LAYOUT_OPTIONS.filter(l => l.version === 'legacy').map((layout) => (
+                                                <motion.button
+                                                    key={layout.id}
+                                                    onClick={() => setSettings(s => ({ ...s, layoutType: layout.id }))}
+                                                    className={`w-full p-4 rounded-2xl border transition-all text-left ${settings.layoutType === layout.id
+                                                        ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/10 shadow-[0_0_15px_rgba(124,170,142,0.15)]'
+                                                        : 'border-white/40 dark:border-white/5 bg-white/20 dark:bg-white/5 hover:border-white/60'
+                                                        }`}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${settings.layoutType === layout.id ? 'bg-[color:var(--sage)]/20' : 'bg-white/40 dark:bg-white/5'}`}>
+                                                                {layout.id.includes('bottom') ? <Layers className="w-5 h-5 text-slate-400" /> : <Smartphone className="w-5 h-5 text-slate-400" />}
+                                                            </div>
+                                                            <div>
+                                                                <h3 className={`font-bold text-sm transition-colors ${settings.layoutType === layout.id ? 'text-[color:var(--sage)]' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                                    {layout.name}
+                                                                </h3>
+                                                                <p className="text-xs text-slate-400 leading-relaxed mt-0.5">{layout.description}</p>
+                                                            </div>
+                                                        </div>
+                                                        {settings.layoutType === layout.id && (
+                                                            <motion.div
+                                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                className="w-6 h-6 rounded-full flex items-center justify-center border border-[color:var(--sage)] text-[color:var(--sage)]"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5" />
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+
+                                        {/* v2 Section */}
+                                        <div className="space-y-3">
+                                            <div className="text-xs font-bold text-[color:var(--peach)] mb-1 flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4" />
+                                                最適化 (Optimized v2)
+                                            </div>
+                                            {LAYOUT_OPTIONS.filter(l => l.version === 'v2').map((layout) => (
+                                                <motion.button
+                                                    key={layout.id}
+                                                    onClick={() => setSettings(s => ({ ...s, layoutType: layout.id }))}
+                                                    className={`w-full p-4 rounded-2xl border transition-all text-left ${settings.layoutType === layout.id
+                                                        ? 'border-[color:var(--peach)] bg-[color:var(--peach)]/10 shadow-[0_0_15px_rgba(232,180,160,0.15)]'
+                                                        : 'border-white/40 dark:border-white/5 bg-white/20 dark:bg-white/5 hover:border-white/60'
+                                                        }`}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${settings.layoutType === layout.id ? 'bg-[color:var(--peach)]/20' : 'bg-white/40 dark:bg-white/5'}`}>
+                                                                {layout.id.includes('bottom') ? <Layers className="w-5 h-5 text-slate-400" /> : <Smartphone className="w-5 h-5 text-slate-400" />}
+                                                            </div>
+                                                            <div>
+                                                                <h3 className={`font-bold text-sm transition-colors ${settings.layoutType === layout.id ? 'text-[color:var(--peach)]' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                                    {layout.name}
+                                                                </h3>
+                                                                <p className="text-xs text-slate-400 leading-relaxed mt-0.5">{layout.description}</p>
+                                                            </div>
+                                                        </div>
+                                                        {settings.layoutType === layout.id && (
+                                                            <motion.div
+                                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                className="w-6 h-6 rounded-full flex items-center justify-center border border-[color:var(--peach)] text-[color:var(--peach)]"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5" />
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Display Mode Section */}
+                                    <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="text-xs font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                            <Layers className="w-4 h-4" />
+                                            ホーム画面のスタイル
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { id: 'story', name: 'ストーリー', icon: <Smartphone className="w-4 h-4" /> },
+                                                { id: 'parallax', name: 'カード', icon: <Layers className="w-4 h-4" /> },
+                                                { id: 'icon', name: 'アイコン', icon: <Sun className="w-4 h-4" /> },
+                                            ].map((mode) => (
+                                                <button
+                                                    key={mode.id}
+                                                    onClick={() => setSettings(s => ({ ...s, homeViewMode: mode.id as any }))}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.homeViewMode === mode.id
+                                                        ? 'border-[color:var(--sage)] bg-[color:var(--sage)]/5 text-[color:var(--sage)]'
+                                                        : 'border-slate-100 dark:border-slate-800 text-slate-500 hover:border-slate-200'
+                                                        }`}
+                                                >
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${settings.homeViewMode === mode.id ? 'bg-[color:var(--sage)] text-white' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                                        {mode.icon}
+                                                    </div>
+                                                    <span className="text-[10px] font-bold">{mode.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <p className="text-[10px] text-center text-slate-400 mt-2">
+                                        レイアウトやスタイルはいつでも変更できます
                                     </p>
                                 </div>
                             ) : (
@@ -357,9 +442,10 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                             )}
                         </div>
                     </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                </motion.div >
+            )
+            }
+        </AnimatePresence >
     );
 }
 

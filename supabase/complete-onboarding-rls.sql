@@ -91,6 +91,8 @@ DROP POLICY IF EXISTS "Users can view household inventory" ON inventory;
 DROP POLICY IF EXISTS "Users can insert inventory" ON inventory;
 DROP POLICY IF EXISTS "inventory_select_household" ON inventory;
 DROP POLICY IF EXISTS "inventory_insert_household" ON inventory;
+DROP POLICY IF EXISTS "inventory_select" ON inventory;
+DROP POLICY IF EXISTS "inventory_insert" ON inventory;
 
 -- ユーザーは自分の世帯の在庫を参照できる
 CREATE POLICY "inventory_select" ON inventory

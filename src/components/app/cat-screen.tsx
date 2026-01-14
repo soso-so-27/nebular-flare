@@ -205,7 +205,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                             transition={{ delay: 0.25 }}
                             className="rounded-3xl bg-black/20 backdrop-blur-lg border border-white/10 p-4 shadow-lg flex flex-col items-center justify-center text-center gap-2"
                         >
-                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-300 mb-1">
+                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-[color:var(--sage)] mb-1">
                                 <Cpu className="w-5 h-5" />
                             </div>
                             <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Microchip</div>

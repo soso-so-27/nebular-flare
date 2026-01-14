@@ -573,7 +573,7 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
 
                                             {backgroundMode === 'random' && (
                                                 <div className="text-xs text-slate-400 px-1">
-                                                    ギャラリーの写真がランダムで背景になります
+                                                    アルバムの写真がランダムで背景になります
                                                 </div>
                                             )}
 

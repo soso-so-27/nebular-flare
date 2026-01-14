@@ -22,14 +22,23 @@ export type Cat = {
   background_media?: string | null;
 };
 
+export type PhotoTag = {
+  name: string;
+  isAi: boolean;
+  confirmed: boolean;
+};
+
 export type CatImage = {
   id: string;
   catId: string;
+  catIds?: string[]; // Multiple cats tagged in this photo
   storagePath: string;
   createdAt: string;
   isFavorite: boolean;
   width?: number;
   height?: number;
+  memo?: string;
+  tags?: PhotoTag[];
 };
 
 export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY';
@@ -181,7 +190,7 @@ export type AppEvent = {
   archived: boolean;
 };
 
-export type LayoutType = 'classic' | 'island' | 'bottom-nav';
+export type LayoutType = 'classic' | 'island' | 'bottom-nav' | 'v1-classic' | 'v1-island' | 'v1-bottom' | 'v2-classic' | 'v2-island' | 'v2-bottom';
 
 export type AppSettings = {
   plan: 'Free' | 'Pro';
@@ -200,4 +209,5 @@ export type AppSettings = {
   skinMode: 'default' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter';
   photoTagAssist: boolean;
   dayStartHour: number;
+  lastSeenPhotoAt: string;
 };

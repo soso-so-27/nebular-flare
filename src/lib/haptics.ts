@@ -45,3 +45,13 @@ export const haptics = {
         }
     }
 };
+
+export function triggerFeedback(type: 'light' | 'medium' | 'heavy' | 'success' | 'error') {
+    switch (type) {
+        case 'light': haptics.impactLight(); break;
+        case 'medium': haptics.impactMedium(); break;
+        case 'heavy': haptics.impactHeavy(); break;
+        case 'success': haptics.success(); break;
+        case 'error': haptics.error(); break;
+    }
+}

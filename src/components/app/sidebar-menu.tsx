@@ -178,7 +178,6 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
     const RootView = () => {
         const { inventory } = useAppState();
 
-        // Inventory Items Calculation (moved here for local use)
         const inventoryItems = useMemo(() => {
             if (!inventory) return [];
             return inventory
@@ -203,89 +202,79 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
         const urgentCount = inventoryItems.filter(it => it.status !== 'ok').length;
 
-        return (
-            <div className="space-y-6 pt-2">
+        // Reusable Menu Item Component for Minimal Premium
+        const MenuItem = ({ icon: Icon, title, subtext, onClick, urgent }: any) => (
+            <button
+                onClick={onClick}
+                className="w-full relative flex items-center gap-4 p-5 rounded-[28px] 
+                    bg-white/30 dark:bg-slate-900/30 backdrop-blur-2xl
+                    border border-white/60 dark:border-white/10
+                    shadow-[0_8px_32px_-4px_rgba(0,0,0,0.1),inset_0_1px_1px_0_rgba(255,255,255,0.4)]
+                    hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 group overflow-hidden"
+            >
+                {/* Specular highlights */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
-                {/* Main Menu Cards */}
-                {/* Main Menu Cards */}
-                <div className="grid grid-cols-2 gap-4 px-2">
-                    {/* Calendar (Lavender - Time + Activity History Integrated) */}
-                    <button
-                        onClick={() => { onNavigate('calendar'); onClose(); }}
-                        className="menu-card aspect-[1.5] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
-                            border border-white/80
-                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
-                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden col-span-2"
-                    >
-                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#9D8CC2]/60 z-20" />
-                        <div className="absolute inset-0 bg-[#B8A6D9]/10" />
-                        <div className="w-12 h-12 rounded-full bg-[#B8A6D9]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
-                            <Calendar className="w-6 h-6 text-[#9D8CC2]" />
-                        </div>
-                        <div className="flex flex-col items-center z-10">
-                            <span className="font-bold text-slate-600 text-sm tracking-tight text-shadow-sm">カレンダー</span>
-                            <span className="text-[10px] text-slate-400 font-medium">お世話の記録と予定</span>
-                        </div>
-                    </button>
-
-                    {/* Inventory (Sage - Health/Life) */}
-                    <button
-                        onClick={() => pushView('inventory')}
-                        className="menu-card aspect-[1.1] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
-                            border border-white/80
-                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
-                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
-                    >
-                        {urgentCount > 0 && (
-                            <span className="absolute top-3 right-3 w-3 h-3 rounded-full bg-[#EF5350] shadow-sm animate-pulse border-2 border-white z-20" />
-                        )}
-                        <div className="absolute inset-0 bg-[#7CAA8E]/10" />
-                        <div className="w-12 h-12 rounded-full bg-[#7CAA8E]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
-                            <ShoppingBag className="w-6 h-6 text-[#6B997D]" />
-                        </div>
-                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">在庫チェック</span>
-                    </button>
-
-                    {/* Gallery (Peach - Memories - External) */}
-                    <button
-                        onClick={() => { onNavigate('gallery'); onClose(); }}
-                        className="menu-card aspect-[1.1] relative flex flex-col items-center justify-center gap-3 rounded-[24px] 
-                            bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl
-                            border border-white/80
-                            shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_10px_30px_-4px_rgba(0,0,0,0.1)]
-                            hover:scale-[1.02] active:scale-95 transition-all duration-300 group overflow-hidden"
-                    >
-                        <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-[#D69E8A]/60 z-20" />
-                        <div className="absolute inset-0 bg-[#E8B4A0]/10" />
-                        <div className="w-12 h-12 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center relative z-10 shadow-sm ring-1 ring-white/50">
-                            <Grid className="w-6 h-6 text-[#D69E8A]" />
-                        </div>
-                        <span className="font-bold text-slate-600 text-sm tracking-tight relative z-10 text-shadow-sm">ギャラリー</span>
-                    </button>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative shrink-0 shadow-sm ring-1 ring-white/20 bg-slate-100 dark:bg-slate-800">
+                    <Icon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+                    {urgent && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white animate-pulse shadow-sm" />
+                    )}
                 </div>
 
-                {/* Footer Links */}
-                <div className="border-t border-slate-200/50 pt-4 px-4 flex justify-around">
+                <div className="flex flex-col items-start text-left">
+                    <span className="font-bold text-slate-800 dark:text-white text-[15px] tracking-tight">{title}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{subtext}</span>
+                </div>
+
+                <ChevronRight className="ml-auto w-5 h-5 text-slate-300 group-hover:text-slate-500 transition-colors" />
+            </button>
+        );
+
+        return (
+            <div className="space-y-4 pt-2">
+                <MenuItem
+                    icon={Grid}
+                    title="アルバム"
+                    subtext="大切な思い出の写真を振り返る"
+                    onClick={() => { onNavigate('gallery'); onClose(); }}
+                />
+
+                <MenuItem
+                    icon={Calendar}
+                    title="カレンダー"
+                    subtext="お世話の記録と今後の予定を確認"
+                    onClick={() => { onNavigate('calendar'); onClose(); }}
+                />
+
+                <MenuItem
+                    icon={ShoppingBag}
+                    title="在庫チェック"
+                    subtext="フードや消耗品のストック管理"
+                    urgent={urgentCount > 0}
+                    onClick={() => pushView('inventory')}
+                />
+
+                {/* Footer Quick Links */}
+                <div className="pt-6 grid grid-cols-2 gap-4">
                     <button
                         onClick={() => pushView('notifications')}
-                        className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-700 transition-colors group"
+                        className="flex items-center gap-3 p-4 rounded-3xl bg-white/20 dark:bg-white/5 border border-white/20 hover:bg-white/30 transition-all group"
                     >
-                        <div className="p-3 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
-                            <Bell className="w-5 h-5" />
+                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
+                            <Bell className="w-4 h-4 text-slate-500" />
                         </div>
-                        <span className="text-xs font-bold">通知</span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">通知</span>
                     </button>
 
                     <button
                         onClick={() => pushView('settings')}
-                        className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-700 transition-colors group"
+                        className="flex items-center gap-3 p-4 rounded-3xl bg-white/20 dark:bg-white/5 border border-white/20 hover:bg-white/30 transition-all group"
                     >
-                        <div className="p-3 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
-                            <Settings className="w-5 h-5" />
+                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
+                            <Settings className="w-4 h-4 text-slate-500" />
                         </div>
-                        <span className="text-xs font-bold">設定</span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">設定</span>
                     </button>
                 </div>
             </div>
@@ -450,10 +439,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-slate-700">AIアシスト</span>
-                            <span className="text-[10px] text-slate-500">要約やタグ提案を有効にする</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 whitespace-nowrap">
+                                準備中
+                            </span>
                         </div>
+                        <span className="text-[10px] text-slate-500">要約やタグ提案を有効にする</span>
                         <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
                     </div>
 
@@ -473,21 +465,6 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         </select>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700">表示モード</span>
-                            <span className="text-[10px] text-slate-500">ホーム画面のスタイル</span>
-                        </div>
-                        <select
-                            value={settings.homeViewMode}
-                            onChange={(e) => setSettings(s => ({ ...s, homeViewMode: e.target.value as any }))}
-                            className="text-xs border rounded p-1 bg-white/50"
-                        >
-                            <option value="story">ストーリー</option>
-                            <option value="parallax">カード</option>
-                            <option value="icon">アイコン</option>
-                        </select>
-                    </div>
                 </div>
 
                 {/* Data Management Links */}

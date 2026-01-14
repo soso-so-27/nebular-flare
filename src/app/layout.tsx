@@ -14,10 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 import { PwaRegister } from "@/components/pwa-register";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "NyaruHD (にゃるほど) - 猫のいる暮らしに、余裕と楽しさを",
-  description: "猫のいる暮らしに、余裕と楽しさを。家族みんなで猫のお世話を記録・共有。",
+  title: "にゃるほど - ねこのいる暮らしを、ためて、とどけて、ふりかえる",
+  description: "ねこの足あとアプリ「にゃるほど」。ねこのいる暮らしを、ためて、とどけて、ふりかえる。",
   manifest: "/manifest.json?v=4",
   appleWebApp: {
     capable: true,
@@ -71,6 +72,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <Toaster />
         </AuthProvider>
         {/* Hidden audio element for iOS audio unlock workaround */}
         <audio id="silent-audio-unlock" preload="auto" src="data:audio/wav;base64,UklGRigIAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQIAAA=" />

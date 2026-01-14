@@ -16,9 +16,7 @@ interface LayoutBottomNavProps {
 }
 
 /**
- * ボトムナビゲーション型レイアウト
- * - 上部: なし（猫写真を最大化）
- * - 下部: フルワイドナビゲーションバー
+ * ボトムナビゲーション型レイアウチE * - 上部: なし（猫写真を最大化！E * - 下部: フルワイドナビゲーションバ�E
  */
 export function LayoutBottomNav({
     progress,
@@ -98,7 +96,7 @@ export function LayoutBottomNav({
                             className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl"
                         >
                             <Calendar className="w-6 h-6 text-slate-500" />
-                            <span className="text-[10px] text-slate-500">予定</span>
+                            <span className="text-[10px] text-slate-500">予宁E/span>
                         </motion.button>
 
                         {/* Footprints / Exchange */}
@@ -113,7 +111,7 @@ export function LayoutBottomNav({
                                     {stats.householdTotal}
                                 </div>
                             </div>
-                            <span className="text-[10px] text-slate-500">交換</span>
+                            <span className="text-[10px] text-slate-500">交揁E/span>
                         </motion.button>
                     </div>
                 </div>

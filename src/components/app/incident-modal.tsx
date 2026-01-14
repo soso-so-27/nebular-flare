@@ -90,7 +90,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
             // Award footprint for incident (2pts)
             awardForIncident(catId);
-            toast.success("気付きを記録しました");
+            toast.success("相談を家族へとどけました");
             onClose();
             // Reset form
             setNote('');
@@ -128,7 +128,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col"
                     >
                         <div className="px-6 pt-6 pb-2 border-b border-white/10">
-                            <h2 className="text-xl font-bold text-slate-800">気付きを記録</h2>
+                            <h2 className="text-xl font-bold text-slate-800">家族に相談</h2>
                             <div className="text-slate-500 text-xs">
                                 気になる体調や様子を記録します
                             </div>
@@ -137,7 +137,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto">
                             {/* Cat Selection - Horizontal Scroll with Bounce */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-slate-600 text-xs font-bold pl-1">モデルは誰？</Label>
+                                <Label className="text-slate-600 text-xs font-bold pl-1">だれのようす？</Label>
                                 <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
                                     {cats.map(cat => (
                                         <button

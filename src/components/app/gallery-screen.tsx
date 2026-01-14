@@ -11,6 +11,7 @@ import { CatGalleryModal } from "./cat-gallery-modal";
 import { CatProfileDetail } from "./cat-profile-detail";
 import { CatSettingsModal } from "./cat-settings-modal";
 import { PhotoSortModal } from "./photo-sort-modal";
+import { PhotoDetailView } from "./immersive/photo-detail-view";
 
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,13 +21,15 @@ interface GalleryImage {
     id: string;
     storagePath: string; // or the full URL if isUrl is true, logic handles it.
     catId: string;
+    catIds: string[];
     catName: string;
     createdAt: string;
     source: 'profile' | 'care' | 'observation';
+    url: string;
     isUrl?: boolean;
-    url?: string;
-    type?: string;
     is_favorite?: boolean;
+    memo?: string;
+    tags?: any[];
 }
 
 // Unified Header Component
@@ -56,6 +59,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
 
     // UI State
     const [filterCatId, setFilterCatId] = useState<string | null>(initialCatId || null);
+    const [filterTag, setFilterTag] = useState<string | null>(null);
     const [activeSource, setActiveSource] = useState<'all' | 'profile' | 'care' | 'observation'>('all');
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
@@ -66,11 +70,13 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [availableTags, setAvailableTags] = useState<string[]>(['寝顔', 'ごはん', 'おもちゃ', '日向ぼっこ', 'リラックス']);
 
     // Modal states
     const [isSortModalOpen, setIsSortModalOpen] = useState(false);
     const [photosToSort, setPhotosToSort] = useState<Array<{ id: string; url: string }>>([]);
     const [profileCatId, setProfileCatId] = useState<string | null>(null);
+    const [selectedDetailImage, setSelectedDetailImage] = useState<GalleryImage | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -93,6 +99,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
         const { data, error } = await (supabase.rpc as any)('get_unified_gallery', {
             target_household_id: householdId,
             filter_cat_id: filterCatId || undefined,
+            filter_tag: filterTag || undefined,
             limit_count: limit,
             offset_count: currentOffset
         });
@@ -103,18 +110,44 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
             return;
         }
 
-        const newImages = (data as any[] || []).map(img => ({
-            id: img.id,
-            catId: img.cat_id,
-            catName: img.cat_name,
-            storagePath: img.url,
-            url: img.url,
-            source: img.source,
-            type: img.type,
-            createdAt: img.created_at,
-            isUrl: img.is_url,
-            is_favorite: img.is_favorite
-        }));
+        const newImages = (data as any[] || []).map(img => {
+            const path = img.url;
+            let finalUrl = img.url;
+
+            if (!img.is_url) {
+                // Heuristic: cat-images bucket uses 'cat-photos/' prefix. 
+                // Legacy images in 'avatars' bucket use '{catId}/' structure.
+                const bucket = path.startsWith('cat-photos/') ? 'cat-images' : 'avatars';
+
+                const { data: urlData } = supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(path, {
+                        transform: {
+                            width: 300,
+                            height: 300,
+                            resize: 'cover',
+                            quality: 80
+                        }
+                    });
+                finalUrl = urlData.publicUrl;
+            }
+
+            return {
+                id: img.id,
+                catId: img.cat_id,
+                catIds: img.cat_ids || (img.cat_id ? [img.cat_id] : []),
+                catName: img.cat_name,
+                storagePath: img.url,
+                url: finalUrl,
+                source: img.source,
+                type: img.type,
+                createdAt: img.created_at,
+                isUrl: img.is_url,
+                is_favorite: img.is_favorite,
+                memo: img.memo,
+                tags: img.tags
+            };
+        });
 
         if (isInitial) {
             setImages(newImages);
@@ -126,12 +159,28 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
 
         setHasMore(newImages.length === limit);
         setLoading(false);
+
+        // Extract and update available tags
+        if (newImages.length > 0) {
+            const tagSet = new Set(availableTags);
+            newImages.forEach(img => {
+                if (img.tags && Array.isArray(img.tags)) {
+                    img.tags.forEach((t: any) => {
+                        if (t.name) tagSet.add(t.name);
+                    });
+                }
+            });
+            const sortedTags = Array.from(tagSet);
+            if (sortedTags.length !== availableTags.length) {
+                setAvailableTags(sortedTags);
+            }
+        }
     };
 
     // Reset and reload when filters change
     useEffect(() => {
         loadImages(true);
-    }, [filterCatId, householdId]);
+    }, [filterCatId, filterTag, activeSource, householdId]);
 
     // Handle scroll for infinite loading
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -142,9 +191,23 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
     };
 
     const displayImages = useMemo(() => {
-        if (activeSource === 'all') return images;
-        return images.filter(img => img.source === activeSource);
+        let filtered = images;
+        if (activeSource !== 'all') {
+            filtered = images.filter(img => img.source === activeSource);
+        }
+        return filtered;
     }, [images, activeSource]);
+
+    const groupedImages = useMemo(() => {
+        const groups: Record<string, GalleryImage[]> = {};
+        displayImages.forEach(img => {
+            const date = new Date(img.createdAt);
+            const monthKey = `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
+            if (!groups[monthKey]) groups[monthKey] = [];
+            groups[monthKey].push(img);
+        });
+        return groups;
+    }, [displayImages]);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -226,7 +289,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                             <button onClick={onClose} className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
                                 <X className="h-5 w-5" />
                             </button>
-                            <h2 className="text-[17px] font-bold">ギャラリー</h2>
+                            <h2 className="text-[17px] font-bold">アルバム</h2>
                             <button onClick={() => setIsSelectMode(true)} className="text-[15px] font-medium text-[#E8B4A0]">
                                 選択
                             </button>
@@ -271,28 +334,67 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                     ))}
                 </div>
 
-                {/* Source Tabs */}
-                <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide">
-                    {[
-                        { id: 'all', label: 'すべて', icon: ImageIcon },
-                        { id: 'profile', label: 'フォト', icon: Camera },
-                        { id: 'care', label: 'お世話', icon: Utensils },
-                        { id: 'observation', label: '気づき', icon: MessageCircle },
-                    ].map((tab) => (
+                {/* Source & Tag Filters */}
+                <div className="px-4 py-2 flex flex-col gap-2 border-b border-slate-100 dark:border-slate-800">
+                    {/* Source Filters */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
                         <button
-                            key={tab.id}
-                            onClick={() => setActiveSource(tab.id as any)}
+                            onClick={() => setActiveSource('all')}
                             className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all",
-                                activeSource === tab.id
-                                    ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-sm"
-                                    : "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                                "px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap",
+                                activeSource === 'all' ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-sm" : "bg-slate-100 text-slate-500 dark:bg-slate-800"
                             )}
                         >
-                            <tab.icon className="w-3.5 h-3.5" />
-                            {tab.label}
+                            すべて
                         </button>
-                    ))}
+                        <button
+                            onClick={() => setActiveSource('profile')}
+                            className={cn(
+                                "px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap",
+                                activeSource === 'profile' ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-sm" : "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                            )}
+                        >
+                            写真
+                        </button>
+                        <button
+                            onClick={() => setActiveSource('care')}
+                            className={cn(
+                                "px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5",
+                                activeSource === 'care' ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-sm" : "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                            )}
+                        >
+                            <Utensils className="w-3 h-3" />
+                            お世話
+                        </button>
+                        <button
+                            onClick={() => setActiveSource('observation')}
+                            className={cn(
+                                "px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5",
+                                activeSource === 'observation' ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-sm" : "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                            )}
+                        >
+                            <MessageCircle className="w-3 h-3" />
+                            記録
+                        </button>
+                    </div>
+
+                    {/* Tag Filters */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 px-1 no-scrollbar">
+                        {['すべて', ...availableTags].map(tag => (
+                            <button
+                                key={tag}
+                                onClick={() => setFilterTag(tag === 'すべて' ? null : tag)}
+                                className={cn(
+                                    "px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border shadow-sm",
+                                    (tag === 'すべて' ? !filterTag : filterTag === tag)
+                                        ? "bg-[#E8B4A0] text-white border-[#E8B4A0]"
+                                        : "bg-white text-slate-500 border-slate-200 hover:border-[#E8B4A0]/30 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                                )}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -315,51 +417,61 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-0.5">
-                        {displayImages.map((img, idx) => (
-                            <div
-                                key={`${img.id}_${idx}`}
-                                className="relative aspect-square bg-slate-200 dark:bg-slate-800 cursor-pointer overflow-hidden animate-in fade-in duration-500"
-                                onClick={() => isSelectMode && toggleSelection(img.id)}
-                            >
-                                <img
-                                    src={img.isUrl ? img.url : getPublicUrl(img.storagePath)}
-                                    alt=""
-                                    loading="lazy"
-                                    className={cn(
-                                        "w-full h-full object-cover transition-transform duration-500",
-                                        isSelectMode && selectedImageIds.has(img.id) ? "scale-90 opacity-60" : "scale-100 group-hover:scale-105"
-                                    )}
-                                />
+                    <div className="space-y-6 pb-20">
+                        {Object.entries(groupedImages).map(([month, monthImages]) => (
+                            <div key={month} className="space-y-2">
+                                <div className="px-4 sticky top-0 z-10 py-2 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md">
+                                    <h3 className="text-sm font-bold text-slate-500">{month}</h3>
+                                </div>
+                                <div className="grid grid-cols-3 gap-0.5">
+                                    {monthImages.map((img, idx) => (
+                                        <div
+                                            key={`${img.id}_${idx}`}
+                                            className="relative aspect-square bg-slate-200 dark:bg-slate-800 cursor-pointer overflow-hidden animate-in fade-in duration-500"
+                                            onClick={() => isSelectMode ? toggleSelection(img.id) : setSelectedDetailImage(img)}
+                                        >
+                                            <img
+                                                src={img.url}
+                                                alt=""
+                                                loading="lazy"
+                                                decoding="async"
+                                                className={cn(
+                                                    "w-full h-full object-cover transition-transform duration-500",
+                                                    isSelectMode && selectedImageIds.has(img.id) ? "scale-90 opacity-60" : "scale-100 group-hover:scale-105"
+                                                )}
+                                            />
 
-                                {/* Source & Info Badges */}
-                                {!isSelectMode && (
-                                    <>
-                                        <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/40 backdrop-blur-sm rounded-full text-[9px] text-white font-bold max-w-[80%] truncate shadow-sm">
-                                            {img.catName}
-                                        </div>
-                                        <div className="absolute bottom-1 right-1">
-                                            {img.source === 'care' && (
-                                                <div className="bg-emerald-500/90 p-1 rounded-full text-white shadow-sm"><Utensils className="w-2.5 h-2.5" /></div>
+                                            {/* Source & Info Badges */}
+                                            {!isSelectMode && (
+                                                <>
+                                                    <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/40 backdrop-blur-sm rounded-full text-[9px] text-white font-bold max-w-[80%] truncate shadow-sm">
+                                                        {img.catIds && img.catIds.length > 1 ? `${img.catName} +${img.catIds.length - 1}` : img.catName}
+                                                    </div>
+                                                    <div className="absolute bottom-1 right-1">
+                                                        {img.source === 'care' && (
+                                                            <div className="bg-[color:var(--sage)]/90 p-1 rounded-full text-white shadow-sm"><Utensils className="w-2.5 h-2.5" /></div>
+                                                        )}
+                                                        {img.source === 'observation' && (
+                                                            <div className="bg-sky-500/90 p-1 rounded-full text-white shadow-sm"><MessageCircle className="w-2.5 h-2.5" /></div>
+                                                        )}
+                                                        {img.source === 'profile' && (
+                                                            <div className="bg-[#E8B4A0]/90 p-1 rounded-full text-white shadow-sm"><Camera className="w-2.5 h-2.5" /></div>
+                                                        )}
+                                                    </div>
+                                                </>
                                             )}
-                                            {img.source === 'observation' && (
-                                                <div className="bg-sky-500/90 p-1 rounded-full text-white shadow-sm"><MessageCircle className="w-2.5 h-2.5" /></div>
-                                            )}
-                                            {img.source === 'profile' && (
-                                                <div className="bg-[#E8B4A0]/90 p-1 rounded-full text-white shadow-sm"><Camera className="w-2.5 h-2.5" /></div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
 
-                                {isSelectMode && (
-                                    <div className={cn(
-                                        "absolute top-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shadow-lg",
-                                        selectedImageIds.has(img.id) ? "bg-[#E8B4A0] border-[#E8B4A0] text-white" : "bg-black/20 border-white/50"
-                                    )}>
-                                        {selectedImageIds.has(img.id) && <CheckCircle2 className="w-4 h-4" />}
-                                    </div>
-                                )}
+                                            {isSelectMode && (
+                                                <div className={cn(
+                                                    "absolute top-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shadow-lg",
+                                                    selectedImageIds.has(img.id) ? "bg-[#E8B4A0] border-[#E8B4A0] text-white" : "bg-black/20 border-white/50"
+                                                )}>
+                                                    {selectedImageIds.has(img.id) && <CheckCircle2 className="w-4 h-4" />}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -394,6 +506,39 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                 onAssign={async (pid, cid) => {
                     await updateCatImage(pid, { cat_id: cid });
                     loadImages(true);
+                }}
+            />
+
+            <PhotoDetailView
+                isOpen={!!selectedDetailImage}
+                onClose={() => setSelectedDetailImage(null)}
+                image={selectedDetailImage}
+                onDelete={async (id) => {
+                    const confirm = window.confirm("この写真をアルバムから削除しますか？\n(お世話記録などの写真は本体は残ります)");
+                    if (!confirm) return;
+
+                    const { error } = await deleteCatImage(id, selectedDetailImage?.storagePath || '');
+                    if (error) {
+                        toast.error("削除に失敗しました");
+                    } else {
+                        toast.success("削除しました");
+                        setSelectedDetailImage(null);
+                        setImages(prev => prev.filter(img => img.id !== id));
+                    }
+                }}
+                onUpdateTags={async (id, tags) => {
+                    const { error } = await updateCatImage(id as any, { tags });
+                    if (error) {
+                        toast.error("タグの更新に失敗しました");
+                    } else {
+                        setImages(prev => prev.map(img =>
+                            img.id === id ? { ...img, tags } : img
+                        ));
+                        // Update the local state for the opened modal if necessary
+                        if (selectedDetailImage?.id === id) {
+                            setSelectedDetailImage({ ...selectedDetailImage, tags });
+                        }
+                    }
                 }}
             />
         </div>

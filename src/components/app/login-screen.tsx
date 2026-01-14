@@ -42,7 +42,7 @@ export function LoginScreen() {
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">にゃるほど</h1>
-                    <p className="text-xs text-slate-500">猫のいる暮らしに、余裕と楽しさを</p>
+                    <p className="text-xs text-slate-500">ねこのいる暮らしを、ためて、とどけて、ふりかえる</p>
                 </div>
             </div>
 

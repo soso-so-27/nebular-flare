@@ -235,7 +235,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-emerald-600 to-teal-700 overflow-hidden overscroll-none"
+                        className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-[#7CAA8E] to-[#5A8A6A] overflow-hidden overscroll-none"
                         style={{ touchAction: 'none' }}
                     >
                         {/* Header: Back + count + Undo */}
@@ -330,7 +330,7 @@ export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClo
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-700"
+                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-[#7CAA8E] to-[#5A8A6A]"
                 >
                     <motion.div
                         initial={{ scale: 0 }}

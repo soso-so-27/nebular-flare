@@ -9,7 +9,6 @@ import { useAuth } from "@/providers/auth-provider";
 import { useUserProfile } from "@/hooks/use-supabase-data";
 import { TopBar } from "@/components/app/top-bar";
 import { HomeScreen } from "@/components/app/home-screen";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal, X } from "lucide-react";
 import { Loader2 } from "lucide-react";
@@ -343,7 +342,6 @@ function AuthenticatedAppWithProfile({ user }: { user: any }) {
     >
       <AppProvider householdId={profile?.householdId ?? null} isDemo={false}>
         <AppContent />
-        <Toaster />
       </AppProvider>
     </FootprintProvider>
   );
@@ -379,7 +377,6 @@ function AuthenticatedApp() {
       <FootprintProvider isDemo={true}>
         <AppProvider householdId={null} isDemo={true}>
           <AppContent />
-          <Toaster />
         </AppProvider>
       </FootprintProvider>
     );

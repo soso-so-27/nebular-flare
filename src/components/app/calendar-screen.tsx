@@ -135,10 +135,6 @@ export function CalendarScreen() {
                     <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-full">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1 border-[#7CAA8E]/30 text-[#6B9B7A] ml-2">
-                        <Plus className="h-3 w-3" />
-                        予定を追加
-                    </Button>
                 </div>
             </div>
 

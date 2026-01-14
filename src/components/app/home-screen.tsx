@@ -720,7 +720,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                         {obs.done && (
                                                                             <span className={cn(
                                                                                 "text-xs font-bold px-2 py-0.5 rounded-full",
-                                                                                obs.isAbnormal ? "bg-[#B8A6D9]/20 text-[#8B7AAF] dark:bg-[#B8A6D9]/20 dark:text-[#B8A6D9]" : "bg-[#E5F0EA] text-[#5A8C6E] dark:bg-[#2D4637] dark:text-emerald-200"
+                                                                                obs.isAbnormal ? "bg-[#B8A6D9]/20 text-[#8B7AAF] dark:bg-[#B8A6D9]/20 dark:text-[#B8A6D9]" : "bg-[#E5F0EA] text-[#5A8C6E] dark:bg-[#2D4637] dark:text-[color:var(--sage)]"
                                                                             )}>{obs.value}</span>
                                                                         )}
                                                                     </div>
@@ -775,7 +775,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                             <div className="flex gap-2">
                                                                                 <button
                                                                                     onClick={() => handleObservation(obs.id, obs.type, obs.label, 'いつも通り')}
-                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-[#F2F7F4] text-[#5A8C6E] hover:bg-[#E5F0EA] border border-[#E5F0EA] transition-colors dark:bg-[#2D4637]/20 dark:border-emerald-900/50"
+                                                                                    className="text-xs font-bold px-4 py-2 rounded-full bg-[#F2F7F4] text-[#5A8C6E] hover:bg-[#E5F0EA] border border-[#E5F0EA] transition-colors dark:bg-[#2D4637]/20 dark:border-[color:var(--sage)]/30"
                                                                                 >OK</button>
                                                                                 <button
                                                                                     onClick={() => handleObservation(obs.id, obs.type, obs.label, 'ちょっと違う')}

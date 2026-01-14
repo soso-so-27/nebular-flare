@@ -10,24 +10,30 @@ import {
     Menu,
     Cat,
     Calendar,
-    Settings
+    Settings,
+    Heart,
+    X
 } from "lucide-react";
 import { CheckSection } from "./check-section";
 import { ActivityFeed } from "./activity-feed";
-import { MagicBubble } from "./immersive/magic-bubble";
 import { ZenGestures } from "./immersive/zen-gestures";
 import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
 import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
-import { FootprintBadge } from "./footprint-badge";
 import { ThemeExchangeModal } from "./theme-exchange-modal";
+import { MagicBubble } from "./immersive/magic-bubble";
 import { LayoutIsland } from "./immersive/layout-island";
 import { LayoutBottomNav } from "./immersive/layout-bottom-nav";
+import { MagicBubbleNeo } from "./immersive/magic-bubble-neo";
+import { LayoutIslandNeo } from "./immersive/layout-island-neo";
+import { LayoutBottomNavNeo } from "./immersive/layout-bottom-nav-neo";
+import { useCareData } from "./immersive/unified-care-list";
 import { PhotoModal } from "./photo-modal";
 import { IncidentModal } from "./incident-modal";
 import { IncidentDetailModal } from "./incident-detail-modal";
+import { ActionPlusMenu } from "./immersive/action-plus-menu";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -89,11 +95,13 @@ const BackgroundVideo = ({ src, poster, className, onClick, onLoadedData }: { sr
 
 export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings, incidents } = useAppState();
-    const [showPickup, setShowPickup] = useState(false);
     const [showThemeExchange, setShowThemeExchange] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+    const [showActionMenu, setShowActionMenu] = useState(false);
+    const [showPickup, setShowPickup] = useState(false);
+    const { progress } = useCareData();
     const [direction, setDirection] = useState(0);
 
     const activeIncidents = React.useMemo(() => {
@@ -240,11 +248,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         setUiVisible(true);
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         hideTimerRef.current = setTimeout(() => {
-            if (!showPickup) {
-                setUiVisible(false);
-            }
+            setUiVisible(false);
         }, 3000);
-    }, [showPickup]);
+    }, []);
 
     // Preload images
     useEffect(() => {
@@ -349,20 +355,20 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         })
     };
 
+    const handleCatInteraction = useCallback((e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        onCatClick?.();
+    }, [onCatClick]);
+
     const handleOpenSidebar = (section?: 'care' | 'activity') => {
-        setShowPickup(false);
         if (onOpenSidebar) onOpenSidebar(section);
     };
 
-    const handleCatInteraction = useCallback((e?: React.MouseEvent) => {
+    const handleTogglePickup = (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        if (showPickup) setShowPickup(false);
-        onCatClick?.();
-    }, [showPickup, onCatClick]);
-
-    const handleTogglePickup = () => {
-        setShowPickup(prev => !prev);
+        setShowPickup(!showPickup);
     };
+
 
     // Magic Dust Particles State
     const [particles, setParticles] = useState<Array<{
@@ -400,7 +406,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             style={{ backgroundColor: 'transparent' }}
             onClick={() => {
                 resetHideTimer();
-                if (showPickup) setShowPickup(false);
             }}
         >
             {/* Mode: Story / Icon (Not Parallax Cards) */}
@@ -657,8 +662,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             {
                 settings.homeViewMode === 'story' && (
                     <>
-                        <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex - 1); resetHideTimer(); }} />
-                        <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); if (showPickup) setShowPickup(false); goToCat(currentIndex + 1); resetHideTimer(); }} />
+                        <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex - 1); resetHideTimer(); }} />
+                        <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex + 1); resetHideTimer(); }} />
                     </>
                 )
             }
@@ -666,55 +671,89 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
 
             {/* Layout Layer - Based on layoutType setting */}
-            {settings.layoutType === 'classic' && (
-                <>
-                    {/* Classic: MagicBubble + FootprintBadge */}
-                    <MagicBubble
-                        onOpenPickup={handleTogglePickup}
-                        onOpenCalendar={() => onOpenCalendar?.()}
-                        onOpenGallery={() => onNavigate?.('gallery')}
-                        onOpenCare={() => handleOpenSidebar('care')}
-                        onOpenActivity={() => handleOpenSidebar('activity')}
-                        contrastMode={contrastMode}
-                        placement={settings.homeViewMode === 'story' ? 'fixed-bottom-right' : 'bottom-center'}
-                    />
+            <div className="fixed inset-0 pointer-events-none z-40">
 
-                    {/* Footprint Badge - Top Right */}
-                    <motion.div
-                        className="absolute top-[2.5rem] right-6 z-40 pointer-events-auto"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <FootprintBadge onClick={() => setShowThemeExchange(true)} />
-                    </motion.div>
-                </>
-            )}
+                {/* 2. Responsive Layout Components */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {/* --- NEO LAYOUTS (Standard/Optimized) --- */}
 
-            {settings.layoutType === 'island' && (
-                <LayoutIsland
-                    progress={0.43}
-                    onOpenPickup={handleTogglePickup}
-                    onOpenGallery={() => onNavigate?.('gallery')}
-                    onOpenPhoto={() => setShowPhotoModal(true)}
-                    onOpenMenu={() => handleOpenSidebar('care')}
-                    onOpenExchange={() => setShowThemeExchange(true)}
-                    onOpenIncident={() => setShowIncidentModal(true)}
-                    onOpenIncidentDetail={(id) => setSelectedIncidentId(id)}
-                />
-            )}
+                    {/* --- LEGACY LAYOUTS --- */}
+                    {settings.layoutType === 'classic' && (
+                        <MagicBubble
+                            onOpenPickup={() => setShowPickup(true)}
+                            onOpenCalendar={() => onOpenCalendar?.()}
+                            onOpenGallery={() => onNavigate?.('gallery')}
+                            onOpenCare={() => handleOpenSidebar('care')}
+                            onOpenActivity={() => handleOpenSidebar('activity')}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                            contrastMode={contrastMode}
+                        />
+                    )}
 
-            {settings.layoutType === 'bottom-nav' && (
-                <LayoutBottomNav
-                    progress={0.43}
-                    onOpenPickup={handleTogglePickup}
-                    onOpenPhoto={() => setShowPhotoModal(true)}
-                    onOpenMenu={() => handleOpenSidebar('care')}
-                    onOpenExchange={() => setShowThemeExchange(true)}
-                    onOpenIncident={() => setShowIncidentModal(true)}
-                    onOpenIncidentDetail={(id) => setSelectedIncidentId(id)}
-                />
-            )}
+                    {settings.layoutType === 'island' && (
+                        <LayoutIsland
+                            progress={progress}
+                            onOpenPickup={() => setShowPickup(true)}
+                            onOpenGallery={() => onNavigate?.('gallery')}
+                            onOpenMenu={() => handleOpenSidebar('care')}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                        />
+                    )}
+
+                    {settings.layoutType === 'bottom-nav' && (
+                        <LayoutBottomNav
+                            progress={progress}
+                            onOpenPickup={() => setShowPickup(true)}
+                            onOpenGallery={() => onNavigate?.('gallery')}
+                            onOpenMenu={() => handleOpenSidebar('care')}
+                            onOpenCalendar={() => onOpenCalendar?.()}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                        />
+                    )}
+
+                    {/* --- NEO LAYOUTS (Optimized v2) --- */}
+                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('classic') && (
+                        <MagicBubbleNeo
+                            onOpenPickup={() => { }}
+                            onOpenCalendar={() => onOpenCalendar?.()}
+                            onOpenGallery={() => onNavigate?.('gallery')}
+                            onOpenCare={() => handleOpenSidebar('care')}
+                            onOpenActivity={() => handleOpenSidebar('activity')}
+                            onOpenPhoto={() => setShowPhotoModal(true)}
+                            onOpenIncident={() => setShowIncidentModal(true)}
+                            onOpenMenu={() => handleOpenSidebar('care')}
+                            onOpenActionMenu={() => setShowActionMenu(true)}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                            contrastMode={contrastMode}
+                        />
+                    )}
+
+                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('island') && (
+                        <LayoutIslandNeo
+                            onOpenPickup={() => { }}
+                            onOpenGallery={() => onNavigate?.('gallery')}
+                            onOpenPhoto={() => setShowPhotoModal(true)}
+                            onOpenMenu={() => handleOpenSidebar('care')}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                            onOpenIncident={() => setShowIncidentModal(true)}
+                            onOpenIncidentDetail={setSelectedIncidentId}
+                            onOpenActionMenu={() => setShowActionMenu(true)}
+                        />
+                    )}
+
+                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('bottom') && (
+                        <LayoutBottomNavNeo
+                            onOpenPickup={() => { }}
+                            onOpenPhoto={() => setShowPhotoModal(true)}
+                            onOpenMenu={() => handleOpenSidebar('care')}
+                            onOpenExchange={() => setShowThemeExchange(true)}
+                            onOpenIncident={() => setShowIncidentModal(true)}
+                            onOpenIncidentDetail={setSelectedIncidentId}
+                            onOpenActionMenu={() => setShowActionMenu(true)}
+                        />
+                    )}
+                </div>
+            </div>
 
             {/* Note: Story mode cat switching is handled by swipe gestures */}
 
@@ -744,12 +783,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 )
             }
 
-            {/* Pickup Modal - Self-contained AnimatePresence */}
-            <BubblePickupList
-                isOpen={showPickup}
-                onClose={() => setShowPickup(false)}
-                variant={settings.layoutType === 'island' ? 'top' : 'bottom'}
-            />
 
             {/* Theme Exchange Modal */}
             <ThemeExchangeModal
@@ -778,6 +811,21 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     incidentId={selectedIncidentId}
                 />
             )}
+
+            {/* Action Plus Menu */}
+            <ActionPlusMenu
+                isOpen={showActionMenu}
+                onClose={() => setShowActionMenu(false)}
+                onOpenPhoto={() => setShowPhotoModal(true)}
+                onOpenIncident={() => setShowIncidentModal(true)}
+                variant={settings.layoutType.includes('bottom') ? 'sheet' : 'dock'}
+            />
+
+            {/* --- Pickups Overlay (Legacy Mode) --- */}
+            <BubblePickupList
+                isOpen={showPickup}
+                onClose={() => setShowPickup(false)}
+            />
 
         </div >
     );

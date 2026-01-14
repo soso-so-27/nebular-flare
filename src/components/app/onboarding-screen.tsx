@@ -134,7 +134,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900">ようこそ！</h1>
                     <p className="text-slate-600">
-                        にゃるほどで家族みんなで<br />猫のお世話を記録・共有しましょう
+                        にゃるほどで、ねこのいる暮らしを<br />
+                        ためて、とどけて、ふりかえりましょう
                     </p>
                     <Button
                         onClick={() => setStep('household')}

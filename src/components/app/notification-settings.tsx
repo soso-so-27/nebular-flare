@@ -131,7 +131,7 @@ export function NotificationSettings() {
                                         <MessageCircle className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <span className={`text-sm font-bold ${colors.text}`}>様子を共有</span>
+                                        <span className={`text-sm font-bold ${colors.text}`}>とどける</span>
                                         <p className={`text-xs ${colors.subText}`}>家族が投稿した新しい写真や様子</p>
                                     </div>
                                 </div>

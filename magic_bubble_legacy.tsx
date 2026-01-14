@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useAppState } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Calendar, Cat, X, Plus, Heart, Menu, Check, MessageSquarePlus, Save, MessageCircle, Camera, AlertCircle, Image } from "lucide-react";
@@ -19,12 +19,11 @@ interface MagicBubbleProps {
     onOpenGallery: () => void;
     onOpenCare: () => void;
     onOpenActivity: () => void;
-    onOpenExchange?: () => void;
     contrastMode: 'light' | 'dark';
     placement?: 'fixed-bottom-right' | 'bottom-center';
 }
 
-export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity, onOpenExchange, contrastMode, placement = 'fixed-bottom-right' }: MagicBubbleProps) {
+export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpenCare, onOpenActivity, contrastMode, placement = 'fixed-bottom-right' }: MagicBubbleProps) {
     const [expandedSection, setExpandedSection] = useState<'care' | 'observation' | null>(null);
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
     const [noteText, setNoteText] = useState("");
@@ -335,7 +334,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                     <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                         <Camera className="w-3 h-3 text-white" />
                                                     </div>
-                                                    <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
+                                                    <span className={`text-sm font-medium ${styles.text}`}>今日の一极E/span>
                                                 </motion.button>
                                             </div>
                                         </div>
@@ -459,7 +458,7 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                                                 <div className="w-5 h-5 rounded-full bg-[#E8B4A0] flex items-center justify-center flex-shrink-0">
                                                     <Camera className="w-3 h-3 text-white" />
                                                 </div>
-                                                <span className={`text-sm font-medium ${styles.text}`}>今日の一枚</span>
+                                                <span className={`text-sm font-medium ${styles.text}`}>今日の一极E/span>
                                             </motion.button>
                                         </div>
 
@@ -531,26 +530,6 @@ export function MagicBubble({ onOpenPickup, onOpenCalendar, onOpenGallery, onOpe
                         </div>
                     </motion.button>
                 </div>
-
-                {/* Footprint Exchange Button */}
-                {onOpenExchange && (
-                    <div className="pointer-events-auto">
-                        <motion.button
-                            whileTap={{ scale: 0.8 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 12 }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                triggerFeedback('medium');
-                                onOpenExchange();
-                            }}
-                            className={`group relative glass-icon w-14 h-14 flex items-center justify-center ${styles.glassHover}`}
-                        >
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors ring-2 ring-white/60 bg-gradient-to-br from-amber-400 to-orange-500 group-hover:from-amber-500 group-hover:to-orange-600">
-                                <span className="text-lg">🐾</span>
-                            </div>
-                        </motion.button>
-                    </div>
-                )}
 
             </div>
 
