@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ChevronDown, MessageCircle, Grid3X3, Camera, Zap } from "lucide-react";
+import { Heart, ChevronDown, MessageCircle, Grid3X3, Camera, Zap, Cat } from "lucide-react";
 import { useAppState } from "@/store/app-store";
 import { UnifiedCareList, useCareData } from "./unified-care-list";
 import { useFootprintContext } from "@/providers/footprint-provider";
@@ -19,6 +19,7 @@ interface LayoutIslandNeoProps {
     onOpenIncident: () => void;
     onOpenIncidentDetail: (id: string) => void;
     onOpenActionMenu: () => void;
+    onOpenCalendar: () => void;
 }
 
 export function LayoutIslandNeo({
@@ -28,7 +29,8 @@ export function LayoutIslandNeo({
     onOpenExchange,
     onOpenIncident,
     onOpenIncidentDetail,
-    onOpenActionMenu
+    onOpenActionMenu,
+    onOpenCalendar
 }: LayoutIslandNeoProps) {
     const [showNotifications, setShowNotifications] = React.useState(false);
     const [showCareList, setShowCareList] = React.useState(false);
@@ -46,9 +48,9 @@ export function LayoutIslandNeo({
     } = useCareData();
 
     const glassStyle = {
-        background: 'rgba(255, 255, 255, 0.15)',
-        backdropFilter: 'blur(32px) saturate(1.8)',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)'
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(64px) saturate(3)',
+        boxShadow: '0 12px 48px -8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)'
     };
 
     // Style for passing to UnifiedCareList to match Island aesthetic
@@ -76,14 +78,11 @@ export function LayoutIslandNeo({
                 <IntegratedNotificationPill
                     progress={progress}
                     alertItems={alertItems}
-                    isExpanded={showNotifications}
                     footprints={stats.householdTotal}
-                    onToggle={() => {
-                        triggerFeedback('medium');
-                        setShowNotifications(!showNotifications);
-                        if (showCareList) setShowCareList(false);
-                    }}
-                    onFootprintClick={onOpenExchange}
+                    onOpenPhoto={onOpenPhoto}
+                    onOpenIncident={onOpenIncident}
+                    onOpenCalendar={onOpenCalendar}
+                    onOpenExchange={onOpenExchange}
                 />
 
                 {/* Notifications Overlay (From Top) */}
@@ -166,8 +165,8 @@ export function LayoutIslandNeo({
                                 }}
                                 className="flex flex-col items-center gap-1.5 group"
                             >
-                                <Heart className="w-6 h-6 text-slate-900 group-hover:text-black transition-colors drop-shadow-sm" />
-                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-widest drop-shadow-sm">care</span>
+                                <Cat className="w-6 h-6 text-white group-hover:text-white/80 transition-colors drop-shadow-md" />
+                                <span className="text-[9px] font-black text-white uppercase tracking-[0.2em] drop-shadow-md">onegai</span>
                             </motion.button>
 
                             <motion.button
@@ -176,9 +175,9 @@ export function LayoutIslandNeo({
                                     triggerFeedback('medium');
                                     onOpenActionMenu();
                                 }}
-                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-950/15 hover:bg-slate-950/25 border border-slate-950/20 backdrop-blur-md transition-all shadow-sm"
+                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-950/20 hover:bg-slate-950/30 border border-white/20 backdrop-blur-xl transition-all shadow-xl"
                             >
-                                <span className="text-slate-950 text-xl font-medium">＋</span>
+                                <span className="text-white text-xl font-bold drop-shadow-sm">＋</span>
                             </motion.button>
 
                             <motion.button
@@ -189,8 +188,8 @@ export function LayoutIslandNeo({
                                 }}
                                 className="flex flex-col items-center gap-1.5 group"
                             >
-                                <Grid3X3 className="w-6 h-6 text-slate-900 group-hover:text-black transition-colors drop-shadow-sm" />
-                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-widest drop-shadow-sm">menu</span>
+                                <Grid3X3 className="w-6 h-6 text-white group-hover:text-white/80 transition-colors drop-shadow-md" />
+                                <span className="text-[9px] font-black text-white uppercase tracking-[0.2em] drop-shadow-md">menu</span>
                             </motion.button>
                         </>
                     ) : (

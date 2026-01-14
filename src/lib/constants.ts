@@ -26,7 +26,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // ごはん - 2回/日（朝+夕）がデフォルト、子猫・療養猫は3-4回に変更可能
     {
         id: "care_food",
-        title: "ごはん",
+        title: "ごはん欲しい",
         icon: "UtensilsCrossed",
         frequency: "twice-daily",
         timeOfDay: "anytime",
@@ -37,7 +37,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // 水 - 2回/日（朝+夕）がデフォルト、自動給水器使用者は1回に
     {
         id: "care_water",
-        title: "お水",
+        title: "お水かえて",
         icon: "Droplet",
         frequency: "twice-daily",
         timeOfDay: "anytime",
@@ -48,7 +48,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // トイレ（すくう） - 1回/日（夕方）がデフォルト、多頭飼いは2-3回に
     {
         id: "care_litter",
-        title: "トイレ",
+        title: "トイレそうじ",
         icon: "Trash2",
         frequency: "once-daily",
         timeOfDay: "evening",
@@ -59,7 +59,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // ブラッシング - 週1回がデフォルト、長毛種・換毛期は毎日に
     {
         id: "care_brush",
-        title: "ブラッシング",
+        title: "ブラッシングして",
         icon: "Scissors",
         frequency: "weekly",
         timeOfDay: "anytime",
@@ -69,7 +69,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // 遊び - 1回/日（夕方）、任意項目
     {
         id: "care_play",
-        title: "遊び",
+        title: "遊んで",
         icon: "Sparkles",
         frequency: "once-daily",
         timeOfDay: "evening",
@@ -80,7 +80,7 @@ export const DEFAULT_CARE_TASK_DEFS: CareTaskDef[] = [
     // 投薬 - 必要時のみ
     {
         id: "care_medicine",
-        title: "お薬",
+        title: "お薬ちょうだい",
         icon: "Pill",
         frequency: "as-needed",
         timeOfDay: "anytime",

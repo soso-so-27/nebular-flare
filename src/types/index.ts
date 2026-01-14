@@ -190,7 +190,7 @@ export type AppEvent = {
   archived: boolean;
 };
 
-export type LayoutType = 'classic' | 'island' | 'bottom-nav' | 'v1-classic' | 'v1-island' | 'v1-bottom' | 'v2-classic' | 'v2-island' | 'v2-bottom';
+export type LayoutType = 'v2-classic' | 'v2-island';
 
 export type AppSettings = {
   plan: 'Free' | 'Pro';

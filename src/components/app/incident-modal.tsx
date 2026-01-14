@@ -31,10 +31,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 
 export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalProps) {
-    const { cats, addIncident } = useAppState();
+    const { cats, addIncident, settings } = useAppState();
     const { awardForIncident } = useFootprintContext();
     const [loading, setLoading] = useState(false);
-    const [catId, setCatId] = useState(defaultCatId || (cats.length > 0 ? cats[0].id : ''));
+    const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(() => {
+        if (defaultCatId) return new Set([defaultCatId]);
+        return cats.length > 0 ? new Set([cats[0].id]) : new Set();
+    });
     const [type, setType] = useState('vomit');
     const [note, setNote] = useState('');
     const [photos, setPhotos] = useState<File[]>([]);
@@ -42,20 +45,22 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
+    const isIsland = settings.layoutType === 'v2-island';
+
     React.useEffect(() => {
         setPortalTarget(document.body);
     }, []);
 
-    // Sync catId with cats when modal opens or cats load
+    // Sync selectedCatIds with cats when modal opens or cats load
     React.useEffect(() => {
         if (isOpen) {
             if (defaultCatId) {
-                setCatId(defaultCatId);
-            } else if (cats.length > 0 && !catId) {
-                setCatId(cats[0].id);
+                setSelectedCatIds(new Set([defaultCatId]));
+            } else if (cats.length > 0 && selectedCatIds.size === 0) {
+                setSelectedCatIds(new Set([cats[0].id]));
             }
         }
-    }, [defaultCatId, isOpen, cats, catId]);
+    }, [defaultCatId, isOpen, cats]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -74,7 +79,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
     };
 
     const handleSubmit = async () => {
-        if (!catId) {
+        if (selectedCatIds.size === 0) {
             toast.error("猫を選択してください");
             return;
         }
@@ -85,18 +90,23 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
         setLoading(true);
         try {
-            const { error } = await addIncident(catId, type, note, photos);
-            if (error) throw error;
+            // Submit for each selected cat
+            const catIds = Array.from(selectedCatIds);
+            for (const id of catIds) {
+                const { error } = await addIncident(id, type, note, photos);
+                if (error) throw error;
+                // Award footprint for incident (2pts)
+                awardForIncident(id);
+            }
 
-            // Award footprint for incident (2pts)
-            awardForIncident(catId);
-            toast.success("相談を家族へとどけました");
+            toast.success(`${selectedCatIds.size}件の相談を記録しました`);
             onClose();
             // Reset form
             setNote('');
             setPhotos([]);
             setPreviewUrls([]);
             setType('vomit');
+            setSelectedCatIds(new Set(cats.length > 0 ? [cats[0].id] : []));
         } catch (e) {
             console.error(e);
             toast.error("記録に失敗しました");
@@ -104,8 +114,6 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             setLoading(false);
         }
     };
-
-    const selectedCat = cats.find(c => c.id === catId);
 
     if (!portalTarget) return null;
 
@@ -116,7 +124,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-[2px]"
+                    className="fixed inset-0 z-[10002] flex items-end justify-center bg-black/60 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -125,32 +133,48 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col"
+                        className={`
+                            bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
+                            ${isIsland
+                                ? 'rounded-t-[32px] max-h-[90vh]'
+                                : 'rounded-[32px] mb-24 max-h-[75vh]'}
+                        `}
                     >
-                        <div className="px-6 pt-6 pb-2 border-b border-white/10">
-                            <h2 className="text-xl font-bold text-slate-800">家族に相談</h2>
-                            <div className="text-slate-500 text-xs">
+                        {/* Specular Highlight */}
+                        <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 ${isIsland ? 'rounded-t-[32px]' : 'rounded-[32px]'}`} />
+
+                        <div className="px-6 pt-6 pb-2 border-b border-white/5">
+                            <h2 className="text-xl font-bold text-white">家族に相談</h2>
+                            <div className="text-slate-400 text-xs">
                                 気になる体調や様子を記録します
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto">
+                        <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             {/* Cat Selection - Horizontal Scroll with Bounce */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-slate-600 text-xs font-bold pl-1">だれのようす？</Label>
-                                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar pl-1">
+                                <Label className="text-[#B8A6D9] text-xs font-bold pl-1">だれのようす？</Label>
+                                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar pl-1 flex-wrap">
                                     {cats.map(cat => (
                                         <button
                                             key={cat.id}
-                                            onClick={() => setCatId(cat.id)}
-                                            className={`flex flex-col items-center gap-2 transition-all duration-300 relative group flex-shrink-0 focus:outline-none ${catId === cat.id ? 'scale-110 opacity-100' : 'scale-95 opacity-50 hover:opacity-100 hover:scale-100'}`}
+                                            onClick={() => {
+                                                const next = new Set(selectedCatIds);
+                                                if (next.has(cat.id)) {
+                                                    if (next.size > 1) next.delete(cat.id);
+                                                } else {
+                                                    next.add(cat.id);
+                                                }
+                                                setSelectedCatIds(next);
+                                            }}
+                                            className={`
+                                                px-4 py-2 rounded-full text-sm font-bold transition-all duration-200
+                                                ${selectedCatIds.has(cat.id)
+                                                    ? 'bg-[#B8A6D9] text-white shadow-[0_0_15px_rgba(184,166,217,0.4)] scale-105'
+                                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'}
+                                            `}
                                         >
-                                            <div className={`relative rounded-full transition-all shadow-sm ${catId === cat.id ? 'ring-2 ring-[#E8B4A0] ring-offset-2 ring-offset-[#FAF9F7] shadow-md' : 'grayscale-[0.5]'}`}>
-                                                <CatAvatar src={cat.avatar} alt={cat.name} size="lg" />
-                                            </div>
-                                            <span className={`text-[10px] font-bold tracking-wide transition-colors ${catId === cat.id ? 'text-[#D09B85]' : 'text-slate-400'}`}>
-                                                {cat.name}
-                                            </span>
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>
@@ -158,7 +182,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
                             {/* Incident Type - Icon Grid */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-slate-600 text-xs font-bold pl-1">どうしたの？</Label>
+                                <Label className="text-[#B8A6D9] text-xs font-bold pl-1">どうしたの？</Label>
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                                     {INCIDENT_TYPES.map(t => {
                                         const isActive = type === t.id;
@@ -167,14 +191,14 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                                 key={t.id}
                                                 onClick={() => setType(t.id)}
                                                 className={`flex flex-col items-center justify-center aspect-square rounded-2xl border transition-all duration-200 ${isActive
-                                                    ? 'bg-gradient-to-br from-[#E8B4A0]/20 to-[#E8B4A0]/10 border-[#E8B4A0] shadow-sm scale-95'
-                                                    : 'bg-white/40 border-white/40 hover:bg-white/60 text-slate-500'
+                                                    ? 'bg-[#B8A6D9]/20 border-[#B8A6D9] shadow-[0_0_15px_rgba(184,166,217,0.2)] scale-95'
+                                                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-400'
                                                     }`}
                                             >
-                                                <div className={`p-2.5 rounded-full mb-1.5 ${isActive ? 'bg-[#E8B4A0] text-white shadow-sm' : 'bg-transparent'}`}>
+                                                <div className={`p-2.5 rounded-full mb-1.5 ${isActive ? 'bg-[#B8A6D9] text-white shadow-sm' : 'bg-transparent'}`}>
                                                     <t.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                                                 </div>
-                                                <span className={`text-[10px] font-bold ${isActive ? 'text-[#D09B85]' : 'text-slate-500'}`}>
+                                                <span className={`text-[10px] font-bold ${isActive ? 'text-[#B8A6D9]' : 'text-slate-500'}`}>
                                                     {t.label}
                                                 </span>
                                             </button>
@@ -186,25 +210,25 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                             {/* Note & Photos */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="note" className="text-slate-600 text-xs font-bold pl-1">詳細メモ</Label>
+                                    <Label htmlFor="note" className="text-[#B8A6D9] text-xs font-bold pl-1">詳細メモ</Label>
                                     <Textarea
                                         id="note"
                                         placeholder="詳しい状況を入力..."
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
-                                        className="min-h-[80px] bg-white/40 border-white/40 focus:bg-white/60 focus:ring-[#E8B4A0] rounded-2xl resize-none shadow-inner"
+                                        className="min-h-[80px] bg-black/20 border-white/10 focus:bg-black/40 focus:ring-[#B8A6D9] rounded-2xl resize-none shadow-inner text-white placeholder:text-slate-600"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-slate-600 text-xs font-bold pl-1">写真</Label>
+                                    <Label className="text-[#B8A6D9] text-xs font-bold pl-1">写真</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {previewUrls.map((url, i) => (
-                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/40 shadow-sm group">
+                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/20 shadow-sm group">
                                                 <img src={url} alt="Preview" className="w-full h-full object-cover" />
                                                 <button
                                                     onClick={() => removePhoto(i)}
-                                                    className="absolute top-1 right-1 bg-black/40 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
                                                     <X size={10} />
                                                 </button>
@@ -212,7 +236,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                         ))}
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-[#E8B4A0]/40 rounded-xl hover:bg-[#E8B4A0]/10 text-[#E8B4A0] transition-colors bg-white/20"
+                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-[#B8A6D9]/40 rounded-xl hover:bg-[#B8A6D9]/10 text-[#B8A6D9] transition-colors bg-white/5"
                                         >
                                             <Camera size={20} />
                                             <span className="text-[9px] mt-0.5 font-bold">追加</span>
@@ -230,20 +254,20 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                             </div>
                         </div>
 
-                        <div className="p-6 pt-2 bg-gradient-to-t from-[#FAF9F7] to-transparent shrink-0">
+                        <div className="p-6 pt-2 shrink-0 border-t border-white/5">
                             <div className="flex gap-3">
                                 <Button
                                     variant="ghost"
                                     onClick={onClose}
                                     disabled={loading}
-                                    className="flex-1 rounded-full hover:bg-slate-100 text-slate-500"
+                                    className="flex-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white"
                                 >
                                     キャンセル
                                 </Button>
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={loading}
-                                    className="flex-[2] rounded-full bg-gradient-to-r from-[#E8B4A0] to-[#C08A70] hover:from-[#D69E8A] hover:to-[#B07A60] text-white shadow-lg shadow-[#E8B4A0]/30 border-none"
+                                    className="flex-[2] rounded-full bg-[#B8A6D9] hover:bg-[#A694C7] text-white shadow-[0_0_20px_rgba(184,166,217,0.3)] border-none"
                                 >
                                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     記録する
@@ -257,3 +281,4 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
         portalTarget
     );
 }
+

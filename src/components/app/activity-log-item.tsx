@@ -9,7 +9,8 @@ import {
     Heart,
     Eye,
     ShoppingCart,
-    AlertCircle
+    AlertCircle,
+    Cat
 } from "lucide-react";
 import { getIcon } from "@/lib/icon-utils";
 
@@ -36,13 +37,15 @@ interface ActivityLogItemProps {
 export const getActivityColor = (type: string) => {
     switch (type) {
         case 'care':
-            return "bg-rose-100 dark:bg-rose-900/30 text-rose-500";
+            return "bg-[#E8B4A0]/20 text-[#E8B4A0] ring-1 ring-[#E8B4A0]/30 shadow-[0_0_10px_rgba(232,180,160,0.2)]";
         case 'observation':
-            return "bg-[#7CAA8E]/10 dark:bg-[#7CAA8E]/20 text-[#5A8A6A]";
+            // Grouped with Soudan (Lavender) in Action Menu
+            return "bg-[#B8A6D9]/10 text-[#B8A6D9] ring-1 ring-[#B8A6D9]/30";
         case 'inventory':
-            return "bg-[#E8B4A0]/10 dark:bg-[#E8B4A0]/20 text-[#C08A70]";
+            // Grouped with Todokeru (Peach)
+            return "bg-[#E8B4A0]/10 text-[#E8B4A0] ring-1 ring-[#E8B4A0]/30";
         case 'incident':
-            return "bg-amber-100 dark:bg-amber-900/30 text-amber-600";
+            return "bg-[#B8A6D9]/20 text-[#B8A6D9] ring-1 ring-[#B8A6D9]/40 shadow-[0_0_10px_rgba(184,166,217,0.2)]";
         default:
             return "bg-slate-100 dark:bg-slate-800 text-slate-500";
     }
@@ -59,7 +62,7 @@ export const getActivityIcon = (item: ActivityItem) => {
 
     switch (item.type) {
         case 'care':
-            return <Heart className="h-3.5 w-3.5" />;
+            return <Cat className="h-3.5 w-3.5" />;
         case 'observation':
             return <Eye className="h-3.5 w-3.5" />;
         case 'inventory':
@@ -80,65 +83,70 @@ export const getUserInitials = (item: ActivityItem) => {
 export function ActivityLogItem({ item, index = 0 }: ActivityLogItemProps) {
     return (
         <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.03 }}
-            className="flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group"
+            layoutId={item.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex flex-wrap items-center px-4 py-3 rounded-2xl bg-white/5 border border-white/5 mb-2 last:mb-0 hover:bg-white/10 transition-colors group backdrop-blur-sm"
         >
             {/* Icon Column */}
-            <div className={cn(
-                "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm",
-                getActivityColor(item.type)
-            )}>
-                {getActivityIcon(item)}
-            </div>
-
-            {/* Content Column */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between">
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-                        {item.title}
-                    </h4>
-                    <span className="text-[10px] text-slate-400 flex-shrink-0 ml-2 font-mono">
-                        {item.showTime
-                            ? format(new Date(item.timestamp), 'HH:mm')
-                            : formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: ja })
-                        }
-                    </span>
+            <div className="flex-shrink-0 mr-3">
+                <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/10 shadow-sm",
+                    item.type === 'incident' ? "bg-[#B8A6D9]/20 text-[#B8A6D9]" :
+                        item.type === 'care' ? "bg-[#E8B4A0]/20 text-[#E8B4A0]" :
+                            "bg-slate-700/50 text-slate-400"
+                )}>
+                    {getActivityIcon(item)}
                 </div>
-
-                {item.catName && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        {item.catName}
-                    </p>
-                )}
-
-                {item.notes && (
-                    <div className="mt-1.5 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 max-w-[90%]">
-                        <p className="text-xs text-slate-600 dark:text-slate-300 break-words whitespace-pre-wrap flex gap-1.5 items-start leading-relaxed">
-                            <span className="opacity-70 text-[10px] mt-0.5 scale-90">📝</span>
-                            <span>{item.notes}</span>
-                        </p>
-                    </div>
-                )}
             </div>
 
-            {/* User Avatar Column (Right pinned) */}
-            {item.userId && (
-                <div className="flex-shrink-0 mt-0.5">
-                    <div
-                        className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-slate-800 shadow-sm"
-                        title={item.userName || item.userId}
-                    >
-                        {item.userAvatar ? (
-                            <Image src={item.userAvatar} alt={item.userName || ''} width={24} height={24} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-[10px] text-slate-500 font-bold">
-                                {getUserInitials(item)}
-                            </span>
+            {/* Content Flex Row */}
+            <div className="flex-1 flex items-center min-w-0 gap-2 overflow-hidden">
+                {/* Title */}
+                <span className="text-sm font-bold text-slate-100 truncate flex-shrink-0 max-w-[50%]">
+                    {item.title}
+                </span>
+
+                {/* User Badge (Compact - Minimal) */}
+                {item.userId && (
+                    <div className="flex items-center gap-1.5 flex-shrink max-w-[30%]">
+                        {item.userAvatar && (
+                            <div className="w-4 h-4 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                                <Image src={item.userAvatar} alt="" width={16} height={16} className="w-full h-full object-cover" />
+                            </div>
                         )}
+                        <span className="text-[10px] text-slate-400 font-medium truncate">
+                            {item.userName || 'User'}
+                        </span>
                     </div>
-                </div>
+                )}
+
+                {/* Cat Name */}
+                {item.catName && (
+                    <span className="text-[10px] text-slate-500 truncate flex-shrink">
+                        {item.catName}
+                    </span>
+                )}
+            </div>
+
+            {/* Time Column (Right) */}
+            <div className="flex-shrink-0 ml-2">
+                <span className="text-xs font-mono font-medium text-slate-500">
+                    {item.showTime
+                        ? format(new Date(item.timestamp), 'HH:mm')
+                        : formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: ja })
+                    }
+                </span>
+            </div>
+
+            {/* Notes (Absolute or Overlay? No, if notes exist, maybe break row? 
+               User asked for "All one line". 
+               If notes exist, they probably have to be below. 
+               Let's keep notes below if present, but the main info is one line. 
+            */}
+            {item.notes && (
+                <div className="w-full mt-2 basis-full hidden" /> /* Hidden structure hack or just wrap? */
             )}
         </motion.div>
     );

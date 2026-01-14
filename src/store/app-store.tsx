@@ -109,7 +109,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 savedViewMode = saved;
             }
             const savedLayout = localStorage.getItem('layoutType');
-            const validLayouts: LayoutType[] = ['classic', 'island', 'bottom-nav', 'v2-classic', 'v2-island', 'v2-bottom'];
+            const validLayouts: LayoutType[] = ['v2-classic', 'v2-island'];
             if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
                 savedLayoutType = savedLayout as LayoutType;
             }
@@ -478,6 +478,12 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         const channel = supabase.channel('members-changes')
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'household_members', filter: `household_id=eq.${householdId}` },
+                () => {
+                    fetchMembers();
+                }
+            )
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'users', filter: `household_id=eq.${householdId}` },
                 () => {
                     fetchMembers();
                 }

@@ -23,17 +23,15 @@ import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
 import { ThemeExchangeModal } from "./theme-exchange-modal";
-import { MagicBubble } from "./immersive/magic-bubble";
-import { LayoutIsland } from "./immersive/layout-island";
-import { LayoutBottomNav } from "./immersive/layout-bottom-nav";
 import { MagicBubbleNeo } from "./immersive/magic-bubble-neo";
 import { LayoutIslandNeo } from "./immersive/layout-island-neo";
-import { LayoutBottomNavNeo } from "./immersive/layout-bottom-nav-neo";
 import { useCareData } from "./immersive/unified-care-list";
 import { PhotoModal } from "./photo-modal";
 import { IncidentModal } from "./incident-modal";
 import { IncidentDetailModal } from "./incident-detail-modal";
 import { ActionPlusMenu } from "./immersive/action-plus-menu";
+import { PhotoListSheet } from "./photo-list-sheet";
+import { IncidentListSheet } from "./incident-list-sheet";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -101,6 +99,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [showActionMenu, setShowActionMenu] = useState(false);
     const [showPickup, setShowPickup] = useState(false);
+    const [showPhotoListSheet, setShowPhotoListSheet] = useState(false);
+    const [showIncidentListSheet, setShowIncidentListSheet] = useState(false);
     const { progress } = useCareData();
     const [direction, setDirection] = useState(0);
 
@@ -675,52 +675,16 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
                 {/* 2. Responsive Layout Components */}
                 <div className="absolute inset-0 pointer-events-none">
-                    {/* --- NEO LAYOUTS (Standard/Optimized) --- */}
-
-                    {/* --- LEGACY LAYOUTS --- */}
-                    {settings.layoutType === 'classic' && (
-                        <MagicBubble
-                            onOpenPickup={() => setShowPickup(true)}
-                            onOpenCalendar={() => onOpenCalendar?.()}
-                            onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenCare={() => handleOpenSidebar('care')}
-                            onOpenActivity={() => handleOpenSidebar('activity')}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                            contrastMode={contrastMode}
-                        />
-                    )}
-
-                    {settings.layoutType === 'island' && (
-                        <LayoutIsland
-                            progress={progress}
-                            onOpenPickup={() => setShowPickup(true)}
-                            onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                        />
-                    )}
-
-                    {settings.layoutType === 'bottom-nav' && (
-                        <LayoutBottomNav
-                            progress={progress}
-                            onOpenPickup={() => setShowPickup(true)}
-                            onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenCalendar={() => onOpenCalendar?.()}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                        />
-                    )}
-
                     {/* --- NEO LAYOUTS (Optimized v2) --- */}
-                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('classic') && (
+                    {settings.layoutType === 'v2-classic' && (
                         <MagicBubbleNeo
                             onOpenPickup={() => { }}
                             onOpenCalendar={() => onOpenCalendar?.()}
                             onOpenGallery={() => onNavigate?.('gallery')}
                             onOpenCare={() => handleOpenSidebar('care')}
                             onOpenActivity={() => handleOpenSidebar('activity')}
-                            onOpenPhoto={() => setShowPhotoModal(true)}
-                            onOpenIncident={() => setShowIncidentModal(true)}
+                            onOpenPhoto={() => setShowPhotoListSheet(true)}
+                            onOpenIncident={() => setShowIncidentListSheet(true)}
                             onOpenMenu={() => handleOpenSidebar('care')}
                             onOpenActionMenu={() => setShowActionMenu(true)}
                             onOpenExchange={() => setShowThemeExchange(true)}
@@ -728,28 +692,17 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         />
                     )}
 
-                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('island') && (
+                    {settings.layoutType === 'v2-island' && (
                         <LayoutIslandNeo
                             onOpenPickup={() => { }}
                             onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenPhoto={() => setShowPhotoModal(true)}
+                            onOpenPhoto={() => setShowPhotoListSheet(true)}
                             onOpenMenu={() => handleOpenSidebar('care')}
                             onOpenExchange={() => setShowThemeExchange(true)}
-                            onOpenIncident={() => setShowIncidentModal(true)}
+                            onOpenIncident={() => setShowIncidentListSheet(true)}
                             onOpenIncidentDetail={setSelectedIncidentId}
                             onOpenActionMenu={() => setShowActionMenu(true)}
-                        />
-                    )}
-
-                    {settings.layoutType.startsWith('v2-') && settings.layoutType.includes('bottom') && (
-                        <LayoutBottomNavNeo
-                            onOpenPickup={() => { }}
-                            onOpenPhoto={() => setShowPhotoModal(true)}
-                            onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                            onOpenIncident={() => setShowIncidentModal(true)}
-                            onOpenIncidentDetail={setSelectedIncidentId}
-                            onOpenActionMenu={() => setShowActionMenu(true)}
+                            onOpenCalendar={() => onOpenCalendar?.()}
                         />
                     )}
                 </div>
@@ -758,30 +711,28 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             {/* Note: Story mode cat switching is handled by swipe gestures */}
 
             {/* Always visible: Floating Avatars (If Icon Mode) */}
-            {
-                settings.homeViewMode === 'icon' && (
-                    <div
-                        className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
-                    >
-                        {cats.map((cat, index) => (
-                            <motion.button
-                                key={cat.id}
-                                onClick={() => setActiveCatId(cat.id)}
-                                animate={{
-                                    scale: index === currentIndex ? 1.3 : 1,
-                                    y: index === currentIndex ? -10 : 0
-                                }}
-                                className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
-                                    ? 'border-white ring-4 ring-white/30'
-                                    : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
-                                    }`}
-                            >
-                                <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
-                            </motion.button>
-                        ))}
-                    </div>
-                )
-            }
+            {settings.homeViewMode === 'icon' && (
+                <div
+                    className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
+                >
+                    {cats.map((cat, index) => (
+                        <motion.button
+                            key={cat.id}
+                            onClick={() => setActiveCatId(cat.id)}
+                            animate={{
+                                scale: index === currentIndex ? 1.3 : 1,
+                                y: index === currentIndex ? -10 : 0
+                            }}
+                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
+                                ? 'border-white ring-4 ring-white/30'
+                                : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
+                                }`}
+                        >
+                            <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
+                        </motion.button>
+                    ))}
+                </div>
+            )}
 
 
             {/* Theme Exchange Modal */}
@@ -818,13 +769,25 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 onClose={() => setShowActionMenu(false)}
                 onOpenPhoto={() => setShowPhotoModal(true)}
                 onOpenIncident={() => setShowIncidentModal(true)}
-                variant={settings.layoutType.includes('bottom') ? 'sheet' : 'dock'}
+                variant="dock"
             />
 
             {/* --- Pickups Overlay (Legacy Mode) --- */}
             <BubblePickupList
                 isOpen={showPickup}
                 onClose={() => setShowPickup(false)}
+            />
+
+            {/* Photo List Sheet */}
+            <PhotoListSheet
+                isOpen={showPhotoListSheet}
+                onClose={() => setShowPhotoListSheet(false)}
+            />
+
+            {/* Incident List Sheet */}
+            <IncidentListSheet
+                isOpen={showIncidentListSheet}
+                onClose={() => setShowIncidentListSheet(false)}
             />
 
         </div >

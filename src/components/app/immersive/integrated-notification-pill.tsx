@@ -1,149 +1,124 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Bell, ChevronDown, Heart, AlertCircle, Camera, PawPrint } from "lucide-react";
+import { motion } from "framer-motion";
+import { Camera, MessageCircle, Heart, PawPrint, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerFeedback } from "@/lib/haptics";
 
 interface IntegratedNotificationPillProps {
     progress: number;
     alertItems: any[];
-    isExpanded: boolean;
-    onToggle: () => void;
-    onFootprintClick?: () => void;
     footprints?: number;
-    contrastMode?: 'light' | 'dark';
+    onOpenPhoto?: () => void;
+    onOpenIncident?: () => void;
+    onOpenCalendar?: () => void;
+    onOpenExchange?: () => void;
 }
 
 export function IntegratedNotificationPill({
     progress,
     alertItems,
-    isExpanded,
-    onToggle,
-    onFootprintClick,
     footprints = 0,
-    contrastMode = 'light'
+    onOpenPhoto,
+    onOpenIncident,
+    onOpenCalendar,
+    onOpenExchange
 }: IntegratedNotificationPillProps) {
-    const hasAlerts = alertItems.length > 0;
-    const hasIncidents = alertItems.some(item => item.type === 'incident');
-    const hasPhotos = alertItems.some(item => item.id?.startsWith('photo-'));
+    // Count by type
+    const photoCount = alertItems.filter(item => item.id?.startsWith('photo-')).length;
+    const incidentCount = alertItems.filter(item => item.type === 'incident').length;
 
-    // Get the most important/recent alert text
-    const latestAlertText = alertItems[0]?.label || "件の通知があります";
+    const hasAnyAlerts = photoCount > 0 || incidentCount > 0;
 
     const glassStyle = {
-        background: hasAlerts ? 'rgba(232, 180, 160, 0.95)' : 'rgba(255, 255, 255, 0.15)',
-        backdropFilter: 'blur(32px) saturate(2)',
-        boxShadow: hasAlerts
-            ? '0 12px 48px -8px rgba(232, 180, 160, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.3)'
-            : '0 8px 32px -4px rgba(0, 0, 0, 0.3), inset 0 0 0 0.5px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)',
-        color: hasAlerts ? 'white' : 'var(--slate-950)'
+        background: hasAnyAlerts
+            ? 'rgba(232, 180, 160, 0.5)'
+            : 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(64px) saturate(3)',
+        boxShadow: hasAnyAlerts
+            ? '0 16px 64px -12px rgba(232, 180, 160, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 4px 8px 0 rgba(255, 255, 255, 0.2)'
+            : '0 12px 48px -8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)',
     };
+
+    const segmentBase = "flex items-center gap-1.5 px-4 py-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors";
+    const textColor = hasAnyAlerts ? "text-white" : "text-white";
+    const iconColor = hasAnyAlerts ? "text-white" : "text-white";
 
     return (
         <motion.div
-            className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-1.5 cursor-pointer shadow-xl transition-all border border-white/20",
-                hasAlerts ? "max-w-[320px]" : "max-w-fit"
-            )}
+            className="flex items-center rounded-full shadow-xl border border-white/20"
             style={glassStyle}
-            onClick={onToggle}
-            whileTap={{ scale: 0.98 }}
             layout
         >
-            {/* Left: Alerts Icons & Text */}
-            <div className="flex items-center gap-2 mr-1 overflow-hidden">
-                <AnimatePresence mode="popLayout">
-                    {hasAlerts ? (
-                        <motion.div
-                            key="alert-mode"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-2 py-0.5"
-                        >
-                            <div className="relative shrink-0">
-                                {hasIncidents ? (
-                                    <AlertCircle className="w-4 h-4 text-white" />
-                                ) : hasPhotos ? (
-                                    <Camera className="w-4 h-4 text-white" />
-                                ) : (
-                                    <Bell className="w-4 h-4 text-white" />
-                                )}
-                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                                </span>
-                            </div>
-                            <span className="text-xs font-black truncate max-w-[140px] drop-shadow-sm">
-                                {latestAlertText}
-                            </span>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="normal-mode"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                        >
-                            <Heart className="w-4.5 h-4.5 text-slate-900 drop-shadow-sm" />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* Middle: Progress Bar */}
-            <div className={cn(
-                "flex items-center gap-2 border-l pl-3 mr-1 transition-colors",
-                hasAlerts ? "border-white/20" : "border-slate-400/20"
-            )}>
-                <span className={cn(
-                    "text-[10px] font-black tabular-nums drop-shadow-sm",
-                    hasAlerts ? "text-white" : "text-slate-950"
-                )}>
+            {/* ❤️ ケア (Care Progress) */}
+            <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                    triggerFeedback('medium');
+                    onOpenCalendar?.();
+                }}
+                className={segmentBase}
+            >
+                <Cat className={cn("w-5 h-5", iconColor)} />
+                <span className={cn("text-xs font-black tabular-nums", textColor)}>
                     {Math.round(progress * 100)}%
                 </span>
-                <div className={cn(
-                    "h-1.5 w-10 rounded-full overflow-hidden transition-colors",
-                    hasAlerts ? "bg-white/20" : "bg-black/5"
-                )}>
-                    <motion.div
-                        className="h-full rounded-full bg-white"
-                        style={{ background: hasAlerts ? 'white' : 'var(--peach)' }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(progress * 100, 100)}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                    />
-                </div>
+            </motion.button>
 
-                {/* Footprints Point Display */}
-                <motion.div
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onFootprintClick?.();
-                    }}
-                    className={cn(
-                        "flex items-center gap-1 border-l pl-3 transition-colors cursor-pointer hover:opacity-70",
-                        hasAlerts ? "border-white/20" : "border-slate-400/20"
-                    )}
-                >
-                    <PawPrint className={cn("w-3.5 h-3.5", hasAlerts ? "text-white/80" : "text-slate-950")} />
-                    <span className={cn(
-                        "text-[10px] font-black tabular-nums drop-shadow-sm",
-                        hasAlerts ? "text-white" : "text-slate-950"
-                    )}>
-                        {footprints.toLocaleString()}
-                    </span>
-                </motion.div>
-            </div>
+            {/* Divider */}
+            <div className="w-px h-5 bg-white/20" />
 
-            {/* Right: Expand Icon */}
-            <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="ml-1 shrink-0"
+            {/* 📷 とどける (Photo) */}
+            <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                    triggerFeedback('medium');
+                    onOpenPhoto?.();
+                }}
+                className={cn(segmentBase, photoCount > 0 && "bg-white/10")}
             >
-                <ChevronDown className={cn("w-4 h-4", hasAlerts ? "text-white/80" : "text-slate-950/60")} />
-            </motion.div>
+                <Camera className={cn("w-5 h-5", iconColor)} />
+                <span className={cn("text-xs font-black tabular-nums", textColor)}>
+                    {photoCount}
+                </span>
+            </motion.button>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-white/20" />
+
+            {/* 💬 そうだん (Incident) */}
+            <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                    triggerFeedback('medium');
+                    onOpenIncident?.();
+                }}
+                className={cn(segmentBase, incidentCount > 0 && "bg-white/10")}
+            >
+                <MessageCircle className={cn("w-5 h-5", iconColor)} />
+                <span className={cn("text-xs font-black tabular-nums", textColor)}>
+                    {incidentCount}
+                </span>
+            </motion.button>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-white/20" />
+
+            {/* 🐾 足あと (Footprints) */}
+            <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                    triggerFeedback('medium');
+                    onOpenExchange?.();
+                }}
+                className={segmentBase}
+            >
+                <PawPrint className={cn("w-5 h-5", iconColor)} />
+                <span className={cn("text-xs font-black tabular-nums", textColor)}>
+                    {footprints}
+                </span>
+            </motion.button>
         </motion.div>
     );
 }

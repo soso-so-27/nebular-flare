@@ -101,15 +101,11 @@ export function MagicBubbleNeo({
                 <IntegratedNotificationPill
                     progress={progress}
                     alertItems={alertItems}
-                    isExpanded={showNotifications}
                     footprints={stats.householdTotal}
-                    onToggle={() => {
-                        triggerFeedback('medium');
-                        setShowNotifications(!showNotifications);
-                        if (showCareList) setShowCareList(false);
-                        setIsExpanded(false);
-                    }}
-                    onFootprintClick={onOpenExchange}
+                    onOpenPhoto={onOpenPhoto}
+                    onOpenIncident={onOpenIncident}
+                    onOpenCalendar={onOpenCalendar}
+                    onOpenExchange={onOpenExchange}
                 />
 
                 {/* Notifications Overlay (From Top) */}
@@ -148,7 +144,7 @@ export function MagicBubbleNeo({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[90]"
                         onClick={() => { setShowCareList(false); setShowNotifications(false); }}
                     />
                 )}
@@ -174,7 +170,7 @@ export function MagicBubbleNeo({
                                 }}
                                 className="flex items-center gap-3 group"
                             >
-                                <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">care</span>
+                                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-slate-950/20 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-all drop-shadow-md">care</span>
                                 <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
                                     <Heart className="w-5 h-5 text-white drop-shadow-sm" />
                                 </div>
@@ -185,7 +181,7 @@ export function MagicBubbleNeo({
                                 onClick={() => { onOpenActionMenu(); setIsExpanded(false); }}
                                 className="flex items-center gap-3 group"
                             >
-                                <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">plus</span>
+                                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-slate-950/20 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-all drop-shadow-md">plus</span>
                                 <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
                                     <span className="text-white text-xl font-medium drop-shadow-sm">＋</span>
                                 </div>
@@ -196,7 +192,7 @@ export function MagicBubbleNeo({
                                 onClick={() => { onOpenMenu(); setIsExpanded(false); }}
                                 className="flex items-center gap-3 group"
                             >
-                                <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">menu</span>
+                                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-slate-950/20 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-all drop-shadow-md">menu</span>
                                 <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
                                     <LayoutGrid className="w-5 h-5 text-white drop-shadow-sm" />
                                 </div>
@@ -213,10 +209,12 @@ export function MagicBubbleNeo({
                             triggerFeedback('medium');
                             setIsExpanded(!isExpanded);
                         }}
-                        className="relative w-16 h-16 rounded-full flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden group border border-white/30"
+                        className="relative w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(0,0,0,0.3)] overflow-hidden group"
                         style={{
-                            background: 'rgba(255, 255, 255, 0.15)',
-                            backdropFilter: 'blur(32px) saturate(2)',
+                            background: 'rgba(255, 255, 255, 0.25)',
+                            backdropFilter: 'blur(24px) saturate(1.5)',
+                            border: '1.5px solid rgba(255, 255, 255, 0.35)',
+                            clipPath: 'circle(50% at 50% 50%)'
                         }}
                     >
                         {/* Internal Fluid Progress Overlay */}
@@ -226,21 +224,34 @@ export function MagicBubbleNeo({
                             animate={{ scaleY: progress }}
                             transition={{ duration: 1.5, ease: "circOut" }}
                             style={{
-                                background: 'linear-gradient(180deg, rgba(232, 180, 160, 0.45) 0%, rgba(208, 155, 133, 0.7) 100%)',
-                                backdropFilter: 'blur(4px)'
+                                background: 'linear-gradient(180deg, rgba(232, 180, 160, 0.5) 0%, rgba(208, 155, 133, 0.75) 100%)',
                             }}
-                        />
+                        >
+                            {/* Simplified wave effect for mobile */}
+                            <motion.div
+                                className="absolute top-0 left-0 w-[200%] h-6 -translate-y-[50%] opacity-50"
+                                animate={{ x: ['-50%', '0%'] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            >
+                                <svg viewBox="0 0 400 30" className="w-full h-full fill-[rgba(255,255,255,0.4)]">
+                                    <path d="M 0 15 Q 50 5, 100 15 Q 150 25, 200 15 Q 250 5, 300 15 Q 350 25, 400 15 V 30 H 0 Z" />
+                                </svg>
+                            </motion.div>
+                        </motion.div>
 
                         {/* High-Fidelity Glass Sphere Effects */}
-                        <div className="absolute inset-0 rounded-full shadow-[inset_0_-10px_20px_rgba(0,0,0,0.15),inset_0_5px_15px_rgba(255,255,255,0.4)] pointer-events-none" />
-                        <div className="absolute top-2 left-4 w-6 h-3 bg-white/20 rounded-full blur-[2px] rotate-[-20deg] pointer-events-none" />
+                        <div className="absolute inset-0 rounded-full shadow-[inset_0_-8px_16px_rgba(0,0,0,0.2),inset_0_4px_8px_rgba(255,255,255,0.5)] pointer-events-none" />
 
-                        {/* Subtle concentric rings */}
-                        <div className="absolute inset-2 rounded-full border border-white/10 pointer-events-none" />
+                        {/* Specular Highlights */}
+                        <div className="absolute top-2 left-3 w-5 h-3 bg-white/50 rounded-full blur-[2px] rotate-[-20deg] pointer-events-none" />
+                        <div className="absolute top-3 left-5 w-1.5 h-1.5 bg-white/70 rounded-full blur-[1px] pointer-events-none" />
 
-                        {/* Expand Indicator (Subtle dot or glow when active) */}
+                        {/* Rim Lighting (Top edge glow) */}
+                        <div className="absolute inset-0 rounded-full border-t-2 border-white/30 pointer-events-none" />
+
+                        {/* Expand Indicator */}
                         <motion.div
-                            animate={{ scale: isExpanded ? 1.5 : 1, opacity: isExpanded ? 0.8 : 0 }}
+                            animate={{ scale: isExpanded ? 1.5 : 1, opacity: isExpanded ? 0.9 : 0 }}
                             className="absolute w-2 h-2 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,1)]"
                         />
                     </motion.button>
@@ -262,6 +273,7 @@ export function MagicBubbleNeo({
                                 onOpenPickup={onOpenPickup}
                                 onOpenIncident={onOpenIncident || (() => { })}
                                 onOpenPhoto={onOpenPhoto || (() => { })}
+                                onClose={() => setShowCareList(false)}
                                 addCareLog={addCareLog}
                                 activeCatId={activeCatId}
                                 awardForCare={awardForCare}

@@ -27,16 +27,21 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#FAF9F7]/90 dark:bg-[#1E1E23]/90 backdrop-blur-xl border border-white/40 dark:border-white/10 w-full md:max-w-md h-[90vh] md:h-auto md:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                        className="bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 w-full md:max-w-md h-[90vh] md:h-auto md:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
                     >
-                        {/* Header */}
-                        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-transparent z-10 shrink-0">
-                            <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                カレンダー
-                            </h3>
+                        {/* Specular Highlight */}
+                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 rounded-t-[32px]" />
+
+                        {/* Drag Handle (for visual cue) */}
+                        <div className="w-full flex justify-center pt-3 pb-1 shrink-0 bg-transparent z-20">
+                            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+                        </div>
+
+                        {/* Close Button Only - Header is inside screen content */}
+                        <div className="absolute top-4 right-4 z-30">
                             <button
                                 onClick={onClose}
-                                className="p-2 -mr-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-full transition-colors"
+                                className="p-2 bg-black/20 hover:bg-black/40 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-md border border-white/5"
                             >
                                 <X className="w-5 h-5" />
                             </button>

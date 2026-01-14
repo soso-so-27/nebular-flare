@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ChevronDown, Check, AlertCircle, MessageCircle, Bell } from 'lucide-react';
+import { Heart, ChevronDown, Check, AlertCircle, MessageCircle, Bell, X, Cat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppState } from '@/store/app-store';
 import { useFootprintContext } from '@/providers/footprint-provider';
@@ -8,6 +8,89 @@ import { getCatchUpItems } from '@/lib/utils-catchup';
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";
 import { sounds } from "@/lib/sounds";
+
+// --- CONSTANTS: Request Variations (Pseudo-AI) ---
+const REQUEST_VARIATIONS: Record<string, { base: string, slots?: Record<string, string[]> }> = {
+    'care_food': {
+        base: "ごはんほしい",
+        slots: {
+            'morning': ["朝ごはんまだー？", "お腹すいた！（朝）", "ごはん！起きて！", "エネルギー切れ..."],
+            'evening': ["夜ごはんの時間だよ", "お腹ペコペコ（夜）", "ごはん！", "待ちきれない！"],
+            'noon': ["お昼ごはん！", "ランチタイム！"],
+            'night': ["夜食ちょうだい", "小腹すいた...", "お夜食..."]
+        }
+    },
+    'care_water': {
+        base: "お水かえて",
+        slots: {
+            'morning': ["お水、新鮮にして！", "喉かわいた（朝）"],
+            'evening': ["お水かえてー", "おいしいお水飲みたい"],
+            'night': ["お水かえてー", "夜のお水ちょうだい"]
+        }
+    },
+    'care_litter': {
+        base: "トイレそうじして",
+        slots: {
+            'evening': ["トイレ掃除してー", "キレイにして！", "トイレあふれそう..."],
+            'night': ["寝る前にトイレ掃除！", "キレイにしてから寝て"]
+        }
+    },
+    'care_brush': {
+        base: "ブラッシングして～"
+    },
+    'care_play': {
+        base: "遊んで！",
+        slots: {
+            'evening': ["遊んで！", "運動したい！", "退屈だよー"]
+        }
+    },
+    'care_medicine': {
+        base: "お薬ちょうだい"
+    },
+    'care_clip': {
+        base: "爪きって～"
+    }
+};
+
+// UUID & Legacy ID Mapping
+const ID_MAP: Record<string, string> = {
+    // Legacy String IDs
+    't1': 'care_food',
+    't4': 'care_food',
+    't3': 'care_water',
+    't2': 'care_litter',
+    't5': 'care_play',
+    'w3': 'care_clip',
+
+    // UUIDs (From User Environment)
+    'e04bf651-3ac9-41d3-8c2e-b1173a6939b8': 'care_food',
+    'bd13bc7f-d8cf-48b8-8f36-b7935e54af9b': 'care_litter',
+    'd5148fcd-c7ed-48f3-b86d-800122539272': 'care_clip'
+};
+
+const getDynamicRequestTitle = (defId: string, slot?: string): string => {
+    // 1. Try to find match in variations
+    let baseId = defId.split(':')[0];
+
+    // Map UUID/Legacy to New
+    if (ID_MAP[baseId]) {
+        baseId = ID_MAP[baseId];
+    }
+
+    const variation = REQUEST_VARIATIONS[baseId];
+
+    if (!variation) return ''; // Fallback to original title if no variation found
+
+    // 2. Pick random if slot matches
+    if (slot && variation.slots && variation.slots[slot]) {
+        const candidates = variation.slots[slot];
+        const today = new Date().getDate();
+        const index = today % candidates.length;
+        return candidates[index];
+    }
+
+    return variation.base;
+};
 
 // --- HOOK: Centralized Data Logic ---
 export function useCareData() {
@@ -43,17 +126,30 @@ export function useCareData() {
     const { careItems, alertItems } = useMemo(() => {
         const tasks = catchUpData.allItems
             .filter(item => item.type === 'task')
-            .map(item => ({
-                id: item.id,
-                actionId: item.actionId,
-                defId: item.payload?.id || item.id,
-                label: item.title,
-                perCat: item.payload?.perCat,
-                done: false,
-                slot: item.payload?.slot,
-                catId: item.catId,
-                severity: item.severity
-            }));
+            .map(item => {
+                // Determine Slot for dynamic title
+                // item.payload?.slot might be 'morning' etc.
+                const slot = item.payload?.slot;
+                const defId = item.payload?.id || item.id;
+
+                // Get AI-like Title
+                const dynamicTitle = getDynamicRequestTitle(defId, slot);
+
+                // DEBUG: Check why title isn't changing
+                // console.log('DEBUG REQUEST:', { defId, slot, originalTitle: item.title, dynamicTitle });
+
+                return {
+                    id: item.id,
+                    actionId: item.actionId,
+                    defId: defId,
+                    label: dynamicTitle || item.title, // Use dynamic if available, else static
+                    perCat: item.payload?.perCat,
+                    done: false,
+                    slot: slot,
+                    catId: item.catId,
+                    severity: item.severity
+                };
+            });
 
         const ENABLE_INTEGRATED_PICKUP = true; // Always enabled for this unified logic
         let alerts: any[] = [];
@@ -203,6 +299,7 @@ interface UnifiedCareListProps {
     onOpenIncident: () => void;
     onOpenPhoto: () => void;
     onOpenIncidentDetail?: (id: string) => void;
+    onClose?: () => void;
     addCareLog: any;
     activeCatId: string | null;
     awardForCare: (catId?: string) => void;
@@ -219,6 +316,7 @@ export function UnifiedCareList({
     onOpenIncident,
     onOpenIncidentDetail,
     onOpenPhoto,
+    onClose,
     addCareLog,
     activeCatId,
     awardForCare,
@@ -273,10 +371,10 @@ export function UnifiedCareList({
     };
 
     const listStyle = {
-        background: 'rgba(255, 255, 255, 0.15)',
-        backdropFilter: 'blur(32px) saturate(1.8)',
-        boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
-        borderRadius: '28px',
+        background: 'rgba(255, 255, 255, 0.12)',
+        backdropFilter: 'blur(40px) saturate(2)',
+        boxShadow: '0 24px 64px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.25), inset 0 2px 0 0 rgba(255,255,255,0.1)',
+        borderRadius: '32px',
         ...style
     };
 
@@ -291,6 +389,17 @@ export function UnifiedCareList({
             onClick={(e) => e.stopPropagation()}
         >
             <div className="p-4 space-y-4 max-h-[480px] overflow-y-auto no-scrollbar">
+                {/* Close Button */}
+                {onClose && (
+                    <div className="flex justify-end -mt-2 -mr-2 mb-2">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onClose(); }}
+                            className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                        >
+                            <X className="w-4 h-4 text-white/70" />
+                        </button>
+                    </div>
+                )}
                 <AnimatePresence mode="wait">
                     {activeTab === 'notifications' ? (
                         <motion.div
@@ -311,14 +420,14 @@ export function UnifiedCareList({
                                                 onClick={() => handleAction(item)}
                                                 className="w-full text-left p-3 rounded-xl bg-gradient-to-br from-[#E8B4A0]/20 to-[#C08A70]/40 border border-[#E8B4A0]/30 flex items-start gap-3 backdrop-blur-sm shadow-md transition-colors hover:border-[#E8B4A0]/50"
                                             >
-                                                <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/20 flex items-center justify-center shrink-0 mt-0.5 border border-[#E8B4A0]/10">
-                                                    <span className="text-[#FFD6C0] text-xs">!</span>
+                                                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5 border border-white/20">
+                                                    <span className="text-white text-[10px] font-black">!</span>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs font-bold text-[#FFD6C0] leading-tight mb-1">
+                                                    <div className="text-xs font-black text-white leading-tight mb-1 drop-shadow-sm">
                                                         {item.label}
                                                     </div>
-                                                    <div className="text-[10px] text-[#FFD6C0]/70 leading-tight">
+                                                    <div className="text-[10px] text-white/80 font-medium leading-tight drop-shadow-sm">
                                                         {item.subLabel}
                                                     </div>
                                                 </div>
@@ -345,8 +454,8 @@ export function UnifiedCareList({
                         >
                             {/* 2. Care Header */}
                             <div className="flex items-center gap-2 text-[#E8B4A0] text-xs font-bold pl-1">
-                                <Heart className="w-3 h-3 text-[#E8B4A0]" />
-                                <span>今日のお世話</span>
+                                <Cat className="w-3 h-3 text-[#E8B4A0]" />
+                                <span>今日のリクエスト</span>
                                 <span className="ml-auto text-[10px] text-white/40">{completedCareTasks}/{totalCareTasks}</span>
                             </div>
 
@@ -385,9 +494,9 @@ export function UnifiedCareList({
                                                 }
                                             }
                                         }}
-                                        className={`flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all border ${(item.done || pendingIds.has(item.id))
+                                        className={`flex items-center gap-3 w-full text-left p-3 rounded-2xl transition-all border ${(item.done || pendingIds.has(item.id))
                                             ? 'bg-black/20 border-white/5 opacity-50'
-                                            : 'bg-[#3A322E]/80 border-white/10 hover:bg-[#4A403A] hover:border-[#E8B4A0]/30'
+                                            : 'bg-white/10 border-white/10 hover:bg-white/20 hover:border-white/30'
                                             }`}
                                     >
                                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${(item.done || pendingIds.has(item.id))
@@ -396,7 +505,7 @@ export function UnifiedCareList({
                                             }`}>
                                             {(item.done || pendingIds.has(item.id)) && <Check className="w-3 h-3 text-white" />}
                                         </div>
-                                        <span className={`text-sm font-medium truncate transition-colors ${(item.done || pendingIds.has(item.id)) ? 'text-white/40 line-through' : 'text-[#F5E6E0]'}`}>
+                                        <span className={`text-sm font-black truncate transition-colors drop-shadow-sm ${(item.done || pendingIds.has(item.id)) ? 'text-white/40 line-through' : 'text-white'}`}>
                                             {item.label}
                                         </span>
                                     </motion.button>
@@ -404,9 +513,9 @@ export function UnifiedCareList({
                                 {careItems.length === 0 && (
                                     <div className="text-center py-12 space-y-3">
                                         <div className="w-12 h-12 rounded-full bg-white/5 mx-auto flex items-center justify-center">
-                                            <Heart className="w-6 h-6 text-white/20" />
+                                            <Cat className="w-6 h-6 text-white/20" />
                                         </div>
-                                        <p className="text-xs text-white/30 italic">今日のお世話は完了しています</p>
+                                        <p className="text-xs text-white/30 italic">今日のリクエストは完了しています</p>
                                     </div>
                                 )}
                             </div>

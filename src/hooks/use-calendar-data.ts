@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth, format, addDays, subDays } from 'date-fns';
 
 export interface DaySummary {
     date: Date;
@@ -34,8 +34,8 @@ export function useCalendarData(householdId: string | null, targetMonth: Date) {
 
         async function fetchData() {
             setLoading(true);
-            const start = startOfMonth(targetMonth).toISOString();
-            const end = endOfMonth(targetMonth).toISOString();
+            const start = subDays(startOfMonth(targetMonth), 15).toISOString();
+            const end = addDays(endOfMonth(targetMonth), 15).toISOString();
 
             // 1. Fetch Care Logs
             const { data: logs } = await supabase
