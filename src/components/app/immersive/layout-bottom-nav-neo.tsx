@@ -164,8 +164,8 @@ export function LayoutBottomNavNeo({
                                     }}
                                     className="flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl group transition-all"
                                 >
-                                    <Heart className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
-                                    <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">care</span>
+                                    <Heart className="w-6 h-6 text-slate-950 group-hover:text-black transition-colors drop-shadow-sm" />
+                                    <span className="text-[9px] text-slate-900 font-black uppercase tracking-widest drop-shadow-sm">care</span>
                                 </motion.button>
 
                                 <motion.button
@@ -174,9 +174,9 @@ export function LayoutBottomNavNeo({
                                         triggerFeedback('medium');
                                         onOpenActionMenu();
                                     }}
-                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-full -mt-10 bg-slate-900/10 hover:bg-slate-900/20 border border-slate-900/10 backdrop-blur-md transition-all shadow-lg"
+                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-full -mt-10 bg-slate-950/15 hover:bg-slate-950/25 border border-slate-950/20 backdrop-blur-md transition-all shadow-lg"
                                 >
-                                    <span className="text-slate-800 text-2xl font-light">＋</span>
+                                    <span className="text-slate-950 text-2xl font-medium">＋</span>
                                 </motion.button>
 
                                 <motion.button
@@ -187,8 +187,8 @@ export function LayoutBottomNavNeo({
                                     }}
                                     className="flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl group transition-all"
                                 >
-                                    <Grid3X3 className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
-                                    <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">menu</span>
+                                    <Grid3X3 className="w-6 h-6 text-slate-950 group-hover:text-black transition-colors drop-shadow-sm" />
+                                    <span className="text-[9px] text-slate-900 font-black uppercase tracking-widest drop-shadow-sm">menu</span>
                                 </motion.button>
                             </>
                         ) : (

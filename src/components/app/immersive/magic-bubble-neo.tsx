@@ -175,8 +175,8 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">care</span>
-                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
-                                    <Heart className="w-5 h-5 text-slate-100" />
+                                <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
+                                    <Heart className="w-5 h-5 text-white drop-shadow-sm" />
                                 </div>
                             </motion.button>
 
@@ -186,8 +186,8 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">plus</span>
-                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
-                                    <span className="text-slate-100 text-xl font-light">＋</span>
+                                <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
+                                    <span className="text-white text-xl font-medium drop-shadow-sm">＋</span>
                                 </div>
                             </motion.button>
 
@@ -197,8 +197,8 @@ export function MagicBubbleNeo({
                                 className="flex items-center gap-3 group"
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">menu</span>
-                                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-white/20 transition-colors">
-                                    <LayoutGrid className="w-5 h-5 text-slate-100" />
+                                <div className="w-12 h-12 rounded-full bg-slate-950/15 backdrop-blur-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/30 hover:bg-slate-900/30 transition-colors border border-white/20">
+                                    <LayoutGrid className="w-5 h-5 text-white drop-shadow-sm" />
                                 </div>
                             </motion.button>
                         </motion.div>
@@ -208,23 +208,41 @@ export function MagicBubbleNeo({
                 {/* Main Trigger */}
                 <div className="pointer-events-auto">
                     <motion.button
-                        whileTap={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.92 }}
                         onClick={() => {
                             triggerFeedback('medium');
                             setIsExpanded(!isExpanded);
                         }}
-                        className="relative w-16 h-16 rounded-full flex items-center justify-center ring-2 ring-white/50 shadow-2xl overflow-hidden group"
-                        style={{ background: 'var(--peach)' }}
+                        className="relative w-16 h-16 rounded-full flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden group border border-white/30"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            backdropFilter: 'blur(32px) saturate(2)',
+                        }}
                     >
+                        {/* Internal Fluid Progress Overlay */}
                         <motion.div
-                            className="absolute inset-0 bg-white/20 origin-bottom"
+                            className="absolute inset-0 origin-bottom"
                             initial={{ scaleY: 0 }}
                             animate={{ scaleY: progress }}
-                            transition={{ duration: 1 }}
+                            transition={{ duration: 1.5, ease: "circOut" }}
+                            style={{
+                                background: 'linear-gradient(180deg, rgba(232, 180, 160, 0.45) 0%, rgba(208, 155, 133, 0.7) 100%)',
+                                backdropFilter: 'blur(4px)'
+                            }}
                         />
-                        <div className="relative z-10">
-                            <Heart className={`w-7 h-7 text-white fill-white/20 transition-transform ${isExpanded ? 'scale-110' : ''}`} />
-                        </div>
+
+                        {/* High-Fidelity Glass Sphere Effects */}
+                        <div className="absolute inset-0 rounded-full shadow-[inset_0_-10px_20px_rgba(0,0,0,0.15),inset_0_5px_15px_rgba(255,255,255,0.4)] pointer-events-none" />
+                        <div className="absolute top-2 left-4 w-6 h-3 bg-white/20 rounded-full blur-[2px] rotate-[-20deg] pointer-events-none" />
+
+                        {/* Subtle concentric rings */}
+                        <div className="absolute inset-2 rounded-full border border-white/10 pointer-events-none" />
+
+                        {/* Expand Indicator (Subtle dot or glow when active) */}
+                        <motion.div
+                            animate={{ scale: isExpanded ? 1.5 : 1, opacity: isExpanded ? 0.8 : 0 }}
+                            className="absolute w-2 h-2 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,1)]"
+                        />
                     </motion.button>
                 </div>
 

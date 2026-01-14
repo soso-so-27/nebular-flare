@@ -33,17 +33,17 @@ export function IntegratedNotificationPill({
 
     const glassStyle = {
         background: hasAlerts ? 'rgba(232, 180, 160, 0.95)' : 'rgba(255, 255, 255, 0.15)',
-        backdropFilter: 'blur(32px) saturate(1.8)',
+        backdropFilter: 'blur(32px) saturate(2)',
         boxShadow: hasAlerts
-            ? '0 12px 40px -8px rgba(232, 180, 160, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.3)'
-            : '0 8px 32px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)',
-        color: hasAlerts ? 'white' : 'inherit'
+            ? '0 12px 48px -8px rgba(232, 180, 160, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.3)'
+            : '0 8px 32px -4px rgba(0, 0, 0, 0.3), inset 0 0 0 0.5px rgba(255, 255, 255, 0.2), inset 0 2px 0 0 rgba(255, 255, 255, 0.1)',
+        color: hasAlerts ? 'white' : 'var(--slate-950)'
     };
 
     return (
         <motion.div
             className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-2 cursor-pointer shadow-lg transition-all",
+                "flex items-center gap-2 rounded-full px-4 py-1.5 cursor-pointer shadow-xl transition-all border border-white/20",
                 hasAlerts ? "max-w-[320px]" : "max-w-fit"
             )}
             style={glassStyle}
@@ -59,7 +59,7 @@ export function IntegratedNotificationPill({
                             key="alert-mode"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 py-0.5"
                         >
                             <div className="relative shrink-0">
                                 {hasIncidents ? (
@@ -74,7 +74,7 @@ export function IntegratedNotificationPill({
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                 </span>
                             </div>
-                            <span className="text-xs font-bold truncate max-w-[140px]">
+                            <span className="text-xs font-black truncate max-w-[140px] drop-shadow-sm">
                                 {latestAlertText}
                             </span>
                         </motion.div>
@@ -84,7 +84,7 @@ export function IntegratedNotificationPill({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                         >
-                            <Heart className="w-4 h-4 text-[#E8B4A0]" />
+                            <Heart className="w-4.5 h-4.5 text-slate-900 drop-shadow-sm" />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -96,8 +96,8 @@ export function IntegratedNotificationPill({
                 hasAlerts ? "border-white/20" : "border-slate-400/20"
             )}>
                 <span className={cn(
-                    "text-[10px] font-bold tabular-nums",
-                    hasAlerts ? "text-white" : "text-slate-600"
+                    "text-[10px] font-black tabular-nums drop-shadow-sm",
+                    hasAlerts ? "text-white" : "text-slate-950"
                 )}>
                     {Math.round(progress * 100)}%
                 </span>
@@ -126,10 +126,10 @@ export function IntegratedNotificationPill({
                         hasAlerts ? "border-white/20" : "border-slate-400/20"
                     )}
                 >
-                    <PawPrint className={cn("w-3 h-3", hasAlerts ? "text-white/70" : "text-slate-700")} />
+                    <PawPrint className={cn("w-3.5 h-3.5", hasAlerts ? "text-white/80" : "text-slate-950")} />
                     <span className={cn(
-                        "text-[10px] font-bold tabular-nums",
-                        hasAlerts ? "text-white" : "text-slate-700"
+                        "text-[10px] font-black tabular-nums drop-shadow-sm",
+                        hasAlerts ? "text-white" : "text-slate-950"
                     )}>
                         {footprints.toLocaleString()}
                     </span>
@@ -142,7 +142,7 @@ export function IntegratedNotificationPill({
                 transition={{ duration: 0.2 }}
                 className="ml-1 shrink-0"
             >
-                <ChevronDown className={cn("w-4 h-4", hasAlerts ? "text-white/70" : "text-slate-400")} />
+                <ChevronDown className={cn("w-4 h-4", hasAlerts ? "text-white/80" : "text-slate-950/60")} />
             </motion.div>
         </motion.div>
     );

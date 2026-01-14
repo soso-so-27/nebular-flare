@@ -164,10 +164,10 @@ export function LayoutIslandNeo({
                                     setShowCareList(!showCareList);
                                     if (showNotifications) setShowNotifications(false);
                                 }}
-                                className="flex flex-col items-center gap-1 group"
+                                className="flex flex-col items-center gap-1.5 group"
                             >
-                                <Heart className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
-                                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">care</span>
+                                <Heart className="w-6 h-6 text-slate-900 group-hover:text-black transition-colors drop-shadow-sm" />
+                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-widest drop-shadow-sm">care</span>
                             </motion.button>
 
                             <motion.button
@@ -176,9 +176,9 @@ export function LayoutIslandNeo({
                                     triggerFeedback('medium');
                                     onOpenActionMenu();
                                 }}
-                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-900/10 hover:bg-slate-900/20 border border-slate-900/10 transition-colors"
+                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-950/15 hover:bg-slate-950/25 border border-slate-950/20 backdrop-blur-md transition-all shadow-sm"
                             >
-                                <span className="text-slate-800 text-xl font-light">＋</span>
+                                <span className="text-slate-950 text-xl font-medium">＋</span>
                             </motion.button>
 
                             <motion.button
@@ -187,10 +187,10 @@ export function LayoutIslandNeo({
                                     triggerFeedback('light');
                                     onOpenMenu();
                                 }}
-                                className="flex flex-col items-center gap-1 group"
+                                className="flex flex-col items-center gap-1.5 group"
                             >
-                                <Grid3X3 className="w-6 h-6 text-slate-700/80 group-hover:text-slate-900 transition-colors" />
-                                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">menu</span>
+                                <Grid3X3 className="w-6 h-6 text-slate-900 group-hover:text-black transition-colors drop-shadow-sm" />
+                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-widest drop-shadow-sm">menu</span>
                             </motion.button>
                         </>
                     ) : (
