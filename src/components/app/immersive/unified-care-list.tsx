@@ -291,40 +291,6 @@ export function UnifiedCareList({
             style={listStyle}
             onClick={(e) => e.stopPropagation()}
         >
-            {/* Tab Header */}
-            <div className="flex border-b border-white/10">
-                <button
-                    onClick={() => { triggerFeedback('light'); setActiveTab('notifications'); }}
-                    className={cn(
-                        "flex-1 py-3 text-[10px] font-bold tracking-wider uppercase transition-all relative",
-                        activeTab === 'notifications' ? "text-[#E8B4A0]" : "text-white/40 hover:text-white/60"
-                    )}
-                >
-                    通知
-                    {alertItems.length > 0 && activeTab !== 'notifications' && (
-                        <span className="absolute top-2 right-4 w-1.5 h-1.5 rounded-full bg-[#E8B4A0] animate-pulse" />
-                    )}
-                    {activeTab === 'notifications' && (
-                        <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8B4A0]" />
-                    )}
-                </button>
-                <button
-                    onClick={() => { triggerFeedback('light'); setActiveTab('care'); }}
-                    className={cn(
-                        "flex-1 py-3 text-[10px] font-bold tracking-wider uppercase transition-all relative",
-                        activeTab === 'care' ? "text-[#E8B4A0]" : "text-white/40 hover:text-white/60"
-                    )}
-                >
-                    お世話
-                    {careItems.filter(i => !i.done).length > 0 && activeTab !== 'care' && (
-                        <span className="absolute top-2 right-4 w-1.5 h-1.5 rounded-full bg-[#7CAA8E] animate-pulse" />
-                    )}
-                    {activeTab === 'care' && (
-                        <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8B4A0]" />
-                    )}
-                </button>
-            </div>
-
             <div className="p-4 space-y-4 max-h-[480px] overflow-y-auto no-scrollbar">
                 <AnimatePresence mode="wait">
                     {activeTab === 'notifications' ? (
@@ -369,24 +335,6 @@ export function UnifiedCareList({
                                     <p className="text-xs text-white/30 italic">通知はありません</p>
                                 </div>
                             )}
-
-                            {/* Move footer actions to Notifications for cleaner care view */}
-                            <div className="pt-2 mt-2 border-t border-white/5 space-y-2">
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        triggerFeedback('medium');
-                                        onOpenIncident();
-                                    }}
-                                    className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
-                                >
-                                    <div className="w-5 h-5 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#E8B4A0]/20 transition-colors">
-                                        <AlertCircle className="w-3 h-3 text-[#E8B4A0] group-hover:text-[#FFD6C0] transition-colors" />
-                                    </div>
-                                    <span className="text-sm font-medium text-white/70 group-hover:text-white">家族に相談 (記録)</span>
-                                </motion.button>
-                            </div>
                         </motion.div>
                     ) : (
                         <motion.div
@@ -462,23 +410,6 @@ export function UnifiedCareList({
                                         <p className="text-xs text-white/30 italic">今日のお世話は完了しています</p>
                                     </div>
                                 )}
-                            </div>
-
-                            <div className="pt-2 mt-2 border-t border-white/5">
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        triggerFeedback('medium');
-                                        onOpenPhoto();
-                                    }}
-                                    className="flex items-center gap-3 w-full text-left p-3 rounded-xl transition-all bg-[#3A322E]/40 hover:bg-[#4A403A]/60 border border-white/10 hover:border-white/20 group"
-                                >
-                                    <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
-                                        <MessageCircle className="w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
-                                    </div>
-                                    <span className="text-sm font-medium text-white/70 group-hover:text-white">今日の猫を届ける</span>
-                                </motion.button>
                             </div>
                         </motion.div>
                     )}

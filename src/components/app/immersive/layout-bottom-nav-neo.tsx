@@ -164,7 +164,7 @@ export function LayoutBottomNavNeo({
                                     }}
                                     className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl"
                                 >
-                                    <Heart className="w-6 h-6" style={{ color: 'var(--peach)' }} />
+                                    <Heart className="w-6 h-6 text-slate-500" />
                                     <span className="text-[10px] text-slate-500 font-bold">care</span>
                                 </motion.button>
 
@@ -174,10 +174,9 @@ export function LayoutBottomNavNeo({
                                         triggerFeedback('medium');
                                         onOpenActionMenu();
                                     }}
-                                    className="flex flex-col items-center justify-center w-14 h-14 rounded-full -mt-8 shadow-lg border-4 border-white"
-                                    style={{ background: 'var(--peach)' }}
+                                    className="flex flex-col items-center justify-center w-11 h-11 rounded-full -mt-6 bg-slate-200/80 border border-slate-300/50"
                                 >
-                                    <span className="text-white text-2xl font-bold">＋</span>
+                                    <span className="text-slate-600 text-xl font-medium">＋</span>
                                 </motion.button>
 
                                 <motion.button

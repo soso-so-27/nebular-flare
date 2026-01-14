@@ -165,7 +165,7 @@ export function LayoutIslandNeo({
                                 }}
                                 className="flex flex-col items-center gap-0.5"
                             >
-                                <Heart className="w-6 h-6" style={{ color: 'var(--peach)' }} />
+                                <Heart className="w-6 h-6 text-slate-600" />
                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">care</span>
                             </motion.button>
 
@@ -175,10 +175,9 @@ export function LayoutIslandNeo({
                                     triggerFeedback('medium');
                                     onOpenActionMenu();
                                 }}
-                                className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
-                                style={{ background: 'var(--peach)' }}
+                                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200/80 border border-slate-300/50"
                             >
-                                <span className="text-white text-xl font-bold">＋</span>
+                                <span className="text-slate-600 text-lg font-medium">＋</span>
                             </motion.button>
 
                             <motion.button

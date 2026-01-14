@@ -176,7 +176,7 @@ export function MagicBubbleNeo({
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">care</span>
                                 <div className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-md flex items-center justify-center shadow-lg ring-1 ring-white/60">
-                                    <Heart className="w-5 h-5 text-[#E8B4A0]" />
+                                    <Heart className="w-5 h-5 text-slate-100" />
                                 </div>
                             </motion.button>
 
@@ -187,7 +187,7 @@ export function MagicBubbleNeo({
                             >
                                 <span className="text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">plus</span>
                                 <div className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-md flex items-center justify-center shadow-lg ring-1 ring-white/60">
-                                    <span className="text-white text-xl font-bold">＋</span>
+                                    <span className="text-slate-100 text-xl font-medium">＋</span>
                                 </div>
                             </motion.button>
 
