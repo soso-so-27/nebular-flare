@@ -91,19 +91,13 @@ export function LayoutIslandNeo({
             {/* Care List Overlay (Centered Modal) */}
             <AnimatePresence>
                 {isExpanded && (
-                    <div className="fixed left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-[100] w-[calc(100%-48px)] max-w-sm pointer-events-auto">
-                        <div className="flex justify-between items-center mb-4 px-1">
-                            <h2 className="text-white font-bold text-lg drop-shadow-md">いたわる</h2>
-                            <button
-                                onClick={() => {
-                                    triggerFeedback('light');
-                                    setIsExpanded(false);
-                                }}
-                                className="bg-white/20 p-2 rounded-full backdrop-blur-md"
-                            >
-                                <ChevronDown className="w-5 h-5 text-white" />
-                            </button>
-                        </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 100 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 100 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className="fixed left-1/2 -translate-x-1/2 bottom-24 z-[100] w-[calc(100%-48px)] max-w-sm pointer-events-auto"
+                    >
                         <UnifiedCareList
                             alertItems={alertItems}
                             careItems={careItems}
@@ -118,7 +112,7 @@ export function LayoutIslandNeo({
                             initialTab={initialTab}
                             contrastMode="dark"
                         />
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
