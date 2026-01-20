@@ -384,7 +384,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                     <div key={group.date} className="mt-8">
                                                         <div className="px-6 mb-3 flex items-center justify-center gap-3">
                                                             <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-white/10"></div>
-                                                            <h3 className="text-[10px] font-black text-[#E8B4A0] tracking-[0.2em] flex-shrink-0">{group.date}</h3>
+                                                            <h3 className="text-[10px] font-black text-brand-peach tracking-[0.2em] flex-shrink-0">{group.date}</h3>
                                                             <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-white/10"></div>
                                                         </div>
 
@@ -404,7 +404,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                         className="pl-6 pr-4 py-3 hover:bg-white/[0.03] transition-all cursor-pointer group relative active:scale-[0.98] active:bg-white/10"
                                                                     >
                                                                         <div className="absolute left-[2.1rem] top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
-                                                                        <div className={`absolute left-[1.85rem] top-6 w-[10px] h-[10px] rounded-full bg-[#1E1E23] border-2 z-10 ${item.photos.length > 0 ? 'border-[#E8B4A0]/50' : 'border-white/20'}`} />
+                                                                        <div className={`absolute left-[1.85rem] top-6 w-[10px] h-[10px] rounded-full bg-[#1E1E23] border-2 z-10 ${item.photos.length > 0 ? 'border-brand-peach/50' : 'border-white/20'}`} />
 
                                                                         <div className="ml-6 flex items-start gap-3">
                                                                             <div className="relative flex-shrink-0">
@@ -413,7 +413,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                                         <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-300" alt="" />
                                                                                     </div>
                                                                                 ) : (
-                                                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${['chat', 'worried', 'troubled', 'concerned'].includes(item.type) ? 'bg-[#E8B4A0]/20 text-[#E8B4A0]' : 'bg-white/5 text-slate-400'}`}>
+                                                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${['chat', 'worried', 'troubled', 'concerned'].includes(item.type) ? 'bg-brand-peach/20 text-brand-peach' : 'bg-white/5 text-slate-400'}`}>
                                                                                         <TypeIcon size={18} strokeWidth={2.5} />
                                                                                     </div>
                                                                                 )}
@@ -423,7 +423,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                                 <div className="flex-1 min-w-0 pr-2">
                                                                                     <div className="flex items-center justify-between gap-2 mb-1">
                                                                                         <div className="flex items-center gap-1.5 min-w-0 text-[10px] font-medium text-slate-500">
-                                                                                            <span className="text-[#E8B4A0] font-bold truncate max-w-[120px]">{item.catName}</span>
+                                                                                            <span className="text-brand-peach font-bold truncate max-w-[120px]">{item.catName}</span>
                                                                                             {item.userName && (
                                                                                                 <>
                                                                                                     <span className="opacity-20">|</span>
@@ -435,7 +435,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                                             {item.updates && item.updates.length > 0 && (
                                                                                                 <>
                                                                                                     <span className="opacity-20">|</span>
-                                                                                                    <span className="text-[#E8B4A0] font-bold">{item.updates.length} 更新</span>
+                                                                                                    <span className="text-brand-peach font-bold">{item.updates.length} 更新</span>
                                                                                                 </>
                                                                                             )}
                                                                                         </div>
@@ -452,10 +452,10 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                                 </div>
 
                                                                                 {/* Unified Right Action Cluster */}
-                                                                                <div className="flex flex-col gap-2 shrink-0 items-center justify-center pl-2">
+                                                                                <div className="flex flex-col gap-1 shrink-0 items-center justify-center pl-2">
                                                                                     <button
                                                                                         onClick={(e) => { e.stopPropagation(); toggleBookmark(item.id); }}
-                                                                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${item.is_bookmarked ? 'bg-[#FFD54F]/20 text-[#FFD54F]' : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'}`}
+                                                                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${item.is_bookmarked ? 'text-[#E0DED9]' : 'text-slate-600 hover:text-slate-400'}`}
                                                                                     >
                                                                                         <Star size={18} fill={item.is_bookmarked ? "currentColor" : "none"} strokeWidth={item.is_bookmarked ? 2 : 2} className="transition-all duration-300" />
                                                                                     </button>
@@ -488,19 +488,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={onOpenNew}
-                                                animate={{
-                                                    boxShadow: [
-                                                        "0 0 0 0 rgba(255, 255, 255, 0)",
-                                                        "0 0 0 6px rgba(255, 255, 255, 0.1)",
-                                                        "0 0 0 0 rgba(255, 255, 255, 0)"
-                                                    ]
-                                                }}
-                                                transition={{
-                                                    duration: 2,
-                                                    repeat: Infinity,
-                                                    ease: "easeInOut"
-                                                }}
-                                                className="relative w-14 h-14 rounded-full bg-white shadow-lg shadow-white/5 flex items-center justify-center text-[#E8B4A0] group overflow-hidden"
+                                                className="relative w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center text-[#E0DED9] group overflow-hidden"
                                             >
                                                 <PenLine size={24} strokeWidth={2.5} className="relative z-10" />
                                             </motion.button>
@@ -511,8 +499,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                         {/* Pending Requests (QuestGrid) */}
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 px-2">
-                                                <div className="w-1 h-3 rounded-full bg-[#E8B4A0]" />
-                                                <span className="text-xs font-bold text-[#E8B4A0]">今日のおねがい</span>
+                                                <div className="w-1 h-3 rounded-full bg-brand-peach" />
+                                                <span className="text-xs font-bold text-brand-peach">今日のおねがい</span>
                                             </div>
                                             <QuestGrid className="w-full" />
                                         </div>

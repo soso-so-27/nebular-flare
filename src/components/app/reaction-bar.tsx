@@ -71,8 +71,8 @@ export function ReactionBar({
                     w-9 h-9 flex items-center justify-center rounded-full
                     transition-all duration-300
                     ${hasAnyHeart
-                        ? 'bg-[#E8B4A0]/20 text-[#E8B4A0]'
-                        : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'}
+                        ? 'text-[#E0DED9]'
+                        : 'text-slate-600 hover:text-slate-400'}
                 `}
             >
                 <Heart
@@ -89,7 +89,7 @@ export function ReactionBar({
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         key={heartCount}
-                        className="flex items-center justify-center min-w-[14px] h-[14px] px-0.5 bg-[#E8B4A0] text-[#1E1E23] text-[9px] font-black rounded-full border border-[#1E1E23] shadow-sm tracking-tighter leading-none"
+                        className="flex items-center justify-center min-w-[14px] h-[14px] px-0.5 text-[#E0DED9] text-[10px] font-black tracking-tighter leading-none shadow-black/50 drop-shadow-md"
                     >
                         {heartCount}
                     </motion.div>
@@ -106,7 +106,7 @@ export function ReactionBadges({ reactions }: { reactions: Reaction[] }) {
 
     return (
         <div className="flex items-center gap-1">
-            <span className="text-[11px] flex items-center gap-0.5 text-[#E8B4A0]">
+            <span className="text-[11px] flex items-center gap-0.5 text-[#E0DED9]">
                 <span>❤️</span>
                 <span className="font-black tabular-nums">{heartCount}</span>
             </span>
