@@ -155,7 +155,14 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
 
         // Sort items by date descending (newest first)
         // Sort items by date ascending (oldest first, newest at bottom like Slack)
-        const sortedItems = filteredItems.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        // Sort items: 
+        // Events ('events'): Ascending (Oldest -> Newest) for Chat-like flow
+        // Requests ('requests'): Descending (Newest -> Oldest) for standard List flow
+        const sortedItems = filteredItems.sort((a, b) => {
+            const timeA = new Date(a.createdAt).getTime();
+            const timeB = new Date(b.createdAt).getTime();
+            return activeTab === 'events' ? timeA - timeB : timeB - timeA;
+        });
 
         // Group by date
         const groups: Record<string, NyannlogItem[]> = {};
@@ -171,15 +178,21 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         });
 
         return Object.entries(groups).map(([date, items]) => ({ date, items }));
-    }, [incidents, cats, householdUsers, activeFilter, selectedCatId]);
+    }, [incidents, cats, householdUsers, activeFilter, selectedCatId, activeTab]);
 
-    // Scroll to BOTTOM when filter or cat changes (newest is at bottom)
+    // Scroll Control
     useEffect(() => {
         if (isOpen && scrollContainerRef.current) {
             // Use setTimeout to ensure content is rendered
             setTimeout(() => {
                 if (scrollContainerRef.current) {
-                    scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'instant' });
+                    if (activeTab === 'events') {
+                        // For Events (Chat style): Scroll to BOTTOM
+                        scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'instant' });
+                    } else {
+                        // For Requests (List style): Scroll to TOP
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+                    }
                 }
             }, 10);
         }
