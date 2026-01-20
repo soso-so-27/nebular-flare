@@ -77,6 +77,7 @@ function AppContent() {
     careTaskDefs,
     careLogs,
     noticeDefs,
+    dayStartHour: settings.dayStartHour,
   }), [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
   const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
@@ -340,7 +341,7 @@ function AuthenticatedAppWithProfile({ user }: { user: any }) {
       householdId={profile?.householdId ?? undefined}
       isDemo={false}
     >
-      <AppProvider householdId={profile?.householdId ?? null} isDemo={false}>
+      <AppProvider householdId={profile?.householdId ?? null} currentUserId={profile?.userId ?? null} isDemo={false}>
         <AppContent />
       </AppProvider>
     </FootprintProvider>

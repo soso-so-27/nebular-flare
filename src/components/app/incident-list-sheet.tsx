@@ -24,8 +24,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
     'active': { bg: 'bg-[#E8B4A0]/20', text: 'text-[#E8B4A0]', label: '経過観察中' },
-    'monitoring': { bg: 'bg-[#B8A6D9]/20', text: 'text-[#B8A6D9]', label: '注意中' },
-    'resolved': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: '解決済み' }
+    'monitoring': { bg: 'bg-[#E8B4A0]/20', text: 'text-[#E8B4A0]', label: '注意中' },
+    'resolved': { bg: 'bg-white/10', text: 'text-slate-400', label: '解決済み' }
 };
 
 export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
@@ -71,49 +71,59 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
         const typeLabel = TYPE_LABELS[incident.type] || incident.type;
         const statusStyle = STATUS_STYLES[incident.status] || STATUS_STYLES.active;
         const updateCount = incident.updates?.length || 0;
+        const isResolved = incident.status === 'resolved';
 
         return (
             <motion.button
                 onClick={() => setSelectedIncidentId(incident.id)}
-                className="w-full bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center gap-3 text-left transition-all group"
+                className={`
+                    w-full bg-[#1E1E23]/40 hover:bg-[#1E1E23]/60 backdrop-blur-md rounded-[24px] p-4 border border-white/5 
+                    flex flex-col gap-3 text-left transition-all group relative overflow-hidden
+                    ${isResolved ? 'opacity-70' : ''}
+                `}
                 whileTap={{ scale: 0.98 }}
             >
-                {/* Cat Avatar */}
-                <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden border border-white/20 shadow-md">
-                        {cat?.avatar ? (
-                            <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-2xl">🐈</div>
-                        )}
+                {/* Status Indicator Bar - more subtle */}
+                {!isResolved && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#E8B4A0]/30" />
+                )}
+
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-slate-800 overflow-hidden border border-white/5 shadow-sm relative">
+                            {cat?.avatar ? (
+                                <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-base">🐈</div>
+                            )}
+                        </div>
+                        <div>
+                            <p className="text-xs font-black text-slate-200">{cat?.name || '猫ちゃん'}</p>
+                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{formatDate(incident.created_at)}</p>
+                        </div>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#B8A6D9] rounded-full flex items-center justify-center border-2 border-[#2C2C35]">
-                        <ChatIcon className="w-3 h-3 text-white" />
+
+                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${statusStyle.bg} ${statusStyle.text} border border-white/5`}>
+                        {statusStyle.label}
                     </div>
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-slate-200">{cat?.name || '猫ちゃん'}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
-                            {statusStyle.label}
-                        </span>
-                    </div>
-                    <p className="text-sm text-slate-300 font-medium">{typeLabel}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
-                        <span>{formatDate(incident.created_at)}</span>
+                <div className="flex items-center justify-between mt-1">
+                    <h3 className="text-sm font-black text-slate-200 tracking-tight">
+                        {typeLabel}
+                    </h3>
+                    <div className="flex items-center gap-1.5">
                         {updateCount > 0 && (
-                            <span className="flex items-center gap-1">
-                                <MessageCircle className="w-3 h-3" />
-                                {updateCount}件の更新
-                            </span>
+                            <div className="flex items-center gap-1 text-[9px] font-black text-[#E8B4A0]">
+                                <MessageCircle className="w-2.5 h-2.5" />
+                                {updateCount}
+                            </div>
                         )}
+                        <div className="text-[9px] font-black text-slate-600 group-hover:text-slate-400 transition-colors">
+                            詳細を見る →
+                        </div>
                     </div>
                 </div>
-
-                {/* Arrow */}
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors shrink-0" />
             </motion.button>
         );
     };
@@ -163,21 +173,12 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                             {/* Header */}
                             <div className="px-6 py-3 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-[#B8A6D9]/20 flex items-center justify-center ring-1 ring-[#B8A6D9]/30">
-                                        <ChatIcon className="w-5 h-5 text-[#B8A6D9]" />
-                                    </div>
                                     <div>
                                         <h1 className="text-lg font-bold text-white tracking-tight">そうだん</h1>
-                                        <p className="text-xs text-slate-400">チャットで解決しましょう</p>
+                                        <p className="text-xs text-[#E8B4A0] font-bold animate-pulse">様子をチェックして解決しよう</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setShowNewIncidentModal(true)}
-                                        className="w-9 h-9 rounded-full bg-[#B8A6D9] flex items-center justify-center hover:bg-[#A090C5] transition-colors shadow-lg shadow-[#B8A6D9]/20"
-                                    >
-                                        <Plus className="w-5 h-5 text-white" />
-                                    </button>
                                     <button
                                         onClick={onClose}
                                         className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
@@ -208,7 +209,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                                 {resolvedIncidents.length > 0 && (
                                     <div>
                                         <div className="flex items-center gap-2 mb-3 px-2">
-                                            <Check className="w-4 h-4 text-emerald-500" />
+                                            <Check className="w-4 h-4 text-slate-400" />
                                             <span className="text-sm font-bold text-slate-500">解決済み</span>
                                         </div>
                                         <div className="grid gap-3 opacity-60 hover:opacity-100 transition-opacity">
@@ -222,8 +223,8 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                                 {/* Empty State */}
                                 {activeIncidents.length === 0 && resolvedIncidents.length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
-                                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 ring-1 ring-emerald-500/20">
-                                            <Check className="w-8 h-8 text-emerald-500" />
+                                        <div className="w-16 h-16 rounded-full bg-[#E8B4A0]/10 flex items-center justify-center mb-4 ring-1 ring-[#E8B4A0]/20">
+                                            <Check className="w-8 h-8 text-[#E8B4A0]" />
                                         </div>
                                         <p className="text-slate-300 font-bold">相談はありません</p>
                                         <p className="text-xs text-slate-500 mt-1">猫ちゃんは元気いっぱい！</p>

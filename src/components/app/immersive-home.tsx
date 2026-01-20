@@ -32,6 +32,9 @@ import { IncidentDetailModal } from "./incident-detail-modal";
 import { ActionPlusMenu } from "./immersive/action-plus-menu";
 import { PhotoListSheet } from "./photo-list-sheet";
 import { IncidentListSheet } from "./incident-list-sheet";
+import { NyannlogSheet } from "./nyannlog-sheet";
+import { ImmersivePhotoView } from "./immersive/ImmersivePhotoView";
+import { NyannlogEntryModal } from "./nyannlog-entry-modal";
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -96,11 +99,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const [showThemeExchange, setShowThemeExchange] = useState(false);
     const [showPhotoModal, setShowPhotoModal] = useState(false);
     const [showIncidentModal, setShowIncidentModal] = useState(false);
+    const [showNyannlogModal, setShowNyannlogModal] = useState(false);
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [showActionMenu, setShowActionMenu] = useState(false);
     const [showPickup, setShowPickup] = useState(false);
     const [showPhotoListSheet, setShowPhotoListSheet] = useState(false);
     const [showIncidentListSheet, setShowIncidentListSheet] = useState(false);
+    const [showNyannlogSheet, setShowNyannlogSheet] = useState(false);
+    const [nyannlogTab, setNyannlogTab] = useState<'events' | 'requests'>('events');
+    const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
     const { progress } = useCareData();
     const [direction, setDirection] = useState(0);
 
@@ -242,6 +249,11 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         const hour = new Date().getHours();
         setIsNight(hour < 6 || hour >= 18);
     }, [activeCat, setIsHeroImageLoaded, allPhotos.length]);
+
+    const handleOpenNyannlog = (tab: 'events' | 'requests' = 'events') => {
+        setNyannlogTab(tab);
+        setShowNyannlogSheet(true);
+    };
 
     // Auto-hide Logic
     const resetHideTimer = useCallback(() => {
@@ -517,8 +529,8 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         <div
                             className="absolute left-4 right-4 flex items-center justify-center"
                             style={{
-                                top: '100px',  /* Reduced from 140px - more card space */
-                                bottom: '90px' /* Reduced from 100px - horizontal icons take less space */
+                                top: '110px',
+                                bottom: '110px'
                             }}
                         >
                             {/* Stack cards - positioned OUTSIDE and BEHIND with rotation */}
@@ -686,8 +698,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             onOpenPhoto={() => setShowPhotoListSheet(true)}
                             onOpenIncident={() => setShowIncidentListSheet(true)}
                             onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenActionMenu={() => setShowActionMenu(true)}
+                            onOpenActionMenu={() => setShowNyannlogModal(true)}
                             onOpenExchange={() => setShowThemeExchange(true)}
+                            onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
                             contrastMode={contrastMode}
                         />
                     )}
@@ -701,8 +714,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                             onOpenExchange={() => setShowThemeExchange(true)}
                             onOpenIncident={() => setShowIncidentListSheet(true)}
                             onOpenIncidentDetail={setSelectedIncidentId}
-                            onOpenActionMenu={() => setShowActionMenu(true)}
+
                             onOpenCalendar={() => onOpenCalendar?.()}
+                            onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
                         />
                     )}
                 </div>
@@ -769,7 +783,15 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 onClose={() => setShowActionMenu(false)}
                 onOpenPhoto={() => setShowPhotoModal(true)}
                 onOpenIncident={() => setShowIncidentModal(true)}
+                onOpenNyannlog={handleOpenNyannlog}
                 variant="dock"
+            />
+
+            {/* Nyannlog Entry Modal */}
+            <NyannlogEntryModal
+                isOpen={showNyannlogModal}
+                onClose={() => setShowNyannlogModal(false)}
+                preselectedCatId={activeCatId || undefined}
             />
 
             {/* --- Pickups Overlay (Legacy Mode) --- */}
@@ -788,6 +810,73 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             <IncidentListSheet
                 isOpen={showIncidentListSheet}
                 onClose={() => setShowIncidentListSheet(false)}
+            />
+
+            {/* Theme Exchange Modal */}
+            <ThemeExchangeModal
+                isOpen={showThemeExchange}
+                onClose={() => setShowThemeExchange(false)}
+            />
+
+            {/* Nyannlog Sheet */}
+            <NyannlogSheet
+                isOpen={showNyannlogSheet}
+                initialTab={nyannlogTab}
+                onClose={() => setShowNyannlogSheet(false)}
+                onOpenCalendar={() => onOpenCalendar?.()}
+                onOpenNew={() => {
+                    setShowNyannlogSheet(false);
+                    setShowNyannlogModal(true);
+                }}
+                onSelectItem={(id, type, photos) => {
+                    // If has photos, open photo viewer
+                    if (photos && photos.length > 0) {
+                        const cat = cats.find(c => {
+                            // Find cat with this incident or standalone photo
+                            const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
+                            const hasImage = c.images?.some(img => img.id === id);
+                            return hasIncident || hasImage;
+                        });
+                        setSelectedPhoto({
+                            id,
+                            url: photos[0].startsWith('http')
+                                ? photos[0]
+                                : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
+                            storagePath: photos[0],
+                            catName: cat?.name || '',
+                            catAvatar: cat?.avatar || '',
+                            allPhotos: photos
+                        });
+                    } else if (type === 'photo_standalone') {
+                        // Legacy photo_standalone handling
+                        let foundImg = null;
+                        for (const cat of cats) {
+                            const img = cat.images?.find(i => i.id === id);
+                            if (img) {
+                                foundImg = {
+                                    ...img,
+                                    url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
+                                    catName: cat.name,
+                                    catAvatar: cat.avatar
+                                };
+                                break;
+                            }
+                        }
+                        if (foundImg) {
+                            setSelectedPhoto(foundImg);
+                        }
+                    } else {
+                        // No photos - open incident detail
+                        setSelectedIncidentId(id);
+                    }
+                }}
+            />
+
+            {/* Photo Viewer (from Nyannlog) */}
+            <ImmersivePhotoView
+                isOpen={!!selectedPhoto}
+                onClose={() => setSelectedPhoto(null)}
+                image={selectedPhoto}
             />
 
         </div >

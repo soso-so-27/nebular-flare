@@ -22,10 +22,12 @@ interface FootprintContextValue {
     loginBonusAvailable: boolean;
     refreshStats: () => Promise<void>;
     claimLoginBonus: () => Promise<boolean>;
-    awardForCare: (catId?: string, actionId?: string) => Promise<void>;
+    awardForCare: (catId?: string, actionId?: string, skipPopup?: boolean) => Promise<void>;
     awardForObservation: (catId: string, actionId?: string) => Promise<void>;
     awardForPhoto: (catId: string, actionId?: string) => Promise<void>;
     awardForIncident: (catId: string, actionId?: string) => Promise<void>;
+    awardForNyannlog: (catId: string, actionId?: string) => Promise<void>;
+    consumeFootprints: (type: string, points: number) => Promise<boolean>;
 }
 
 const FootprintContext = createContext<FootprintContextValue | null>(null);
@@ -44,6 +46,8 @@ export function useFootprintContext() {
             awardForObservation: async () => { },
             awardForPhoto: async () => { },
             awardForIncident: async () => { },
+            awardForNyannlog: async () => { },
+            consumeFootprints: async () => false,
         };
     }
     return ctx;
@@ -78,6 +82,7 @@ export function FootprintProvider({
         loginBonusAvailable,
         awardFootprints,
         claimLoginBonus: rawClaimLoginBonus,
+        consumeFootprints: rawConsumeFootprints,
         refresh,
     } = useFootprints({ userId, householdId });
 
@@ -107,13 +112,13 @@ export function FootprintProvider({
         return success;
     }, [isDemo, rawClaimLoginBonus, showPopup]);
 
-    const awardForCare = useCallback(async (catId?: string, actionId?: string) => {
+    const awardForCare = useCallback(async (catId?: string, actionId?: string, skipPopup: boolean = false) => {
         if (isDemo) {
-            showPopup(FOOTPRINT_POINTS.care);
+            if (!skipPopup) showPopup(FOOTPRINT_POINTS.care);
             return;
         }
         const success = await awardFootprints('care', FOOTPRINT_POINTS.care, catId, actionId);
-        if (success) {
+        if (success && !skipPopup) {
             showPopup(FOOTPRINT_POINTS.care);
         }
     }, [isDemo, awardFootprints, showPopup]);
@@ -151,6 +156,26 @@ export function FootprintProvider({
         }
     }, [isDemo, awardFootprints, showPopup]);
 
+    const awardForNyannlog = useCallback(async (catId: string, actionId?: string) => {
+        if (isDemo) {
+            showPopup(FOOTPRINT_POINTS.nyannlog);
+            return;
+        }
+        const success = await awardFootprints('nyannlog', FOOTPRINT_POINTS.nyannlog, catId, actionId);
+        if (success) {
+            showPopup(FOOTPRINT_POINTS.nyannlog);
+        }
+    }, [isDemo, awardFootprints, showPopup]);
+
+    const consumeFootprints = useCallback(async (type: string, points: number): Promise<boolean> => {
+        const success = await rawConsumeFootprints(type, points);
+        if (success) {
+            // ポイント減少時のポップアップ（負の値を表示）
+            showPopup(-Math.abs(points));
+        }
+        return success;
+    }, [rawConsumeFootprints, showPopup]);
+
     // Auto-claim login bonus on mount (if available)
     useEffect(() => {
         if (loginBonusAvailable && !isDemo) {
@@ -168,6 +193,8 @@ export function FootprintProvider({
         awardForObservation,
         awardForPhoto,
         awardForIncident,
+        awardForNyannlog,
+        consumeFootprints,
     };
 
     return (

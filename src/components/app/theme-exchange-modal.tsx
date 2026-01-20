@@ -2,20 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout, Sun, Moon, TreePine, Flower2, Smartphone, Layers } from "lucide-react";
+import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout, Sun, Moon, TreePine, Flower2, Smartphone, Layers, FileText, ArrowLeftRight, LayoutGrid } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useFootprintContext } from "@/providers/footprint-provider";
 import { useAppState } from "@/store/app-store";
 import { toast } from "sonner";
 import type { LayoutType } from "@/types";
 
-type TabType = 'layout' | 'theme' | 'goods' | 'supplies' | 'donation';
+type TabType = 'layout' | 'report' | 'goods' | 'donation';
 
 const TABS: { id: TabType; label: string; icon: React.ReactNode; ready: boolean }[] = [
-    { id: 'layout', label: 'レイアウト', icon: <Layout className="w-3.5 h-3.5" />, ready: true },
-    { id: 'theme', label: 'テーマ', icon: <Palette className="w-3.5 h-3.5" />, ready: false },
-    { id: 'goods', label: '猫グッズ', icon: <Gift className="w-3.5 h-3.5" />, ready: false },
-    { id: 'supplies', label: '猫用品', icon: <ShoppingBag className="w-3.5 h-3.5" />, ready: false },
+    { id: 'layout', label: 'きせかえ', icon: <Layout className="w-3.5 h-3.5" />, ready: true },
+    { id: 'report', label: 'レポート', icon: <FileText className="w-3.5 h-3.5" />, ready: false },
+    { id: 'goods', label: 'プリント', icon: <Gift className="w-3.5 h-3.5" />, ready: false },
     { id: 'donation', label: '寄付', icon: <Heart className="w-3.5 h-3.5" />, ready: false },
 ];
 
@@ -48,7 +47,8 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
     const [activeTab, setActiveTab] = useState<TabType>('layout');
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState<string | null>(null);
-    const { stats, refreshStats } = useFootprintContext();
+    const [confirmChange, setConfirmChange] = useState<string | null>(null);
+    const { stats, refreshStats, consumeFootprints } = useFootprintContext();
     const { settings, setSettings } = useAppState();
 
     const isIsland = settings.layoutType === 'v2-island';
@@ -58,6 +58,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
     useEffect(() => {
         if (isOpen) {
             loadThemes();
+            refreshStats(); // ポイントが 0 に見えないよう最新化
         }
     }, [isOpen]);
 
@@ -217,7 +218,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                             <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#E8B4A0]/20 ring-1 ring-[#E8B4A0]/30 shadow-inner">
-                                        <Sparkles className="w-5 h-5 text-[#E8B4A0]" />
+                                        <ArrowLeftRight className="w-5 h-5 text-[#E8B4A0]" />
                                     </div>
                                     <div>
                                         <h2 className="text-lg font-bold text-white">足あと交換所</h2>
@@ -260,118 +261,110 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
 
                             {/* Content Area */}
                             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 [&::-webkit-scrollbar]:hidden">
-                                {activeTab === 'theme' ? (
-                                    // Theme tab content
-                                    loading ? (
-                                        <div className="flex items-center justify-center py-12">
-                                            <div className="w-8 h-8 border-2 border-t-transparent border-[#E8B4A0] rounded-full animate-spin" />
-                                        </div>
-                                    ) : (
-                                        themes.map((theme) => (
-                                            <motion.button
-                                                key={theme.id}
-                                                onClick={() => isUnlocked(theme.id) && !isActive(theme.id) && handleApplyTheme(theme)}
-                                                className={`w-full relative p-4 rounded-2xl border transition-all text-left ${isActive(theme.id)
-                                                    ? 'border-[#B8A6D9] bg-[#B8A6D9]/10'
-                                                    : isUnlocked(theme.id)
-                                                        ? 'border-white/10 hover:border-white/20 bg-white/5'
-                                                        : 'border-white/5 bg-black/20 cursor-not-allowed opacity-50'
-                                                    }`}
-                                                whileTap={isUnlocked(theme.id) ? { scale: 0.98 } : {}}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        {/* Color Preview */}
-                                                        {(() => {
-                                                            const visuals = getThemeVisuals(theme);
-                                                            const Icon = visuals.icon;
-                                                            return (
-                                                                <div
-                                                                    className="w-12 h-12 rounded-xl shadow-inner flex items-center justify-center ring-1 ring-white/10 text-white"
-                                                                    style={{
-                                                                        background: visuals.gradient
-                                                                    }}
-                                                                >
-                                                                    <Icon className="w-6 h-6 drop-shadow-sm" />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                        <div>
-                                                            <h3 className="font-bold text-white flex items-center gap-2 text-sm sm:text-base">
-                                                                {theme.name}
-                                                                {isActive(theme.id) && (
-                                                                    <span className="text-[10px] px-2 py-0.5 rounded-full text-white bg-[#B8A6D9]">
-                                                                        使用中
-                                                                    </span>
-                                                                )}
-                                                                {!isUnlocked(theme.id) && (
-                                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-400">
-                                                                        ロック
-                                                                    </span>
-                                                                )}
-                                                            </h3>
-                                                            <p className="text-xs sm:text-sm text-slate-400 line-clamp-1">{theme.description}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Status Indicator */}
-                                                    {isUnlocked(theme.id) ? (
-                                                        isActive(theme.id) && (
-                                                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#B8A6D9]">
-                                                                <Check className="w-4 h-4 text-white" />
-                                                            </div>
-                                                        )
-                                                    ) : (
-                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5">
-                                                            <Lock className="w-4 h-4 text-slate-500" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </motion.button>
-                                        ))
-                                    )
-                                ) : activeTab === 'layout' ? (
+                                {activeTab === 'layout' ? (
                                     <div className="space-y-6">
                                         {/* Layout Options */}
                                         <div className="space-y-3">
                                             <div className="text-xs font-bold text-[#E8B4A0] mb-1 flex items-center gap-2">
                                                 <Sparkles className="w-4 h-4" />
-                                                レイアウト選択
+                                                レイアウト変更（🐾 1 pt）
                                             </div>
-                                            {LAYOUT_OPTIONS.map((layout) => (
-                                                <motion.button
-                                                    key={layout.id}
-                                                    onClick={() => setSettings(s => ({ ...s, layoutType: layout.id }))}
-                                                    className={`w-full p-4 rounded-2xl border transition-all text-left group ${settings.layoutType === layout.id
-                                                        ? 'border-[#E8B4A0] bg-[#E8B4A0]/10 shadow-[0_0_15px_rgba(232,180,160,0.1)]'
-                                                        : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
-                                                        }`}
-                                                    whileTap={{ scale: 0.98 }}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${settings.layoutType === layout.id ? 'bg-[#E8B4A0]/20' : 'bg-white/10'}`}>
-                                                                <Smartphone className={`w-5 h-5 ${settings.layoutType === layout.id ? 'text-[#E8B4A0]' : 'text-slate-400'}`} />
+                                            {LAYOUT_OPTIONS.map((layout) => {
+                                                const isCurrent = settings.layoutType === layout.id;
+                                                const isConfirming = confirmChange === layout.id;
+
+                                                return (
+                                                    <motion.button
+                                                        key={layout.id}
+                                                        disabled={isCurrent || (purchasing !== null && purchasing !== layout.id)}
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            if (isCurrent || purchasing !== null) return;
+
+                                                            // First tap: Enter confirmation mode
+                                                            if (!isConfirming) {
+                                                                setConfirmChange(layout.id);
+                                                                // Reset after 3 seconds if not confirmed
+                                                                setTimeout(() => setConfirmChange(prev => prev === layout.id ? null : prev), 3000);
+                                                                return;
+                                                            }
+
+                                                            // Second tap: Execute
+                                                            if (stats.householdTotal < 1) {
+                                                                toast.error('ポイントが足りません (🐾 1 pt 必要です)');
+                                                                return;
+                                                            }
+
+                                                            setPurchasing(layout.id);
+                                                            setConfirmChange(null);
+                                                            try {
+                                                                const success = await consumeFootprints('layout_change', 1);
+                                                                if (success) {
+                                                                    // Enforce coupled settings: settings.layoutType => settings.homeButtonMode
+                                                                    // Standard (v2-classic) -> Unified (Concentrated)
+                                                                    // Island (v2-island) -> Separated (Distributed)
+                                                                    const tiedButtonMode = layout.id === 'v2-classic' ? 'unified' : 'separated';
+
+                                                                    setSettings(s => ({
+                                                                        ...s,
+                                                                        layoutType: layout.id,
+                                                                        homeButtonMode: tiedButtonMode
+                                                                    }));
+                                                                    toast.success('レイアウトを変更しました');
+                                                                } else {
+                                                                    toast.error('ポイントの消費に失敗しました。残高や通信状況を確認してください。');
+                                                                }
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                toast.error('システムエラーが発生しました');
+                                                            } finally {
+                                                                setPurchasing(null);
+                                                            }
+                                                        }}
+                                                        className={`w-full p-4 rounded-2xl border transition-all text-left relative group ${isCurrent
+                                                            ? 'border-[#E8B4A0] bg-[#E8B4A0]/10 shadow-[0_0_15px_rgba(232,180,160,0.1)]'
+                                                            : isConfirming
+                                                                ? 'border-orange-400 bg-orange-400/20'
+                                                                : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
+                                                            } ${purchasing === layout.id ? 'opacity-70' : ''}`}
+                                                        whileTap={!isCurrent ? { scale: 0.98 } : {}}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isCurrent ? 'bg-[#E8B4A0]/20' : 'bg-white/10'}`}>
+                                                                    <Smartphone className={`w-5 h-5 ${isCurrent ? 'text-[#E8B4A0]' : 'text-slate-400'}`} />
+                                                                </div>
+                                                                <div>
+                                                                    <h3 className={`font-bold text-sm transition-colors ${isCurrent ? 'text-[#E8B4A0]' : (isConfirming ? 'text-orange-400' : 'text-white')}`}>
+                                                                        {isConfirming ? '消費して変更しますか？' : layout.name}
+                                                                    </h3>
+                                                                    <p className="text-xs text-slate-400 leading-relaxed mt-0.5">{isConfirming ? 'もう一度タップして確定' : layout.description}</p>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <h3 className={`font-bold text-sm transition-colors ${settings.layoutType === layout.id ? 'text-[#E8B4A0]' : 'text-white'}`}>
-                                                                    {layout.name}
-                                                                </h3>
-                                                                <p className="text-xs text-slate-400 leading-relaxed mt-0.5">{layout.description}</p>
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                {isCurrent ? (
+                                                                    <motion.div
+                                                                        initial={{ scale: 0.8, opacity: 0 }}
+                                                                        animate={{ scale: 1, opacity: 1 }}
+                                                                        className="w-6 h-6 rounded-full flex items-center justify-center border border-[#E8B4A0] text-[#E8B4A0]"
+                                                                    >
+                                                                        <Check className="w-3.5 h-3.5" />
+                                                                    </motion.div>
+                                                                ) : (
+                                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isConfirming ? 'bg-orange-400 text-white animate-pulse' : 'text-slate-500 bg-white/5'}`}>
+                                                                        🐾 1 pt
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        {settings.layoutType === layout.id && (
-                                                            <motion.div
-                                                                initial={{ scale: 0.8, opacity: 0 }}
-                                                                animate={{ scale: 1, opacity: 1 }}
-                                                                className="w-6 h-6 rounded-full flex items-center justify-center border border-[#E8B4A0] text-[#E8B4A0]"
-                                                            >
-                                                                <Check className="w-3.5 h-3.5" />
-                                                            </motion.div>
+                                                        {purchasing === layout.id && (
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-2xl">
+                                                                <div className="w-5 h-5 border-2 border-[#E8B4A0] border-t-transparent rounded-full animate-spin" />
+                                                            </div>
                                                         )}
-                                                    </div>
-                                                </motion.button>
-                                            ))}
+                                                    </motion.button>
+                                                );
+                                            })}
                                         </div>
 
                                         {/* Display Mode Section */}
@@ -380,31 +373,153 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                                 <Layers className="w-4 h-4" />
                                                 ホーム画面のスタイル
                                             </div>
-                                            <div className="grid grid-cols-3 gap-2">
+                                            <div className="flex flex-col gap-2">
                                                 {[
-                                                    { id: 'story', name: 'ストーリー', icon: <Smartphone className="w-4 h-4" /> },
-                                                    { id: 'parallax', name: 'カード', icon: <Layers className="w-4 h-4" /> },
-                                                    { id: 'icon', name: 'アイコン', icon: <Sun className="w-4 h-4" /> },
-                                                ].map((mode) => (
-                                                    <button
-                                                        key={mode.id}
-                                                        onClick={() => setSettings(s => ({ ...s, homeViewMode: mode.id as any }))}
-                                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${settings.homeViewMode === mode.id
-                                                            ? 'border-[#B8A6D9] bg-[#B8A6D9]/10 text-[#B8A6D9]'
-                                                            : 'border-white/10 bg-white/5 text-slate-500 hover:border-white/20 hover:bg-white/10'
-                                                            }`}
-                                                    >
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${settings.homeViewMode === mode.id ? 'bg-[#B8A6D9] text-white' : 'bg-white/10 text-slate-400'}`}>
-                                                            {mode.icon}
-                                                        </div>
-                                                        <span className="text-[10px] font-bold">{mode.name}</span>
-                                                    </button>
-                                                ))}
+                                                    { id: 'story', name: 'ストーリー', description: 'シンプルな縦スクロール' },
+                                                    { id: 'parallax', name: 'カード', description: '写真を大きく表示' },
+                                                ].map((mode) => {
+                                                    const isCurrentMode = settings.homeViewMode === mode.id;
+                                                    const isConfirmingMode = confirmChange === mode.id;
+
+                                                    return (
+                                                        <motion.button
+                                                            key={mode.id}
+                                                            disabled={isCurrentMode || (purchasing !== null && purchasing !== mode.id)}
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                if (isCurrentMode || purchasing !== null) return;
+
+                                                                if (!isConfirmingMode) {
+                                                                    setConfirmChange(mode.id);
+                                                                    setTimeout(() => setConfirmChange(prev => prev === mode.id ? null : prev), 3000);
+                                                                    return;
+                                                                }
+
+                                                                if (stats.householdTotal < 1) {
+                                                                    toast.error('ポイントが足りません (🐾 1 pt 必要です)');
+                                                                    return;
+                                                                }
+
+                                                                setPurchasing(mode.id);
+                                                                setConfirmChange(null);
+                                                                try {
+                                                                    const success = await consumeFootprints('style_change', 1);
+                                                                    if (success) {
+                                                                        setSettings(s => ({ ...s, homeViewMode: mode.id as any }));
+                                                                        toast.success('スタイルを変更しました');
+                                                                    } else {
+                                                                        toast.error('ポイントの消費に失敗しました');
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    toast.error('システムエラーが発生しました');
+                                                                } finally {
+                                                                    setPurchasing(null);
+                                                                }
+                                                            }}
+                                                            className={`flex items-center justify-between p-4 rounded-xl border transition-all text-left relative ${isCurrentMode
+                                                                ? 'border-[#E8B4A0] bg-[#E8B4A0]/10'
+                                                                : isConfirmingMode
+                                                                    ? 'border-orange-400 bg-orange-400/20'
+                                                                    : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                                                                } ${purchasing === mode.id ? 'opacity-70' : ''}`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div>
+                                                                    <span className={`block text-sm font-bold ${isCurrentMode ? 'text-[#E8B4A0]' : (isConfirmingMode ? 'text-orange-400' : 'text-white')}`}>
+                                                                        {isConfirmingMode ? '消費して変更しますか？' : mode.name}
+                                                                    </span>
+                                                                    <span className="block text-xs text-slate-400 mt-0.5">{isConfirmingMode ? 'もう一度タップして確定' : mode.description}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                {isCurrentMode ? (
+                                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center border border-[#E8B4A0] text-[#E8B4A0]">
+                                                                        <Check className="w-3 h-3" />
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isConfirmingMode ? 'bg-orange-400 text-white animate-pulse' : 'text-slate-500 bg-white/5'}`}>
+                                                                        🐾 1 pt
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {purchasing === mode.id && (
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl">
+                                                                    <div className="w-4 h-4 border-2 border-[#E8B4A0] border-t-transparent rounded-full animate-spin" />
+                                                                </div>
+                                                            )}
+                                                        </motion.button>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
 
                                         <p className="text-[10px] text-center text-slate-500 mt-2">
                                             レイアウトやスタイルはいつでも変更できます
+                                        </p>
+                                    </div>
+                                ) : activeTab === 'report' ? (
+                                    <div className="space-y-4">
+                                        <div className="text-xs font-bold text-[#E8B4A0] mb-2 flex items-center gap-2">
+                                            <FileText className="w-4 h-4" />
+                                            レポート機能（準備中）
+                                        </div>
+                                        <div className="space-y-2">
+                                            {[
+                                                { name: '一週間レポート', description: '1週間のお世話記録をまとめて共有' },
+                                                { name: '受診レポート', description: '獣医さんに見せる健康レポート' },
+                                                { name: '迷子・災害レポート', description: '緊急時の捜索用プロフィール' },
+                                                { name: '預け先レポート', description: 'ペットホテル・シッター向け情報' },
+                                            ].map((item) => (
+                                                <div
+                                                    key={item.name}
+                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 opacity-60"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <h3 className="font-bold text-white text-sm">{item.name}</h3>
+                                                            <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                                                        </div>
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-500">
+                                                            準備中
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-center text-slate-500 mt-4">
+                                            これらの機能は今後のアップデートで追加予定です
+                                        </p>
+                                    </div>
+                                ) : activeTab === 'goods' ? (
+                                    <div className="space-y-4">
+                                        <div className="text-xs font-bold text-[#E8B4A0] mb-2 flex items-center gap-2">
+                                            <Gift className="w-4 h-4" />
+                                            プリント（準備中）
+                                        </div>
+                                        <div className="space-y-2">
+                                            {[
+                                                { name: '写真プリント便', description: 'お気に入りの写真を高品質プリント' },
+                                                { name: 'フォトブック / カレンダー', description: '思い出をカタチに残す' },
+                                            ].map((item) => (
+                                                <div
+                                                    key={item.name}
+                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 opacity-60"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <h3 className="font-bold text-white text-sm">{item.name}</h3>
+                                                            <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                                                        </div>
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-500">
+                                                            準備中
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-center text-slate-500 mt-4">
+                                            これらの機能は今後のアップデートで追加予定です
                                         </p>
                                     </div>
                                 ) : (
@@ -467,6 +582,3 @@ function getThemeVisuals(theme: ThemeItem) {
         icon: Smartphone
     };
 }
-
-// Helper for theme visuals
-

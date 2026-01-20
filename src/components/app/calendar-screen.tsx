@@ -341,7 +341,7 @@ export function CalendarScreen() {
                                     let completed = 0;
 
                                     careTaskDefs.filter(def => def.enabled).forEach(def => {
-                                        const slots = def.mealSlots || (def.frequency === 'twice-daily' ? ['morning', 'evening'] : ['morning']);
+                                        const slots = def.mealSlots || [];
 
                                         // If no slots (frequency based), just count 1
                                         if (slots.length === 0) {

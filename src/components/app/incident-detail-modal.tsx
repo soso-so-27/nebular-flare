@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppState } from '@/store/app-store';
-import { Loader2, Camera, X, Clock, User } from "lucide-react";
+import { Loader2, Camera, X, Clock, User, Star } from "lucide-react";
+import { ReactionBar } from './reaction-bar';
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, getFullImageUrl } from "@/lib/utils";
 
 type IncidentDetailModalProps = {
     isOpen: boolean;
@@ -19,23 +20,39 @@ type IncidentDetailModalProps = {
 };
 
 const STATUS_OPTIONS = [
-    { id: 'watching', label: '様子見', color: 'bg-[#B8A6D9]' },  // Lavender
-    { id: 'hospital', label: '通院中', color: 'bg-[#B8A6D9]' },  // Lavender
-    { id: 'resolved', label: '解決済み', color: 'bg-[#7CAA8E]' }, // Sage
+    { id: 'log', label: '記録', color: 'bg-slate-400' },
+    { id: 'tracking', label: '追跡中', color: 'bg-[#E8B4A0]' },
+    { id: 'resolved', label: '解決済み', color: 'bg-teal-500' },
 ];
 
-const TYPE_LABELS = {
-    'vomit': '嘔吐',
-    'diarrhea': '下痢',
-    'injury': '怪我',
-    'appetite': '食欲不振',
-    'energy': '元気がない',
-    'toilet': 'トイレ失敗',
-    'other': 'その他'
+const TYPE_LABELS: Record<string, string> = {
+    'daily': '記録',
+    'worried': '相談',
+    'chat': '相談',
+    'log': '記録',
+    'concerned': '相談',
+    'troubled': '相談',
+    'good': '記録',
+    'vomit': '相談',
+    'diarrhea': '相談',
+    'injury': '相談',
+    'appetite': '相談',
+    'energy': '相談',
+    'toilet': '相談',
+    'other': '記録'
 };
 
 export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDetailModalProps) {
-    const { incidents, cats, addIncidentUpdate, resolveIncident } = useAppState();
+    const {
+        incidents,
+        cats,
+        addIncidentUpdate,
+        resolveIncident,
+        addReaction,
+        removeReaction,
+        toggleBookmark,
+        currentUserId
+    } = useAppState();
     const [loading, setLoading] = useState(false);
     const [updateNote, setUpdateNote] = useState('');
     const [statusChange, setStatusChange] = useState('no_change');
@@ -120,21 +137,45 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12">
-                            <AvatarImage src={cat?.avatar} />
-                            <AvatarFallback>{cat?.name?.[0] || '🐈'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <DialogTitle className="text-xl">{typeLabel}</DialogTitle>
-                            <DialogDescription>
-                                {cat?.name} の記録 · {new Date(incident.created_at).toLocaleDateString('ja-JP')}
-                            </DialogDescription>
+                    <div className="flex items-center justify-between pr-8">
+                        <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                                <AvatarImage src={cat?.avatar} />
+                                <AvatarFallback>{cat?.name?.[0] || '🐈'}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <DialogTitle className="text-xl">{typeLabel}</DialogTitle>
+                                <DialogDescription>
+                                    {cat?.name} の記録 · {new Date(incident.created_at).toLocaleDateString('ja-JP')}
+                                </DialogDescription>
+                            </div>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleBookmark(incidentId)}
+                            className={cn(
+                                "rounded-full transition-all flex-shrink-0",
+                                incident.is_bookmarked ? "text-[#E8B4A0] bg-[#E8B4A0]/10" : "text-slate-400"
+                            )}
+                        >
+                            <Star size={20} fill={incident.is_bookmarked ? "currentColor" : "none"} />
+                        </Button>
                     </div>
                 </DialogHeader>
 
-                <div className="space-y-4 py-4">
+                <div className="space-y-6 pt-4 pb-2">
+                    {/* Reactions */}
+                    <div className="py-2 border-y border-slate-100 dark:border-slate-800">
+                        <ReactionBar
+                            incidentId={incidentId}
+                            reactions={incident.reactions || []}
+                            currentUserId={currentUserId || ''}
+                            onAddReaction={(emoji) => addReaction(incidentId, emoji)}
+                            onRemoveReaction={(emoji) => removeReaction(incidentId, emoji)}
+                        />
+                    </div>
+
                     {/* Status Badge */}
                     <div className="flex items-center gap-2">
                         <span className={cn(
@@ -155,13 +196,28 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                         )}
                     </div>
 
-                    {/* Initial Note */}
+                    {/* Initial Note & Photos */}
                     {incident.note && (
                         <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
                             <div className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">
                                 初期メモ
                             </div>
                             <p className="text-sm whitespace-pre-wrap">{incident.note}</p>
+
+                            {/* Main Incident Photos */}
+                            {incident.photos && incident.photos.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {incident.photos.map((photo: string, index: number) => (
+                                        <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                                            <img
+                                                src={getFullImageUrl(photo)}
+                                                alt={`Photo ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -197,9 +253,19 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                         {update.note && (
                                             <p className="text-sm whitespace-pre-wrap">{update.note}</p>
                                         )}
+
+                                        {/* Update Photos */}
                                         {update.photos && update.photos.length > 0 && (
-                                            <div className="text-xs text-slate-500">
-                                                📷 {update.photos.length}枚の写真
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {update.photos.map((photo: string, index: number) => (
+                                                    <div key={index} className="relative w-16 h-16 rounded-md overflow-hidden border border-slate-100 dark:border-slate-700">
+                                                        <img
+                                                            src={getFullImageUrl(photo)}
+                                                            alt={`Update Photo ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>

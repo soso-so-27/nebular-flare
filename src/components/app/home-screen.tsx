@@ -140,10 +140,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                 })
                 .flatMap(def => {
                     // Determine if we should split by slots
-                    const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&
-                        (def.frequency === 'twice-daily' || def.frequency === 'three-times-daily' || def.frequency === 'four-times-daily');
-
-                    const slots = shouldSplit ? (def.mealSlots || []) : [null];
+                    const slots = (def.mealSlots && def.mealSlots.length > 0) ? def.mealSlots : [null];
 
                     return slots.map(slot => {
                         const type = slot ? `${def.id}:${slot}` : def.id;
@@ -444,7 +441,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                 animate={{ y: 0 }}
                                 exit={{ y: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                                className="absolute bottom-16 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl max-h-[70vh] overflow-auto"
+                                className="absolute bottom-16 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl max-h-[70vh] overflow-y-auto scrollbar-hide"
                                 onClick={e => e.stopPropagation()}
                             >
                                 {/* Header */}
@@ -537,7 +534,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                             </div>
                                                             {/* Row 2: Frequency Pills */}
                                                             <div className="flex flex-wrap gap-1.5">
-                                                                {(['once-daily', 'twice-daily', 'three-times-daily', 'four-times-daily', 'as-needed', 'weekly', 'monthly'] as const).map(freq => (
+                                                                {(['daily', 'weekly', 'monthly'] as const).map(freq => (
                                                                     <button
                                                                         key={freq}
                                                                         onClick={() => updateCareTask(task.id, { frequency: freq })}
@@ -548,12 +545,8 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
                                                                                 : "bg-slate-200 text-slate-600 hover:bg-slate-300"
                                                                         )}
                                                                     >
-                                                                        {freq === 'once-daily' ? '1日1回' :
-                                                                            freq === 'twice-daily' ? '1日2回' :
-                                                                                freq === 'three-times-daily' ? '1日3回' :
-                                                                                    freq === 'four-times-daily' ? '1日4回' :
-                                                                                        freq === 'as-needed' ? '必要時' :
-                                                                                            freq === 'weekly' ? '週1回' : '月1回'}
+                                                                        {freq === 'daily' ? '毎日' :
+                                                                            freq === 'weekly' ? '週1回' : '月1回'}
                                                                     </button>
                                                                 ))}
                                                             </div>

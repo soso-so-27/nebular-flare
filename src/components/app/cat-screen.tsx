@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { useAppState } from "@/store/app-store";
-import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image } from "lucide-react";
+import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image, Syringe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { format, differenceInYears, differenceInMonths } from "date-fns";
+import { format, differenceInYears, differenceInMonths, addYears } from "date-fns";
+import { ja } from "date-fns/locale";
 import { WeightChart } from "./weight-chart";
 import { CatEditModal } from "./cat-edit-modal";
 
@@ -29,6 +30,18 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
     const selectedCat = cats.find(c => c.id === activeCatId) || cats[0];
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    // Safe date formatter
+    const safeFormat = (dateStr: string | undefined | null, formatStr: string) => {
+        if (!dateStr) return null;
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return null;
+            return format(date, formatStr, { locale: ja });
+        } catch (e) {
+            return null;
+        }
+    };
 
     // Helper for Age Text
     const getAgeText = () => {
@@ -160,7 +173,6 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                 {/* Glass Content Area */}
                 <div className="px-4 space-y-4">
 
-                    {/* Weight Chart Card */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -180,6 +192,37 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                                 variant="glass"
                             />
                         </div>
+                    </motion.div>
+
+                    {/* Vaccine Status Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-2xl flex items-center justify-between"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-[#7CAA8E]/20 border border-[#7CAA8E]/40 flex items-center justify-center">
+                                <Syringe className="w-6 h-6 text-[#7CAA8E]" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">最新のワクチン</div>
+                                <div className="text-lg font-bold text-white">
+                                    {safeFormat(selectedCat.last_vaccine_date, 'yyyy/MM/dd') || "未接種"}
+                                </div>
+                                {selectedCat.vaccine_type && (
+                                    <div className="text-[10px] text-white/30 font-medium">種類: {selectedCat.vaccine_type}</div>
+                                )}
+                            </div>
+                        </div>
+                        {selectedCat.last_vaccine_date && (
+                            <div className="text-right">
+                                <div className="text-[10px] text-white/30 font-bold uppercase">次回の目安</div>
+                                <div className="text-sm font-black text-white/60">
+                                    {safeFormat(addYears(new Date(selectedCat.last_vaccine_date), 1).toISOString(), 'yyyy/MM')}
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
 
                     {/* Profile Stats Cards */}

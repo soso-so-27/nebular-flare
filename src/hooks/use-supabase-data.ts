@@ -85,7 +85,7 @@ export function useCats(householdId: string | null) {
                 // Fetch images and weights in parallel
                 const [imagesResult, weightsResult] = await Promise.all([
                     supabase.from('cat_images')
-                        .select('id, storage_path, cat_id, created_at, is_favorite')
+                        .select('id, storage_path, cat_id, created_at, is_favorite, memo')
                         .in('cat_id', catIds),
                     supabase.from('cat_weight_history')
                         .select('id, cat_id, weight, recorded_at, notes')
@@ -117,7 +117,8 @@ export function useCats(householdId: string | null) {
                         catId: img.cat_id,
                         storagePath: img.storage_path,
                         createdAt: img.created_at,
-                        isFavorite: img.is_favorite
+                        isFavorite: img.is_favorite,
+                        memo: img.memo
                     }))
                 }));
             }
@@ -164,11 +165,12 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     const supabase = createClient() as any;
 
     // Calculate 'Business Day' range
-    const todayStr = getAdjustedDateString(new Date(), dayStartHour);
-    const startDt = new Date(todayStr);
+    // Calculate 'Business Month' range to support weekly/monthly tracking
+    const startDt = new Date();
+    startDt.setDate(1);
     startDt.setHours(dayStartHour, 0, 0, 0);
     const endDt = new Date(startDt);
-    endDt.setDate(endDt.getDate() + 1);
+    endDt.setMonth(endDt.getMonth() + 1);
 
     useEffect(() => {
         if (!householdId) {
@@ -211,7 +213,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [householdId, todayStr, dayStartHour]);
+    }, [householdId, dayStartHour]);
 
     // Add care log
     async function addCareLog(type: string, catId?: string, note?: string, images: File[] = []) {
@@ -230,14 +232,20 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
             }
         }
 
-        const { error } = await supabase.from('care_logs').insert({
+        const { data, error } = await supabase.from('care_logs').insert({
             household_id: householdId,
             cat_id: catId || null,
             type,
             notes: note || null,
             images: imageUrls.length > 0 ? imageUrls : null,
             done_by: user.user?.id || null,
-        });
+            done_at: new Date().toISOString(),
+        }).select().single();
+
+        // Optimistic update: immediately add to local state if insert succeeded
+        if (!error && data) {
+            setCareLogs(prev => [...prev, data as CareLog]);
+        }
 
         return { error };
     }
@@ -457,7 +465,7 @@ export function useInventory(householdId: string | null) {
 
 // Hook for user profile with household
 export function useUserProfile(currentUser?: any) {
-    const [profile, setProfile] = useState<{ householdId: string | null; displayName: string | null } | null>(null);
+    const [profile, setProfile] = useState<{ householdId: string | null; displayName: string | null; userId: string | null } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const supabase = createClient() as any;
@@ -482,21 +490,22 @@ export function useUserProfile(currentUser?: any) {
 
             const { data, error: fetchError } = await supabase
                 .from('users')
-                .select('household_id, display_name')
+                .select('id, household_id, display_name')
                 .eq('id', user.id)
                 .single();
 
             if (fetchError) {
                 // If user doesn't exist yet (PGRST116 = no rows returned), treat as new user
                 if (fetchError.code === 'PGRST116') {
-                    setProfile({ householdId: null, displayName: null });
+                    setProfile({ householdId: null, displayName: null, userId: null });
                 } else {
                     setError(fetchError.message);
                 }
             } else if (data) {
                 setProfile({
                     householdId: data.household_id,
-                    displayName: data.display_name
+                    displayName: data.display_name,
+                    userId: data.id
                 });
             }
         } catch (err) {
@@ -571,7 +580,8 @@ export function useIncidents(householdId: string | null) {
                 .from('incidents')
                 .select(`
                     *,
-                    updates:incident_updates(*)
+                    updates:incident_updates(*),
+                    reactions:incident_reactions(*)
                 `)
                 .eq('household_id', householdId)
                 .is('deleted_at', null)
@@ -618,7 +628,7 @@ export function useIncidents(householdId: string | null) {
         };
     }, [householdId, fetchIncidents]);
 
-    const addIncident = async (catId: string, type: string, note: string, photos: File[] = []) => {
+    const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string) => {
         if (!householdId) return { error: "No household" };
 
         try {
@@ -646,21 +656,14 @@ export function useIncidents(householdId: string | null) {
                     type,
                     note,
                     photos: photoPaths,
-                    created_by: (await supabase.auth.getUser()).data.user?.id
+                    created_by: (await supabase.auth.getUser()).data.user?.id,
+                    health_category,
+                    health_value
                 } as any)
                 .select()
                 .single();
 
             if (error) throw error;
-
-            // Trigger Notification
-            await supabase.functions.invoke('push-notification', {
-                body: {
-                    type: 'INSERT',
-                    table: 'incidents',
-                    record: data,
-                }
-            });
 
             fetchIncidents();
             return { data };
@@ -766,7 +769,89 @@ export function useIncidents(householdId: string | null) {
         }
     };
 
-    return { incidents, loading, refetch: fetchIncidents, addIncident, addIncidentUpdate, resolveIncident, deleteIncident };
+    // === Phase 1: Reactions ===
+    const addReaction = async (incidentId: string, emoji: string) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return { error: "Not authenticated" };
+
+            const { error } = await supabase
+                .from('incident_reactions')
+                .insert({
+                    incident_id: incidentId,
+                    user_id: user.id,
+                    emoji
+                });
+
+            if (error) throw error;
+            fetchIncidents();
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    const removeReaction = async (incidentId: string, emoji: string) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return { error: "Not authenticated" };
+
+            const { error } = await supabase
+                .from('incident_reactions')
+                .delete()
+                .eq('incident_id', incidentId)
+                .eq('user_id', user.id)
+                .eq('emoji', emoji);
+
+            if (error) throw error;
+            fetchIncidents();
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    // === Phase 3: Bookmark ===
+    const toggleBookmark = async (incidentId: string) => {
+        try {
+            // Find current state
+            const incident = incidents.find(i => i.id === incidentId);
+            const newValue = !incident?.is_bookmarked;
+
+            const { error } = await supabase
+                .from('incidents')
+                .update({ is_bookmarked: newValue })
+                .eq('id', incidentId);
+
+            if (error) throw error;
+
+            // Optimistic update
+            setIncidents(prev => prev.map(i =>
+                i.id === incidentId ? { ...i, is_bookmarked: newValue } : i
+            ));
+            return {};
+        } catch (e) {
+            console.error(e);
+            return { error: e };
+        }
+    };
+
+    return {
+        incidents,
+        loading,
+        refetch: fetchIncidents,
+        addIncident,
+        addIncidentUpdate,
+        resolveIncident,
+        deleteIncident,
+        // Phase 1: Reactions
+        addReaction,
+        removeReaction,
+        // Phase 3: Bookmark
+        toggleBookmark
+    };
 }
 
 export function useNotificationPreferences() {
@@ -835,7 +920,14 @@ export function useDateLogs(householdId: string | null, date: Date) {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const supabase = createClient() as any;
 
-    const dateStr = date.toISOString().split('T')[0];
+    // Create start and end of the selected day in local timezone, then convert to ISO for query
+    // This ensures we query the correct UTC range that corresponds to the local day
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+
+    // Convert to ISO strings (these will be in UTC, accounting for the timezone offset)
+    const start = startOfDay.toISOString();
+    const end = endOfDay.toISOString();
 
     useEffect(() => {
         if (!householdId) {
@@ -845,8 +937,6 @@ export function useDateLogs(householdId: string | null, date: Date) {
 
         async function fetchLogs() {
             setLoading(true);
-            const start = `${dateStr}T00:00:00`;
-            const end = `${dateStr}T23:59:59`;
 
             const { data: careLogs } = await supabase
                 .from('care_logs')
@@ -873,7 +963,7 @@ export function useDateLogs(householdId: string | null, date: Date) {
         }
 
         fetchLogs();
-    }, [householdId, dateStr, refreshTrigger]);
+    }, [householdId, start, refreshTrigger]);
 
     return { ...logs, loading, refetch: () => setRefreshTrigger(prev => prev + 1) };
 }

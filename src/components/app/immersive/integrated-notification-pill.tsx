@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Camera, MessageCircle, Heart, PawPrint, Cat } from "lucide-react";
+import { Heart, PawPrint, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { triggerFeedback } from "@/lib/haptics";
 
@@ -10,26 +10,23 @@ interface IntegratedNotificationPillProps {
     progress: number;
     alertItems: any[];
     footprints?: number;
-    onOpenPhoto?: () => void;
-    onOpenIncident?: () => void;
+
     onOpenCalendar?: () => void;
     onOpenExchange?: () => void;
+    onOpenNyannlog?: () => void;
 }
 
 export function IntegratedNotificationPill({
     progress,
     alertItems,
     footprints = 0,
-    onOpenPhoto,
-    onOpenIncident,
     onOpenCalendar,
-    onOpenExchange
+    onOpenExchange,
+    onOpenNyannlog
 }: IntegratedNotificationPillProps) {
-    // Count by type
-    const photoCount = alertItems.filter(item => item.id?.startsWith('photo-')).length;
-    const incidentCount = alertItems.filter(item => item.type === 'incident').length;
-
-    const hasAnyAlerts = photoCount > 0 || incidentCount > 0;
+    // Count alerts (photos + incidents)
+    const alertCount = alertItems.length;
+    const hasAnyAlerts = alertCount > 0;
 
     const glassStyle = {
         background: hasAnyAlerts
@@ -42,8 +39,8 @@ export function IntegratedNotificationPill({
     };
 
     const segmentBase = "flex items-center gap-1.5 px-4 py-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors";
-    const textColor = hasAnyAlerts ? "text-white" : "text-white";
-    const iconColor = hasAnyAlerts ? "text-white" : "text-white";
+    const textColor = "text-white";
+    const iconColor = "text-white";
 
     return (
         <motion.div
@@ -65,45 +62,6 @@ export function IntegratedNotificationPill({
                     {Math.round(progress * 100)}%
                 </span>
             </motion.button>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/20" />
-
-            {/* 📷 とどける (Photo) */}
-            <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    triggerFeedback('medium');
-                    onOpenPhoto?.();
-                }}
-                className={cn(segmentBase, photoCount > 0 && "bg-white/10")}
-            >
-                <Camera className={cn("w-5 h-5", iconColor)} />
-                <span className={cn("text-xs font-black tabular-nums", textColor)}>
-                    {photoCount}
-                </span>
-            </motion.button>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/20" />
-
-            {/* 💬 そうだん (Incident) */}
-            <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    triggerFeedback('medium');
-                    onOpenIncident?.();
-                }}
-                className={cn(segmentBase, incidentCount > 0 && "bg-white/10")}
-            >
-                <MessageCircle className={cn("w-5 h-5", iconColor)} />
-                <span className={cn("text-xs font-black tabular-nums", textColor)}>
-                    {incidentCount}
-                </span>
-            </motion.button>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/20" />
 
             {/* 🐾 足あと (Footprints) */}
             <motion.button

@@ -20,6 +20,8 @@ export type Cat = {
   weightHistory?: CatWeightRecord[];
   background_mode?: 'random' | 'media' | 'avatar';
   background_media?: string | null;
+  last_vaccine_date?: string; // Last vaccine date
+  vaccine_type?: string; // Type of vaccine
 };
 
 export type PhotoTag = {
@@ -44,7 +46,7 @@ export type CatImage = {
 export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY';
 export type Cadence = 'daily' | 'weekly' | 'monthly' | 'once';
 export type DueTime = 'morning' | 'evening' | 'any' | 'weekend' | 'month';
-export type Frequency = 'once-daily' | 'twice-daily' | 'three-times-daily' | 'four-times-daily' | 'as-needed' | 'weekly' | 'monthly';
+export type Frequency = 'daily' | 'weekly' | 'monthly' | 'as-needed';
 export type TimeOfDay = 'morning' | 'noon' | 'evening' | 'anytime';
 export type MealSlot = 'morning' | 'noon' | 'evening' | 'night';
 export type StockLevel = 'full' | 'half' | 'low' | 'empty';
@@ -57,12 +59,23 @@ export type CareTaskDef = {
   title: string;
   icon: string;
   frequency: Frequency;
+  frequencyType?: 'fixed' | 'interval'; // Default to fixed
+  intervalHours?: number; // Only for interval type
+  frequencyCount?: number; // X times per week/month
   timeOfDay: TimeOfDay;
   mealSlots?: MealSlot[]; // Which time slots this task applies to
   perCat: boolean; // true = per cat, false = shared
   targetCatIds?: string[]; // IDs of cats this task applies to (if perCat is true)
   enabled: boolean;
   deletedAt?: string;
+
+  // Visual & Timing Refinements
+  priority?: 'low' | 'normal' | 'high';
+  startOffsetMinutes?: number; // Minutes before dueTime to show
+  validDurationMinutes?: number; // Minutes after dueTime to keep visible (undefined = forever/until done)
+  userNotes?: string; // Instructions for the task
+  reminderEnabled?: boolean;
+  reminderOffsetMinutes?: number;
 };
 
 export type Task = {
@@ -210,4 +223,5 @@ export type AppSettings = {
   photoTagAssist: boolean;
   dayStartHour: number;
   lastSeenPhotoAt: string;
+  homeButtonMode: 'unified' | 'separated'; // A/B Test for Button Layout
 };

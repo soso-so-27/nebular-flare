@@ -157,5 +157,49 @@ export const sounds = {
                 console.error('[Audio] Success tone error:', e);
             }
         });
+    },
+
+    // Celebration sounds for task completion
+    burst: () => playTone(600, 200, { duration: 0.08, type: 'triangle', volStart: 0.25 }),
+
+    coin: async () => {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        await resumeContext(ctx);
+
+        const now = ctx.currentTime;
+        // High-pitched "ching" sound like collecting a coin
+        const freqs = [1319, 1760]; // E6, A6
+
+        freqs.forEach((freq, i) => {
+            try {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                gain.gain.setValueAtTime(0.25, now + i * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.15);
+
+                osc.start(now + i * 0.08);
+                osc.stop(now + i * 0.08 + 0.15);
+
+                setTimeout(() => {
+                    osc.disconnect();
+                    gain.disconnect();
+                }, 300);
+            } catch (e) {
+                console.error('[Audio] Coin sound error:', e);
+            }
+        });
+    },
+
+    // Combined celebration: burst + coin sequence
+    celebrate: async () => {
+        sounds.burst();
+        setTimeout(() => sounds.coin(), 1200); // Play coin when footprint flies up
     }
 };

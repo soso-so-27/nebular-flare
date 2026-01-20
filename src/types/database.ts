@@ -344,6 +344,9 @@ export interface Database {
                     updated_at: string;
                     resolved_at: string | null;
                     deleted_at: string | null;
+                    is_bookmarked: boolean | null;
+                    health_category: string | null;
+                    health_value: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -374,6 +377,32 @@ export interface Database {
                     updated_at?: string;
                     resolved_at?: string | null;
                     deleted_at?: string | null;
+                    is_bookmarked?: boolean | null;
+                    health_category?: string | null;
+                    health_value?: string | null;
+                };
+            };
+            incident_reactions: {
+                Row: {
+                    id: string;
+                    incident_id: string;
+                    user_id: string;
+                    emoji: string;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    incident_id: string;
+                    user_id: string;
+                    emoji: string;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    incident_id?: string;
+                    user_id?: string;
+                    emoji?: string;
+                    created_at?: string;
                 };
             };
             incident_updates: {

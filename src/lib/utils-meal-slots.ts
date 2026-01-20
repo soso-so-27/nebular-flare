@@ -16,17 +16,10 @@ export function getCurrentMealSlot(hour: number): MealSlot {
     return 'night';
 }
 
-// Get default meal slots for a frequency
 export function getDefaultMealSlots(frequency: Frequency): MealSlot[] {
     switch (frequency) {
-        case 'once-daily':
+        case 'daily':
             return ['morning'];
-        case 'twice-daily':
-            return ['morning', 'evening'];
-        case 'three-times-daily':
-            return ['morning', 'noon', 'evening'];
-        case 'four-times-daily':
-            return ['morning', 'noon', 'evening', 'night'];
         case 'as-needed':
             return []; // No specific slots, always show
         default:

@@ -66,7 +66,7 @@ export default function RootLayout({
         `}} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-hide`}
         style={{ backgroundColor: '#000', margin: 0, padding: 0 }}
         suppressHydrationWarning
       >

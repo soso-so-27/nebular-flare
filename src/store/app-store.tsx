@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
-import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType } from '@/types';
+import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType, Frequency, MealSlot } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
 import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
@@ -38,6 +38,7 @@ type AppState = {
     lastSeenAt: string;
     setLastSeenAt: (v: string) => void;
     householdId: string | null;
+    currentUserId: string | null;
     isDemo: boolean;
     // Supabase functions
     addCareLog: (type: string, catId?: string | null, note?: string, images?: File[]) => Promise<{ error?: any } | undefined>;
@@ -45,7 +46,7 @@ type AppState = {
     addObservation: (catId: string, type: string, value: string, note?: string, images?: File[]) => Promise<{ error?: any } | undefined>;
     acknowledgeObservation: (id: string) => Promise<{ error?: any } | undefined>;
     deleteObservation: (id: string) => Promise<{ error?: any } | undefined>;
-    careLogs: { type: string; done_at: string; slot?: string; date?: string; id?: string; cat_id?: string | null }[];
+    careLogs: { type: string; done_at: string; at?: string; slot?: string; date?: string; id?: string; cat_id?: string | null; done_by?: string | null; images?: string[] | null; }[];
     demoCareLogsDone: Record<string, string>; // taskId -> doneAt ISO string
     observations: any[];
     refetchCats: () => void;
@@ -79,10 +80,15 @@ type AppState = {
     uploadUserImage: (userId: string, file: File) => Promise<{ error?: any; publicUrl?: string }>;
     // Incidents
     incidents: any[];
-    addIncident: (catId: string, type: string, note: string, photos?: File[]) => Promise<{ error?: any; data?: any }>;
+    addIncident: (catId: string, type: string, note: string, photos?: File[], health_category?: string, health_value?: string) => Promise<{ error?: any; data?: any }>;
     addIncidentUpdate: (incidentId: string, note: string, photos?: File[], statusChange?: string) => Promise<{ error?: any }>;
     resolveIncident: (incidentId: string) => Promise<{ error?: any }>;
     deleteIncident: (incidentId: string) => Promise<{ error?: any }>;
+    // Phase 1: Reactions
+    addReaction: (incidentId: string, emoji: string) => Promise<{ error?: any }>;
+    removeReaction: (incidentId: string, emoji: string) => Promise<{ error?: any }>;
+    // Phase 3: Bookmark
+    toggleBookmark: (incidentId: string) => Promise<{ error?: any }>;
 };
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -90,10 +96,11 @@ const AppContext = createContext<AppState | undefined>(undefined);
 type AppProviderProps = {
     children: ReactNode;
     householdId?: string | null;
+    currentUserId?: string | null;
     isDemo?: boolean;
 };
 
-export function AppProvider({ children, householdId = null, isDemo = false }: AppProviderProps) {
+export function AppProvider({ children, householdId = null, currentUserId = null, isDemo = false }: AppProviderProps) {
     const [isPro, setIsPro] = useState(true);
     const [aiEnabled, setAiEnabled] = useState(true);
     const [activeCatId, setActiveCatId] = useState('');
@@ -110,8 +117,29 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             }
             const savedLayout = localStorage.getItem('layoutType');
             const validLayouts: LayoutType[] = ['v2-classic', 'v2-island'];
-            if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
-                savedLayoutType = savedLayout as LayoutType;
+            if (saved && validLayouts.includes(saved as LayoutType)) {
+                savedLayoutType = saved as LayoutType;
+            }
+            const savedButtonMode = localStorage.getItem('homeButtonMode');
+            if (savedButtonMode === 'unified' || savedButtonMode === 'separated') {
+                return {
+                    plan: 'Free',
+                    aiEnabled: true,
+                    engagement: 'passive',
+                    homeMode: 'checklist',
+                    homeViewMode: savedViewMode,
+                    layoutType: savedLayoutType,
+                    weeklySummaryEnabled: true,
+                    quietHours: { start: 23, end: 7 },
+                    invThresholds: { soon: 7, urgent: 3, critical: 1 },
+                    seasonalDeckEnabled: true,
+                    skinPackOwned: false,
+                    skinMode: 'default',
+                    photoTagAssist: true,
+                    dayStartHour: 4,
+                    lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
+                    homeButtonMode: savedButtonMode as 'unified' | 'separated',
+                };
             }
         }
         return {
@@ -130,15 +158,24 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             photoTagAssist: true,
             dayStartHour: 4,
             lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
+            homeButtonMode: 'unified',
         };
     });
 
+    // Persist homeViewMode to localStorage when changed
     // Persist homeViewMode to localStorage when changed
     useEffect(() => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('homeViewMode', settings.homeViewMode);
         }
     }, [settings.homeViewMode]);
+
+    // Persist homeButtonMode to localStorage when changed
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('homeButtonMode', settings.homeButtonMode);
+        }
+    }, [settings.homeButtonMode]);
 
     // Persist layoutType to localStorage when changed
     useEffect(() => {
@@ -173,8 +210,14 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
 
     // Demo mode: use hardcoded cats with real images
     const demoCats: Cat[] = useMemo(() => [
-        { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png" },
-        { id: "c2", name: "雨", age: "2才", sex: "オス", avatar: "/demo-cat-2.png" },
+        {
+            id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png",
+            last_vaccine_date: "2024-05-10", vaccine_type: "3種混合"
+        },
+        {
+            id: "c2", name: "雨", age: "2才", sex: "オス", avatar: "/demo-cat-2.png",
+            last_vaccine_date: "2024-06-15", vaccine_type: "5種混合"
+        },
     ], []);
 
     // Use Supabase cats or demo cats based on mode
@@ -194,7 +237,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const { inventory: supabaseInventory } = useInventory(isDemo ? null : householdId);
 
     // Incidents hook
-    const { incidents, addIncident, addIncidentUpdate, resolveIncident, deleteIncident } = useIncidents(isDemo ? null : householdId);
+    const {
+        incidents,
+        addIncident,
+        addIncidentUpdate,
+        resolveIncident,
+        deleteIncident,
+        addReaction,
+        removeReaction,
+        toggleBookmark
+    } = useIncidents(isDemo ? null : householdId);
 
     useEffect(() => {
         if (!isDemo && householdId && supabaseInventory) {
@@ -256,14 +308,23 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                     id: t.id,
                     title: t.title,
                     icon: t.icon,
-                    frequency: t.frequency,
+                    frequency: t.frequency === 'once-daily' ? 'daily' : (t.frequency === 'twice-daily' ? 'daily' : (t.frequency === 'three-times-daily' ? 'daily' : (t.frequency === 'four-times-daily' ? 'daily' : t.frequency))),
+                    frequencyType: t.frequency_type || 'fixed',
+                    frequencyCount: t.frequency_count || (t.frequency === 'twice-daily' ? 2 : (t.frequency === 'three-times-daily' ? 3 : (t.frequency === 'four-times-daily' ? 4 : 1))),
                     timeOfDay: t.time_of_day,
-                    targetCatIds: t.target_cat_ids,
                     mealSlots: t.meal_slots,
                     perCat: t.per_cat,
+                    targetCatIds: t.target_cat_ids,
                     enabled: t.enabled,
-                    deletedAt: t.deleted_at
-                })) as CareTaskDef[]);
+                    deletedAt: t.deleted_at,
+                    intervalHours: t.interval_hours,
+                    priority: t.priority || 'normal',
+                    startOffsetMinutes: t.start_offset_minutes,
+                    validDurationMinutes: t.valid_duration_minutes,
+                    userNotes: t.user_notes,
+                    reminderEnabled: t.reminder_enabled,
+                    reminderOffsetMinutes: t.reminder_offset_minutes
+                })));
             }
 
             // Notice Defs
@@ -309,6 +370,35 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         };
 
         fetchData();
+
+        // Real-time synchronization for Household Users
+        const usersChannel = supabase.channel('household-users-changes')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'users', filter: `household_id=eq.${householdId}` },
+                (payload: any) => {
+                    if (payload.eventType === 'UPDATE') {
+                        setHouseholdUsers(prev => prev.map(u =>
+                            u.id === payload.new.id ? { ...u, display_name: payload.new.display_name || u.display_name, avatar_url: payload.new.avatar_url || u.avatar_url } : u
+                        ));
+                    } else if (payload.eventType === 'INSERT') {
+                        setHouseholdUsers(prev => {
+                            if (prev.some(u => u.id === payload.new.id)) return prev;
+                            return [...prev, {
+                                id: payload.new.id,
+                                display_name: payload.new.display_name || 'Unknown',
+                                avatar_url: payload.new.avatar_url,
+                                role: 'member',
+                                joined_at: null
+                            }];
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(usersChannel);
+        };
     }, [householdId, isDemo]);
 
     // Real-time synchronization for Settings (Care Tasks, Notices, Inventory)
@@ -316,7 +406,6 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (!householdId || isDemo) return;
 
         const channel = supabase.channel('settings-changes')
-            // Care Tasks
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'care_task_defs', filter: `household_id=eq.${householdId}` },
                 (payload: any) => {
@@ -328,12 +417,21 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                                 title: payload.new.title,
                                 icon: payload.new.icon,
                                 frequency: payload.new.frequency,
+                                frequencyType: payload.new.frequency_type || 'fixed',
+                                frequencyCount: payload.new.frequency_count || 1,
                                 timeOfDay: payload.new.time_of_day,
                                 mealSlots: payload.new.meal_slots,
                                 perCat: payload.new.per_cat,
                                 targetCatIds: payload.new.target_cat_ids,
                                 enabled: payload.new.enabled,
-                                deletedAt: payload.new.deleted_at
+                                deletedAt: payload.new.deleted_at,
+                                intervalHours: payload.new.interval_hours,
+                                priority: payload.new.priority || 'normal',
+                                startOffsetMinutes: payload.new.start_offset_minutes,
+                                validDurationMinutes: payload.new.valid_duration_minutes,
+                                userNotes: payload.new.user_notes,
+                                reminderEnabled: payload.new.reminder_enabled,
+                                reminderOffsetMinutes: payload.new.reminder_offset_minutes
                             };
                             return [...prev, newDef];
                         });
@@ -346,12 +444,21 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                                 title: payload.new.title,
                                 icon: payload.new.icon,
                                 frequency: payload.new.frequency,
+                                frequencyType: payload.new.frequency_type || 'fixed',
+                                frequencyCount: payload.new.frequency_count || 1,
                                 timeOfDay: payload.new.time_of_day,
                                 mealSlots: payload.new.meal_slots,
                                 perCat: payload.new.per_cat,
                                 targetCatIds: payload.new.target_cat_ids,
                                 enabled: payload.new.enabled,
-                                deletedAt: payload.new.deleted_at
+                                deletedAt: payload.new.deleted_at,
+                                intervalHours: payload.new.interval_hours,
+                                priority: payload.new.priority || 'normal',
+                                startOffsetMinutes: payload.new.start_offset_minutes,
+                                validDurationMinutes: payload.new.valid_duration_minutes,
+                                userNotes: payload.new.user_notes,
+                                reminderEnabled: payload.new.reminder_enabled,
+                                reminderOffsetMinutes: payload.new.reminder_offset_minutes
                             } : t));
                         }
                     } else if (payload.eventType === 'DELETE') {
@@ -817,7 +924,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             id,
             title,
             icon: 'Heart', // Default icon
-            frequency: 'once-daily',
+            frequency: 'daily',
             timeOfDay: 'anytime',
             mealSlots: ['morning'], // Default for once-daily
             perCat: false,
@@ -828,6 +935,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         if (settings?.frequency && !settings.mealSlots) {
             const getDefaultSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
                 switch (freq) {
+                    case 'daily': return ['morning'];
                     case 'once-daily': return ['morning'];
                     case 'twice-daily': return ['morning', 'evening'];
                     case 'three-times-daily': return ['morning', 'noon', 'evening'];
@@ -851,7 +959,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 meal_slots: newTask.mealSlots,
                 per_cat: newTask.perCat,
                 target_cat_ids: newTask.targetCatIds,
-                enabled: newTask.enabled
+                enabled: newTask.enabled,
+                frequency_type: newTask.frequencyType || 'fixed',
+                interval_hours: newTask.intervalHours,
+                frequency_count: newTask.frequencyCount,
+                priority: newTask.priority || 'normal',
+                start_offset_minutes: newTask.startOffsetMinutes || 0,
+                valid_duration_minutes: newTask.validDurationMinutes,
+                user_notes: newTask.userNotes,
+                reminder_enabled: newTask.reminderEnabled || false,
+                reminder_offset_minutes: newTask.reminderOffsetMinutes || 0
             });
         }
     };
@@ -861,25 +978,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
     const updateCareTask = async (id: string, updates: Partial<CareTaskDef>) => {
         setCareTaskDefs(prev => prev.map(t => {
             if (t.id !== id) return t;
-
-            const updated = { ...t, ...updates };
-
-            // Auto-update mealSlots when frequency changes (unless explicitly set)
-            if (updates.frequency && !updates.mealSlots) {
-                const getDefaultSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
-                    switch (freq) {
-                        case 'once-daily': return ['morning'];
-                        case 'twice-daily': return ['morning', 'evening'];
-                        case 'three-times-daily': return ['morning', 'noon', 'evening'];
-                        case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
-                        case 'as-needed': return [];
-                        default: return [];
-                    }
-                };
-                updated.mealSlots = getDefaultSlots(updates.frequency);
-            }
-
-            return updated;
+            return { ...t, ...updates };
         }));
 
         if (!isDemo && householdId) {
@@ -892,25 +991,20 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
             if (updates.perCat !== undefined) dbUpdates.per_cat = updates.perCat;
             if (updates.targetCatIds !== undefined) dbUpdates.target_cat_ids = updates.targetCatIds;
             if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
+            if (updates.frequencyType !== undefined) dbUpdates.frequency_type = updates.frequencyType;
+            if (updates.intervalHours !== undefined) dbUpdates.interval_hours = updates.intervalHours;
+            if (updates.frequencyCount !== undefined) dbUpdates.frequency_count = updates.frequencyCount;
+            if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+            if (updates.startOffsetMinutes !== undefined) dbUpdates.start_offset_minutes = updates.startOffsetMinutes;
+            if (updates.validDurationMinutes !== undefined) dbUpdates.valid_duration_minutes = updates.validDurationMinutes;
+            if (updates.userNotes !== undefined) dbUpdates.user_notes = updates.userNotes;
+            if (updates.reminderEnabled !== undefined) dbUpdates.reminder_enabled = updates.reminderEnabled;
+            if (updates.reminderOffsetMinutes !== undefined) dbUpdates.reminder_offset_minutes = updates.reminderOffsetMinutes;
             // Also update meal_slots if auto-updated?
             // The map logic above handles auto-update in local state 'updated' object.
             // We should use 'updated' object logic here?
             // Actually, we should just replicate the logic or pass specific updates.
             // Simpler: recalculate meal_slots if frequency changed.
-            if (updates.frequency && !updates.mealSlots) {
-                const getDefaultSlots = (freq: string) => {
-                    switch (freq) {
-                        case 'once-daily': return ['morning'];
-                        case 'twice-daily': return ['morning', 'evening'];
-                        case 'three-times-daily': return ['morning', 'noon', 'evening'];
-                        case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
-                        case 'as-needed': return [];
-                        default: return [];
-                    }
-                };
-                dbUpdates.meal_slots = getDefaultSlots(updates.frequency);
-            }
-
             await supabase.from('care_task_defs').update(dbUpdates).eq('id', id);
         }
     };
@@ -1272,7 +1366,7 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
                 .insert({
                     cat_id: catId,
                     weight: weight,
-                    note: notes,
+                    notes: notes,
                     recorded_at: new Date().toISOString()
                 });
 
@@ -1347,12 +1441,16 @@ export function AppProvider({ children, householdId = null, isDemo = false }: Ap
         acknowledgeObservation,
         deleteObservation,
         householdUsers,
+        currentUserId,
         // Incidents
         incidents: incidents || [],
         addIncident: addIncident || (async () => ({})),
         addIncidentUpdate: addIncidentUpdate || (async () => ({})),
         resolveIncident: resolveIncident || (async () => ({})),
         deleteIncident: deleteIncident || (async () => ({})),
+        addReaction,
+        removeReaction,
+        toggleBookmark
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

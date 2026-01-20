@@ -1,4 +1,4 @@
-import { Task, NoticeLog, InventoryItem, AppSettings, CareTaskDef, NoticeDef } from "@/types";
+import { Task, NoticeLog, InventoryItem, AppSettings, CareTaskDef, NoticeDef, MealSlot, Frequency, TimeOfDay } from "@/types";
 import { bucketFor } from "./utils-date";
 
 export type CatchUpItem = {
@@ -19,6 +19,23 @@ export type CatchUpItem = {
     actionId?: string;
 };
 
+// --- HELPERS ---
+const formatIntervalJp = (hours: number): string => {
+    if (hours >= 720) {
+        const months = Math.floor(hours / (24 * 30));
+        return months === 1 ? '月に1回' : `${months}ヶ月おき`;
+    }
+    if (hours >= 168) {
+        const weeks = Math.floor(hours / 168);
+        return weeks === 1 ? '週に1回' : `${weeks}週間に1回`;
+    }
+    if (hours % 24 === 0) {
+        const days = hours / 24;
+        return days === 1 ? '毎日' : `${days}日おき`;
+    }
+    return `${hours}時間おき`;
+};
+
 export function getCatchUpItems({
     tasks,
     noticeLogs,
@@ -31,6 +48,7 @@ export function getCatchUpItems({
     noticeDefs,
     today,
     observations,
+    dayStartHour = 0,
 }: {
     tasks: Task[];
     noticeLogs: Record<string, Record<string, NoticeLog>>;
@@ -41,13 +59,22 @@ export function getCatchUpItems({
     cats: { id: string; name: string }[];
     careTaskDefs?: CareTaskDef[];
     careLogs?: any[];
+    careLogsCurrentMonth?: any[];
     noticeDefs?: NoticeDef[];
     today?: string;
     observations?: any[];
+    dayStartHour?: number;
 }): { items: CatchUpItem[]; allItems: CatchUpItem[]; summary: string; remainingCount: number } {
     const items: CatchUpItem[] = [];
+    const allItems: CatchUpItem[] = []; // Not used?
     const lastSeenDate = new Date(lastSeenAt);
     const now = new Date();
+
+    // Calculate Today's Business Start
+    const startDt = new Date(now);
+    startDt.setHours(startDt.getHours() - dayStartHour);
+    startDt.setHours(dayStartHour, 0, 0, 0);
+
     const todayStr = today || now.toISOString().split('T')[0];
 
     // 1. Abnormal Notices (Score 100) - Filtered by enabled noticeDefs
@@ -67,7 +94,7 @@ export function getCatchUpItems({
                     type: 'notice',
                     severity: 100,
                     title: "いつもと違う様子",
-                    body: `${cats.find(c => c.id === log.catId)?.name}: ${log.value}`,
+                    body: `${cats.find(c => c.id === log.catId)?.name}: ${log.value} `,
                     at: log.at,
                     status: 'danger',
                     actionLabel: 'OK',
@@ -106,7 +133,7 @@ export function getCatchUpItems({
                     type: 'notice',
                     severity: 100,
                     title: noticeDef?.title || "いつもと違う様子",
-                    body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}${obs.notes ? `\n📝 ${obs.notes}` : ''}`,
+                    body: `${cats.find(c => c.id === obs.cat_id)?.name}: ${obs.value}${obs.notes ? `\n📝 ${obs.notes}` : ''} `,
                     at: obs.created_at || obs.recorded_at,
                     status: 'danger',
                     actionLabel: '確認',
@@ -125,24 +152,29 @@ export function getCatchUpItems({
     if (careTaskDefs && careLogs) {
         const currentHour = now.getHours();
 
-        // Import meal slot utilities inline to avoid circular deps
-        const getCurrentMealSlot = (hour: number): 'morning' | 'noon' | 'evening' | 'night' => {
-            if (hour >= 5 && hour < 11) return 'morning';
-            if (hour >= 11 && hour < 15) return 'noon';
-            if (hour >= 15 && hour < 20) return 'evening';
-            return 'night';
+        const getSlotStartTime = (slot: string): number => {
+            const date = new Date(now);
+            switch (slot) {
+                case 'morning': date.setHours(5, 0, 0, 0); break;
+                case 'noon': date.setHours(11, 0, 0, 0); break;
+                case 'evening': date.setHours(15, 0, 0, 0); break;
+                case 'night': date.setHours(20, 0, 0, 0); break;
+                default: date.setHours(0, 0, 0, 0);
+            }
+            return date.getTime();
         };
 
         const getDefaultMealSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
             switch (freq) {
+                case 'daily': return ['morning'];
                 case 'once-daily': return ['morning'];
                 case 'twice-daily': return ['morning', 'evening'];
                 case 'three-times-daily': return ['morning', 'noon', 'evening'];
                 case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
-                case 'weekly': return []; // Treat as as-needed for now (TODO: check weekly history)
-                case 'monthly': return []; // Treat as as-needed for now (TODO: check monthly history)
-                case 'as-needed': return []; // Always show
-                default: return ['morning'];
+                case 'weekly': return [];
+                case 'monthly': return [];
+                case 'as-needed': return [];
+                default: return [];
             }
         };
 
@@ -156,102 +188,179 @@ export function getCatchUpItems({
             }
         };
 
-        const currentSlot = getCurrentMealSlot(currentHour);
+        const getPrioritySeverity = (priority?: string): number => {
+            switch (priority) {
+                case 'high': return 90;
+                case 'low': return 65;
+                default: return 80;
+            }
+        };
 
         careTaskDefs.filter(def => def.enabled).forEach(def => {
-            // Get meal slots for this task
-            const slots = def.mealSlots || getDefaultMealSlots(def.frequency);
+            const baseSeverity = getPrioritySeverity(def.priority);
 
-            // For 'as-needed', always show if not done today
-            if (def.frequency === 'as-needed' || slots.length === 0) {
-                const matchingLog = careLogs.find(log => log.type === def.id);
-                if (!matchingLog) {
-                    items.push({
-                        id: def.id,
-                        type: 'task',
-                        severity: 70, // Lower priority for as-needed
-                        title: def.title,
-                        body: "必要に応じて",
-                        at: now.toISOString(),
-                        status: 'info',
-                        actionLabel: '済んだ',
-                        payload: def,
-                        meta: 'お世話',
-                        icon: def.icon,
-                        actionId: def.id,
-                    });
+            // --- A. INTERVAL-BASED SCHEDULING ---
+            if (def.frequencyType === 'interval' && def.intervalHours) {
+                const intervalMs = def.intervalHours * 60 * 60 * 1000;
+
+                const checkIntervalForCat = (catId?: string) => {
+                    const lastLog = [...(careLogs || [])]
+                        .filter(log => log.type === def.id && (catId ? log.cat_id === catId : true))
+                        .sort((a, b) => new Date(b.done_at).getTime() - new Date(a.done_at).getTime())[0];
+
+                    const nextDueAt = lastLog
+                        ? new Date(lastLog.done_at).getTime() + intervalMs
+                        : 0; // If never done, it's due now
+
+                    const startAt = nextDueAt - (def.startOffsetMinutes || 0) * 60 * 1000;
+
+                    if (now.getTime() >= startAt && def.intervalHours) {
+                        const intervalLabel = formatIntervalJp(def.intervalHours);
+                        const catName = catId ? cats.find(c => c.id === catId)?.name : null;
+                        const body = catName
+                            ? `${catName}の分 ・ ${intervalLabel}`
+                            : `みんなの分 ・ ${intervalLabel}`;
+
+                        items.push({
+                            id: `${def.id}_${catId || 'shared'} _interval`,
+                            type: 'task',
+                            severity: baseSeverity,
+                            title: def.title,
+                            body: body,
+                            at: new Date(nextDueAt).toISOString(),
+                            status: now.getTime() >= nextDueAt ? 'warn' : 'info',
+                            actionLabel: '済んだ',
+                            payload: { ...def, catId },
+                            meta: catName ? `${catName} ・ お世話` : 'お世話',
+                            icon: def.icon,
+                            catId,
+                            actionId: def.id,
+                        });
+                    }
+                };
+
+                if (def.perCat) {
+                    cats.forEach(cat => checkIntervalForCat(cat.id));
+                } else {
+                    checkIntervalForCat();
                 }
                 return;
             }
 
-            // Check ALL valid slots up to current time
-            const slotOrder = ['morning', 'noon', 'evening', 'night'];
-            const currentSlotIndex = slotOrder.indexOf(currentSlot);
+            // --- B. FIXED/CALENDAR-BASED and GOAL-BASED ---
+            const slots = def.mealSlots || getDefaultMealSlots(def.frequency);
+            const frequencyCount = def.frequencyCount || slots.length || 1;
 
-            for (const slot of slots) {
-                const slotIndex = slotOrder.indexOf(slot as any);
+            // Type 1: Fixed Time Points (if mealSlots exist)
+            if (slots.length > 0) {
+                const checkSlotsForCat = (catId?: string) => {
+                    // Collect all currently "valid and pending" slots
+                    const pendingSlots: { slot: MealSlot; slotStartTime: number }[] = [];
 
-                // Skip future slots
-                if (slotIndex > currentSlotIndex) continue;
-
-                // Check if this slot is done
-                const slotLabel = getMealSlotLabel(slot);
-
-                // Logic to check if done matches home-screen/check-section logic
-                // 1. Shared Task
-                let isDone = false;
-
-                if (def.perCat && cats.length > 0) {
-                    // Per-cat task
-                    cats.forEach(cat => {
-                        const typeToCheck = slot ? `${def.id}:${slot}` : def.id;
-                        // Match log by type AND (cat_id matches OR cat_id is null for legacy data)
-                        const matchingLog = careLogs.find(log =>
-                            log.type === typeToCheck &&
-                            (log.cat_id === cat.id || log.cat_id === null)
+                    slots.forEach((slot) => {
+                        const slotStartTime = getSlotStartTime(slot);
+                        const specificType = `${def.id}:${slot}`;
+                        const isDoneToday = (careLogs || []).some(log =>
+                            log.type === specificType &&
+                            (catId ? log.cat_id === catId : true) &&
+                            new Date(log.done_at).getTime() >= startDt.getTime()
                         );
 
-                        if (!matchingLog) {
-                            items.push({
-                                id: `${def.id}_${cat.id}_${slot}`,
-                                type: 'task',
-                                severity: slot === currentSlot ? 85 : 75, // Higher for current
-                                title: `${def.title}（${slotLabel}）`,
-                                body: slot === currentSlot ? `${cat.name}の${slotLabel}の分` : '前回の分が未完了です',
-                                at: now.toISOString(),
-                                status: slot === currentSlot ? 'warn' : 'info',
-                                actionLabel: '済んだ',
-                                payload: { ...def, catId: cat.id, slot: slot },
-                                meta: `${cat.name} ・ お世話`,
-                                icon: def.icon,
-                                catId: cat.id,
-                                actionId: typeToCheck,
-                            });
+                        const startAt = slotStartTime - (def.startOffsetMinutes || 0) * 60 * 1000;
+                        if (!isDoneToday && now.getTime() >= startAt) {
+                            pendingSlots.push({ slot, slotStartTime });
                         }
                     });
-                } else {
-                    // Shared task
-                    const typeToCheck = slot ? `${def.id}:${slot}` : def.id;
-                    const matchingLog = careLogs.find(log =>
-                        log.type === typeToCheck
-                    );
 
-                    if (!matchingLog) {
-                        items.push({
-                            id: `${def.id}_${slot}`,
-                            type: 'task',
-                            severity: slot === currentSlot ? 85 : 75,
-                            title: `${def.title}（${slotLabel}）`,
-                            body: slot === currentSlot ? `${slotLabel}の分です` : '前回の分が未完了です',
-                            at: now.toISOString(),
-                            status: slot === currentSlot ? 'warn' : 'info',
-                            actionLabel: '済んだ',
-                            payload: { ...def, slot: slot },
-                            meta: 'お世話',
-                            icon: def.icon,
-                            actionId: typeToCheck,
+                    if (pendingSlots.length > 0) {
+                        // Show ALL pending slots, not just the latest
+                        pendingSlots.forEach(({ slot, slotStartTime }) => {
+                            const catName = catId ? cats.find(c => c.id === catId)?.name : null;
+                            const slotLabel = getMealSlotLabel(slot);
+                            items.push({
+                                id: `${def.id}_${catId || 'shared'}_${slot}`,
+                                type: 'task',
+                                severity: baseSeverity,
+                                title: def.title,
+                                body: catName ? `${catName}の分 ・ ${slotLabel}` : `みんなの分 ・ ${slotLabel}`,
+                                at: new Date(slotStartTime).toISOString(),
+                                status: now.getTime() >= slotStartTime ? 'warn' : 'info',
+                                actionLabel: '済んだ',
+                                payload: { ...def, catId, slot },
+                                meta: catName ? `${catName} ・ お世話` : 'お世話',
+                                icon: def.icon,
+                                catId,
+                                actionId: `${def.id}:${slot}`,
+                            });
                         });
                     }
+                };
+
+                if (def.perCat) {
+                    cats.forEach(cat => checkSlotsForCat(cat.id));
+                } else {
+                    checkSlotsForCat();
+                }
+            } else {
+                // Type 2: Goal Counts (Daily/Weekly/Monthly without specific slots)
+                const checkGoalForCat = (catId?: string) => {
+                    const logs = (careLogs || []).filter(log =>
+                        log.type === def.id &&
+                        (catId ? log.cat_id === catId : true)
+                    );
+
+                    let periodStart = new Date(startDt);
+                    let periodLabel = '今日分';
+
+                    if (def.frequency === 'weekly') {
+                        const d = new Date(now);
+                        d.setHours(d.getHours() - dayStartHour);
+                        const day = d.getDay();
+                        const diffToMon = (day === 0 ? -6 : 1 - day);
+                        d.setDate(d.getDate() + diffToMon);
+                        periodStart = new Date(d);
+                        periodStart.setHours(dayStartHour, 0, 0, 0);
+                        periodLabel = '今週分';
+                    } else if (def.frequency === 'monthly') {
+                        const d = new Date(now);
+                        d.setHours(d.getHours() - dayStartHour);
+                        periodStart = new Date(d.getFullYear(), d.getMonth(), 1);
+                        periodStart.setHours(dayStartHour, 0, 0, 0);
+                        periodLabel = '今月分';
+                    }
+
+                    const doneInPeriod = logs.filter(log => {
+                        const logTime = new Date(log.done_at || log.at).getTime();
+                        return logTime >= periodStart.getTime();
+                    });
+                    const doneCount = doneInPeriod.length;
+
+                    if (doneCount < frequencyCount) {
+                        const catName = catId ? cats.find(c => c.id === catId)?.name : null;
+                        const progress = frequencyCount > 1 ? ` (${doneCount + 1}/${frequencyCount})` : '';
+
+                        items.push({
+                            id: `${def.id}_${catId || 'shared'}_goal`,
+                            type: 'task',
+                            severity: baseSeverity - 5,
+                            title: def.title + progress,
+                            body: catName ? `${catName}の分 ・ ${periodLabel}` : `みんなの分 ・ ${periodLabel}`,
+                            at: now.toISOString(),
+                            status: 'info',
+                            actionLabel: '済んだ',
+                            payload: { ...def, catId },
+                            meta: catName ? `${catName} ・ お世話` : 'お世話',
+                            icon: def.icon,
+                            catId,
+                            actionId: def.id,
+                        });
+                    }
+                };
+
+                if (def.perCat) {
+                    cats.forEach(cat => checkGoalForCat(cat.id));
+                } else {
+                    checkGoalForCat();
                 }
             }
         });
@@ -316,14 +425,14 @@ export function getCatchUpItems({
         if (shouldAlert) {
             const bodyParts = [`残り約 ${daysLeft} 日分`];
             if (it.purchaseMemo) {
-                bodyParts.push(`メモ: ${it.purchaseMemo}`);
+                bodyParts.push(`メモ: ${it.purchaseMemo} `);
             }
 
             items.push({
                 id: it.id,
                 type: 'inventory',
                 severity,
-                title: `${it.label}が少なくなっています`,
+                title: `${it.label} が少なくなっています`,
                 body: bodyParts.join(' ・ '),
                 at: now.toISOString(),
                 status,
@@ -349,8 +458,8 @@ export function getCatchUpItems({
     let summary = "すべて順調です";
     if (counts.abnormal > 0 || counts.urgent > 0) {
         const parts = [];
-        if (counts.abnormal > 0) parts.push(`気になる変化 ${counts.abnormal}件`);
-        if (counts.urgent > 0) parts.push(`未処理 ${counts.urgent}件`);
+        if (counts.abnormal > 0) parts.push(`気になる変化 ${counts.abnormal} 件`);
+        if (counts.urgent > 0) parts.push(`未処理 ${counts.urgent} 件`);
         summary = parts.join(' ・ ');
     }
 

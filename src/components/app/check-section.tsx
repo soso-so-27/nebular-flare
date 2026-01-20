@@ -129,14 +129,7 @@ export function CheckSection() {
     };
 
     const getDefaultMealSlots = (freq: string): ('morning' | 'noon' | 'evening' | 'night')[] => {
-        switch (freq) {
-            case 'once-daily': return ['morning'];
-            case 'twice-daily': return ['morning', 'evening'];
-            case 'three-times-daily': return ['morning', 'noon', 'evening'];
-            case 'four-times-daily': return ['morning', 'noon', 'evening', 'night'];
-            case 'as-needed': return [];
-            default: return ['morning'];
-        }
+        return ['morning'];
     };
 
     const getMealSlotLabel = (slot: string): string => {
@@ -171,7 +164,7 @@ export function CheckSection() {
         const items: CheckItem[] = [];
 
         enabledTasks.forEach(def => {
-            const slots = def.mealSlots || getDefaultMealSlots(def.frequency);
+            const slots = (def.mealSlots && def.mealSlots.length > 0) ? def.mealSlots : [];
 
             // For 'as-needed' or tasks without specific slots, check if done today
             if (def.frequency === 'as-needed' || slots.length === 0) {

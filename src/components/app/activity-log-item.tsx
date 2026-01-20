@@ -16,7 +16,7 @@ import { getIcon } from "@/lib/icon-utils";
 
 export interface ActivityItem {
     id: string;
-    type: 'care' | 'observation' | 'inventory' | 'incident';
+    type: 'care' | 'observation' | 'inventory' | 'incident' | 'nyannlog';
     title: string;
     catName?: string;
     userName?: string;
@@ -45,6 +45,7 @@ export const getActivityColor = (type: string) => {
             // Grouped with Todokeru (Peach)
             return "bg-[#E8B4A0]/10 text-[#E8B4A0] ring-1 ring-[#E8B4A0]/30";
         case 'incident':
+        case 'nyannlog':
             return "bg-[#B8A6D9]/20 text-[#B8A6D9] ring-1 ring-[#B8A6D9]/40 shadow-[0_0_10px_rgba(184,166,217,0.2)]";
         default:
             return "bg-slate-100 dark:bg-slate-800 text-slate-500";
@@ -68,6 +69,7 @@ export const getActivityIcon = (item: ActivityItem) => {
         case 'inventory':
             return <ShoppingCart className="h-3.5 w-3.5" />;
         case 'incident':
+        case 'nyannlog':
             return <AlertCircle className="h-3.5 w-3.5" />;
         default:
             return <Activity className="h-3.5 w-3.5" />;

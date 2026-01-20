@@ -78,6 +78,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         isDemo
     } = useAppState();
 
+    // Modal states - moved to SidebarMenu level to persist across re-renders
+    const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+    const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+    const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
+    const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+    const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+
     const { dayStartHour } = settings;
 
     // --- Logic Reuse (Calculations) ---
@@ -107,9 +114,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         return careTaskDefs
             .filter(def => def.enabled !== false)
             .flatMap(def => {
-                const shouldSplit = def.mealSlots && def.mealSlots.length > 0 &&
-                    (def.frequency === 'twice-daily' || def.frequency === 'three-times-daily' || def.frequency === 'four-times-daily');
-                const slots = shouldSplit ? (def.mealSlots || []) : [null];
+                const slots = (def.mealSlots && def.mealSlots.length > 0) ? def.mealSlots : [null];
 
                 return slots.map(slot => {
                     const type = slot ? `${def.id}:${slot}` : def.id;
@@ -202,32 +207,32 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
         const urgentCount = inventoryItems.filter(it => it.status !== 'ok').length;
 
-        // Reusable Menu Item Component for Minimal Premium
+        // Reusable Menu Item Component - More compact and premium
         const MenuItem = ({ icon: Icon, title, subtext, onClick, urgent }: any) => (
             <button
                 onClick={onClick}
-                className="w-full relative flex items-center gap-4 p-5 rounded-[28px] 
+                className="w-full relative flex items-center gap-4 p-4 rounded-[24px] 
                     bg-white/30 dark:bg-slate-900/30 backdrop-blur-2xl
                     border border-white/60 dark:border-white/10
-                    shadow-[0_8px_32px_-4px_rgba(0,0,0,0.1),inset_0_1px_1px_0_rgba(255,255,255,0.4)]
+                    shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08),inset_0_1px_1px_0_rgba(255,255,255,0.4)]
                     hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 group overflow-hidden"
             >
                 {/* Specular highlights */}
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative shrink-0 shadow-sm ring-1 ring-white/20 bg-slate-100 dark:bg-slate-800">
-                    <Icon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center relative shrink-0 shadow-sm ring-1 ring-white/20 bg-slate-100 dark:bg-slate-800">
+                    <Icon className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                     {urgent && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white animate-pulse shadow-sm" />
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse shadow-sm" />
                     )}
                 </div>
 
                 <div className="flex flex-col items-start text-left">
-                    <span className="font-bold text-slate-800 dark:text-white text-[15px] tracking-tight">{title}</span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{subtext}</span>
+                    <span className="font-bold text-slate-800 dark:text-white text-[14px] tracking-tight">{title}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{subtext}</span>
                 </div>
 
-                <ChevronRight className="ml-auto w-5 h-5 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                <ChevronRight className="ml-auto w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
             </button>
         );
 
@@ -241,15 +246,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 />
 
                 <MenuItem
-                    icon={Calendar}
-                    title="カレンダー"
-                    subtext="お世話の記録と今後の予定を確認"
-                    onClick={() => { onNavigate('calendar'); onClose(); }}
-                />
-
-                <MenuItem
                     icon={ShoppingBag}
-                    title="在庫チェック"
+                    title="在庫管理"
                     subtext="フードや消耗品のストック管理"
                     urgent={urgentCount > 0}
                     onClick={() => pushView('inventory')}
@@ -361,16 +359,11 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         </div>
     );
 
-    // Level 2: Settings Menu
     const SettingsView = () => {
         const { isPro, setIsPro, aiEnabled, setAiEnabled, settings, setSettings, isDemo } = useAppState();
         const { user, signOut } = useAuth();
         const [isLoggingOut, setIsLoggingOut] = useState(false);
-        const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-        const [isCareModalOpen, setIsCareModalOpen] = useState(false);
-        const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
-        const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
-        const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+        // Modal states moved to SidebarMenu level - use parent state here
 
         const handleLogout = async () => {
             if (isDemo) {
@@ -488,13 +481,14 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         className="w-full flex items-center justify-between py-3 text-left group"
                     >
                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">お世話の設定</span>
+                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">ONEGAIの設定</span>
                             <span className="text-[10px] text-slate-500">ご飯、トイレ、定期タスク</span>
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </button>
                     <div className="h-px bg-slate-200/50" />
 
+                    {/* 記録項目の設定 (Hidden for now)
                     <button
                         onClick={() => setIsNoticeModalOpen(true)}
                         className="w-full flex items-center justify-between py-3 text-left group"
@@ -506,6 +500,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
                     </button>
                     <div className="h-px bg-slate-200/50" />
+                    */}
 
                     <button
                         onClick={() => setIsInventoryModalOpen(true)}
@@ -572,7 +567,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                             if (info.offset.y > 100) onClose();
                         }}
                     >
-                        <div className="bg-[#FAF9F7]/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-[92vh] flex flex-col w-full max-w-lg mx-auto relative group">
+                        <div className="bg-[#FAF9F7]/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-auto max-h-[92vh] flex flex-col w-full max-w-lg mx-auto relative group">
                             {/* Specular Elements */}
                             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
                             <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
@@ -599,7 +594,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     <h1 className="text-xl font-bold text-slate-800 tracking-tight">
                                         {activeView === 'root' ? 'Menu' :
                                             activeView === 'settings' ? '設定' :
-                                                activeView === 'inventory' ? '在庫' :
+                                                activeView === 'inventory' ? '在庫管理' :
                                                     activeView === 'activity' ? 'お世話履歴' :
                                                         activeView === 'notifications' ? '通知' : 'Menu'}
                                     </h1>
@@ -640,8 +635,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                 </div>
                             )}
 
-                            {/* Content Area */}
-                            <div className="flex-1 relative z-10 overflow-hidden">
+                            {/* Content Area - Changed from flex-1 to auto to support h-auto parent */}
+                            <div className="relative z-10">
                                 <AnimatePresence initial={false} custom={direction}>
                                     <motion.div
                                         key={activeView}
@@ -650,7 +645,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         initial="enter"
                                         animate="center"
                                         exit="exit"
-                                        className="absolute inset-0 overflow-y-auto px-6 pt-2 pb-10"
+                                        className="w-full px-6 pt-2 pb-10"
                                     >
                                         {activeView === 'root' && <RootView />}
                                         {activeView === 'inventory' && <InventoryView />}

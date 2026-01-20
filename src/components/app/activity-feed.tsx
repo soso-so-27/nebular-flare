@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { ActivityLogItem, ActivityItem } from "./activity-log-item";
 
-export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: boolean; limit?: number }) {
+export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: { embedded?: boolean; limit?: number, filter?: 'all' | 'care' }) {
     const {
         careLogs,
         observations,
@@ -85,36 +85,84 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
             });
         });
 
-        // Add incidents
-        incidents.forEach((inc: any) => {
-            const cat = cats.find(c => c.id === inc.cat_id);
-            const typeLabel = {
-                'vomit': '嘔吐',
-                'diarrhea': '下痢',
-                'injury': '怪我',
-                'appetite': '食欲不振',
-                'energy': '元気がない',
-                'toilet': 'トイレ失敗',
-                'other': 'その他'
-            }[inc.type as string] || inc.type;
+        // Add incidents (including nyannlog) based on filter
+        if (filter === 'all') {
+            incidents.forEach((inc: any) => {
+                const cat = cats.find(c => c.id === inc.cat_id);
+                const typeLabel = {
+                    'log': 'きろく',
+                    'chat': 'みんなで話す',
+                    'vomit': '嘔吐',
+                    'diarrhea': '下痢',
+                    'injury': '怪我',
+                    'appetite': '食欲不振',
+                    'energy': '元気がない',
+                    'toilet': 'トイレ失敗',
+                    'other': 'その他'
+                }[inc.type as string] || inc.type;
 
-            const userInfo = getUserInfo(inc.created_by);
+                const userInfo = getUserInfo(inc.created_by);
 
-            items.push({
-                id: `inc-${inc.id}`,
-                type: 'observation', // Use observation style for now, or add new type
-                title: `⚠️ ${typeLabel}`, // Add warning icon to title
-                catName: cat?.name,
-                userId: inc.created_by,
-                userName: userInfo.name,
-                userAvatar: userInfo.avatar,
-                timestamp: inc.created_at,
-                notes: inc.note,
-                icon: 'alert-circle'
+                // ニャンログタイプに応じてアイコンと表示を調整
+                const isNyannlog = inc.type === 'log' || inc.type === 'chat';
+
+                // If filtering for care, exclude 'chat' and simple 'log' unless relevant?
+                // For now, if filter is 'care', we skip general logs/chats
+                // But we include health incidents
+
+                const displayTitle = isNyannlog ? typeLabel : `⚠️ ${typeLabel}`;
+                const iconName = isNyannlog
+                    ? (inc.type === 'chat' ? 'message-circle' : 'pen-line')
+                    : 'alert-circle';
+
+                items.push({
+                    id: `inc-${inc.id}`,
+                    type: 'observation',
+                    title: displayTitle,
+                    catName: cat?.name,
+                    userId: inc.created_by,
+                    userName: userInfo.name,
+                    userAvatar: userInfo.avatar,
+                    timestamp: inc.created_at,
+                    notes: inc.note,
+                    icon: iconName
+                });
             });
-        });
+        } else if (filter === 'care') {
+            // For care filter, only include health/physical incidents, exclude social/diary
+            incidents.forEach((inc: any) => {
+                if (inc.type === 'chat' || inc.type === 'log') return; // Skip diary/chat
 
-        // Add observations
+                const cat = cats.find(c => c.id === inc.cat_id);
+                const typeLabel = {
+                    'vomit': '嘔吐',
+                    'diarrhea': '下痢',
+                    'injury': '怪我',
+                    'appetite': '食欲不振',
+                    'energy': '元気がない',
+                    'toilet': 'トイレ失敗',
+                    'other': 'その他'
+                }[inc.type as string] || inc.type;
+
+                const userInfo = getUserInfo(inc.created_by);
+                const displayTitle = `⚠️ ${typeLabel}`;
+
+                items.push({
+                    id: `inc-${inc.id}`,
+                    type: 'observation',
+                    title: displayTitle,
+                    catName: cat?.name,
+                    userId: inc.created_by,
+                    userName: userInfo.name,
+                    userAvatar: userInfo.avatar,
+                    timestamp: inc.created_at,
+                    notes: inc.note,
+                    icon: 'alert-circle'
+                });
+            });
+        }
+
+        // Add observations (Always relevant to care)
         observations.forEach((obs: any) => {
             const cat = cats.find(c => c.id === obs.cat_id);
 
@@ -179,7 +227,7 @@ export function ActivityFeed({ embedded = false, limit = 10 }: { embedded?: bool
 
         // Return only latest items based on limit
         return items.slice(0, limit);
-    }, [careLogs, observations, cats, careTaskDefs, noticeDefs, householdUsers, limit]);
+    }, [careLogs, observations, incidents, cats, careTaskDefs, noticeDefs, householdUsers, limit, filter]);
 
     // Random background image from active cat's gallery (same as CheckSection)
     const [bgImage, setBgImage] = useState<string | null>(null);

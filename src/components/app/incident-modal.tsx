@@ -124,7 +124,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10002] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[50002] flex items-end justify-center bg-black/60 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -153,7 +153,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             {/* Cat Selection - Horizontal Scroll with Bounce */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-[#B8A6D9] text-xs font-bold pl-1">だれのようす？</Label>
+                                <Label className="text-[#E8B4A0] text-xs font-bold pl-1">だれのようす？</Label>
                                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar pl-1 flex-wrap">
                                     {cats.map(cat => (
                                         <button
@@ -170,7 +170,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                             className={`
                                                 px-4 py-2 rounded-full text-sm font-bold transition-all duration-200
                                                 ${selectedCatIds.has(cat.id)
-                                                    ? 'bg-[#B8A6D9] text-white shadow-[0_0_15px_rgba(184,166,217,0.4)] scale-105'
+                                                    ? 'bg-[#E8B4A0] text-white shadow-[0_0_15px_rgba(232,180,160,0.4)] scale-105'
                                                     : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'}
                                             `}
                                         >
@@ -180,25 +180,25 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                 </div>
                             </div>
 
-                            {/* Incident Type - Icon Grid */}
+                            {/* Incident Type - Compact Icon Grid */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-[#B8A6D9] text-xs font-bold pl-1">どうしたの？</Label>
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                <Label className="text-[#E8B4A0] text-xs font-bold pl-1">どうしたの？</Label>
+                                <div className="grid grid-cols-4 gap-2">
                                     {INCIDENT_TYPES.map(t => {
                                         const isActive = type === t.id;
                                         return (
                                             <button
                                                 key={t.id}
                                                 onClick={() => setType(t.id)}
-                                                className={`flex flex-col items-center justify-center aspect-square rounded-2xl border transition-all duration-200 ${isActive
-                                                    ? 'bg-[#B8A6D9]/20 border-[#B8A6D9] shadow-[0_0_15px_rgba(184,166,217,0.2)] scale-95'
+                                                className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all duration-200 ${isActive
+                                                    ? 'bg-[#E8B4A0]/20 border-[#E8B4A0] shadow-[0_0_12px_rgba(232,180,160,0.2)]'
                                                     : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-400'
                                                     }`}
                                             >
-                                                <div className={`p-2.5 rounded-full mb-1.5 ${isActive ? 'bg-[#B8A6D9] text-white shadow-sm' : 'bg-transparent'}`}>
-                                                    <t.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                                                <div className={`p-1.5 rounded-full mb-1 ${isActive ? 'bg-[#E8B4A0] text-white' : 'bg-transparent'}`}>
+                                                    <t.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                                                 </div>
-                                                <span className={`text-[10px] font-bold ${isActive ? 'text-[#B8A6D9]' : 'text-slate-500'}`}>
+                                                <span className={`text-[9px] font-bold leading-tight ${isActive ? 'text-[#E8B4A0]' : 'text-slate-500'}`}>
                                                     {t.label}
                                                 </span>
                                             </button>
@@ -210,18 +210,18 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                             {/* Note & Photos */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="note" className="text-[#B8A6D9] text-xs font-bold pl-1">詳細メモ</Label>
+                                    <Label htmlFor="note" className="text-[#E8B4A0] text-xs font-bold pl-1">詳細メモ</Label>
                                     <Textarea
                                         id="note"
                                         placeholder="詳しい状況を入力..."
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
-                                        className="min-h-[80px] bg-black/20 border-white/10 focus:bg-black/40 focus:ring-[#B8A6D9] rounded-2xl resize-none shadow-inner text-white placeholder:text-slate-600"
+                                        className="min-h-[80px] bg-black/20 border-white/10 focus:bg-black/40 focus:ring-[#E8B4A0] rounded-2xl resize-none shadow-inner text-white placeholder:text-slate-600"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-[#B8A6D9] text-xs font-bold pl-1">写真</Label>
+                                    <Label className="text-[#E8B4A0] text-xs font-bold pl-1">写真</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {previewUrls.map((url, i) => (
                                             <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/20 shadow-sm group">
@@ -236,7 +236,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                         ))}
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-[#B8A6D9]/40 rounded-xl hover:bg-[#B8A6D9]/10 text-[#B8A6D9] transition-colors bg-white/5"
+                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-[#E8B4A0]/40 rounded-xl hover:bg-[#E8B4A0]/10 text-[#E8B4A0] transition-colors bg-white/5"
                                         >
                                             <Camera size={20} />
                                             <span className="text-[9px] mt-0.5 font-bold">追加</span>
@@ -267,7 +267,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={loading}
-                                    className="flex-[2] rounded-full bg-[#B8A6D9] hover:bg-[#A694C7] text-white shadow-[0_0_20px_rgba(184,166,217,0.3)] border-none"
+                                    className="flex-[2] rounded-full bg-[#E8B4A0] hover:bg-[#D9A08B] text-white shadow-[0_0_20px_rgba(232,180,160,0.3)] border-none"
                                 >
                                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     記録する

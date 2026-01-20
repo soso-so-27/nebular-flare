@@ -240,11 +240,12 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                             className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
                         >
                             <div className="flex flex-col">
-                                <span className="text-xs font-medium text-slate-900 dark:text-white">お世話の設定</span>
+                                <span className="text-xs font-medium text-slate-900 dark:text-white">ONEGAIの設定</span>
                                 <span className="text-[10px] text-muted-foreground">ご飯、トイレ、定期タスク</span>
                             </div>
                             <SettingsIcon className="h-4 w-4 text-slate-300" />
                         </button>
+                        {/* 記録項目の設定 (Hidden for now)
                         <button
                             onClick={() => setIsNoticeModalOpen(true)}
                             className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"
@@ -255,6 +256,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
                             </div>
                             <SettingsIcon className="h-4 w-4 text-slate-300" />
                         </button>
+                        */}
                         <button
                             onClick={() => setIsInventoryModalOpen(true)}
                             className="w-full px-4 py-3 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 hover:bg-slate-50 transition-colors text-left"

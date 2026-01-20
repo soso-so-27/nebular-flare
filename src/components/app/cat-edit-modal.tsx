@@ -27,7 +27,9 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
     const [editData, setEditData] = useState({
         microchip_id: cat?.microchip_id || "",
         notes: cat?.notes || "",
-        birthday: cat?.birthday || ""
+        birthday: cat?.birthday || "",
+        last_vaccine_date: cat?.last_vaccine_date || "",
+        vaccine_type: cat?.vaccine_type || ""
     });
 
     // Update local state when cat changes (if modal is open)
@@ -36,7 +38,9 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
             setEditData({
                 microchip_id: cat.microchip_id || "",
                 notes: cat.notes || "",
-                birthday: cat.birthday || ""
+                birthday: cat.birthday || "",
+                last_vaccine_date: cat.last_vaccine_date || "",
+                vaccine_type: cat.vaccine_type || ""
             });
         }
     }, [cat, isOpen]);
@@ -65,7 +69,9 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
         const updates = {
             microchip_id: editData.microchip_id || undefined,
             notes: editData.notes || undefined,
-            birthday: editData.birthday || undefined
+            birthday: editData.birthday || undefined,
+            last_vaccine_date: editData.last_vaccine_date || undefined,
+            vaccine_type: editData.vaccine_type || undefined
         };
 
         if (isDemo) {
@@ -116,7 +122,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
+                        <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh] scrollbar-hide">
                             <div className="space-y-4">
                                 <label className="block space-y-2">
                                     <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
@@ -142,6 +148,33 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                         onChange={(e) => setEditData({ ...editData, microchip_id: e.target.value })}
                                         className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all font-mono text-slate-800"
                                         placeholder="15桁の数字"
+                                    />
+                                </label>
+
+                                <label className="block space-y-2">
+                                    <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
+                                        <FileText className="w-3.5 h-3.5" />
+                                        最新のワクチン接種日
+                                    </span>
+                                    <input
+                                        type="date"
+                                        value={editData.last_vaccine_date}
+                                        onChange={(e) => setEditData({ ...editData, last_vaccine_date: e.target.value })}
+                                        className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all text-slate-800"
+                                    />
+                                </label>
+
+                                <label className="block space-y-2">
+                                    <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
+                                        <FileText className="w-3.5 h-3.5" />
+                                        ワクチンの種類
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={editData.vaccine_type}
+                                        onChange={(e) => setEditData({ ...editData, vaccine_type: e.target.value })}
+                                        className="w-full text-base bg-white/50 border border-black/5 rounded-xl p-3 focus:ring-2 focus:ring-[#7CAA8E] outline-none transition-all text-slate-800"
+                                        placeholder="3種、5種など"
                                     />
                                 </label>
 
