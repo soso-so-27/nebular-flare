@@ -117,7 +117,8 @@ export function CareHistoryList({ className, style, onOpenPhoto }: CareHistoryLi
     return (
         <div className={`space-y-2 ${className}`} style={style}>
             <div className="flex items-center gap-2 px-2 pb-1">
-                <span className="text-xs font-bold text-[#E8B4A0]">おねがいの記録</span>
+                <div className="w-1 h-3 rounded-full bg-brand-peach" />
+                <span className="text-xs font-bold text-brand-peach">おねがいの記録</span>
             </div>
 
             <div className="space-y-2">

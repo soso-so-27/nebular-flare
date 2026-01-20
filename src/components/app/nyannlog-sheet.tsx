@@ -423,7 +423,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                                                 <div className="flex-1 min-w-0 pr-2">
                                                                                     <div className="flex items-center justify-between gap-2 mb-1">
                                                                                         <div className="flex items-center gap-1.5 min-w-0 text-[10px] font-medium text-slate-500">
-                                                                                            <span className="text-brand-peach font-bold truncate max-w-[120px]">{item.catName}</span>
+                                                                                            <span className="text-white/50 font-bold truncate max-w-[120px]">{item.catName}</span>
                                                                                             {item.userName && (
                                                                                                 <>
                                                                                                     <span className="opacity-20">|</span>

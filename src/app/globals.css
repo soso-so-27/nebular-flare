@@ -58,7 +58,7 @@
   --color-base-glass: var(--background);
 }
 
-/* Brand-inspired color palette - 猫のいる暮らしを、そっと整える */
+/* Brand-inspired color palette - 猫のいる暮らしを、そっと整える (Updated) */
 :root {
   --radius: 0.75rem;
 
@@ -77,7 +77,7 @@
   /* Brand Semantic Colors - Refined for cat photos */
   --sage: oklch(0.65 0.12 150);
   /* 軸色：安心・継続 - slightly more vibrant */
-  --peach: oklch(0.78 0.14 45);
+  --peach: #E8B4A0;
   /* 感情：楽しさ・体温 - warmer, more golden */
   --lavender: oklch(0.70 0.12 285);
   /* 変化：静かな注意 - slightly richer */
@@ -97,7 +97,7 @@
   --muted-foreground: oklch(0.48 0.015 45);
 
   /* Accent = Peach（感情） */
-  --accent: oklch(0.94 0.04 45);
+  --accent: var(--peach);
   --accent-foreground: oklch(0.28 0.015 45);
 
   /* Destructive = ラベンダー（静かな注意）*/
@@ -383,10 +383,12 @@ body {
   background: rgba(20, 20, 25, 0.82);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
