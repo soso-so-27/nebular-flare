@@ -84,13 +84,6 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         setPortalTarget(document.body);
     }, []);
 
-    // Scroll to top when filter or cat changes (newest is at top)
-    useEffect(() => {
-        if (isOpen && scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }, [activeFilter, selectedCatId, isOpen]);
-
     // 統合されたログ一覧（全インシデント + スタンドアロン写真）
     const groupedLogs = useMemo<GroupedLogs[]>(() => {
         const items: NyannlogItem[] = [];
@@ -161,7 +154,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         });
 
         // Sort items by date descending (newest first)
-        const sortedItems = filteredItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        // Sort items by date ascending (oldest first, newest at bottom like Slack)
+        const sortedItems = filteredItems.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
         // Group by date
         const groups: Record<string, NyannlogItem[]> = {};
@@ -178,6 +172,18 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
 
         return Object.entries(groups).map(([date, items]) => ({ date, items }));
     }, [incidents, cats, householdUsers, activeFilter, selectedCatId]);
+
+    // Scroll to BOTTOM when filter or cat changes (newest is at bottom)
+    useEffect(() => {
+        if (isOpen && scrollContainerRef.current) {
+            // Use setTimeout to ensure content is rendered
+            setTimeout(() => {
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'instant' });
+                }
+            }, 10);
+        }
+    }, [activeFilter, selectedCatId, isOpen, activeTab, groupedLogs]);
 
     const getTypeIcon = (type: string) => {
         switch (type) {
@@ -257,52 +263,66 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
                         className={`
-                            bg-[#1E1E23]/95 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
-                            ${isIsland
-                                ? 'rounded-t-[32px] h-[92vh]'
-                                : 'rounded-[32px] mb-4 h-[90vh]'}
+                            bg-[#1E1E23]/95 backdrop-blur-xl border-x border-t border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
+                            rounded-t-[32px] h-[100dvh] pb-safe
                         `}
                     >
-                        {/* Drag Handle */}
-                        <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
-                            <div className="w-10 h-1 bg-white/30 rounded-full" />
-                        </div>
+                        {/* Header (Glass Floating) */}
+                        <div className="absolute top-0 left-0 right-0 z-30 flex flex-col pointer-events-none">
+                            {/* Gradient Blur Background (Seamless Cloudiness) */}
+                            <div
+                                className="absolute inset-x-0 top-0 h-32 z-[-1]"
+                                style={{
+                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)',
+                                    backdropFilter: 'blur(12px)',
+                                    WebkitBackdropFilter: 'blur(12px)',
+                                    maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
+                                    WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)'
+                                }}
+                            />
 
-                        {/* Header */}
-                        <div className="px-5 pb-3 border-b border-white/5 flex flex-col">
-                            {/* Tab Switcher */}
-                            {!isIsland && (
-                                <div className="flex p-1 bg-white/5 rounded-xl relative">
-                                    <motion.div
-                                        className="absolute top-1 bottom-1 bg-white/10 rounded-lg shadow-sm"
-                                        initial={false}
-                                        animate={{
-                                            left: activeTab === 'requests' ? '4px' : '50%',
-                                            width: 'calc(50% - 4px)',
-                                            x: activeTab === 'requests' ? 0 : 0
-                                        }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    />
-                                    <button
-                                        onClick={() => setActiveTab('requests')}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors relative z-10 flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'text-white' : 'text-white/40'}`}
-                                    >
-                                        <Heart className="w-3.5 h-3.5" />
-                                        おねがい
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('events')}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors relative z-10 flex items-center justify-center gap-2 ${activeTab === 'events' ? 'text-white' : 'text-white/40'}`}
-                                    >
-                                        <BookOpen className="w-3.5 h-3.5" />
-                                        できごと
-                                    </button>
-                                </div>
-                            )}
+                            {/* Drag Handle */}
+                            {/* Enable pointer events for interactive elements */}
+                            <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing pointer-events-auto">
+                                <div className="w-10 h-1 bg-white/30 rounded-full" />
+                            </div>
+
+                            {/* Header Content Wrapper */}
+                            <div className="px-5 pb-3 w-full">
+                                {/* Tab Switcher */}
+                                {!isIsland && (
+                                    <div className="flex p-1 bg-white/5 rounded-xl relative pointer-events-auto">
+                                        <motion.div
+                                            className="absolute top-1 bottom-1 bg-white/10 rounded-lg shadow-sm"
+                                            initial={false}
+                                            animate={{
+                                                left: activeTab === 'requests' ? '4px' : '50%',
+                                                width: 'calc(50% - 4px)',
+                                                x: activeTab === 'requests' ? 0 : 0
+                                            }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        />
+                                        <button
+                                            onClick={() => setActiveTab('requests')}
+                                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors relative z-10 flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'text-white' : 'text-white/40'}`}
+                                        >
+                                            <Heart className="w-3.5 h-3.5" />
+                                            おねがい
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('events')}
+                                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors relative z-10 flex items-center justify-center gap-2 ${activeTab === 'events' ? 'text-white' : 'text-white/40'}`}
+                                        >
+                                            <BookOpen className="w-3.5 h-3.5" />
+                                            できごと
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Filter Section & Calendar - Consolidated Header (Only for events tab) */}
                             {activeTab === 'events' && (
-                                <div className="mt-4 flex items-center justify-end gap-3 z-30 px-1">
+                                <div className="flex items-center justify-end gap-3 px-6 pointer-events-auto">
                                     {/* Cat Selector Pulldown */}
                                     <div className="w-[105px]">
                                         <Select value={selectedCatId || 'all'} onValueChange={(val: string) => setSelectedCatId(val === 'all' ? null : val)}>
@@ -364,9 +384,9 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                             )}
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 relative">
+                        <div className="flex-1 flex flex-col min-h-0 relative h-full">
                             {/* Content Scrollable Area */}
-                            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden ${activeTab === 'events' ? 'pt-32' : 'pt-20'}`}>
                                 {activeTab === 'events' ? (
                                     <>
                                         {/* Timeline Items */}
