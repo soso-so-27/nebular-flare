@@ -13,6 +13,7 @@ import { ja } from "date-fns/locale";
 import { ReactionBadges, ReactionBar } from './reaction-bar';
 import { CareHistoryList } from './immersive/care-history-list';
 import { QuestGrid } from './immersive/quest-grid';
+import { NyannlogInputBar } from './nyannlog-input-bar';
 
 // =====================================================
 // Types
@@ -514,26 +515,18 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                 ))}
                                             </div>
                                         )}
-                                        {/* FAB */}
-                                        <div className="absolute bottom-8 right-6 z-50">
-                                            <div className="absolute inset-0 bg-[#E8B4A0] rounded-full blur-xl opacity-20 animate-pulse" />
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={onOpenNew}
-                                                className="relative w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center text-[#E0DED9] group overflow-hidden"
-                                            >
-                                                <PenLine size={24} strokeWidth={2.5} className="relative z-10" />
-                                            </motion.button>
-                                        </div>
+
                                     </>
                                 ) : (
                                     <div className="w-full px-4 pt-4 pb-12 space-y-8">
                                         {/* Pending Requests (QuestGrid) */}
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-2 px-2">
-                                                <div className="w-1 h-3 rounded-full bg-brand-peach" />
-                                                <span className="text-xs font-bold text-brand-peach">今日のおねがい</span>
+                                            <div className="px-2 space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1 h-3 rounded-full bg-brand-peach" />
+                                                    <span className="text-xs font-bold text-brand-peach">今日のおねがい</span>
+                                                </div>
+                                                <p className="text-[10px] text-white/40 pl-3">カードを押して完了・長押しで写真付き記録</p>
                                             </div>
                                             <QuestGrid className="w-full" />
                                         </div>
@@ -554,6 +547,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                 )}
                             </div>
                         </div>
+                        {/* Input Bar (Fixed at bottom, only for timeline) */}
+                        {activeTab === 'events' && <NyannlogInputBar />}
                     </motion.div>
                 </motion.div>
             )}
