@@ -13,7 +13,7 @@ import { ja } from "date-fns/locale";
 import { ReactionBadges, ReactionBar } from './reaction-bar';
 import { CareHistoryList } from './immersive/care-history-list';
 import { QuestGrid } from './immersive/quest-grid';
-import { NyannlogInputBar } from './nyannlog-input-bar';
+import { EmbeddedInputCard } from './embedded-input-card';
 
 // =====================================================
 // Types
@@ -71,6 +71,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
     const [activeFilter, setActiveFilter] = useState<FilterType>('all');
     const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'events' | 'requests'>(isOpen ? (props.initialTab || 'requests') : 'requests');
+    const [showScrollFab, setShowScrollFab] = useState(false);
+    const inputCardRef = useRef<HTMLDivElement>(null);
 
     // Sync tab when prop changes or re-opens
     useEffect(() => {
@@ -84,6 +86,21 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
     React.useEffect(() => {
         setPortalTarget(document.body);
     }, []);
+
+    // Track input card visibility for FAB
+    useEffect(() => {
+        if (!inputCardRef.current || activeTab !== 'events') return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setShowScrollFab(!entry.isIntersecting);
+            },
+            { threshold: 0.1 }
+        );
+
+        observer.observe(inputCardRef.current);
+        return () => observer.disconnect();
+    }, [activeTab, inputCardRef.current]);
 
     // 統合されたログ一覧（全インシデント + スタンドアロン写真）
     const groupedLogs = useMemo<GroupedLogs[]>(() => {
@@ -413,7 +430,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                 <p className="text-slate-500 text-xs">＋ボタンから今日のできごとを<br />記録してみましょう</p>
                                             </div>
                                         ) : (
-                                            <div className="pb-24">
+                                            <div className="pb-12">
                                                 {groupedLogs.map((group) => (
                                                     <div key={group.date} className="mt-8">
                                                         <div className="px-6 mb-3 flex items-center justify-center gap-3">
@@ -513,6 +530,11 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                         </div>
                                                     </div>
                                                 ))}
+
+                                                {/* Embedded Input Card at Bottom */}
+                                                <div ref={inputCardRef} className="px-4 pt-6 pb-4">
+                                                    <EmbeddedInputCard />
+                                                </div>
                                             </div>
                                         )}
 
@@ -546,9 +568,19 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Scroll to Bottom FAB */}
+                            {activeTab === 'events' && showScrollFab && (
+                                <button
+                                    onClick={() => {
+                                        inputCardRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-brand-peach text-white shadow-lg flex items-center justify-center hover:bg-brand-peach/80 transition-all z-50"
+                                >
+                                    <ChevronDown className="w-5 h-5" />
+                                </button>
+                            )}
                         </div>
-                        {/* Input Bar (Fixed at bottom, only for timeline) */}
-                        {activeTab === 'events' && <NyannlogInputBar />}
                     </motion.div>
                 </motion.div>
             )}
