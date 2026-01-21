@@ -518,7 +518,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
 
                                     </>
                                 ) : (
-                                    <div className="w-full px-4 pt-4 pb-12 space-y-8">
+                                    <div className="w-full px-4 pt-1 pb-12 space-y-6">
                                         {/* Pending Requests (QuestGrid) */}
                                         <div className="space-y-3">
                                             <div className="px-2 space-y-0.5">

@@ -310,17 +310,15 @@ export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) 
                 })}
             </AnimatePresence>
 
-            {/* Add Task Card */}
-            <motion.div
+            {/* Add Task Button (Slim, Full Width) */}
+            <motion.button
                 layout
                 onClick={() => setShowAddModal(true)}
-                className="aspect-[4/3] relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.96] transition-all duration-100 border border-dashed border-white/20 hover:border-white/30 bg-white/5 hover:bg-white/10 flex flex-col items-center justify-center gap-2"
+                className="col-span-2 flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-white/20 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-all active:scale-[0.98] cursor-pointer"
             >
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-white/50" />
-                </div>
-                <span className="text-[11px] text-white/40 font-medium">追加のおねがい</span>
-            </motion.div>
+                <Plus className="w-4 h-4 text-white/40" />
+                <span className="text-xs text-white/40 font-medium">追加のおねがい</span>
+            </motion.button>
 
             {/* Celebration Overlay */}
             {celebration && (

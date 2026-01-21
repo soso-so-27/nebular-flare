@@ -248,7 +248,7 @@ export function LayoutIslandNeo({
                                 }}
                                 className="flex flex-col items-center gap-1 group relative"
                             >
-                                <Heart className="w-7 h-7 text-white/90 group-hover:text-white transition-colors filter drop-shadow-sm" strokeWidth={1.5} />
+                                <Cat className="w-7 h-7 text-white/90 group-hover:text-white transition-colors filter drop-shadow-sm" strokeWidth={1.5} />
                                 {alertItems.length > 0 && (
                                     <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#E8B4A0] shadow-[0_0_8px_#E8B4A0]" />
                                 )}
