@@ -117,8 +117,8 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             }
             const savedLayout = localStorage.getItem('layoutType');
             const validLayouts: LayoutType[] = ['v2-classic', 'v2-island'];
-            if (saved && validLayouts.includes(saved as LayoutType)) {
-                savedLayoutType = saved as LayoutType;
+            if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
+                savedLayoutType = savedLayout as LayoutType;
             }
             const savedButtonMode = localStorage.getItem('homeButtonMode');
             if (savedButtonMode === 'unified' || savedButtonMode === 'separated') {

@@ -111,8 +111,10 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
             setIsConsult(false);
             onSubmitSuccess?.();
         } catch (e: any) {
-            console.error(e);
-            toast.error("投稿に失敗しました");
+            console.error('投稿エラー詳細:', e);
+            console.error('エラーメッセージ:', e?.message);
+            console.error('エラーコード:', e?.code);
+            toast.error(`投稿に失敗しました: ${e?.message || '不明なエラー'}`);
         } finally {
             setLoading(false);
         }
@@ -144,8 +146,8 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
                                 key={cat.id}
                                 onClick={() => toggleCat(cat.id)}
                                 className={`w-9 h-9 rounded-full overflow-hidden transition-all ${selectedCatIds.has(cat.id)
-                                        ? 'ring-2 ring-brand-peach ring-offset-2 ring-offset-[#222226]'
-                                        : 'opacity-40 hover:opacity-70'
+                                    ? 'ring-2 ring-brand-peach ring-offset-2 ring-offset-[#222226]'
+                                    : 'opacity-40 hover:opacity-70'
                                     }`}
                             >
                                 {cat.avatar ? (
@@ -236,8 +238,8 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
                     <button
                         onClick={() => setIsConsult(prev => !prev)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors ${isConsult
-                                ? 'bg-amber-500/20 text-amber-300'
-                                : 'bg-white/5 text-white/40 hover:text-white/60'
+                            ? 'bg-amber-500/20 text-amber-300'
+                            : 'bg-white/5 text-white/40 hover:text-white/60'
                             }`}
                     >
                         <MessageCircle className="w-3.5 h-3.5" />
@@ -252,10 +254,10 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
                         onClick={handleSubmit}
                         disabled={!hasContent || loading}
                         className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold transition-all ${hasContent
-                                ? isConsult
-                                    ? 'bg-amber-500 text-white hover:bg-amber-500/80'
-                                    : 'bg-brand-peach text-white hover:bg-brand-peach/80'
-                                : 'bg-white/10 text-white/30 cursor-not-allowed'
+                            ? isConsult
+                                ? 'bg-amber-500 text-white hover:bg-amber-500/80'
+                                : 'bg-brand-peach text-white hover:bg-brand-peach/80'
+                            : 'bg-white/10 text-white/30 cursor-not-allowed'
                             }`}
                     >
                         {loading ? (

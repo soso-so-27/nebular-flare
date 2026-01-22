@@ -705,7 +705,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         />
                     )}
 
-                    {settings.layoutType === 'v2-island' && (
+                    {(settings.layoutType === 'v2-island' || (settings.layoutType !== 'v2-classic' && settings.layoutType !== 'v2-island')) && (
                         <LayoutIslandNeo
                             onOpenPickup={() => { }}
                             onOpenGallery={() => onNavigate?.('gallery')}

@@ -629,7 +629,12 @@ export function useIncidents(householdId: string | null) {
     }, [householdId, fetchIncidents]);
 
     const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string) => {
-        if (!householdId) return { error: "No household" };
+        if (!householdId) {
+            console.error('addIncident: householdId is null');
+            return { error: "No household" };
+        }
+
+        console.log('addIncident開始:', { catId, type, note, photosCount: photos.length, householdId });
 
         try {
             // 1. Upload photos
@@ -639,15 +644,21 @@ export function useIncidents(householdId: string | null) {
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `incidents/${fileName}`;
 
+                console.log('写真アップロード中:', filePath);
                 const { error: uploadError } = await supabase.storage
                     .from('avatars') // Using avatars bucket for now as shared storage
                     .upload(filePath, file);
 
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    console.error('写真アップロードエラー:', uploadError);
+                    throw uploadError;
+                }
                 photoPaths.push(filePath);
+                console.log('写真アップロード成功:', filePath);
             }
 
             // 2. Create Incident
+            console.log('インシデント作成中...');
             const { data, error } = await supabase
                 .from('incidents')
                 .insert({
@@ -655,6 +666,7 @@ export function useIncidents(householdId: string | null) {
                     cat_id: catId,
                     type,
                     note,
+                    status: 'log',
                     photos: photoPaths,
                     created_by: (await supabase.auth.getUser()).data.user?.id,
                     health_category,
@@ -663,12 +675,16 @@ export function useIncidents(householdId: string | null) {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('インシデント作成エラー:', error);
+                throw error;
+            }
 
+            console.log('インシデント作成成功:', data);
             fetchIncidents();
             return { data };
         } catch (e) {
-            console.error(e);
+            console.error('addIncident全体エラー:', e);
             return { error: e };
         }
     };
@@ -705,9 +721,10 @@ export function useIncidents(householdId: string | null) {
 
             // 3. Update Parent Incident if status changed
             if (statusChange && statusChange !== 'none') {
-                // Determine new status based on change
-                let newStatus = 'watching';
+                // Determine new status based on change (valid: log, tracking, resolved)
+                let newStatus = 'tracking';
                 if (statusChange === 'resolved') newStatus = 'resolved';
+                if (statusChange === 'log') newStatus = 'log';
 
                 // If resolved, set resolved_at
                 const updateData: any = { status: newStatus, updated_at: new Date().toISOString() };
