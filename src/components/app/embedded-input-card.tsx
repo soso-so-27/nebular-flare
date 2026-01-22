@@ -90,14 +90,9 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
             const type = isConsult ? 'worried' : 'daily';
 
             for (const catId of catIds) {
+                // addIncident handles photo upload internally
                 const { error } = await addIncident(catId, type, note, photos);
                 if (error) throw error;
-
-                if (photos.length > 0) {
-                    for (const photo of photos) {
-                        await uploadCatImage(catId, photo, note);
-                    }
-                }
 
                 awardForNyannlog?.(catId);
             }

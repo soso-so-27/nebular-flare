@@ -123,27 +123,18 @@ export function NyannlogInputBar({ onClose }: Props) {
             const type = mode === 'consult' ? 'worried' : 'daily';
 
             for (const catId of catIds) {
-                // 1. Register incident
+                // Register incident (photos are uploaded within addIncident)
                 const { error } = await addIncident(
                     catId,
                     type,
                     note,
                     photos,
-                    // We allow healthCategory to be inferred from tags text for now or simple undefined
-                    // Ideally we parse the note for structured data but for "Chat UI" plain text is fine
                     undefined,
                     undefined
                 );
                 if (error) throw error;
 
-                // 2. Upload photos to gallery
-                if (photos.length > 0) {
-                    for (const photo of photos) {
-                        await uploadCatImage(catId, photo, note);
-                    }
-                }
-
-                // 3. Award points
+                // Award points
                 awardForNyannlog?.(catId);
             }
 

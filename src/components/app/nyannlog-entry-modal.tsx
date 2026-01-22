@@ -124,7 +124,7 @@ export function NyannlogEntryModal({ isOpen, onClose, preselectedCatId }: Nyannl
             const type = startChat ? 'worried' : 'daily';
 
             for (const catId of catIds) {
-                // 1. incidents テーブルに登録
+                // incidents テーブルに登録（写真もここでアップロードされる）
                 const { error } = await addIncident(
                     catId,
                     type,
@@ -135,14 +135,7 @@ export function NyannlogEntryModal({ isOpen, onClose, preselectedCatId }: Nyannl
                 );
                 if (error) throw error;
 
-                // 2. 写真がある場合は cat_images にも登録（ギャラリー連動）
-                if (photos.length > 0) {
-                    for (const photo of photos) {
-                        await uploadCatImage(catId, photo, tagString + note);
-                    }
-                }
-
-                // 3. 足あとポイント付与
+                // 足あとポイント付与
                 awardForNyannlog?.(catId);
             }
 
