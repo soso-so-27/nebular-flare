@@ -20,6 +20,7 @@ import { SplashScreen } from "@/components/app/splash-screen";
 import { SidebarMenu } from "@/components/app/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/immersive-home";
 import { FootprintProvider } from "@/providers/footprint-provider";
+import { CatsProvider } from "@/store/cats-context";
 
 // Lazy load heavy components
 const WidgetHomeScreen = dynamic(() => import("@/components/app/widget-home-screen").then(m => ({ default: m.WidgetHomeScreen })), { ssr: false });
@@ -342,7 +343,9 @@ function AuthenticatedAppWithProfile({ user }: { user: any }) {
       isDemo={false}
     >
       <AppProvider householdId={profile?.householdId ?? null} currentUserId={profile?.userId ?? null} isDemo={false}>
-        <AppContent />
+        <CatsProvider householdId={profile?.householdId ?? null} isDemo={false}>
+          <AppContent />
+        </CatsProvider>
       </AppProvider>
     </FootprintProvider>
   );
@@ -377,7 +380,9 @@ function AuthenticatedApp() {
     return (
       <FootprintProvider isDemo={true}>
         <AppProvider householdId={null} isDemo={true}>
-          <AppContent />
+          <CatsProvider householdId={null} isDemo={true}>
+            <AppContent />
+          </CatsProvider>
         </AppProvider>
       </FootprintProvider>
     );
