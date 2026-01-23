@@ -198,23 +198,37 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         return Object.entries(groups).map(([date, items]) => ({ date, items }));
     }, [incidents, cats, householdUsers, activeFilter, selectedCatId, activeTab]);
 
-    // Scroll Control
+    // Scroll Control - only scroll when sheet opens (isOpen transitions from false to true)
+    const prevIsOpenRef = useRef(false);
     useEffect(() => {
-        if (isOpen && scrollContainerRef.current) {
-            // Use setTimeout to ensure content is rendered
-            setTimeout(() => {
+        const wasOpen = prevIsOpenRef.current;
+        prevIsOpenRef.current = isOpen;
+
+        // Only scroll when sheet just opened (false -> true) or tab changed while open
+        if (!isOpen) return;
+        if (!wasOpen || activeTab) {
+            // Wait for animation and content rendering
+            const scrollToPosition = () => {
                 if (scrollContainerRef.current) {
                     if (activeTab === 'events') {
-                        // For Events (Chat style): Scroll to BOTTOM
-                        scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'instant' });
+                        // For Events (Chat style): Scroll to BOTTOM (newest)
+                        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
                     } else {
                         // For Requests (List style): Scroll to TOP
-                        scrollContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+                        scrollContainerRef.current.scrollTop = 0;
                     }
                 }
-            }, 10);
+            };
+
+            // Use multiple frames to ensure DOM is fully rendered
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setTimeout(scrollToPosition, 50);
+                    setTimeout(scrollToPosition, 200); // Retry for safety
+                });
+            });
         }
-    }, [activeFilter, selectedCatId, isOpen, activeTab, groupedLogs]);
+    }, [isOpen, activeTab]);
 
     const getTypeIcon = (type: string) => {
         switch (type) {
