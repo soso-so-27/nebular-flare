@@ -24,7 +24,7 @@ const statusColors: Record<SlackCardStatus, string> = {
     default: "bg-slate-300",
 };
 
-export function SlackCard({
+export const SlackCard = React.memo(function SlackCard({
     status = "default",
     icon,
     title,
@@ -82,9 +82,9 @@ export function SlackCard({
             </div>
         </div>
     );
-}
+});
 
-export function SlackCardAction({
+export const SlackCardAction = React.memo(function SlackCardAction({
     children,
     onClick,
     variant = "link",
@@ -134,9 +134,9 @@ export function SlackCardAction({
             {children}
         </button>
     );
-}
+});
 
-export function SlackCardTag({
+export const SlackCardTag = React.memo(function SlackCardTag({
     children,
     status = "default",
 }: {
@@ -161,4 +161,4 @@ export function SlackCardTag({
             {children}
         </span>
     );
-}
+});

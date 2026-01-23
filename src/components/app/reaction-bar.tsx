@@ -23,7 +23,7 @@ type ReactionBarProps = {
     orientation?: 'horizontal' | 'vertical'; // Kept for compatibility, though badge style makes it less relevant
 };
 
-export function ReactionBar({
+export const ReactionBar = React.memo(function ReactionBar({
     incidentId,
     reactions,
     currentUserId,
@@ -97,10 +97,10 @@ export function ReactionBar({
             )}
         </div>
     );
-}
+});
 
 // Compact version for timeline items (showing only if count > 0)
-export function ReactionBadges({ reactions }: { reactions: Reaction[] }) {
+export const ReactionBadges = React.memo(function ReactionBadges({ reactions }: { reactions: Reaction[] }) {
     const heartCount = reactions.filter(r => r.emoji === '❤️').length;
     if (heartCount === 0) return null;
 
@@ -112,4 +112,4 @@ export function ReactionBadges({ reactions }: { reactions: Reaction[] }) {
             </span>
         </div>
     );
-}
+});

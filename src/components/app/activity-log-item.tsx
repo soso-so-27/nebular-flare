@@ -82,7 +82,7 @@ export const getUserInitials = (item: ActivityItem) => {
     return '?';
 };
 
-export function ActivityLogItem({ item, index = 0 }: ActivityLogItemProps) {
+export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index = 0 }: ActivityLogItemProps) {
     return (
         <motion.div
             layoutId={item.id}
@@ -152,4 +152,4 @@ export function ActivityLogItem({ item, index = 0 }: ActivityLogItemProps) {
             )}
         </motion.div>
     );
-}
+});
