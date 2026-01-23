@@ -55,4 +55,11 @@ export const audioLogger = createLogger('Audio');
 export const notificationLogger = createLogger('Notification');
 export const onboardingLogger = createLogger('Onboarding');
 
+// Additional loggers for code cleanup
+export const storeLogger = createLogger('Store');
+export const hooksLogger = createLogger('Hooks');
+export const componentsLogger = createLogger('UI');
+export const storageLogger = createLogger('Storage');
+export const authLogger = createLogger('Auth');
+
 export { createLogger, isDev };

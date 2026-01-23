@@ -7,6 +7,7 @@ import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
 import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
 import { createClient } from '@/lib/supabase';
+import { storeLogger } from '@/lib/logger';
 import { toast } from "sonner";
 
 type AppState = {
@@ -870,7 +871,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 const savedLastSeen = localStorage.getItem('last_seen_at');
                 if (savedLastSeen) setLastSeenAt(savedLastSeen);
             } catch (e) {
-                console.error("Failed to load state", e);
+                storeLogger.error("Failed to load state", e);
             }
         }
     }, [isDemo]);
@@ -1196,7 +1197,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             window.location.reload();
 
         } catch (e) {
-            console.error("Failed to initialize defaults", e);
+            storeLogger.error("Failed to initialize defaults", e);
             throw e;
         }
     };
@@ -1252,7 +1253,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             return { data: dbData[0] };
 
         } catch (e: any) {
-            console.error(e);
+            storeLogger.error('uploadCatImage error:', e);
             return { error: e.message || e.toString() };
         }
     };
@@ -1272,7 +1273,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
             return { publicUrl };
         } catch (e: any) {
-            console.error("Upload failed", e);
+            storeLogger.error("Upload failed", e);
             return { error: e.message };
         }
     };
@@ -1339,7 +1340,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 .eq('id', catId);
 
             if (error) {
-                console.error('Error updating cat:', error);
+                storeLogger.error('Error updating cat:', error);
                 return { error };
             }
 

@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { getAdjustedDateString } from "@/lib/utils-date";
 import { uploadCatImage as uploadCatImageToStorage, uploadMultipleImages } from "@/lib/storage";
+import { dbLogger } from "@/lib/logger";
 import type { Database } from '@/types/database';
 
 import type { Cat } from '@/types';
@@ -73,7 +74,7 @@ export function useCats(householdId: string | null) {
                 .rpc('get_all_cats', { target_household_id: householdId });
 
             if (fallbackError) {
-                console.error('Error fetching cats via RPC:', fallbackError);
+                dbLogger.error('Error fetching cats via RPC:', fallbackError);
                 setLoading(false);
                 return;
             }
@@ -550,7 +551,7 @@ export function usePushToken() {
             }, { onConflict: 'token' });
 
         if (error) {
-            console.error('Error saving token:', error);
+            dbLogger.error('Error saving token:', error);
         }
 
         return { error };
@@ -599,7 +600,7 @@ export function useIncidents(householdId: string | null) {
 
             setIncidents(sorted);
         } catch (e) {
-            console.error("Error fetching incidents:", e);
+            dbLogger.error("Error fetching incidents:", e);
         } finally {
             setLoading(false);
         }
@@ -630,7 +631,7 @@ export function useIncidents(householdId: string | null) {
 
     const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string) => {
         if (!householdId) {
-            console.error('addIncident: householdId is null');
+            dbLogger.error('addIncident: householdId is null');
             return { error: "No household" };
         }
 
@@ -650,7 +651,7 @@ export function useIncidents(householdId: string | null) {
                     .upload(filePath, file);
 
                 if (uploadError) {
-                    console.error('写真アップロードエラー:', uploadError);
+                    dbLogger.error('写真アップロードエラー:', uploadError);
                     throw uploadError;
                 }
                 photoPaths.push(filePath);
@@ -676,7 +677,7 @@ export function useIncidents(householdId: string | null) {
                 .single();
 
             if (error) {
-                console.error('インシデント作成エラー:', error);
+                dbLogger.error('インシデント作成エラー:', error);
                 throw error;
             }
 
@@ -684,7 +685,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return { data };
         } catch (e) {
-            console.error('addIncident全体エラー:', e);
+            dbLogger.error('addIncident全体エラー:', e);
             return { error: e };
         }
     };
@@ -736,7 +737,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('addIncidentUpdate error:', e);
             return { error: e };
         }
     };
@@ -765,7 +766,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('resolveIncident error:', e);
             return { error: e };
         }
     }
@@ -781,7 +782,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('deleteIncident error:', e);
             return { error: e };
         }
     };
@@ -804,7 +805,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('addReaction error:', e);
             return { error: e };
         }
     };
@@ -825,7 +826,7 @@ export function useIncidents(householdId: string | null) {
             fetchIncidents();
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('removeReaction error:', e);
             return { error: e };
         }
     };
@@ -850,7 +851,7 @@ export function useIncidents(householdId: string | null) {
             ));
             return {};
         } catch (e) {
-            console.error(e);
+            dbLogger.error('toggleBookmark error:', e);
             return { error: e };
         }
     };
@@ -922,7 +923,7 @@ export function useNotificationPreferences() {
             .eq('id', user.id);
 
         if (error) {
-            console.error('Error updating preferences:', error);
+            dbLogger.error('Error updating preferences:', error);
             // Revert on error? For now, we just log it.
         }
     };

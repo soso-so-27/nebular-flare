@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import { dbLogger } from '@/lib/logger';
 
 // =====================================================
 // Types
@@ -51,7 +52,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 .eq('household_id', householdId);
 
             if (error) {
-                console.error('[useFootprints] fetchStats Error:', error);
+                dbLogger.error('[useFootprints] fetchStats Error:', error);
                 // Keep previous state on error to avoid 0 flickering
                 return;
             }
@@ -78,7 +79,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 }));
             }
         } catch (err) {
-            console.error('[useFootprints] Unexpected error fetching stats:', err);
+            dbLogger.error('[useFootprints] Unexpected error fetching stats:', err);
         } finally {
             setLoading(false);
         }
@@ -112,7 +113,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 setLoginBonusAvailable(!data || data.length === 0);
             }
         } catch (err) {
-            console.error('[useFootprints] Error checking login bonus:', err);
+            dbLogger.error('[useFootprints] Error checking login bonus:', err);
         }
     }, [userId]);
 
@@ -139,7 +140,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 });
 
             if (error) {
-                console.error('[useFootprints] Error awarding footprints:', error);
+                dbLogger.error('[useFootprints] Error awarding footprints:', error);
                 return false;
             }
 
@@ -153,7 +154,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
 
             return true;
         } catch (err) {
-            console.error('[useFootprints] Error awarding footprints:', err);
+            dbLogger.error('[useFootprints] Error awarding footprints:', err);
             return false;
         }
     }, [userId, householdId, fetchStats]);
@@ -180,7 +181,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 .eq('household_id', householdId);
 
             if (fetchError || !currentData) {
-                console.error('[useFootprints] Error verifying balance:', fetchError);
+                dbLogger.error('[useFootprints] Error verifying balance:', fetchError);
                 return false;
             }
 
@@ -201,7 +202,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
                 });
 
             if (insertError) {
-                console.error('[useFootprints] Error inserting consumption record:', insertError);
+                dbLogger.error('[useFootprints] Error inserting consumption record:', insertError);
                 return false;
             }
 
@@ -209,7 +210,7 @@ export function useFootprints({ userId, householdId }: UseFootprintsOptions = {}
             await fetchStats();
             return true;
         } catch (err) {
-            console.error('[useFootprints] Unexpected error:', err);
+            dbLogger.error('[useFootprints] Unexpected error:', err);
             return false;
         }
     }, [userId, householdId, fetchStats]);

@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@/lib/supabase';
+import { storageLogger } from '@/lib/logger';
 import { validateFileUpload, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_IMAGE_SIZE, MAX_VIDEO_SIZE } from '@/lib/file-validation';
 
 export interface UploadOptions {
@@ -71,7 +72,7 @@ export async function uploadFile(
     });
 
     if (error) {
-        console.error('Storage upload failed:', error);
+        storageLogger.error('Storage upload failed:', error);
         return { publicUrl: null, storagePath: null, error: error.message };
     }
 

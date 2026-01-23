@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAppState } from '@/store/app-store';
+import { dbLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 
 export interface AdhocTask {
@@ -43,7 +44,7 @@ export function useAdhocTasks() {
             .order('created_at', { ascending: true });
 
         if (error) {
-            console.error('Error fetching adhoc tasks:', error);
+            dbLogger.error('Error fetching adhoc tasks:', error);
         } else {
             setAdhocTasks(data || []);
         }
@@ -89,7 +90,7 @@ export function useAdhocTasks() {
             .single();
 
         if (error) {
-            console.error('Error adding adhoc task:', error);
+            dbLogger.error('Error adding adhoc task:', error);
             toast.error('追加できませんでした');
             return { error };
         }
@@ -110,7 +111,7 @@ export function useAdhocTasks() {
             .eq('id', taskId);
 
         if (error) {
-            console.error('Error completing adhoc task:', error);
+            dbLogger.error('Error completing adhoc task:', error);
             return { error };
         }
 
@@ -129,7 +130,7 @@ export function useAdhocTasks() {
             .eq('id', taskId);
 
         if (error) {
-            console.error('Error deleting adhoc task:', error);
+            dbLogger.error('Error deleting adhoc task:', error);
             return { error };
         }
 
