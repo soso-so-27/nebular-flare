@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useAppState } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
@@ -22,19 +22,21 @@ import { BubblePickupList } from "./immersive/bubble-pickup-list";
 import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
-import { ThemeExchangeModal } from "./theme-exchange-modal";
 import { MagicBubbleNeo } from "./immersive/magic-bubble-neo";
 import { LayoutIslandNeo } from "./immersive/layout-island-neo";
 import { useCareData } from "./immersive/unified-care-list";
-import { PhotoModal } from "./photo-modal";
-import { IncidentModal } from "./incident-modal";
-import { IncidentDetailModal } from "./incident-detail-modal";
 import { ActionPlusMenu } from "./immersive/action-plus-menu";
-import { PhotoListSheet } from "./photo-list-sheet";
-import { IncidentListSheet } from "./incident-list-sheet";
-import { NyannlogSheet } from "./nyannlog-sheet";
 import { ImmersivePhotoView } from "./immersive/ImmersivePhotoView";
-import { NyannlogEntryModal } from "./nyannlog-entry-modal";
+
+// Lazy load heavy modals and sheets to reduce initial bundle size
+const ThemeExchangeModal = React.lazy(() => import("./theme-exchange-modal").then(m => ({ default: m.ThemeExchangeModal })));
+const PhotoModal = React.lazy(() => import("./photo-modal").then(m => ({ default: m.PhotoModal })));
+const IncidentModal = React.lazy(() => import("./incident-modal").then(m => ({ default: m.IncidentModal })));
+const IncidentDetailModal = React.lazy(() => import("./incident-detail-modal").then(m => ({ default: m.IncidentDetailModal })));
+const PhotoListSheet = React.lazy(() => import("./photo-list-sheet").then(m => ({ default: m.PhotoListSheet })));
+const IncidentListSheet = React.lazy(() => import("./incident-list-sheet").then(m => ({ default: m.IncidentListSheet })));
+const NyannlogSheet = React.lazy(() => import("./nyannlog-sheet").then(m => ({ default: m.NyannlogSheet })));
+const NyannlogEntryModal = React.lazy(() => import("./nyannlog-entry-modal").then(m => ({ default: m.NyannlogEntryModal })));
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
@@ -749,32 +751,46 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
             )}
 
 
-            {/* Theme Exchange Modal */}
-            <ThemeExchangeModal
-                isOpen={showThemeExchange}
-                onClose={() => setShowThemeExchange(false)}
-            />
+            {/* Theme Exchange Modal (lazy) */}
+            {showThemeExchange && (
+                <Suspense fallback={null}>
+                    <ThemeExchangeModal
+                        isOpen={showThemeExchange}
+                        onClose={() => setShowThemeExchange(false)}
+                    />
+                </Suspense>
+            )}
 
-            {/* Photo Modal */}
-            <PhotoModal
-                isOpen={showPhotoModal}
-                onClose={() => setShowPhotoModal(false)}
-            />
+            {/* Photo Modal (lazy) */}
+            {showPhotoModal && (
+                <Suspense fallback={null}>
+                    <PhotoModal
+                        isOpen={showPhotoModal}
+                        onClose={() => setShowPhotoModal(false)}
+                    />
+                </Suspense>
+            )}
 
-            {/* Incident Creation Modal */}
-            <IncidentModal
-                isOpen={showIncidentModal}
-                onClose={() => setShowIncidentModal(false)}
-                defaultCatId={activeCatId}
-            />
+            {/* Incident Creation Modal (lazy) */}
+            {showIncidentModal && (
+                <Suspense fallback={null}>
+                    <IncidentModal
+                        isOpen={showIncidentModal}
+                        onClose={() => setShowIncidentModal(false)}
+                        defaultCatId={activeCatId}
+                    />
+                </Suspense>
+            )}
 
-            {/* Incident Detail Modal */}
+            {/* Incident Detail Modal (lazy) */}
             {selectedIncidentId && (
-                <IncidentDetailModal
-                    isOpen={!!selectedIncidentId}
-                    onClose={() => setSelectedIncidentId(null)}
-                    incidentId={selectedIncidentId}
-                />
+                <Suspense fallback={null}>
+                    <IncidentDetailModal
+                        isOpen={!!selectedIncidentId}
+                        onClose={() => setSelectedIncidentId(null)}
+                        incidentId={selectedIncidentId}
+                    />
+                </Suspense>
             )}
 
             {/* Action Plus Menu */}
@@ -787,12 +803,16 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 variant="dock"
             />
 
-            {/* Nyannlog Entry Modal */}
-            <NyannlogEntryModal
-                isOpen={showNyannlogModal}
-                onClose={() => setShowNyannlogModal(false)}
-                preselectedCatId={activeCatId || undefined}
-            />
+            {/* Nyannlog Entry Modal (lazy) */}
+            {showNyannlogModal && (
+                <Suspense fallback={null}>
+                    <NyannlogEntryModal
+                        isOpen={showNyannlogModal}
+                        onClose={() => setShowNyannlogModal(false)}
+                        preselectedCatId={activeCatId || undefined}
+                    />
+                </Suspense>
+            )}
 
             {/* --- Pickups Overlay (Legacy Mode) --- */}
             <BubblePickupList
@@ -800,77 +820,87 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 onClose={() => setShowPickup(false)}
             />
 
-            {/* Photo List Sheet */}
-            <PhotoListSheet
-                isOpen={showPhotoListSheet}
-                onClose={() => setShowPhotoListSheet(false)}
-            />
+            {/* Photo List Sheet (lazy) */}
+            {showPhotoListSheet && (
+                <Suspense fallback={null}>
+                    <PhotoListSheet
+                        isOpen={showPhotoListSheet}
+                        onClose={() => setShowPhotoListSheet(false)}
+                    />
+                </Suspense>
+            )}
 
-            {/* Incident List Sheet */}
-            <IncidentListSheet
-                isOpen={showIncidentListSheet}
-                onClose={() => setShowIncidentListSheet(false)}
-            />
+            {/* Incident List Sheet (lazy) */}
+            {showIncidentListSheet && (
+                <Suspense fallback={null}>
+                    <IncidentListSheet
+                        isOpen={showIncidentListSheet}
+                        onClose={() => setShowIncidentListSheet(false)}
+                    />
+                </Suspense>
+            )}
 
-            {/* Theme Exchange Modal */}
-            <ThemeExchangeModal
-                isOpen={showThemeExchange}
-                onClose={() => setShowThemeExchange(false)}
-            />
+            {/* Theme Exchange Modal (duplicate removed - using first instance) */}
 
-            {/* Nyannlog Sheet */}
-            <NyannlogSheet
-                isOpen={showNyannlogSheet}
-                initialTab={nyannlogTab}
-                onClose={() => setShowNyannlogSheet(false)}
-                onOpenCalendar={() => onOpenCalendar?.()}
-                onOpenNew={() => {
-                    setShowNyannlogSheet(false);
-                    setShowNyannlogModal(true);
-                }}
-                onSelectItem={(id, type, photos) => {
-                    // If has photos, open photo viewer
-                    if (photos && photos.length > 0) {
-                        const cat = cats.find(c => {
-                            // Find cat with this incident or standalone photo
-                            const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
-                            const hasImage = c.images?.some(img => img.id === id);
-                            return hasIncident || hasImage;
-                        });
-                        setSelectedPhoto({
-                            id,
-                            url: photos[0].startsWith('http')
-                                ? photos[0]
-                                : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
-                            storagePath: photos[0],
-                            catName: cat?.name || '',
-                            catAvatar: cat?.avatar || '',
-                            allPhotos: photos
-                        });
-                    } else if (type === 'photo_standalone') {
-                        // Legacy photo_standalone handling
-                        let foundImg = null;
-                        for (const cat of cats) {
-                            const img = cat.images?.find(i => i.id === id);
-                            if (img) {
-                                foundImg = {
-                                    ...img,
-                                    url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
-                                    catName: cat.name,
-                                    catAvatar: cat.avatar
-                                };
-                                break;
+            {/* Nyannlog Sheet (lazy) */}
+            {showNyannlogSheet && (
+                <Suspense fallback={null}>
+                    <NyannlogSheet
+                        isOpen={showNyannlogSheet}
+                        initialTab={nyannlogTab}
+                        onClose={() => setShowNyannlogSheet(false)}
+                        onOpenCalendar={() => onOpenCalendar?.()}
+                        onOpenNew={() => {
+                            setShowNyannlogSheet(false);
+                            setShowNyannlogModal(true);
+                        }}
+                        onSelectItem={(id, type, photos) => {
+                            // If has photos, open photo viewer
+                            if (photos && photos.length > 0) {
+                                const cat = cats.find(c => {
+                                    // Find cat with this incident or standalone photo
+                                    const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
+                                    const hasImage = c.images?.some(img => img.id === id);
+                                    return hasIncident || hasImage;
+                                });
+                                setSelectedPhoto({
+                                    id,
+                                    url: photos[0].startsWith('http')
+                                        ? photos[0]
+                                        : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
+                                    storagePath: photos[0],
+                                    catName: cat?.name || '',
+                                    catAvatar: cat?.avatar || '',
+                                    allPhotos: photos
+                                });
+                            } else if (type === 'photo_standalone') {
+                                // Legacy photo_standalone handling
+                                let foundImg = null;
+                                for (const cat of cats) {
+                                    const img = cat.images?.find(i => i.id === id);
+                                    if (img) {
+                                        foundImg = {
+                                            ...img,
+                                            url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
+                                            catName: cat.name,
+                                            catAvatar: cat.avatar
+                                        };
+                                        break;
+                                    }
+                                }
+                                if (foundImg) {
+                                    setSelectedPhoto(foundImg);
+                                }
+                            } else {
+                                // No photos - open incident detail
+                                setSelectedIncidentId(id);
                             }
-                        }
-                        if (foundImg) {
-                            setSelectedPhoto(foundImg);
-                        }
-                    } else {
-                        // No photos - open incident detail
-                        setSelectedIncidentId(id);
-                    }
-                }}
-            />
+                        }}
+                    />
+                </Suspense>
+            )}
+
+
 
             {/* Photo Viewer (from Nyannlog) */}
             <ImmersivePhotoView
