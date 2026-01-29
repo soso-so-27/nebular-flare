@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType, Frequency, MealSlot, MedicationLog } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
 import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents, useMedicationLogs, useWeeklyAlbumSettings } from '@/hooks/use-supabase-data';
@@ -660,7 +660,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
     // Convert Supabase cats to local Cat type - memoize to avoid infinite loops
     const cats: Cat[] = useMemo(() => {
         if (isDemo) return demoCats;
-        return supabaseCats.map(c => {
+        return supabaseCats.map((c: any) => {
             const rawImages = (c as any).images || [];
             const rawWeightHistory = (c as any).weightHistory || (c as any).weight_history || [];
 
@@ -697,6 +697,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         });
     }, [isDemo, supabaseCats, demoCats]);
 
+
     // Stable cat IDs for dependency tracking
     const catIds = useMemo(() => cats.map(c => c.id).join(','), [cats]);
 
@@ -708,21 +709,20 @@ export function AppProvider({ children, householdId = null, currentUserId = null
     }, [catIds, activeCatId]);
 
     // Actions
-    const addCareLog = async (type: string, catId?: string | null, note?: string, images?: File[]) => {
+    const handleAddCareLog = useCallback(async (type: string, catId?: string | null, note?: string, images?: File[]) => {
         if (isDemo) {
             const now = new Date().toISOString();
             setDemoCareLogsDone(prev => ({ ...prev, [type]: now }));
             return {};
         }
-        return await supabaseAddCareLog(type, catId || undefined, note, images);
-    };
+        const res = await supabaseAddCareLog(type, catId || undefined, note, images);
+        return res || {};
+    }, [isDemo, supabaseAddCareLog]);
 
-    const addObservation = async (catId: string, type: string, value: string, note?: string, images?: File[]) => {
-        // Validation for missing catId
+    const handleAddObservation = useCallback(async (catId: string, type: string, value: string, note?: string, images?: File[]) => {
         if (!catId) return { error: { message: "猫が選択されていません" } };
 
         if (isDemo) {
-            // Local state update for demo
             setNoticeLogs(prev => ({
                 ...prev,
                 [catId]: {
@@ -740,35 +740,27 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             }));
             return {};
         }
-        return await supabaseAddObservation(catId, type, value, note, images);
-    };
+        const res = (await supabaseAddObservation(catId, type, value, note, images)) as any;
+        return res || {};
+    }, [isDemo, supabaseAddObservation]);
 
-    const deleteCareLog = async (id: string) => {
+    const handleDeleteCareLog = useCallback(async (id: string) => {
         if (isDemo) {
-            // Demo logic: If id starts with demo_, parse it to find key in demoCareLogsDone?
-            // ID format: `demo_${type}_${doneAt}`
             if (id.startsWith('demo_')) {
-                const parts = id.split('_');
-                // parts[0] = demo
-                // parts[1] = type (might contain underscores? No, usually task ID)
-                // parts[2] = doneAt (ISO string components?)
-                // Actually safer to iterate demoCareLogsDone and reconstruct IDs to match
-                // Simple approach:
                 setDemoCareLogsDone(prev => {
                     const next = { ...prev };
                     const keyToDelete = Object.keys(next).find(k => `demo_${k}_${next[k]}` === id);
-                    if (keyToDelete) {
-                        delete next[keyToDelete];
-                    }
+                    if (keyToDelete) delete next[keyToDelete];
                     return next;
                 });
             }
             return {};
         }
-        return await supabaseDeleteCareLog(id);
-    };
+        const res = (await supabaseDeleteCareLog(id)) as any;
+        return res || {};
+    }, [isDemo, supabaseDeleteCareLog]);
 
-    const acknowledgeObservation = async (id: string) => {
+    const handleAcknowledgeObservation = useCallback(async (id: string) => {
         if (isDemo) {
             setNoticeLogs(prev => {
                 const next = { ...prev };
@@ -785,10 +777,11 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             });
             return {};
         }
-        return await supabaseAcknowledgeObservation(id);
-    };
+        const res = (await supabaseAcknowledgeObservation(id)) as any;
+        return res || {};
+    }, [isDemo, supabaseAcknowledgeObservation]);
 
-    const deleteObservation = async (id: string) => {
+    const handleDeleteObservation = useCallback(async (id: string) => {
         if (isDemo) {
             setNoticeLogs(prev => {
                 const next = { ...prev };
@@ -805,23 +798,30 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             });
             return {};
         }
-        return await supabaseDeleteObservation(id);
-    };
+        const res = (await supabaseDeleteObservation(id)) as any;
+        return res || {};
+    }, [isDemo, supabaseDeleteObservation]);
 
-    const addMedicationLog = async (log: Partial<MedicationLog>) => {
+    const handleAddMedicationLog = useCallback(async (log: Partial<MedicationLog>) => {
         if (isDemo) return { error: "Demo mode" };
-        return await supabaseAddMedicationLog(log);
-    };
+        const res = (await supabaseAddMedicationLog(log)) as any;
+        return res || {};
+    }, [isDemo, supabaseAddMedicationLog]);
 
-    const updateMedicationLog = async (id: string, log: Partial<MedicationLog>) => {
+    const handleUpdateMedicationLog = useCallback(async (id: string, log: Partial<MedicationLog>) => {
         if (isDemo) return { error: "Demo mode" };
-        return await supabaseUpdateMedicationLog(id, log);
-    };
+        const res = (await supabaseUpdateMedicationLog(id, log)) as any;
+        return res || {};
+    }, [isDemo, supabaseUpdateMedicationLog]);
 
-    const deleteMedicationLog = async (id: string) => {
+    const handleDeleteMedicationLog = useCallback(async (id: string) => {
         if (isDemo) return { error: "Demo mode" };
-        return await supabaseDeleteMedicationLog(id);
-    };
+        const res = (await supabaseDeleteMedicationLog(id)) as any;
+        return res || {};
+    }, [isDemo, supabaseDeleteMedicationLog]);
+
+
+
 
     const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -961,7 +961,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
 
     // CRUD: Care Tasks
     // CRUD: Care Tasks
-    const addCareTask = async (title: string, settings?: Partial<CareTaskDef>) => {
+    const addCareTask = useCallback(async (title: string, settings?: Partial<CareTaskDef>) => {
         const id = crypto.randomUUID();
         const newTask: CareTaskDef = {
             id,
@@ -1014,11 +1014,11 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 reminder_offset_minutes: newTask.reminderOffsetMinutes || 0
             });
         }
-    };
+    }, [isDemo, householdId, supabase]);
 
 
 
-    const updateCareTask = async (id: string, updates: Partial<CareTaskDef>) => {
+    const updateCareTask = useCallback(async (id: string, updates: Partial<CareTaskDef>) => {
         setCareTaskDefs(prev => prev.map(t => {
             if (t.id !== id) return t;
             return { ...t, ...updates };
@@ -1050,16 +1050,16 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             // Simpler: recalculate meal_slots if frequency changed.
             await supabase.from('care_task_defs').update(dbUpdates).eq('id', id);
         }
-    };
-    const deleteCareTask = async (id: string) => {
+    }, [isDemo, householdId, supabase]);
+    const deleteCareTask = useCallback(async (id: string) => {
         setCareTaskDefs(prev => prev.filter(t => t.id !== id));
         if (!isDemo && householdId) {
             await supabase.from('care_task_defs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
         }
-    };
+    }, [isDemo, householdId, supabase]);
 
     // CRUD: Notice Defs
-    const addNoticeDef = async (title: string, settings?: Partial<NoticeDef>) => {
+    const addNoticeDef = useCallback(async (title: string, settings?: Partial<NoticeDef>) => {
         const id = `custom_n_${Date.now()}`;
         const newNotice: NoticeDef = {
             id,
@@ -1094,8 +1094,8 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 required: newNotice.required
             });
         }
-    };
-    const updateNoticeDefFn = async (id: string, updates: Partial<NoticeDef>) => {
+    }, [isDemo, householdId, supabase]);
+    const updateNoticeDefFn = useCallback(async (id: string, updates: Partial<NoticeDef>) => {
         setNoticeDefs(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
 
         if (!isDemo && householdId) {
@@ -1109,16 +1109,16 @@ export function AppProvider({ children, householdId = null, currentUserId = null
 
             await supabase.from('notice_defs').update(dbUpdates).eq('id', id);
         }
-    };
-    const deleteNoticeDef = async (id: string) => {
+    }, [isDemo, householdId, supabase]);
+    const deleteNoticeDef = useCallback(async (id: string) => {
         setNoticeDefs(prev => prev.filter(n => n.id !== id));
         if (!isDemo && householdId) {
             await supabase.from('notice_defs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
         }
-    };
+    }, [isDemo, householdId, supabase]);
 
     // CRUD: Inventory
-    const addInventoryItem = async (label: string, minDays: number, maxDays: number, settings?: Partial<InventoryItem>) => {
+    const addInventoryItem = useCallback(async (label: string, minDays: number, maxDays: number, settings?: Partial<InventoryItem>) => {
         const id = `inv_${Date.now()}`;
         const newItem: InventoryItem = {
             id,
@@ -1144,8 +1144,8 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 alert_enabled: newItem.alertEnabled
             });
         }
-    };
-    const updateInventoryItemFn = async (id: string, updates: Partial<InventoryItem>) => {
+    }, [isDemo, householdId, supabase]);
+    const updateInventoryItemFn = useCallback(async (id: string, updates: Partial<InventoryItem>) => {
         setInventory(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
 
         if (!isDemo && householdId) {
@@ -1159,26 +1159,26 @@ export function AppProvider({ children, householdId = null, currentUserId = null
 
             await supabase.from('inventory').update(dbUpdates).eq('id', id);
         }
-    };
-    const deleteInventoryItem = async (id: string) => {
+    }, [isDemo, householdId, supabase]);
+    const deleteInventoryItem = useCallback(async (id: string) => {
         setInventory(prev => prev.filter(i => i.id !== id));
         if (!isDemo && householdId) {
             await supabase.from('inventory').update({ deleted_at: new Date().toISOString() }).eq('id', id);
         }
-    };
+    }, [isDemo, householdId, supabase]);
 
     // Settings: Threshold
-    const updateInvThreshold = (key: 'soon' | 'urgent' | 'critical', value: number) => {
+    const updateInvThreshold = useCallback((key: 'soon' | 'urgent' | 'critical', value: number) => {
         setSettings(s => ({
             ...s,
             invThresholds: { ...s.invThresholds, [key]: value }
         }));
-    };
+    }, []);
 
     // Wrapper functions for Supabase operations
 
 
-    const initializeDefaults = async () => {
+    const initializeDefaults = useCallback(async () => {
         if (isDemo || !householdId) return;
 
         try {
@@ -1242,9 +1242,9 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             storeLogger.error("Failed to initialize defaults", e);
             throw e;
         }
-    };
+    }, [isDemo, householdId, supabase]);
 
-    const uploadCatImage = async (catId: string, file: File, memo?: string, skipRefetch = false) => {
+    const uploadCatImage = useCallback(async (catId: string, file: File, memo?: string, skipRefetch = false) => {
         if (isDemo) return { error: null };
 
         try {
@@ -1298,9 +1298,9 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             storeLogger.error('uploadCatImage error:', e);
             return { error: e.message || e.toString() };
         }
-    };
+    }, [isDemo, cats, refetchCats, supabase]);
 
-    const uploadUserImage = async (userId: string, file: File) => {
+    const uploadUserImage = useCallback(async (userId: string, file: File) => {
         if (isDemo) return { publicUrl: "https://api.dicebear.com/7.x/notionists/svg?seed=demo" };
 
         try {
@@ -1318,9 +1318,9 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             storeLogger.error("Upload failed", e);
             return { error: e.message };
         }
-    };
+    }, [isDemo, supabase]);
 
-    const deleteCatImage = async (imageId: string, storagePath: string) => {
+    const deleteCatImage = useCallback(async (imageId: string, storagePath: string) => {
         if (isDemo) return { error: null };
 
         try {
@@ -1344,10 +1344,10 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         } catch (e: any) {
             return { error: e.message };
         }
-    };
+    }, [isDemo, refetchCats, supabase]);
 
     // Update Cat Image (e.g. reassign cat_id)
-    const updateCatImage = async (imageId: string, updates: Partial<any>): Promise<{ error?: any }> => {
+    const updateCatImage = useCallback(async (imageId: string, updates: Partial<any>): Promise<{ error?: any }> => {
         if (isDemo) return { error: null };
 
         try {
@@ -1364,12 +1364,10 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         } catch (e: any) {
             return { error: e.message };
         }
-    };
+    }, [isDemo, refetchCats]);
 
     // Update Cat Profile
-    // Update Cat Profile
-    // Update Cat Profile
-    const updateCat = async (catId: string, updates: Partial<Cat>): Promise<{ error?: any }> => {
+    const updateCat = useCallback(async (catId: string, updates: Partial<Cat>): Promise<{ error?: any }> => {
         if (isDemo) {
             return {};
         }
@@ -1392,10 +1390,10 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         } catch (e: any) {
             return { error: e.message };
         }
-    };
+    }, [isDemo, refetchCats]);
 
     // Add Cat Weight Record
-    const addCatWeightRecord = async (catId: string, weight: number, notes?: string): Promise<{ error?: any }> => {
+    const addCatWeightRecord = useCallback(async (catId: string, weight: number, notes?: string): Promise<{ error?: any }> => {
         if (isDemo) {
             return {};
         }
@@ -1429,13 +1427,13 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         } catch (e: any) {
             return { error: e.message };
         }
-    };
+    }, [isDemo, refetchCats]);
 
-    const value: AppState = {
+    const value: AppState = useMemo(() => ({
         isPro: settings.plan === 'Pro',
-        setIsPro: (v) => setSettings(s => ({ ...s, plan: v ? 'Pro' : 'Free' })),
+        setIsPro: (v: boolean) => setSettings(s => ({ ...s, plan: v ? 'Pro' : 'Free' })),
         aiEnabled: settings.aiEnabled,
-        setAiEnabled: (v) => setSettings(s => ({ ...s, aiEnabled: v })),
+        setAiEnabled: (v: boolean) => setSettings(s => ({ ...s, aiEnabled: v })),
         activeCatId, setActiveCatId,
         cats,
         catsLoading,
@@ -1446,23 +1444,23 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         signalLogs, setSignalLogs,
         inventory, setInventory,
         medicationLogs: medicationLogs || [],
-        addMedicationLog,
-        updateMedicationLog,
-        deleteMedicationLog,
+        addMedicationLog: handleAddMedicationLog,
+        updateMedicationLog: handleUpdateMedicationLog,
+        deleteMedicationLog: handleDeleteMedicationLog,
 
         events, setEvents,
         settings, setSettings,
         lastSeenAt, setLastSeenAt,
         householdId,
         isDemo,
-        addCareLog,
-        addObservation,
+        addCareLog: handleAddCareLog,
+        addObservation: handleAddObservation,
         careLogs,
         demoCareLogsDone,
         observations,
         refetchCats,
         // CRUD functions
-        careTaskDefs,
+        careTaskDefs: careTaskDefs || [],
         addCareTask,
         updateCareTask,
         deleteCareTask,
@@ -1484,23 +1482,56 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         // Cat Profile
         updateCat,
         addCatWeightRecord,
-        deleteCareLog,
-        acknowledgeObservation,
-        deleteObservation,
+        deleteCareLog: handleDeleteCareLog,
+        acknowledgeObservation: handleAcknowledgeObservation,
+        deleteObservation: handleDeleteObservation,
         householdUsers,
         currentUserId,
         // Incidents
         incidents: incidents || [],
-        addIncident: addIncident || (async () => ({})),
-        addIncidentUpdate: addIncidentUpdate || (async () => ({})),
-        resolveIncident: resolveIncident || (async () => ({})),
-        deleteIncident: deleteIncident || (async () => ({})),
-        addReaction,
-        removeReaction,
-        toggleBookmark,
+        addIncident: async (...args: any[]) => {
+            const res = await (addIncident as any)(...args);
+            return res || {};
+        },
+        addIncidentUpdate: async (...args: any[]) => {
+            const res = await (addIncidentUpdate as any)(...args);
+            return res || {};
+        },
+        resolveIncident: async (...args: any[]) => {
+            const res = await (resolveIncident as any)(...args);
+            return res || {};
+        },
+        deleteIncident: async (...args: any[]) => {
+            const res = await (deleteIncident as any)(...args);
+            return res || {};
+        },
+        addReaction: async (...args: any[]) => {
+            const res = await (addReaction as any)(...args);
+            return res || {};
+        },
+        removeReaction: async (...args: any[]) => {
+            const res = await (removeReaction as any)(...args);
+            return res || {};
+        },
+        toggleBookmark: async (...args: any[]) => {
+            const res = await (toggleBookmark as any)(...args);
+            return res || {};
+        },
         weeklyAlbumSettings: weeklyAlbumSettings || [],
         updateWeeklyAlbumLayout: supabaseUpdateWeeklyLayout
-    };
+    }), [
+        settings, activeCatId, cats, catsLoading, isHeroImageLoaded, tasks, noticeDefs, noticeLogs,
+        signalLogs, inventory, medicationLogs, handleAddMedicationLog, handleUpdateMedicationLog,
+        handleDeleteMedicationLog, events, lastSeenAt, householdId, isDemo, handleAddCareLog,
+        handleAddObservation, careLogs, demoCareLogsDone, observations, refetchCats, careTaskDefs,
+        addCareTask, updateCareTask, deleteCareTask, addNoticeDef, updateNoticeDefFn, deleteNoticeDef,
+        addInventoryItem, updateInventoryItemFn, deleteInventoryItem, updateInvThreshold, fcmToken,
+        initializeDefaults, uploadCatImage, uploadUserImage, updateCatImage, deleteCatImage, updateCat,
+        addCatWeightRecord, handleDeleteCareLog, handleAcknowledgeObservation, handleDeleteObservation,
+        householdUsers, currentUserId, incidents, addIncident, addIncidentUpdate, resolveIncident,
+        deleteIncident, addReaction, removeReaction, toggleBookmark, weeklyAlbumSettings, supabaseUpdateWeeklyLayout
+    ]);
+
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

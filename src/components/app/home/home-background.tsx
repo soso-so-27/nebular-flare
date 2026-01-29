@@ -23,7 +23,7 @@ interface HomeBackgroundProps {
     isNight: boolean;
 }
 
-export function HomeBackground({
+export const HomeBackground = React.memo(function HomeBackground({
     cats,
     activeCat,
     activeCatId,
@@ -312,4 +312,4 @@ export function HomeBackground({
             )}
         </>
     );
-}
+});

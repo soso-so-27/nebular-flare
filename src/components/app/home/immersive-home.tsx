@@ -120,10 +120,22 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         };
     }, []);
 
-    const handleOpenNyannlog = (tab: 'events' | 'requests' = 'events') => {
+    const handleOpenNyannlog = useCallback((tab: 'events' | 'requests' = 'events') => {
         setNyannlogTab(tab);
         setShowNyannlogSheet(true);
-    };
+    }, []);
+
+    const handleCloseNyannlog = useCallback(() => {
+        setShowNyannlogSheet(false);
+    }, []);
+
+    const handleOpenCalendarWrapper = useCallback(() => {
+        onOpenCalendar?.();
+    }, [onOpenCalendar]);
+
+    const handleOpenNewWrapper = useCallback(() => {
+        // NyannlogEntryModal has been removed in cleanup
+    }, []);
 
     // Preload Images (Aggressive)
     useEffect(() => {
@@ -173,14 +185,57 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         onCatClick?.();
     }, [onCatClick]);
 
-    const handleOpenSidebar = (section?: 'care' | 'activity') => {
+    const handleOpenSidebar = useCallback((section?: 'care' | 'activity') => {
         if (onOpenSidebar) onOpenSidebar(section);
-    };
+    }, [onOpenSidebar]);
 
-    const handleTogglePickup = (e?: React.MouseEvent) => {
+    const handleTogglePickup = useCallback((e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        setShowPickup(!showPickup);
-    };
+        setShowPickup(prev => !prev);
+    }, []);
+
+    const handleSelectItem = useCallback((id: string, type: string, photos?: string[]) => {
+        // If has photos, open photo viewer
+        if (photos && photos.length > 0) {
+            const cat = cats.find(c => {
+                // Find cat with this incident or standalone photo
+                const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
+                const hasImage = c.images?.some(img => img.id === id);
+                return hasIncident || hasImage;
+            });
+            setSelectedPhoto({
+                id,
+                url: photos[0].startsWith('http')
+                    ? photos[0]
+                    : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
+                storagePath: photos[0],
+                catName: cat?.name || '',
+                catAvatar: cat?.avatar || '',
+                allPhotos: photos
+            });
+        } else if (type === 'photo_standalone') {
+            // Legacy photo_standalone handling
+            let foundImg = null;
+            for (const cat of cats) {
+                const img = cat.images?.find(i => i.id === id);
+                if (img) {
+                    foundImg = {
+                        ...img,
+                        url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
+                        catName: cat.name,
+                        catAvatar: cat.avatar
+                    };
+                    break;
+                }
+            }
+            if (foundImg) {
+                setSelectedPhoto(foundImg);
+            }
+        } else {
+            // No photos - open incident detail
+            setSelectedIncidentId(id);
+        }
+    }, [cats, incidents]);
 
 
     // Magic Dust Particles State
@@ -276,7 +331,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                         onOpenIncidentDetail={setSelectedIncidentId}
 
                         onOpenCalendar={() => onOpenCalendar?.()}
-                        onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
+                        onOpenNyannlogSheet={handleOpenNyannlog}
                     />
                 </div>
             </div>
@@ -395,53 +450,10 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                     <NyannlogSheet
                         isOpen={showNyannlogSheet}
                         initialTab={nyannlogTab}
-                        onClose={() => setShowNyannlogSheet(false)}
-                        onOpenCalendar={() => onOpenCalendar?.()}
-                        onOpenNew={() => {
-                            // NyannlogEntryModal has been removed in cleanup
-                        }}
-                        onSelectItem={(id, type, photos) => {
-                            // If has photos, open photo viewer
-                            if (photos && photos.length > 0) {
-                                const cat = cats.find(c => {
-                                    // Find cat with this incident or standalone photo
-                                    const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
-                                    const hasImage = c.images?.some(img => img.id === id);
-                                    return hasIncident || hasImage;
-                                });
-                                setSelectedPhoto({
-                                    id,
-                                    url: photos[0].startsWith('http')
-                                        ? photos[0]
-                                        : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
-                                    storagePath: photos[0],
-                                    catName: cat?.name || '',
-                                    catAvatar: cat?.avatar || '',
-                                    allPhotos: photos
-                                });
-                            } else if (type === 'photo_standalone') {
-                                // Legacy photo_standalone handling
-                                let foundImg = null;
-                                for (const cat of cats) {
-                                    const img = cat.images?.find(i => i.id === id);
-                                    if (img) {
-                                        foundImg = {
-                                            ...img,
-                                            url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
-                                            catName: cat.name,
-                                            catAvatar: cat.avatar
-                                        };
-                                        break;
-                                    }
-                                }
-                                if (foundImg) {
-                                    setSelectedPhoto(foundImg);
-                                }
-                            } else {
-                                // No photos - open incident detail
-                                setSelectedIncidentId(id);
-                            }
-                        }}
+                        onClose={handleCloseNyannlog}
+                        onOpenCalendar={handleOpenCalendarWrapper}
+                        onOpenNew={handleOpenNewWrapper}
+                        onSelectItem={handleSelectItem}
                     />
                 </Suspense>
             )}

@@ -56,7 +56,7 @@ type GroupedLogs = {
 // =====================================================
 // Component
 // =====================================================
-export function NyannlogSheet(props: NyannlogSheetProps) {
+export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSheetProps) {
     const { isOpen, onClose, onOpenNew, onSelectItem } = props;
     const {
         incidents,
@@ -725,4 +725,4 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         </AnimatePresence >,
         portalTarget
     );
-}
+});

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { WeeklyAlbumSettings } from '@/types';
 
@@ -66,7 +66,7 @@ export function useWeeklyAlbumSettings() {
         };
     }, []);
 
-    const updateLayout = async (catId: string, weekKey: string, layoutType: string) => {
+    const updateLayout = useCallback(async (catId: string, weekKey: string, layoutType: string) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -95,7 +95,7 @@ export function useWeeklyAlbumSettings() {
             console.error('Error updating weekly album layout:', e);
             throw e;
         }
-    };
+    }, [supabase]);
 
     return { settings, loading, updateLayout };
 }

@@ -38,6 +38,8 @@ export const viewport = {
   viewportFit: 'cover',
 };
 
+import { QueryProvider } from "@/providers/query-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,12 +66,14 @@ export default function RootLayout({
         style={{ backgroundColor: '#FAF8F5', margin: 0, padding: 0 }}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <div id="main-viewport" className="iron-viewport">
-            {children}
-          </div>
-          <Toaster />
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <div id="main-viewport" className="iron-viewport">
+              {children}
+            </div>
+            <Toaster />
+          </AuthProvider>
+        </QueryProvider>
         {/* Hidden audio element for iOS audio unlock workaround */}
         <audio id="silent-audio-unlock" preload="auto" src="data:audio/wav;base64,UklGRigIAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQIAAA=" />
         <PwaRegister />

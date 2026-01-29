@@ -24,7 +24,7 @@ interface LayoutIslandNeoProps {
     onOpenNyannlogSheet: (tab?: 'events' | 'requests') => void;
 }
 
-export function LayoutIslandNeo({
+export const LayoutIslandNeo = React.memo(function LayoutIslandNeo({
     onOpenPickup,
     onOpenPhoto,
     onOpenMenu,
@@ -270,4 +270,4 @@ export function LayoutIslandNeo({
             </motion.div >
         </>
     );
-}
+});

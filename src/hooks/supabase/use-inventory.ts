@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
@@ -56,7 +56,7 @@ export function useInventory(householdId: string | null) {
         };
     }, [householdId]);
 
-    async function markBought(itemId: string) {
+    const markBought = useCallback(async (itemId: string) => {
         const { error } = await supabase
             .from('inventory')
             .update({
@@ -67,7 +67,7 @@ export function useInventory(householdId: string | null) {
             .eq('id', itemId);
 
         return { error };
-    }
+    }, [supabase]);
 
     return { inventory, loading, markBought };
 }

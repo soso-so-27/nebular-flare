@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { dbLogger } from "@/lib/logger";
 
@@ -9,13 +7,15 @@ import { dbLogger } from "@/lib/logger";
  * Hook for managing household incidents (health issues, troubles, etc.)
  */
 export function useIncidents(householdId: string | null) {
-    const [incidents, setIncidents] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const supabase = createClient() as any;
+    const queryClient = useQueryClient();
 
-    const fetchIncidents = useCallback(async () => {
-        if (!householdId) return;
-        try {
+    const queryKey = ['incidents', householdId];
+
+    const { data: incidents = [], isLoading: loading } = useQuery({
+        queryKey,
+        queryFn: async () => {
+            if (!householdId) return [];
             const { data, error } = await supabase
                 .from('incidents')
                 .select(`
@@ -29,64 +29,25 @@ export function useIncidents(householdId: string | null) {
 
             if (error) throw error;
 
-            const sorted = (data as any[])?.map(inc => ({
+            return (data as any[])?.map(inc => ({
                 ...inc,
                 updates: (inc.updates as any[])?.sort((a: any, b: any) =>
                     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
                 )
             })) || [];
+        },
+        enabled: !!householdId,
+    });
 
-            setIncidents(sorted);
-        } catch (e) {
-            dbLogger.error("Error fetching incidents:", e);
-        } finally {
-            setLoading(false);
-        }
-    }, [householdId]);
-
-    useEffect(() => {
-        fetchIncidents();
-
-        if (!householdId) return;
-
-        const channel = supabase
-            .channel('public:incidents')
-            .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'incidents', filter: `household_id=eq.${householdId}` },
-                () => fetchIncidents()
-            )
-            .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'incident_updates' },
-                () => fetchIncidents()
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [householdId, fetchIncidents]);
-
-    const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) => {
-        if (!householdId) {
-            dbLogger.error('addIncident: householdId is null');
-            return { error: "No household" };
-        }
-
-        try {
+    const addMutation = useMutation({
+        mutationFn: async ({ catId, type, note, photos, health_category, health_value, onset, symptom_details, batch_id }: any) => {
             const photoPaths: string[] = [];
             for (const file of photos) {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `incidents/${fileName}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('avatars')
-                    .upload(filePath, file);
-
-                if (uploadError) {
-                    dbLogger.error('Photo upload error:', uploadError);
-                    throw uploadError;
-                }
+                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+                if (uploadError) throw uploadError;
                 photoPaths.push(filePath);
             }
 
@@ -109,31 +70,22 @@ export function useIncidents(householdId: string | null) {
                 .select()
                 .single();
 
-            if (error) {
-                dbLogger.error('Incident create error:', error);
-                throw error;
-            }
+            if (error) throw error;
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
-            fetchIncidents();
-            return { data };
-        } catch (e) {
-            dbLogger.error('addIncident error:', e);
-            return { error: e };
-        }
-    };
-
-    const addIncidentUpdate = async (incidentId: string, note: string, photos: File[] = [], statusChange?: string) => {
-        try {
+    const addUpdateMutation = useMutation({
+        mutationFn: async ({ incidentId, note, photos, statusChange }: any) => {
             const photoPaths: string[] = [];
             for (const file of photos) {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `incidents/${fileName}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('avatars')
-                    .upload(filePath, file);
-
+                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
                 if (uploadError) throw uploadError;
                 photoPaths.push(filePath);
             }
@@ -160,17 +112,14 @@ export function useIncidents(householdId: string | null) {
 
                 await supabase.from('incidents').update(updateData).eq('id', incidentId);
             }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
-            fetchIncidents();
-            return {};
-        } catch (e) {
-            dbLogger.error('addIncidentUpdate error:', e);
-            return { error: e };
-        }
-    };
-
-    const resolveIncident = async (incidentId: string) => {
-        try {
+    const resolveMutation = useMutation({
+        mutationFn: async (incidentId: string) => {
             const { error } = await supabase
                 .from('incidents')
                 .update({
@@ -179,7 +128,6 @@ export function useIncidents(householdId: string | null) {
                     updated_at: new Date().toISOString()
                 } as any)
                 .eq('id', incidentId);
-
             if (error) throw error;
 
             await supabase.from('incident_updates').insert({
@@ -188,35 +136,29 @@ export function useIncidents(householdId: string | null) {
                 note: '解決済みにしました',
                 status_change: 'resolved'
             } as any);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
-            fetchIncidents();
-            return {};
-        } catch (e) {
-            dbLogger.error('resolveIncident error:', e);
-            return { error: e };
-        }
-    }
-
-    const deleteIncident = async (incidentId: string) => {
-        try {
+    const deleteMutation = useMutation({
+        mutationFn: async (incidentId: string) => {
             const { error } = await supabase
                 .from('incidents')
                 .update({ deleted_at: new Date().toISOString() } as any)
                 .eq('id', incidentId);
-
             if (error) throw error;
-            fetchIncidents();
-            return {};
-        } catch (e) {
-            dbLogger.error('deleteIncident error:', e);
-            return { error: e };
-        }
-    };
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
-    const addReaction = async (incidentId: string, emoji: string) => {
-        try {
+    const addReactionMutation = useMutation({
+        mutationFn: async ({ incidentId, emoji }: any) => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return { error: "Not authenticated" };
+            if (!user) throw new Error("Not authenticated");
 
             const { error } = await supabase
                 .from('incident_reactions')
@@ -225,20 +167,41 @@ export function useIncidents(householdId: string | null) {
                     user_id: user.id,
                     emoji
                 });
-
             if (error) throw error;
-            fetchIncidents();
-            return {};
-        } catch (e) {
-            dbLogger.error('addReaction error:', e);
-            return { error: e };
-        }
-    };
-
-    const removeReaction = async (incidentId: string, emoji: string) => {
-        try {
+        },
+        onMutate: async ({ incidentId, emoji }: any) => {
+            await queryClient.cancelQueries({ queryKey });
+            const previousIncidents = queryClient.getQueryData(queryKey);
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return { error: "Not authenticated" };
+
+            if (user) {
+                queryClient.setQueryData(queryKey, (old: any[] | undefined) => {
+                    return old?.map(inc => {
+                        if (inc.id === incidentId) {
+                            return {
+                                ...inc,
+                                reactions: [...(inc.reactions || []), { incident_id: incidentId, emoji, user_id: user.id, created_at: new Date().toISOString() }]
+                            };
+                        }
+                        return inc;
+                    });
+                });
+            }
+            return { previousIncidents };
+        },
+        onError: (err, variables, context) => {
+            queryClient.setQueryData(queryKey, context?.previousIncidents);
+            dbLogger.error('addReaction error:', err);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
+    const removeReactionMutation = useMutation({
+        mutationFn: async ({ incidentId, emoji }: any) => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Not authenticated");
 
             const { error } = await supabase
                 .from('incident_reactions')
@@ -246,48 +209,91 @@ export function useIncidents(householdId: string | null) {
                 .eq('incident_id', incidentId)
                 .eq('user_id', user.id)
                 .eq('emoji', emoji);
-
             if (error) throw error;
-            fetchIncidents();
-            return {};
-        } catch (e) {
-            dbLogger.error('removeReaction error:', e);
-            return { error: e };
-        }
-    };
+        },
+        onMutate: async ({ incidentId, emoji }: any) => {
+            await queryClient.cancelQueries({ queryKey });
+            const previousIncidents = queryClient.getQueryData(queryKey);
+            const { data: { user } } = await supabase.auth.getUser();
 
-    const toggleBookmark = async (incidentId: string) => {
-        try {
+            if (user) {
+                queryClient.setQueryData(queryKey, (old: any[] | undefined) => {
+                    return old?.map(inc => {
+                        if (inc.id === incidentId) {
+                            return {
+                                ...inc,
+                                reactions: (inc.reactions || []).filter((r: any) => !(r.emoji === emoji && r.user_id === user.id))
+                            };
+                        }
+                        return inc;
+                    });
+                });
+            }
+            return { previousIncidents };
+        },
+        onError: (err, variables, context) => {
+            queryClient.setQueryData(queryKey, context?.previousIncidents);
+            dbLogger.error('removeReaction error:', err);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
+
+    const toggleBookmarkMutation = useMutation({
+        mutationFn: async (incidentId: string) => {
             const incident = incidents.find(i => i.id === incidentId);
             const newValue = !incident?.is_bookmarked;
-
             const { error } = await supabase
                 .from('incidents')
                 .update({ is_bookmarked: newValue })
                 .eq('id', incidentId);
-
             if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
-            setIncidents(prev => prev.map(i =>
-                i.id === incidentId ? { ...i, is_bookmarked: newValue } : i
-            ));
-            return {};
-        } catch (e) {
-            dbLogger.error('toggleBookmark error:', e);
-            return { error: e };
-        }
-    };
+    useEffect(() => {
+        if (!householdId) return;
+
+        const channel = supabase
+            .channel(`incidents-realtime-${householdId}`)
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'incidents', filter: `household_id=eq.${householdId}` },
+                () => queryClient.invalidateQueries({ queryKey })
+            )
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'incident_updates' },
+                () => queryClient.invalidateQueries({ queryKey })
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [householdId, queryClient, queryKey, supabase]);
 
     return {
         incidents,
         loading,
-        refetch: fetchIncidents,
-        addIncident,
-        addIncidentUpdate,
-        resolveIncident,
-        deleteIncident,
-        addReaction,
-        removeReaction,
-        toggleBookmark
+        refetch: () => queryClient.invalidateQueries({ queryKey }),
+        addIncident: useCallback((catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) =>
+            addMutation.mutateAsync({ catId, type, note, photos, health_category, health_value, onset, symptom_details, batch_id }), [addMutation]),
+        addIncidentUpdate: useCallback((incidentId: string, note: string, photos: File[] = [], statusChange?: string) =>
+            addUpdateMutation.mutateAsync({ incidentId, note, photos, statusChange }), [addUpdateMutation]),
+        resolveIncident: useCallback((incidentId: string) =>
+            resolveMutation.mutateAsync(incidentId), [resolveMutation]),
+        deleteIncident: useCallback((incidentId: string) =>
+            deleteMutation.mutateAsync(incidentId), [deleteMutation]),
+        addReaction: useCallback((incidentId: string, emoji: string) =>
+            addReactionMutation.mutateAsync({ incidentId, emoji }), [addReactionMutation]),
+        removeReaction: useCallback((incidentId: string, emoji: string) =>
+            removeReactionMutation.mutateAsync({ incidentId, emoji }), [removeReactionMutation]),
+        toggleBookmark: useCallback((incidentId: string) =>
+            toggleBookmarkMutation.mutateAsync(incidentId), [toggleBookmarkMutation])
     };
 }
+

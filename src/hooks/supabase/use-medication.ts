@@ -50,7 +50,7 @@ export function useMedicationLogs(householdId: string | null) {
         };
     }, [householdId, fetchMedicationLogs, supabase]);
 
-    const addMedicationLog = async (log: Partial<MedicationLog>) => {
+    const addMedicationLog = useCallback(async (log: Partial<MedicationLog>) => {
         if (!householdId) return { error: "No household" };
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -70,9 +70,9 @@ export function useMedicationLogs(householdId: string | null) {
             dbLogger.error('addMedicationLog error:', e);
             return { error: e };
         }
-    };
+    }, [householdId, supabase]);
 
-    const updateMedicationLog = async (id: string, log: Partial<MedicationLog>) => {
+    const updateMedicationLog = useCallback(async (id: string, log: Partial<MedicationLog>) => {
         try {
             const { data, error } = await supabase
                 .from('medication_logs')
@@ -87,9 +87,9 @@ export function useMedicationLogs(householdId: string | null) {
             dbLogger.error('updateMedicationLog error:', e);
             return { error: e };
         }
-    };
+    }, [supabase]);
 
-    const deleteMedicationLog = async (id: string) => {
+    const deleteMedicationLog = useCallback(async (id: string) => {
         try {
             const { error } = await supabase
                 .from('medication_logs')
@@ -102,7 +102,7 @@ export function useMedicationLogs(householdId: string | null) {
             dbLogger.error('deleteMedicationLog error:', e);
             return { error: e };
         }
-    };
+    }, [supabase]);
 
     return { medicationLogs, loading, addMedicationLog, updateMedicationLog, deleteMedicationLog, refetch: fetchMedicationLogs };
 }
