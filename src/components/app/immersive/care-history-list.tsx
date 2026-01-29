@@ -2,7 +2,7 @@ import { getFullImageUrl } from '@/lib/utils';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppState } from '@/store/app-store';
-import { useCareData } from '@/hooks/use-care-data';
+import { useCareData } from '@/hooks/use-care-logic';
 import { useAuth } from '@/providers/auth-provider';
 import { Cat, Check, Clock, ImageIcon, UtensilsCrossed, Droplet, Trash2, Scissors, Sparkles, Pill, PenLine, Heart, MessageCircle, AlertCircle, Camera, Undo2, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';

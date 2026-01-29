@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Heart, Calendar, Image as ImageIcon, Activity, Menu, Settings, ChevronDown, PawPrint } from "lucide-react";
 import { sounds } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
-import { IncidentModal } from "../incident-modal";
-import { PhotoModal } from "../photo-modal";
+import { IncidentModal } from "../modals/incident-modal";
+import { PhotoModal } from "../modals/photo-modal";
 import { useFootprintContext } from "@/providers/footprint-provider";
-import { UnifiedCareList, useCareData } from "./unified-care-list";
+import { UnifiedCareList } from "./unified-care-list";
+import { useCareData } from "@/hooks/use-care-logic";
 import { IntegratedNotificationPill } from "./integrated-notification-pill";
 
 interface MagicBubbleNeoProps {

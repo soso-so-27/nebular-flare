@@ -49,7 +49,7 @@ export function BrandLoader({ onClick, className = "" }: BrandLoaderProps) {
                     {[0, 1, 2].map((i) => (
                         <motion.div
                             key={i}
-                            className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-[#E8B4A0]' : i === 1 ? 'bg-[#7CAA8E]' : 'bg-[#B8A6D9]'}`}
+                            className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-brand-peach' : i === 1 ? 'bg-brand-sage' : 'bg-brand-lavender'}`}
                             animate={{ scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
                             transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                         />

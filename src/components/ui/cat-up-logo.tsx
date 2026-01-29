@@ -10,8 +10,8 @@ export const CatUpLogo = ({ className = "" }: { className?: string }) => {
         >
             <defs>
                 <linearGradient id="sageGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#7CAA8E" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#6B9B7A" stopOpacity="1" />
+                    <stop offset="0%" stopColor="var(--color-brand-sage)" stopOpacity="1" />
+                    <stop offset="100%" stopColor="var(--color-brand-sage)" stopOpacity="1" />
                 </linearGradient>
             </defs>
 

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { FootprintPopup } from '@/components/app/footprint-popup';
-import { useFootprints, FOOTPRINT_POINTS } from '@/hooks/use-footprints';
+import { FootprintPopup } from '@/components/app/shared/footprint-popup';
+import { useFootprints, FOOTPRINT_POINTS } from '@/hooks/use-supabase-data';
 
 // =====================================================
 // Context Types

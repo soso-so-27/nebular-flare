@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { JoinScreen } from '@/components/app/join-screen';
+import { JoinScreen } from '@/components/app/screens/join-screen';
 import { Loader2 } from 'lucide-react';
 
 export const metadata = {

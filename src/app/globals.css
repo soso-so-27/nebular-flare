@@ -56,6 +56,18 @@
   --color-emotion: var(--peach);
   --color-attention: var(--lavender);
   --color-base-glass: var(--background);
+
+  /* Z-Index Layers - Systematic Management */
+  --z-index-toast: 10002;
+  --z-index-modal: 10001;
+  --z-index-overlay: 10000;
+  --z-index-sheet: 500;
+  --z-index-highlight: 100;
+  --z-index-header: 50;
+  --z-index-fab: 40;
+  --z-index-active: 10;
+  --z-index-base: 0;
+  --z-index-negative: -1;
 }
 
 /* Brand-inspired color palette - 猫のいる暮らしを、そっと整える (Updated) */

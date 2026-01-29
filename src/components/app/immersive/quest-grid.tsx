@@ -1,8 +1,8 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Check, Cat, UtensilsCrossed, Droplet, Trash2, Scissors, Sparkles, Pill, PenLine, Heart, MessageCircle, AlertCircle, Circle, Plus, X } from 'lucide-react';
-import { useCareData } from '@/hooks/use-care-data';
-import { useAdhocTasks } from '@/hooks/use-adhoc-tasks';
+import { useCareData } from '@/hooks/use-care-logic';
+import { useAdhocTasks } from '@/hooks/use-supabase-data';
 import { useAppState } from '@/store/app-store';
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";

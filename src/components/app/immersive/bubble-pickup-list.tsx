@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCatchUpItems } from "@/lib/utils-catchup";
-import { IncidentModal } from "../incident-modal";
-import { IncidentDetailModal } from "../incident-detail-modal";
+import { IncidentModal } from "../modals/incident-modal";
+import { IncidentDetailModal } from "../modals/incident-detail-modal";
 import { useFootprintContext } from "@/providers/footprint-provider";
 
 interface BubbleItem {
@@ -114,14 +114,14 @@ export function BubblePickupList({ isOpen, onClose, variant = 'bottom' }: Bubble
             if (item.type === 'task') {
                 const isUrgent = item.severity >= 80;
                 colorClass = isUrgent
-                    ? "bg-[#B8A6D9]/15 border-[#B8A6D9]/30 text-[#8B7AAF]"
-                    : "bg-[#7CAA8E]/15 border-[#7CAA8E]/30 text-[#5A8C6E]";
+                    ? "bg-brand-lavender/15 border-brand-lavender/30 text-brand-lavender"
+                    : "bg-brand-sage/15 border-brand-sage/30 text-emerald-700";
                 icon = <Check className="w-5 h-5" />;
             } else if (item.type === 'notice' || item.type === 'unrecorded') {
-                colorClass = "bg-[#E8B4A0]/15 border-[#E8B4A0]/30 text-[#CF8E76]";
+                colorClass = "bg-brand-peach/15 border-brand-peach/30 text-brand-peach";
                 icon = <Heart className="w-5 h-5" />;
             } else if (item.type === 'inventory') {
-                colorClass = "bg-[#B8A6D9]/15 border-[#B8A6D9]/30 text-[#8B7AAF]";
+                colorClass = "bg-brand-lavender/15 border-brand-lavender/30 text-brand-lavender";
                 icon = <ShoppingCart className="w-5 h-5" />;
             }
 
@@ -171,7 +171,7 @@ export function BubblePickupList({ isOpen, onClose, variant = 'bottom' }: Bubble
                             <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden border border-white shadow-inner flex items-center justify-center">
                                 {cat ? <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" /> : '🐈'}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-[#B8A6D9] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                            <div className="absolute -bottom-1 -right-1 bg-brand-lavender text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                                 !
                             </div>
                         </div>
@@ -282,14 +282,14 @@ export function BubblePickupList({ isOpen, onClose, variant = 'bottom' }: Bubble
                                 )}
 
                                 <div className="flex items-center gap-2 mb-3 px-1">
-                                    <Check className="w-4 h-4 text-[#7CAA8E]" />
+                                    <Check className="w-4 h-4 text-brand-sage" />
                                     <span className="text-sm font-bold text-slate-700">今日のお世話</span>
                                 </div>
 
                                 {allItems.length === 0 ? (
                                     <div className="text-center py-12 rounded-3xl bg-white/30 border border-white/40 border-dashed mx-1 flex flex-col items-center justify-center">
-                                        <div className="w-12 h-12 bg-[#E5F0EA] rounded-full flex items-center justify-center mb-3">
-                                            <Sparkles className="w-6 h-6 text-[#7CAA8E]" />
+                                        <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
+                                            <Sparkles className="w-6 h-6 text-brand-sage" />
                                         </div>
                                         <p className="font-bold text-slate-600">すべて完了！</p>
                                         <p className="text-xs text-slate-400 mt-1">今日も一日お疲れ様でした ✨</p>
@@ -312,7 +312,7 @@ export function BubblePickupList({ isOpen, onClose, variant = 'bottom' }: Bubble
                                                 </div>
                                                 <button
                                                     onClick={item.onAction}
-                                                    className="px-4 py-2 bg-gradient-to-b from-[#7CAA8E] to-[#609075] text-white text-xs font-bold rounded-full shadow-[0_4px_10px_-2px_rgba(124,170,142,0.4)] border-t border-white/30 hover:brightness-110 active:scale-95 transition-all shrink-0 whitespace-nowrap relative z-10"
+                                                    className="px-4 py-2 bg-gradient-to-b from-brand-sage to-emerald-600 text-white text-xs font-bold rounded-full shadow-lg shadow-brand-sage/40 border-t border-white/30 hover:brightness-110 active:scale-95 transition-all shrink-0 whitespace-nowrap relative z-10"
                                                 >
                                                     完了
                                                 </button>

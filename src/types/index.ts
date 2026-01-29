@@ -261,7 +261,7 @@ export type MedicationLog = {
   household_id: string;
   product_name: string;
   dosage?: string;
-  start_date: string;
+  starts_at: string;
   end_date?: string;
   frequency?: 'once' | 'daily' | 'twice_daily' | 'weekly' | 'as_needed';
   notes?: string;
