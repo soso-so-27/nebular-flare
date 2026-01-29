@@ -11,6 +11,8 @@ export interface DaySummary {
     hasEvent: boolean;
     eventCount: number;
     careCount: number;
+    hasMedication: boolean;
+    medicationCount: number;
 }
 
 const CRISIS_VALUES = [
@@ -78,7 +80,9 @@ export function useCalendarData(householdId: string | null, targetMonth: Date) {
                         hasCrisis: false,
                         hasEvent: false,
                         eventCount: 0,
-                        careCount: 0
+                        careCount: 0,
+                        hasMedication: false,
+                        medicationCount: 0
                     };
                 }
                 return summary[dateStr];
@@ -87,8 +91,14 @@ export function useCalendarData(householdId: string | null, targetMonth: Date) {
             logs?.forEach((l: any) => {
                 const dateStr = l.done_at.split('T')[0];
                 const day = getDay(dateStr);
-                day.hasCare = true;
-                day.careCount++;
+
+                if (l.type && l.type.startsWith('medication:')) {
+                    day.hasMedication = true;
+                    day.medicationCount++;
+                } else {
+                    day.hasCare = true;
+                    day.careCount++;
+                }
             });
 
             obs?.forEach((o: any) => {

@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { MedicationLogModal } from "./medication-log-modal";
+import { Pill } from "lucide-react";
 
 interface CatSettingsModalProps {
     isOpen: boolean;
@@ -15,8 +17,9 @@ interface CatSettingsModalProps {
 }
 
 export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
-    const { cats, householdId, isDemo, refetchCats, addCatWeightRecord } = useAppState();
+    const { cats, householdId, isDemo, refetchCats, addCatWeightRecord, medicationLogs } = useAppState();
     const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
+    const [isMedModalOpen, setIsMedModalOpen] = useState(false);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     React.useEffect(() => {
@@ -38,6 +41,18 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
     const [backgroundMedia, setBackgroundMedia] = useState<string | null>(null);
     const [bgFile, setBgFile] = useState<File | null>(null);
     const [bgPreview, setBgPreview] = useState<string | null>(null);
+
+    // Medical Profile State
+    const [neuteredStatus, setNeuteredStatus] = useState<'neutered' | 'intact' | 'unknown'>('unknown');
+    const [livingEnvironment, setLivingEnvironment] = useState<'indoor' | 'outdoor' | 'both'>('indoor');
+    const [fleaTickDate, setFleaTickDate] = useState("");
+    const [fleaTickProduct, setFleaTickProduct] = useState("");
+    const [dewormingDate, setDewormingDate] = useState("");
+    const [dewormingProduct, setDewormingProduct] = useState("");
+    const [heartwormDate, setHeartwormDate] = useState("");
+    const [heartwormProduct, setHeartwormProduct] = useState("");
+    const [lastVaccineDate, setLastVaccineDate] = useState("");
+    const [vaccineType, setVaccineType] = useState("");
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -97,6 +112,16 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
         setBackgroundMedia(null);
         setBgFile(null);
         setBgPreview(null);
+        setNeuteredStatus('unknown');
+        setLivingEnvironment('indoor');
+        setFleaTickDate("");
+        setFleaTickProduct("");
+        setDewormingDate("");
+        setDewormingProduct("");
+        setHeartwormDate("");
+        setHeartwormProduct("");
+        setLastVaccineDate("");
+        setVaccineType("");
         setViewMode('list');
     };
 
@@ -260,6 +285,26 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                     const { error } = await supabase.from("cats").update(updates).eq('id', currentCatId);
                     if (error) throw error;
                 }
+
+                // Update Medical Profile - separate from basic to ensure all new fields included
+                const medicalUpdates: any = {
+                    neutered_status: neuteredStatus,
+                    living_environment: livingEnvironment,
+                    flea_tick_date: fleaTickDate || null,
+                    flea_tick_product: fleaTickProduct || null,
+                    deworming_date: dewormingDate || null,
+                    deworming_product: dewormingProduct || null,
+                    heartworm_date: heartwormDate || null,
+                    heartworm_product: heartwormProduct || null,
+                    last_vaccine_date: lastVaccineDate || null,
+                    vaccine_type: vaccineType || null,
+                };
+
+                const { error: medError } = await supabase.from("cats").update(medicalUpdates).eq('id', currentCatId);
+                if (medError) {
+                    console.warn("Medical field update failed:", medError);
+                    // Non-blocking but warn
+                }
             }
 
 
@@ -337,6 +382,18 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
         setBackgroundMedia(bgMedia);
         setBgFile(null);
         setBgPreview(bgMedia); // This will be used as initial preview URL
+
+        // Medical Profile
+        setNeuteredStatus(cat.neutered_status || 'unknown');
+        setLivingEnvironment(cat.living_environment || 'indoor');
+        setFleaTickDate(cat.flea_tick_date ? cat.flea_tick_date.split('T')[0] : "");
+        setFleaTickProduct(cat.flea_tick_product || "");
+        setDewormingDate(cat.deworming_date ? cat.deworming_date.split('T')[0] : "");
+        setDewormingProduct(cat.deworming_product || "");
+        setHeartwormDate(cat.heartworm_date ? cat.heartworm_date.split('T')[0] : "");
+        setHeartwormProduct(cat.heartworm_product || "");
+        setLastVaccineDate(cat.last_vaccine_date ? cat.last_vaccine_date.split('T')[0] : "");
+        setVaccineType(cat.vaccine_type || "");
 
         setViewMode('form');
     };
@@ -633,6 +690,188 @@ export function CatSettingsModal({ isOpen, onClose }: CatSettingsModalProps) {
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Medical & Prevention Section */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <label className="text-xs font-bold text-slate-500 block mb-2">医療・予防情報</label>
+                                        <div className="space-y-4">
+                                            {/* Neutered Status */}
+                                            <div className="space-y-1">
+                                                <label className="text-xs text-slate-500">避妊・去勢</label>
+                                                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                                                    {(['neutered', 'intact', 'unknown'] as const).map((status) => (
+                                                        <button
+                                                            key={status}
+                                                            type="button"
+                                                            onClick={() => setNeuteredStatus(status)}
+                                                            className={cn(
+                                                                "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                                                                neuteredStatus === status
+                                                                    ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                                                                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                                            )}
+                                                        >
+                                                            {status === 'neutered' ? '済み' : (status === 'intact' ? '未' : '不明')}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Living Environment */}
+                                            <div className="space-y-1">
+                                                <label className="text-xs text-slate-500">生活環境</label>
+                                                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                                                    {(['indoor', 'outdoor', 'both'] as const).map((env) => (
+                                                        <button
+                                                            key={env}
+                                                            type="button"
+                                                            onClick={() => setLivingEnvironment(env)}
+                                                            className={cn(
+                                                                "flex-1 py-1.5 text-xs font-medium rounded-md transition-all",
+                                                                livingEnvironment === env
+                                                                    ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                                                                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                                            )}
+                                                        >
+                                                            {env === 'indoor' ? '室内のみ' : (env === 'outdoor' ? '室外のみ' : '内外両方')}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Prevention History */}
+                                            <div className="space-y-3">
+                                                {/* Vaccine */}
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">最終ワクチン日</label>
+                                                        <input
+                                                            type="date"
+                                                            value={lastVaccineDate}
+                                                            onChange={(e) => setLastVaccineDate(e.target.value)}
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">種類</label>
+                                                        <input
+                                                            type="text"
+                                                            value={vaccineType}
+                                                            onChange={(e) => setVaccineType(e.target.value)}
+                                                            placeholder="3種等"
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Flea & Tick */}
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">ノミダニ予防</label>
+                                                        <input
+                                                            type="date"
+                                                            value={fleaTickDate}
+                                                            onChange={(e) => setFleaTickDate(e.target.value)}
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">製品名</label>
+                                                        <input
+                                                            type="text"
+                                                            value={fleaTickProduct}
+                                                            onChange={(e) => setFleaTickProduct(e.target.value)}
+                                                            placeholder="レボリューション等"
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Heartworm */}
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">フィラリア予防</label>
+                                                        <input
+                                                            type="date"
+                                                            value={heartwormDate}
+                                                            onChange={(e) => setHeartwormDate(e.target.value)}
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">製品名</label>
+                                                        <input
+                                                            type="text"
+                                                            value={heartwormProduct}
+                                                            onChange={(e) => setHeartwormProduct(e.target.value)}
+                                                            placeholder="ミルベマックス等"
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Deworming */}
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">お腹の虫/駆虫</label>
+                                                        <input
+                                                            type="date"
+                                                            value={dewormingDate}
+                                                            onChange={(e) => setDewormingDate(e.target.value)}
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400">製品名</label>
+                                                        <input
+                                                            type="text"
+                                                            value={dewormingProduct}
+                                                            onChange={(e) => setDewormingProduct(e.target.value)}
+                                                            placeholder="ドロンタール等"
+                                                            className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Medications Section */}
+                                            {editingCatId && (
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-slate-500">継続的な投薬（治療中）</label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsMedModalOpen(true)}
+                                                        className="w-full p-3 flex items-center justify-between bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                                                                <Pill className="h-4 w-4" />
+                                                            </div>
+                                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">投薬スケジュール管理</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                                                                {medicationLogs.filter(l => l.cat_id === editingCatId).length}件
+                                                            </span>
+                                                            <Plus className="h-4 w-4 text-slate-400" />
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            <p className="text-[10px] text-slate-400 leading-tight">
+                                                💉 これらは直近の記録です。詳細な履歴や将来の予定は、各「できごと」として記録・管理することをおすすめします。
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {editingCatId && (
+                                        <MedicationLogModal
+                                            isOpen={isMedModalOpen}
+                                            onClose={() => setIsMedModalOpen(false)}
+                                            catId={editingCatId}
+                                        />
+                                    )}
 
                                     <div className="flex gap-2 pt-2">
                                         <button

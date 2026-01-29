@@ -34,8 +34,8 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
-  // themeColor removed to prevent iOS status bar conflict
 };
 
 export default function RootLayout({
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" style={{ backgroundColor: '#000', margin: 0, padding: 0 }} suppressHydrationWarning>
+    <html lang="ja" className="bg-[#FAF8F5]" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -53,25 +53,21 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <meta name="apple-touch-fullscreen" content="yes" />
-        {/* Theme color should match the app background for seamless status bar */}
-        <meta name="theme-color" content="#FAF9F7" />
-        {/* Inline style in head for earliest possible application */}
+        <meta name="theme-color" content="#FAF8F5" />
         <style dangerouslySetInnerHTML={{
           __html: `
-          html, body {
-            background-color: #000 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+          /* Iron Root v16: Inline constraints removed for iOS 18 native behavior */
         `}} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-hide`}
-        style={{ backgroundColor: '#000', margin: 0, padding: 0 }}
+        style={{ backgroundColor: '#FAF8F5', margin: 0, padding: 0 }}
         suppressHydrationWarning
       >
         <AuthProvider>
-          {children}
+          <div id="main-viewport" className="iron-viewport">
+            {children}
+          </div>
           <Toaster />
         </AuthProvider>
         {/* Hidden audio element for iOS audio unlock workaround */}

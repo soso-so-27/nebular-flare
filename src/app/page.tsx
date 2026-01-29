@@ -170,16 +170,7 @@ function AppContent() {
     }
   };
 
-  // Force layout re-calculation for mobile viewport height hack
-  useEffect(() => {
-    const setVh = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setVh();
-    window.addEventListener('resize', setVh);
-    return () => window.removeEventListener('resize', setVh);
-  }, []);
+  // Force layout re-calculation for mobile viewport height hack - REMOVED (using dvh)
 
   // Use isHeroImageLoaded to control Splash Screen
   const { isHeroImageLoaded } = useAppState();
@@ -199,8 +190,8 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
 
-      <main className="min-h-dvh overflow-hidden">
-        <div className="max-w-md mx-auto space-y-4">
+      <main className="relative w-full h-full flex flex-col">
+        <div className="flex-1 w-full max-w-md mx-auto relative flex flex-col">
 
           <CalendarModal
             isOpen={showCalendar}

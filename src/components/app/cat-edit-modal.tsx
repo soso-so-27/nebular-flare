@@ -11,8 +11,17 @@ import {
     Cpu,
     FileText,
     Save,
-    Trash2
+    Trash2,
+    Shield,
+    Activity,
+    Pill,
+    Plus,
+    ChevronRight,
+    Home,
+    Stethoscope
 } from "lucide-react";
+import { MedicationLogModal } from "./medication-log-modal";
+import { cn } from "@/lib/utils";
 
 interface CatEditModalProps {
     isOpen: boolean;
@@ -29,8 +38,19 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
         notes: cat?.notes || "",
         birthday: cat?.birthday || "",
         last_vaccine_date: cat?.last_vaccine_date || "",
-        vaccine_type: cat?.vaccine_type || ""
+        vaccine_type: cat?.vaccine_type || "",
+        neutered_status: cat?.neutered_status || "unknown",
+        living_environment: cat?.living_environment || "indoor",
+        flea_tick_date: cat?.flea_tick_date || "",
+        flea_tick_product: cat?.flea_tick_product || "",
+        deworming_date: cat?.deworming_date || "",
+        deworming_product: cat?.deworming_product || "",
+        heartworm_date: cat?.heartworm_date || "",
+        heartworm_product: cat?.heartworm_product || "",
     });
+
+    const [isMedModalOpen, setIsMedModalOpen] = useState(false);
+    const { medicationLogs } = useAppState();
 
     // Update local state when cat changes (if modal is open)
     React.useEffect(() => {
@@ -40,7 +60,15 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                 notes: cat.notes || "",
                 birthday: cat.birthday || "",
                 last_vaccine_date: cat.last_vaccine_date || "",
-                vaccine_type: cat.vaccine_type || ""
+                vaccine_type: cat.vaccine_type || "",
+                neutered_status: cat.neutered_status || "unknown",
+                living_environment: cat.living_environment || "indoor",
+                flea_tick_date: cat.flea_tick_date || "",
+                flea_tick_product: cat.flea_tick_product || "",
+                deworming_date: cat.deworming_date || "",
+                deworming_product: cat.deworming_product || "",
+                heartworm_date: cat.heartworm_date || "",
+                heartworm_product: cat.heartworm_product || "",
             });
         }
     }, [cat, isOpen]);
@@ -71,7 +99,15 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
             notes: editData.notes || undefined,
             birthday: editData.birthday || undefined,
             last_vaccine_date: editData.last_vaccine_date || undefined,
-            vaccine_type: editData.vaccine_type || undefined
+            vaccine_type: editData.vaccine_type || undefined,
+            neutered_status: editData.neutered_status || undefined,
+            living_environment: editData.living_environment || undefined,
+            flea_tick_date: editData.flea_tick_date || undefined,
+            flea_tick_product: editData.flea_tick_product || undefined,
+            deworming_date: editData.deworming_date || undefined,
+            deworming_product: editData.deworming_product || undefined,
+            heartworm_date: editData.heartworm_date || undefined,
+            heartworm_product: editData.heartworm_product || undefined,
         };
 
         if (isDemo) {
@@ -178,10 +214,109 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                     />
                                 </label>
 
-                                <label className="block space-y-2">
+                                <div className="pt-4 border-t border-black/5 space-y-6">
+                                    <div className="flex items-center gap-2 text-[#7CAA8E]">
+                                        <Stethoscope className="w-4 h-4" />
+                                        <span className="text-xs font-black uppercase tracking-[0.2em]">医療・予防設定</span>
+                                    </div>
+
+                                    {/* Neutered / Environment */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">避妊・去勢</span>
+                                            <div className="flex bg-black/5 rounded-xl p-1">
+                                                {(['neutered', 'intact', 'unknown'] as const).map((s) => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => setEditData({ ...editData, neutered_status: s })}
+                                                        className={cn(
+                                                            "flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all",
+                                                            editData.neutered_status === s ? "bg-white text-[#7CAA8E] shadow-sm" : "text-slate-400"
+                                                        )}
+                                                    >
+                                                        {s === 'neutered' ? '済' : s === 'intact' ? '未' : '?'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">飼育環境</span>
+                                            <div className="flex bg-black/5 rounded-xl p-1">
+                                                {(['indoor', 'outdoor', 'both'] as const).map((e) => (
+                                                    <button
+                                                        key={e}
+                                                        onClick={() => setEditData({ ...editData, living_environment: e })}
+                                                        className={cn(
+                                                            "flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all",
+                                                            editData.living_environment === e ? "bg-white text-[#7CAA8E] shadow-sm" : "text-slate-400"
+                                                        )}
+                                                    >
+                                                        {e === 'indoor' ? '室内' : e === 'outdoor' ? '室外' : '両方'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Prevention Dates */}
+                                    <div className="space-y-4">
+                                        {[
+                                            { label: '混合ワクチン', dateKey: 'last_vaccine_date', typeKey: 'vaccine_type', placeholder: '3種、5種など' },
+                                            { label: 'ノミ・ダニ', dateKey: 'flea_tick_date', typeKey: 'flea_tick_product', placeholder: '製品名' },
+                                            { label: 'フィラリア', dateKey: 'heartworm_date', typeKey: 'heartworm_product', placeholder: '製品名' },
+                                            { label: 'お腹の虫', dateKey: 'deworming_date', typeKey: 'deworming_product', placeholder: '製品名' },
+                                        ].map((item) => (
+                                            <div key={item.label} className="grid grid-cols-2 gap-2">
+                                                <div className="space-y-1.5">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">{item.label}日</span>
+                                                    <input
+                                                        type="date"
+                                                        value={(editData as any)[item.dateKey]}
+                                                        onChange={(e) => setEditData({ ...editData, [item.dateKey]: e.target.value })}
+                                                        className="w-full text-xs bg-white/50 border border-black/5 rounded-xl p-2.5 focus:ring-1 focus:ring-[#7CAA8E] outline-none"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">製品/種類</span>
+                                                    <input
+                                                        type="text"
+                                                        value={(editData as any)[item.typeKey]}
+                                                        onChange={(e) => setEditData({ ...editData, [item.typeKey]: e.target.value })}
+                                                        placeholder={item.placeholder}
+                                                        className="w-full text-xs bg-white/50 border border-black/5 rounded-xl p-2.5 focus:ring-1 focus:ring-[#7CAA8E] outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Medication Log Link */}
+                                    <div className="space-y-2">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">現在のお薬</span>
+                                        <button
+                                            onClick={() => setIsMedModalOpen(true)}
+                                            className="w-full p-4 flex items-center justify-between bg-black/5 rounded-2xl hover:bg-black/10 transition-colors group"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white rounded-xl shadow-sm">
+                                                    <Pill className="w-4 h-4 text-[#7CAA8E]" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-xs font-bold text-slate-700">投薬スケジュール管理</div>
+                                                    <div className="text-[10px] text-slate-400">
+                                                        {medicationLogs.filter(l => l.cat_id === catId).length} 件の登録
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <label className="block space-y-2 pt-4 border-t border-black/5">
                                     <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
                                         <FileText className="w-3.5 h-3.5" />
-                                        メモ
+                                        自由メモ
                                     </span>
                                     <textarea
                                         value={editData.notes}
@@ -200,6 +335,13 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
                                 この猫を削除する
                             </button>
                         </div>
+
+                        {/* Sub Modals */}
+                        <MedicationLogModal
+                            isOpen={isMedModalOpen}
+                            onClose={() => setIsMedModalOpen(false)}
+                            catId={catId}
+                        />
 
                         {/* Footer Action */}
                         <div className="p-4 border-t border-black/5 shrink-0 bg-[#FAF9F7]/95 backdrop-blur-md safe-area-pb">

@@ -124,7 +124,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
+        <div className="min-h-full bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             {step === 'welcome' && (
                 <div className="text-center space-y-6 max-w-sm">
                     <div className="flex items-center justify-center gap-3 mb-4">

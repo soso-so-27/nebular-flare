@@ -187,7 +187,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#FAF9F7]/95 dark:bg-[#1E1E23]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl flex flex-col"
+                        className="bg-[#FAF9F7]/95 dark:bg-[#1E1E23]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 w-full max-w-md max-h-full sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl flex flex-col"
                     >
                         {/* Header */}
                         <div className="px-4 py-3 border-b border-white/20 dark:border-white/5 flex items-center justify-between shrink-0">

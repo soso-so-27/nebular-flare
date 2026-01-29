@@ -14,7 +14,7 @@ import { useUserProfile, useDateLogs } from "@/hooks/use-supabase-data";
 import { ActivityLogItem, ActivityItem } from "./activity-log-item";
 
 export function CalendarScreen() {
-    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident, householdUsers } = useAppState();
+    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident, householdUsers, medicationLogs } = useAppState();
     const { user: currentUser } = useAuth();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -107,8 +107,6 @@ export function CalendarScreen() {
 
             let title = def?.title || 'お世話';
 
-            // Append time slot label if type has suffix (supports both underscore and colon)
-            // Example: care_food:morning or care_food_morning
             if (def && l.type?.startsWith(def.id) && l.type !== def.id) {
                 // Remove base ID and separator
                 let suffix = l.type.replace(def.id, '');
@@ -122,6 +120,27 @@ export function CalendarScreen() {
                 else if (suffix === 'night') title += ' (夜)';
             }
 
+            // Medication Log Override
+            if (l.type && l.type.startsWith('medication:')) {
+                // Format: medication:{med_id}:{slot}
+                const parts = l.type.split(':');
+                if (parts.length >= 2) {
+                    const medId = parts[1];
+                    const slot = parts[2];
+                    const med = medicationLogs?.find((m: any) => m.id === medId);
+                    if (med) {
+                        title = med.product_name;
+                        if (slot === 'morning') title += ' (朝)';
+                        else if (slot === 'evening') title += ' (夜)';
+                    } else {
+                        title = 'お薬';
+                    }
+                }
+            }
+
+            // Explicit icon override for medication
+            const icon = (l.type && l.type.startsWith('medication:')) ? 'Pill' : def?.icon;
+
             records.push({
                 id: l.id,
                 type: 'care',
@@ -131,7 +150,7 @@ export function CalendarScreen() {
                 userId: l.done_by,
                 userName: displayUserName,
                 userAvatar: user?.avatar_url,
-                icon: def?.icon,
+                icon: icon,
                 notes: l.notes,
                 showTime: true
             });
@@ -312,6 +331,7 @@ export function CalendarScreen() {
                                 {/* Indicators - Glass Style */}
                                 <div className="flex items-center gap-1 mt-1">
                                     {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-[#E8B4A0] shadow-[0_0_5px_rgba(232,180,160,0.8)]" />}
+                                    {(dayData?.hasMedication) && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]" />}
                                     {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
                                     {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-[#B8A6D9] shadow-[0_0_5px_rgba(184,166,217,0.8)] animate-pulse" />}
                                 </div>

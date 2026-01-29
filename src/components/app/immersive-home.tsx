@@ -19,10 +19,8 @@ import { ActivityFeed } from "./activity-feed";
 import { ZenGestures } from "./immersive/zen-gestures";
 import { EditorialCorners } from "./immersive/editorial-corners";
 import { BubblePickupList } from "./immersive/bubble-pickup-list";
-import { analyzeImageBrightness } from "@/lib/image-analysis";
 import { unlockAudio } from "@/lib/sounds";
 import { BrandLoader } from "@/components/ui/brand-loader";
-import { MagicBubbleNeo } from "./immersive/magic-bubble-neo";
 import { LayoutIslandNeo } from "./immersive/layout-island-neo";
 import { useCareData } from "./immersive/unified-care-list";
 import { ActionPlusMenu } from "./immersive/action-plus-menu";
@@ -116,7 +114,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const activeIncidents = React.useMemo(() => {
         return (incidents || []).filter(inc => inc.status !== 'resolved');
     }, [incidents]);
-    const [contrastMode, setContrastMode] = useState<'light' | 'dark'>('dark');
 
     const [uiVisible, setUiVisible] = useState(true);
     const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -232,15 +229,6 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     const { displayMedia, isVideo } = bgMediaInfo;
 
     const currentPhotoUrl = isVideo ? (activeCat?.avatar || null) : displayMedia;
-
-    // Feature: Image Brightness Analysis
-    useEffect(() => {
-        if (currentPhotoUrl) {
-            analyzeImageBrightness(currentPhotoUrl).then(mode => {
-                setContrastMode(mode);
-            });
-        }
-    }, [currentPhotoUrl]);
 
     // Initial Setup (Hero Image & Ambient Light)
     useEffect(() => {
@@ -416,7 +404,7 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
     return (
         <div
-            className="fullscreen-bg w-full overflow-hidden z-[9999]"
+            className="fullscreen-bg w-full overflow-hidden z-0"
             style={{ backgroundColor: 'transparent' }}
             onClick={() => {
                 resetHideTimer();
@@ -689,38 +677,19 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
 
                 {/* 2. Responsive Layout Components */}
                 <div className="absolute inset-0 pointer-events-none">
-                    {/* --- NEO LAYOUTS (Optimized v2) --- */}
-                    {settings.layoutType === 'v2-classic' && (
-                        <MagicBubbleNeo
-                            onOpenPickup={() => { }}
-                            onOpenCalendar={() => onOpenCalendar?.()}
-                            onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenCare={() => handleOpenSidebar('care')}
-                            onOpenActivity={() => handleOpenSidebar('activity')}
-                            onOpenPhoto={() => setShowPhotoListSheet(true)}
-                            onOpenIncident={() => setShowIncidentListSheet(true)}
-                            onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenActionMenu={() => setShowNyannlogModal(true)}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                            onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
-                            contrastMode={contrastMode}
-                        />
-                    )}
+                    {/* --- NEO LAYOUT (Island only) --- */}
+                    <LayoutIslandNeo
+                        onOpenPickup={() => { }}
+                        onOpenGallery={() => onNavigate?.('gallery')}
+                        onOpenPhoto={() => setShowPhotoListSheet(true)}
+                        onOpenMenu={() => handleOpenSidebar('care')}
+                        onOpenExchange={() => setShowThemeExchange(true)}
+                        onOpenIncident={() => setShowIncidentListSheet(true)}
+                        onOpenIncidentDetail={setSelectedIncidentId}
 
-                    {(settings.layoutType === 'v2-island' || (settings.layoutType !== 'v2-classic' && settings.layoutType !== 'v2-island')) && (
-                        <LayoutIslandNeo
-                            onOpenPickup={() => { }}
-                            onOpenGallery={() => onNavigate?.('gallery')}
-                            onOpenPhoto={() => setShowPhotoListSheet(true)}
-                            onOpenMenu={() => handleOpenSidebar('care')}
-                            onOpenExchange={() => setShowThemeExchange(true)}
-                            onOpenIncident={() => setShowIncidentListSheet(true)}
-                            onOpenIncidentDetail={setSelectedIncidentId}
-
-                            onOpenCalendar={() => onOpenCalendar?.()}
-                            onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
-                        />
-                    )}
+                        onOpenCalendar={() => onOpenCalendar?.()}
+                        onOpenNyannlogSheet={(tab) => handleOpenNyannlog(tab)}
+                    />
                 </div>
             </div>
 

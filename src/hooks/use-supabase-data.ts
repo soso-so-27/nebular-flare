@@ -8,7 +8,7 @@ import { uploadCatImage as uploadCatImageToStorage, uploadMultipleImages } from 
 import { dbLogger } from "@/lib/logger";
 import type { Database } from '@/types/database';
 
-import type { Cat } from '@/types';
+import type { Cat, MedicationLog, WeeklyAlbumSettings } from '@/types';
 type CareLog = Database['public']['Tables']['care_logs']['Row'];
 type Observation = Database['public']['Tables']['observations']['Row'];
 type CatObservation = Observation; // Alias for compat
@@ -629,7 +629,7 @@ export function useIncidents(householdId: string | null) {
         };
     }, [householdId, fetchIncidents]);
 
-    const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string) => {
+    const addIncident = async (catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) => {
         if (!householdId) {
             dbLogger.error('addIncident: householdId is null');
             return { error: "No household" };
@@ -671,7 +671,10 @@ export function useIncidents(householdId: string | null) {
                     photos: photoPaths,
                     created_by: (await supabase.auth.getUser()).data.user?.id,
                     health_category,
-                    health_value
+                    health_value,
+                    onset,
+                    symptom_details,
+                    batch_id
                 } as any)
                 .select()
                 .single();
@@ -986,3 +989,197 @@ export function useDateLogs(householdId: string | null, date: Date) {
     return { ...logs, loading, refetch: () => setRefreshTrigger(prev => prev + 1) };
 }
 
+
+// Hook for medication logs
+export function useMedicationLogs(householdId: string | null) {
+    const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient() as any;
+
+    const fetchMedicationLogs = useCallback(async () => {
+        if (!householdId) return;
+        try {
+            const { data, error } = await supabase
+                .from('medication_logs')
+                .select('*')
+                .eq('household_id', householdId)
+                .order('start_date', { ascending: false });
+
+            if (error) throw error;
+            setMedicationLogs(data as MedicationLog[]);
+        } catch (e) {
+            dbLogger.error("Error fetching medication logs:", e);
+        } finally {
+            setLoading(false);
+        }
+    }, [householdId, supabase]);
+
+    useEffect(() => {
+        fetchMedicationLogs();
+
+        if (!householdId) return;
+
+        const channel = supabase
+            .channel('public:medication_logs')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'medication_logs', filter: `household_id=eq.${householdId}` },
+                () => fetchMedicationLogs()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [householdId, fetchMedicationLogs, supabase]);
+
+    const addMedicationLog = async (log: Partial<MedicationLog>) => {
+        if (!householdId) return { error: "No household" };
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { data, error } = await supabase
+                .from('medication_logs')
+                .insert({
+                    ...log,
+                    household_id: householdId,
+                    created_by: user?.id
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { data };
+        } catch (e) {
+            dbLogger.error('addMedicationLog error:', e);
+            return { error: e };
+        }
+    };
+
+    const updateMedicationLog = async (id: string, log: Partial<MedicationLog>) => {
+        try {
+            const { data, error } = await supabase
+                .from('medication_logs')
+                .update(log)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { data };
+        } catch (e) {
+            dbLogger.error('updateMedicationLog error:', e);
+            return { error: e };
+        }
+    };
+
+    const deleteMedicationLog = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('medication_logs')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            return {};
+        } catch (e) {
+            dbLogger.error('deleteMedicationLog error:', e);
+            return { error: e };
+        }
+    };
+
+    return { medicationLogs, loading, addMedicationLog, updateMedicationLog, deleteMedicationLog, refetch: fetchMedicationLogs };
+}
+
+export function useWeeklyAlbumSettings() {
+    const [settings, setSettings] = useState<WeeklyAlbumSettings[]>([]);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient();
+
+    useEffect(() => {
+        let subscription: any;
+
+        async function fetchSettings() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                // Get user's household_id
+                const { data: userData } = await (supabase
+                    .from('users')
+                    .select('household_id')
+                    .eq('id', user.id)
+                    .single() as any);
+
+                if (!userData?.household_id) return;
+
+                const { data, error } = await supabase
+                    .from('weekly_album_settings' as any)
+                    .select('*')
+                    .eq('household_id', userData.household_id);
+
+                if (error) throw error;
+                setSettings(data || []);
+
+                // Subscribe to changes
+                subscription = supabase
+                    .channel('weekly_album_settings_changes')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: '*',
+                            schema: 'public',
+                            table: 'weekly_album_settings',
+                            filter: `household_id=eq.${userData.household_id}`
+                        },
+                        () => {
+                            fetchSettings(); // Refresh on any change
+                        }
+                    )
+                    .subscribe();
+            } catch (e) {
+                console.error('Error fetching weekly album settings:', e);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchSettings();
+
+        return () => {
+            if (subscription) subscription.unsubscribe();
+        };
+    }, []);
+
+    const updateLayout = async (catId: string, weekKey: string, layoutType: string) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Get user's household_id
+            const { data: userData } = await (supabase
+                .from('users')
+                .select('household_id')
+                .eq('id', user.id)
+                .single() as any);
+
+            if (!userData?.household_id) throw new Error('No household ID');
+
+            const { error } = await (supabase
+                .from('weekly_album_settings' as any)
+                .upsert({
+                    household_id: userData.household_id,
+                    cat_id: catId,
+                    week_key: weekKey,
+                    layout_type: layoutType,
+                    user_id: user.id, // For record keeping
+                    updated_at: new Date().toISOString()
+                } as any, { onConflict: 'household_id,cat_id,week_key' } as any));
+
+            if (error) throw error;
+        } catch (e) {
+            console.error('Error updating weekly album layout:', e);
+            throw e;
+        }
+    };
+
+    return { settings, loading, updateLayout };
+}

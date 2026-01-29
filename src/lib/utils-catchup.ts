@@ -64,7 +64,7 @@ export function getCatchUpItems({
     today?: string;
     observations?: any[];
     dayStartHour?: number;
-}): { items: CatchUpItem[]; allItems: CatchUpItem[]; summary: string; remainingCount: number } {
+}): { items: CatchUpItem[]; allItems: CatchUpItem[]; summary: string; remainingCount: number; today: string } {
     const items: CatchUpItem[] = [];
     const allItems: CatchUpItem[] = []; // Not used?
     const lastSeenDate = new Date(lastSeenAt);
@@ -463,5 +463,5 @@ export function getCatchUpItems({
         summary = parts.join(' ・ ');
     }
 
-    return { items: displayItems, allItems: sorted, summary, remainingCount };
+    return { items: displayItems, allItems: sorted, summary, remainingCount, today: todayStr };
 }

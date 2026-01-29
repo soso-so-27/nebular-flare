@@ -142,7 +142,7 @@ export function JoinScreen() {
 
     if (authLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF9F7]">
+            <div className="min-h-full flex flex-col items-center justify-center bg-[#FAF9F7]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#7CAA8E]" />
                 <p className="text-sm text-slate-500 mt-4">読み込み中...</p>
             </div>
@@ -165,7 +165,7 @@ export function JoinScreen() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
+        <div className="min-h-full bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 space-y-6 text-center">
 
                 {status === 'loading' && (

@@ -28,7 +28,7 @@ interface ActivityScreenProps {
 
 export function ActivityScreen({ onClose }: ActivityScreenProps) {
     return (
-        <div className="min-h-screen bg-transparent">
+        <div className="min-h-full bg-transparent">
             <ScreenHeader title="お世話履歴" onClose={onClose} />
             <div className="p-4 safe-bottom">
                 {/* 

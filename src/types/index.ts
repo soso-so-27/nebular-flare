@@ -20,8 +20,19 @@ export type Cat = {
   weightHistory?: CatWeightRecord[];
   background_mode?: 'random' | 'media' | 'avatar';
   background_media?: string | null;
-  last_vaccine_date?: string; // Last vaccine date
-  vaccine_type?: string; // Type of vaccine
+  // Vaccine & Prevention
+  last_vaccine_date?: string;
+  vaccine_type?: string;
+  flea_tick_date?: string; // Last flea/tick prevention
+  flea_tick_product?: string;
+  deworming_date?: string; // Last deworming
+  deworming_product?: string;
+  heartworm_date?: string; // Last heartworm prevention
+  heartworm_product?: string;
+  // Medical Profile
+  neutered_status?: 'neutered' | 'intact' | 'unknown';
+  living_environment?: 'indoor' | 'outdoor' | 'both';
+  family_composition?: string; // e.g., "Adults: 2, Children: 0, Other pets: 1 dog"
 };
 
 export type PhotoTag = {
@@ -145,6 +156,18 @@ export type IncidentStatus = 'watching' | 'hospital' | 'resolved';
 export type IncidentSeverity = 'low' | 'medium' | 'high';
 export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other';
 
+// Symptom details for medical report
+export type SymptomDetails = {
+  vomit_count?: number; // Number of times vomited in 24h
+  vomit_content?: string; // Description of vomit content
+  stool_score?: 1 | 2 | 3 | 4 | 5 | 6 | 7; // Bristol stool scale
+  stool_blood?: boolean;
+  stool_mucus?: boolean;
+  urine_frequency?: 'normal' | 'frequent' | 'rare' | 'none';
+  urine_pain?: boolean;
+  urine_blood?: boolean;
+};
+
 export type Incident = {
   id: string;
   household_id: string;
@@ -159,6 +182,11 @@ export type Incident = {
   updated_at: string;
   resolved_at?: string;
   updates?: IncidentUpdate[]; // Joined for UI
+  // Medical Report Enhancement
+  onset_at?: string; // When symptoms started
+  last_normal_at?: string; // Last time cat was normal
+  symptom_details?: SymptomDetails;
+  batch_id?: string; // For multi-cat grouping
 };
 
 export type IncidentUpdate = {
@@ -224,4 +252,83 @@ export type AppSettings = {
   dayStartHour: number;
   lastSeenPhotoAt: string;
   homeButtonMode: 'unified' | 'separated'; // A/B Test for Button Layout
+};
+
+// Medication Log for tracking treatments
+export type MedicationLog = {
+  id: string;
+  cat_id: string;
+  household_id: string;
+  product_name: string;
+  dosage?: string;
+  start_date: string;
+  end_date?: string;
+  frequency?: 'once' | 'daily' | 'twice_daily' | 'weekly' | 'as_needed';
+  notes?: string;
+  created_by: string;
+  created_at: string;
+};
+
+// Report Configuration for Medical Report generation
+export type TodayStatusLevel = 'normal' | 'slightly_bad' | 'bad' | 'unknown';
+
+export type TodayStatus = {
+  appetite: TodayStatusLevel;
+  energy: TodayStatusLevel;
+  excretion: TodayStatusLevel;
+  hydration: TodayStatusLevel;
+};
+
+export type IngestionDetails = {
+  object?: string; // What was ingested
+  amount?: string; // Quantity or length
+  time?: string; // When it happened
+};
+
+export type AbdominalSigns = {
+  refusing_touch?: boolean;
+  prayer_pose?: boolean;
+  crouching?: boolean;
+};
+
+export type EmergencyFlags = {
+  persistent_vomiting?: boolean;
+  lethargy?: boolean;
+  abdominal_pain?: boolean;
+  no_excretion?: boolean;
+};
+
+export type VitalSummary = {
+  stool: boolean;
+  urine: boolean;
+  vomit_count: number;
+  last_meal?: string;
+};
+
+export type ReportConfigData = {
+  // Step 1: Basic Summary
+  chief_complaint: string; // 主訴 (required)
+  onset: string; // 発症日時
+  last_normal: string; // 最後に正常だった日時
+  today_status: TodayStatus;
+  // Step 2: Emergency/Ingestion
+  has_ingestion_suspicion: boolean;
+  ingestion_details?: IngestionDetails;
+  emergency_flags: EmergencyFlags;
+  abdominal_signs: AbdominalSigns;
+  // Step 3: Vitals
+  vital_summary: VitalSummary;
+};
+
+// Weekly Album Settings
+export type AlbumLayoutType = 'hero3' | 'grid4' | 'filmstrip';
+
+export type WeeklyAlbumSettings = {
+  id: string;
+  user_id: string;
+  cat_id: string;
+  week_key: string; // e.g., "2026-W04"
+  layout_type: AlbumLayoutType;
+  created_at: string;
+  updated_at: string;
 };

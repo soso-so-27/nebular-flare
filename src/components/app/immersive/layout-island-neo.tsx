@@ -72,9 +72,10 @@ export function LayoutIslandNeo({
 
     return (
         <>
-            {/* Top Center: Status Pill / Notification Pill */}
+            {/* Top Center: Status Pill / Notification Pill - ensure pointer-events-none on parent */}
             <motion.div
-                className="fixed top-10 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex flex-col items-center"
+                className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center"
+                style={{ top: 'calc(env(safe-area-inset-top, 0px) + 2.5rem)' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -133,15 +134,16 @@ export function LayoutIslandNeo({
                 )}
             </AnimatePresence>
 
-            {/* Top Left System Cluster (Unified Pill) */}
+            {/* Top Left System Cluster (Unified Pill) - surgical touch fix */}
             <motion.div
-                className="fixed top-12 left-6 z-[100] pointer-events-auto"
+                className="fixed left-6 z-[100] pointer-events-none"
+                style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
             >
                 <div
-                    className="flex items-center backdrop-blur-xl rounded-full border border-[#E8B4A0]/40 p-1 shadow-lg shadow-[#E8B4A0]/20"
+                    className="flex items-center backdrop-blur-xl rounded-full border border-[#E8B4A0]/40 p-1 shadow-lg shadow-[#E8B4A0]/20 pointer-events-auto"
                     style={{
                         background: 'linear-gradient(145deg, rgba(232, 180, 160, 0.25), rgba(232, 180, 160, 0.1))'
                     }}
@@ -177,10 +179,11 @@ export function LayoutIslandNeo({
 
             {/* Island Dock */}
             <motion.div
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-auto w-[calc(100%-48px)] max-w-sm"
+                style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' }}
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300, delay: 0.2 }}
             >
                 {/* Floating Action List (Care Items) */}
                 <AnimatePresence>
@@ -189,7 +192,7 @@ export function LayoutIslandNeo({
                             initial={{ opacity: 0, y: 20, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                            className="absolute bottom-full mb-4 w-80 -left-10 origin-bottom"
+                            className="absolute bottom-full mb-6 w-80 left-1/2 -translate-x-1/2 z-[60]"
                         >
                             <UnifiedCareList
                                 alertItems={alertItems}
@@ -203,72 +206,65 @@ export function LayoutIslandNeo({
                                 markPhotosAsSeen={markPhotosAsSeen}
                                 initialTab="care"
                                 contrastMode="dark"
-                                className="!mt-0"
                                 style={expandedListStyle}
                             />
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Main Dock */}
+                {/* Main Integrated Island Bar */}
                 <div
-                    className="flex items-center gap-8 px-6 py-3 rounded-full relative overflow-hidden backdrop-blur-xl border border-[#E8B4A0]/40 shadow-lg shadow-[#E8B4A0]/20"
+                    className="flex items-center gap-1 p-1.5 rounded-full relative overflow-hidden backdrop-blur-3xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full"
                     style={{
-                        background: 'linear-gradient(145deg, rgba(232, 180, 160, 0.25), rgba(232, 180, 160, 0.1))'
+                        background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)'
                     }}
                 >
-                    {/* Glass Reflection */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                    {/* Glass Specular */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
-                    {isUnified ? (
-                        /* Unified Mode: Single Hub Button */
+                    <div className="flex items-center gap-1.5 p-1 w-full">
+                        {/* Care Button (Input) */}
                         <motion.button
-                            whileTap={{ scale: 0.9 }}
+                            whileTap={{ scale: 0.92 }}
                             onClick={() => {
-                                triggerFeedback('medium');
+                                triggerFeedback('light');
+                                onOpenNyannlogSheet('requests');
+                            }}
+                            className="flex flex-col items-center justify-center gap-1 flex-1 h-16 rounded-[24px] hover:bg-white/10 transition-all outline-none group relative"
+                        >
+                            <div className="relative">
+                                <Cat className="w-6 h-6 text-white drop-shadow-sm transition-transform group-active:scale-90" strokeWidth={1.5} />
+                                {alertItems.length > 0 && (
+                                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#E8B4A0] shadow-[0_0_8px_#E8B4A0] ring-1 ring-black/20" />
+                                )}
+                            </div>
+                            <span className="text-[10px] font-bold text-white/90 tracking-tight leading-none">おねがい</span>
+                        </motion.button>
+
+                        {/* Divider */}
+                        <div className="w-px h-8 bg-white/10 mx-0.5" />
+
+                        {/* Events Button (Output) */}
+                        <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                                triggerFeedback('light');
                                 onOpenNyannlogSheet('events');
                             }}
-                            className="w-12 h-12 rounded-[20px] bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors relative group border border-white/10 shadow-sm"
+                            className="flex flex-col items-center justify-center gap-1 flex-1 h-16 rounded-[24px] hover:bg-white/10 transition-all outline-none group"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#E8B4A0]/20 to-transparent opacity-50 rounded-[20px]" />
-                            <Cat className="w-6 h-6 text-white drop-shadow-sm" />
-                            {alertItems.length > 0 && (
-                                <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#E8B4A0] shadow-[0_0_8px_#E8B4A0] ring-2 ring-[#1E1E23]/20" />
-                            )}
+                            <BookOpen className="w-6 h-6 text-white drop-shadow-sm transition-transform group-active:scale-90" strokeWidth={1.5} />
+                            <span className="text-[10px] font-bold text-white/90 tracking-tight leading-none">できごと</span>
                         </motion.button>
-                    ) : (
-                        /* Separated Mode: Distinct Buttons */
-                        <>
-                            {/* Heart / Care Button (Input) - Now First */}
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => {
-                                    triggerFeedback('light');
-                                    onOpenNyannlogSheet('requests');
-                                }}
-                                className="flex flex-col items-center gap-1 group relative"
-                            >
-                                <Cat className="w-7 h-7 text-white/90 group-hover:text-white transition-colors filter drop-shadow-sm" strokeWidth={1.5} />
-                                {alertItems.length > 0 && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#E8B4A0] shadow-[0_0_8px_#E8B4A0]" />
-                                )}
-                                <span className="text-[11px] font-bold text-white/70 group-hover:text-white/90 transition-colors">おねがい</span>
-                            </motion.button>
+                    </div>
 
-                            {/* Book / Events Button (Output) - Now Second */}
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => {
-                                    triggerFeedback('light');
-                                    onOpenNyannlogSheet('events');
-                                }}
-                                className="flex flex-col items-center gap-1 group"
-                            >
-                                <BookOpen className="w-7 h-7 text-white/90 group-hover:text-white transition-colors filter drop-shadow-sm" strokeWidth={1.5} />
-                                <span className="text-[11px] font-bold text-white/70 group-hover:text-white/90 transition-colors">できごと</span>
-                            </motion.button>
-                        </>
-                    )}
+                    {/* Subtle Liquid Progress Indicator (Background) */}
+                    <motion.div
+                        className="absolute inset-0 -z-10 bg-[#E8B4A0]/10 origin-left"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: (progress || 0) / 100 }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                    />
                 </div>
             </motion.div >
         </>

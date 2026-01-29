@@ -50,9 +50,17 @@ export function ActionPlusMenu({ isOpen, onClose, onOpenPhoto, onOpenIncident, o
                         animate={variant === 'sheet' ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
                         exit={variant === 'sheet' ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }}
                         className={`fixed z-[70] ${variant === 'sheet'
-                            ? 'bottom-0 left-0 right-0 rounded-t-3xl p-6 pb-12'
-                            : 'bottom-24 left-1/2 -translate-x-1/2 w-[280px] rounded-3xl p-4'}`}
-                        style={glassStyle}
+                            ? 'bottom-0 left-0 right-0 rounded-t-3xl p-6'
+                            : 'left-1/2 -translate-x-1/2 w-[280px] rounded-3xl p-4'}`}
+                        style={{
+                            ...glassStyle,
+                            paddingBottom: variant === 'sheet'
+                                ? 'calc(env(safe-area-inset-bottom, 0px) + 2rem)'
+                                : '1rem',
+                            bottom: variant === 'sheet'
+                                ? 0
+                                : 'calc(env(safe-area-inset-bottom, 0px) + 6rem)'
+                        }}
                     >
                         <motion.button
                             whileTap={{ scale: 0.98 }}

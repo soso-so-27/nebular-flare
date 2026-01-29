@@ -2,9 +2,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
-import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType, Frequency, MealSlot } from '@/types';
+import { Cat, Task, AppSettings, NoticeDef, NoticeLog, SignalDef, SignalLog, InventoryItem, AppEvent, CareTaskDef, LayoutType, Frequency, MealSlot, MedicationLog } from '@/types';
 import { DEFAULT_TASKS, DEFAULT_NOTICE_DEFS, SIGNAL_DEFS, DEFAULT_CARE_TASK_DEFS, DEFAULT_INVENTORY_ITEMS } from '@/lib/constants';
-import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents } from '@/hooks/use-supabase-data';
+import { useCats as useSupabaseCats, useTodayCareLogs, useTodayObservations, useTodayHouseholdObservations, useNotificationPreferences, useInventory, useIncidents, useMedicationLogs, useWeeklyAlbumSettings } from '@/hooks/use-supabase-data';
 import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
 import { createClient } from '@/lib/supabase';
 import { storeLogger } from '@/lib/logger';
@@ -31,6 +31,12 @@ type AppState = {
     setSignalLogs: React.Dispatch<React.SetStateAction<Record<string, Record<string, SignalLog>>>>;
     inventory: InventoryItem[];
     setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
+    medicationLogs: MedicationLog[];
+    addMedicationLog: (log: Partial<MedicationLog>) => Promise<{ error?: any; data?: any }>;
+    updateMedicationLog: (id: string, log: Partial<MedicationLog>) => Promise<{ error?: any; data?: any }>;
+    deleteMedicationLog: (id: string) => Promise<{ error?: any }>;
+    weeklyAlbumSettings: any[];
+    updateWeeklyAlbumLayout: (catId: string, weekKey: string, layoutType: string) => Promise<void>;
 
     events: AppEvent[];
     setEvents: React.Dispatch<React.SetStateAction<AppEvent[]>>;
@@ -81,7 +87,7 @@ type AppState = {
     uploadUserImage: (userId: string, file: File) => Promise<{ error?: any; publicUrl?: string }>;
     // Incidents
     incidents: any[];
-    addIncident: (catId: string, type: string, note: string, photos?: File[], health_category?: string, health_value?: string) => Promise<{ error?: any; data?: any }>;
+    addIncident: (catId: string, type: string, note: string, photos?: File[], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) => Promise<{ error?: any; data?: any }>;
     addIncidentUpdate: (incidentId: string, note: string, photos?: File[], statusChange?: string) => Promise<{ error?: any }>;
     resolveIncident: (incidentId: string) => Promise<{ error?: any }>;
     deleteIncident: (incidentId: string) => Promise<{ error?: any }>;
@@ -117,31 +123,37 @@ export function AppProvider({ children, householdId = null, currentUserId = null
                 savedViewMode = saved;
             }
             const savedLayout = localStorage.getItem('layoutType');
-            const validLayouts: LayoutType[] = ['v2-classic', 'v2-island'];
-            if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
-                savedLayoutType = savedLayout as LayoutType;
+            // Migration: v2-classic is deprecated, move to v2-island
+            if (savedLayout === 'v2-classic') {
+                localStorage.setItem('layoutType', 'v2-island');
+                savedLayoutType = 'v2-island';
+            } else {
+                const validLayouts: LayoutType[] = ['v2-island']; // v2-classic removed
+                if (savedLayout && validLayouts.includes(savedLayout as LayoutType)) {
+                    savedLayoutType = savedLayout as LayoutType;
+                }
             }
             const savedButtonMode = localStorage.getItem('homeButtonMode');
-            if (savedButtonMode === 'unified' || savedButtonMode === 'separated') {
-                return {
-                    plan: 'Free',
-                    aiEnabled: true,
-                    engagement: 'passive',
-                    homeMode: 'checklist',
-                    homeViewMode: savedViewMode,
-                    layoutType: savedLayoutType,
-                    weeklySummaryEnabled: true,
-                    quietHours: { start: 23, end: 7 },
-                    invThresholds: { soon: 7, urgent: 3, critical: 1 },
-                    seasonalDeckEnabled: true,
-                    skinPackOwned: false,
-                    skinMode: 'default',
-                    photoTagAssist: true,
-                    dayStartHour: 4,
-                    lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
-                    homeButtonMode: savedButtonMode as 'unified' | 'separated',
-                };
-            }
+            const finalButtonMode = (savedLayoutType === 'v2-island') ? 'separated' : (savedButtonMode as 'unified' | 'separated' || 'separated');
+
+            return {
+                plan: 'Free',
+                aiEnabled: true,
+                engagement: 'passive',
+                homeMode: 'checklist',
+                homeViewMode: savedViewMode,
+                layoutType: savedLayoutType,
+                weeklySummaryEnabled: true,
+                quietHours: { start: 23, end: 7 },
+                invThresholds: { soon: 7, urgent: 3, critical: 1 },
+                seasonalDeckEnabled: true,
+                skinPackOwned: false,
+                skinMode: 'default',
+                photoTagAssist: true,
+                dayStartHour: 4,
+                lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
+                homeButtonMode: finalButtonMode,
+            };
         }
         return {
             plan: 'Free',
@@ -159,7 +171,7 @@ export function AppProvider({ children, householdId = null, currentUserId = null
             photoTagAssist: true,
             dayStartHour: 4,
             lastSeenPhotoAt: typeof window !== 'undefined' ? localStorage.getItem('lastSeenPhotoAt') || new Date(0).toISOString() : new Date(0).toISOString(),
-            homeButtonMode: 'unified',
+            homeButtonMode: 'separated',
         };
     });
 
@@ -248,6 +260,20 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         removeReaction,
         toggleBookmark
     } = useIncidents(isDemo ? null : householdId);
+
+    // Medication logs hook
+    const {
+        medicationLogs,
+        addMedicationLog: supabaseAddMedicationLog,
+        updateMedicationLog: supabaseUpdateMedicationLog,
+        deleteMedicationLog: supabaseDeleteMedicationLog,
+    } = useMedicationLogs(isDemo ? null : householdId);
+
+    // Weekly album settings hook
+    const {
+        settings: weeklyAlbumSettings,
+        updateLayout: supabaseUpdateWeeklyLayout
+    } = useWeeklyAlbumSettings();
 
     useEffect(() => {
         if (!isDemo && householdId && supabaseInventory) {
@@ -781,6 +807,22 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         }
         return await supabaseDeleteObservation(id);
     };
+
+    const addMedicationLog = async (log: Partial<MedicationLog>) => {
+        if (isDemo) return { error: "Demo mode" };
+        return await supabaseAddMedicationLog(log);
+    };
+
+    const updateMedicationLog = async (id: string, log: Partial<MedicationLog>) => {
+        if (isDemo) return { error: "Demo mode" };
+        return await supabaseUpdateMedicationLog(id, log);
+    };
+
+    const deleteMedicationLog = async (id: string) => {
+        if (isDemo) return { error: "Demo mode" };
+        return await supabaseDeleteMedicationLog(id);
+    };
+
     const [tasks, setTasks] = useState<Task[]>([]);
 
     // Update tasks when cats change
@@ -1403,6 +1445,10 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         noticeLogs, setNoticeLogs,
         signalLogs, setSignalLogs,
         inventory, setInventory,
+        medicationLogs: medicationLogs || [],
+        addMedicationLog,
+        updateMedicationLog,
+        deleteMedicationLog,
 
         events, setEvents,
         settings, setSettings,
@@ -1451,7 +1497,9 @@ export function AppProvider({ children, householdId = null, currentUserId = null
         deleteIncident: deleteIncident || (async () => ({})),
         addReaction,
         removeReaction,
-        toggleBookmark
+        toggleBookmark,
+        weeklyAlbumSettings: weeklyAlbumSettings || [],
+        updateWeeklyAlbumLayout: supabaseUpdateWeeklyLayout
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

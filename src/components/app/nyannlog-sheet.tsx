@@ -2,7 +2,8 @@
 
 import { getFullImageUrl } from '@/lib/utils';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
+import { useCareData } from '@/hooks/use-care-data';
 import { createPortal } from "react-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppState } from '@/store/app-store';
@@ -42,6 +43,7 @@ type NyannlogItem = {
     is_bookmarked?: boolean;
     health_category?: string;
     health_value?: string;
+    cats?: { id: string; name: string; avatar?: string }[];
 };
 
 type FilterType = 'all' | 'photo' | 'chat' | 'bookmark' | 'health';
@@ -64,7 +66,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         currentUserId,
         toggleBookmark,
         addReaction,
-        removeReaction
+        removeReaction,
+        medicationLogs
     } = useAppState();
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -73,6 +76,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
     const [activeTab, setActiveTab] = useState<'events' | 'requests'>(isOpen ? (props.initialTab || 'requests') : 'requests');
     const [showScrollFab, setShowScrollFab] = useState(false);
     const inputCardRef = useRef<HTMLDivElement>(null);
+    const { totalCareTasks, completedCareTasks } = useCareData();
 
     // Sync tab when prop changes or re-opens
     useEffect(() => {
@@ -106,8 +110,10 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
     const groupedLogs = useMemo<GroupedLogs[]>(() => {
         const items: NyannlogItem[] = [];
 
-        // 1. 全インシデントを追加
+        // 1. 全インシデントを追加（batch_id があれば集約）
         if (incidents) {
+            const batchGroups: Record<string, NyannlogItem> = {};
+
             incidents.forEach(inc => {
                 const cat = cats.find(c => c.id === inc.cat_id);
                 const user = householdUsers.find((u: any) => u.id === inc.created_by);
@@ -116,7 +122,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                     const avatar = cat?.avatar || '';
                     return p !== avatar && !avatar.includes(p);
                 });
-                items.push({
+
+                const itemBase: NyannlogItem = {
                     id: inc.id,
                     type: inc.type,
                     catId: inc.cat_id,
@@ -130,9 +137,42 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                     reactions: inc.reactions || [],
                     is_bookmarked: inc.is_bookmarked || false,
                     health_category: inc.health_category,
-                    health_value: inc.health_value
-                });
+                    health_value: inc.health_value,
+                    cats: [{ id: cat?.id || '', name: cat?.name || '', avatar: cat?.avatar }]
+                };
+
+                if (inc.batch_id) {
+                    if (!batchGroups[inc.batch_id]) {
+                        batchGroups[inc.batch_id] = itemBase;
+                    } else {
+                        const group = batchGroups[inc.batch_id];
+                        // Merge cats
+                        if (cat && !group.cats?.find(c => c.id === cat.id)) {
+                            group.cats?.push({ id: cat.id, name: cat.name, avatar: cat.avatar });
+                            group.catName = group.cats?.map(c => c.name).join(', ') || '不明';
+                        }
+                        // Merge photos
+                        filteredPhotos.forEach((p: string) => {
+                            if (!group.photos.includes(p)) group.photos.push(p);
+                        });
+                        // Use earliest creation time or latest? usually batch creation is simultaneous
+                        if (new Date(inc.created_at) < new Date(group.createdAt)) {
+                            group.createdAt = inc.created_at;
+                        }
+                        // Use common note or concatenate if different
+                        if (inc.note && group.note && inc.note !== group.note && !group.note.includes(inc.note)) {
+                            group.note += ` / ${inc.note}`;
+                        } else if (inc.note && !group.note) {
+                            group.note = inc.note;
+                        }
+                    }
+                } else {
+                    items.push(itemBase);
+                }
             });
+
+            // 集約されたグループを追加
+            Object.values(batchGroups).forEach(group => items.push(group));
         }
 
         // 2. インシデントに含まれていないスタンドアロン写真を追加
@@ -150,7 +190,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                             note: img.memo || '',
                             photos: [img.storagePath],
                             createdAt: img.createdAt,
-                            userName: undefined
+                            userName: undefined,
+                            cats: [{ id: cat.id, name: cat.name, avatar: cat.avatar }]
                         });
                     }
                 });
@@ -277,6 +318,24 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
         return labels[type] || '記録';
     };
 
+    // Active Medications
+    const activeMedications = useMemo(() => {
+        const today = new Date();
+        return (medicationLogs || []).filter(log => {
+            const start = new Date(log.start_date);
+            const end = log.end_date ? new Date(log.end_date) : null;
+
+            // Check if active today
+            const isActive = today >= start && (!end || today <= end);
+            if (!isActive) return false;
+
+            // Filter by cat if selected
+            if (selectedCatId && log.cat_id !== selectedCatId) return false;
+
+            return true;
+        });
+    }, [medicationLogs, selectedCatId]);
+
 
 
 
@@ -309,16 +368,16 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                         onClick={(e) => e.stopPropagation()}
                         className={`
                             bg-[#1E1E23]/95 backdrop-blur-xl border-x border-t border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
-                            rounded-t-[32px] h-[100dvh] pb-safe
+                            rounded-t-[32px] h-[100lvh] pb-safe
                         `}
                     >
                         {/* Header (Glass Floating) */}
-                        <div className="absolute top-0 left-0 right-0 z-30 flex flex-col pointer-events-none">
+                        <div className="absolute top-0 left-0 right-0 z-30 flex flex-col pointer-events-none pt-safe">
                             {/* Gradient Blur Background (Seamless Cloudiness) */}
                             <div
-                                className="absolute inset-x-0 top-0 h-32 z-[-1]"
+                                className="absolute inset-x-0 top-0 h-40 z-[-1]"
                                 style={{
-                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)',
+                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)',
                                     backdropFilter: 'blur(12px)',
                                     WebkitBackdropFilter: 'blur(12px)',
                                     maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
@@ -327,8 +386,8 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                             />
 
                             {/* Drag Handle */}
-                            {/* Enable pointer events for interactive elements */}
-                            <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing pointer-events-auto">
+                            {/* Enable pointer events and touch-action: none for reliable drag */}
+                            <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing pointer-events-auto touch-action-none" style={{ touchAction: 'none' }}>
                                 <div className="w-10 h-1 bg-white/30 rounded-full" />
                             </div>
 
@@ -431,7 +490,7 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
 
                         <div className="flex-1 flex flex-col min-h-0 relative h-full">
                             {/* Content Scrollable Area */}
-                            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden ${activeTab === 'events' ? 'pt-32' : 'pt-20'}`}>
+                            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden ${activeTab === 'events' ? 'pt-24 pb-12' : 'pt-20 pb-12'}`}>
                                 {activeTab === 'events' ? (
                                     <>
                                         {/* Timeline Items */}
@@ -454,93 +513,112 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                                         </div>
 
                                                         <div className="divide-y divide-white/5">
-                                                            {group.items.map((item) => {
-                                                                const TypeIcon = getTypeIcon(item.type);
-                                                                const cat = cats.find(c => c.id === item.catId);
-                                                                return (
-                                                                    <div
-                                                                        key={item.id}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            if (onSelectItem) {
-                                                                                onSelectItem(item.id, item.type, item.photos);
-                                                                            }
-                                                                        }}
-                                                                        className="pl-6 pr-4 py-3 hover:bg-white/[0.03] transition-all cursor-pointer group relative active:scale-[0.98] active:bg-white/10"
-                                                                    >
-                                                                        <div className="absolute left-[2.1rem] top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
-                                                                        <div className={`absolute left-[1.85rem] top-6 w-[10px] h-[10px] rounded-full bg-[#1E1E23] border-2 z-10 ${item.photos.length > 0 ? 'border-brand-peach/50' : 'border-white/20'}`} />
+                                                            <AnimatePresence initial={false} mode="popLayout">
+                                                                {group.items.map((item) => {
+                                                                    const TypeIcon = getTypeIcon(item.type);
+                                                                    const cat = cats.find(c => c.id === item.catId);
+                                                                    return (
+                                                                        <motion.div
+                                                                            key={item.id}
+                                                                            layout
+                                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                                            animate={{ opacity: 1, scale: 1 }}
+                                                                            exit={{ opacity: 0, scale: 0.95 }}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (onSelectItem) {
+                                                                                    onSelectItem(item.id, item.type, item.photos);
+                                                                                }
+                                                                            }}
+                                                                            className="pl-6 pr-4 py-3 hover:bg-white/[0.03] transition-all cursor-pointer group relative active:scale-[0.98] active:bg-white/10"
+                                                                        >
+                                                                            <div className="absolute left-[2.1rem] top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
+                                                                            <div className={`absolute left-[1.85rem] top-6 w-[10px] h-[10px] rounded-full bg-[#1E1E23] border-2 z-10 ${item.photos.length > 0 ? 'border-brand-peach/50' : 'border-white/20'}`} />
 
-                                                                        <div className="ml-6 flex items-start gap-3">
-                                                                            <div className="relative flex-shrink-0">
-                                                                                {cat?.avatar ? (
-                                                                                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow border border-white/10 bg-white/5">
-                                                                                        <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-300" alt="" />
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${['chat', 'worried', 'troubled', 'concerned'].includes(item.type) ? 'bg-brand-peach/20 text-brand-peach' : 'bg-white/5 text-slate-400'}`}>
-                                                                                        <TypeIcon size={18} strokeWidth={2.5} />
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-
-                                                                            <div className="flex-1 min-w-0 bg-white/[0.03] rounded-xl p-3 border border-white/5 relative group/item hover:bg-white/[0.05] transition-colors flex gap-3">
-                                                                                <div className="flex-1 min-w-0 pr-2">
-                                                                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                                                                        <div className="flex items-center gap-1.5 min-w-0 text-[10px] font-medium text-slate-500">
-                                                                                            <span className="text-white/50 font-bold truncate max-w-[120px]">{item.catName}</span>
-                                                                                            {item.userName && (
-                                                                                                <>
-                                                                                                    <span className="opacity-20">|</span>
-                                                                                                    <span className="text-slate-400 truncate max-w-[100px]">{item.userName}</span>
-                                                                                                </>
-                                                                                            )}
-                                                                                            <span className="opacity-20">|</span>
-                                                                                            <span className="opacity-60">{format(new Date(item.createdAt), 'HH:mm')}</span>
-                                                                                            {item.updates && item.updates.length > 0 && (
-                                                                                                <>
-                                                                                                    <span className="opacity-20">|</span>
-                                                                                                    <span className="text-brand-peach font-bold">{item.updates.length} 更新</span>
-                                                                                                </>
+                                                                            <div className="ml-6 flex items-start gap-3">
+                                                                                <div className="relative flex-shrink-0">
+                                                                                    {item.cats && item.cats.length > 1 ? (
+                                                                                        <div className="flex -space-x-4">
+                                                                                            {item.cats.slice(0, 3).map((c, i) => (
+                                                                                                <div key={c.id} className="w-10 h-10 rounded-xl overflow-hidden shadow border-2 border-[#1E1E23] bg-white/5 relative z-[10-i]">
+                                                                                                    <img src={getFullImageUrl(c.avatar || '')} className="w-full h-full object-cover" alt="" />
+                                                                                                </div>
+                                                                                            ))}
+                                                                                            {item.cats.length > 3 && (
+                                                                                                <div className="w-10 h-10 rounded-xl bg-white/10 border-2 border-[#1E1E23] flex items-center justify-center text-[10px] font-bold text-white z-0">
+                                                                                                    +{item.cats.length - 3}
+                                                                                                </div>
                                                                                             )}
                                                                                         </div>
-                                                                                    </div>
-
-                                                                                    {item.note && <p className="text-slate-200 text-[13px] leading-relaxed break-words mb-2 font-medium">{item.note}</p>}
-
-                                                                                    {item.photos.length > 0 && (
-                                                                                        <div className="relative mb-2 rounded-xl overflow-hidden shadow-lg border border-white/10 aspect-[4/3] max-h-48">
-                                                                                            <img src={getFullImageUrl(item.photos[0])} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
-                                                                                            {item.photos.length > 1 && <div className="absolute bottom-2 right-2 bg-black/60 rounded-lg px-2 py-1 text-[10px] text-white font-bold backdrop-blur-md border border-white/10">+{item.photos.length - 1}</div>}
+                                                                                    ) : cat?.avatar ? (
+                                                                                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow border border-white/10 bg-white/5">
+                                                                                            <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-300" alt="" />
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${['chat', 'worried', 'troubled', 'concerned'].includes(item.type) ? 'bg-brand-peach/20 text-brand-peach' : 'bg-white/5 text-slate-400'}`}>
+                                                                                            <TypeIcon size={18} strokeWidth={2.5} />
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
 
-                                                                                {/* Unified Right Action Cluster */}
-                                                                                <div className="flex flex-col gap-1 shrink-0 items-center justify-center pl-2">
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); toggleBookmark(item.id); }}
-                                                                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${item.is_bookmarked ? 'text-[#E0DED9]' : 'text-slate-600 hover:text-slate-400'}`}
-                                                                                    >
-                                                                                        <Star size={18} fill={item.is_bookmarked ? "currentColor" : "none"} strokeWidth={item.is_bookmarked ? 2 : 2} className="transition-all duration-300" />
-                                                                                    </button>
+                                                                                <div className="flex-1 min-w-0 bg-white/[0.03] rounded-xl p-3 border border-white/5 relative group/item hover:bg-white/[0.05] transition-colors flex gap-3">
+                                                                                    <div className="flex-1 min-w-0 pr-2">
+                                                                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                                                                            <div className="flex items-center gap-1.5 min-w-0 text-[10px] font-medium text-slate-500">
+                                                                                                <span className="text-white/50 font-bold truncate max-w-[120px]">{item.catName}</span>
+                                                                                                {item.userName && (
+                                                                                                    <>
+                                                                                                        <span className="opacity-20">|</span>
+                                                                                                        <span className="text-slate-400 truncate max-w-[100px]">{item.userName}</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                                <span className="opacity-20">|</span>
+                                                                                                <span className="opacity-60">{format(new Date(item.createdAt), 'HH:mm')}</span>
+                                                                                                {item.updates && item.updates.length > 0 && (
+                                                                                                    <>
+                                                                                                        <span className="opacity-20">|</span>
+                                                                                                        <span className="text-brand-peach font-bold">{item.updates.length} 更新</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
 
-                                                                                    <div onClick={(e) => e.stopPropagation()}>
-                                                                                        <ReactionBar
-                                                                                            incidentId={item.id}
-                                                                                            reactions={item.reactions || []}
-                                                                                            currentUserId={currentUserId || ''}
-                                                                                            onAddReaction={(emoji) => addReaction(item.id, emoji)}
-                                                                                            onRemoveReaction={(emoji) => removeReaction(item.id, emoji)}
-                                                                                            orientation="vertical"
-                                                                                        />
+                                                                                        {item.note && <p className="text-slate-200 text-[13px] leading-relaxed break-words mb-2 font-medium">{item.note}</p>}
+
+                                                                                        {item.photos.length > 0 && (
+                                                                                            <div className="relative mb-2 rounded-xl overflow-hidden shadow-lg border border-white/10 aspect-[4/3] max-h-48">
+                                                                                                <img src={getFullImageUrl(item.photos[0])} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                                                                                                {item.photos.length > 1 && <div className="absolute bottom-2 right-2 bg-black/60 rounded-lg px-2 py-1 text-[10px] text-white font-bold backdrop-blur-md border border-white/10">+{item.photos.length - 1}</div>}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+
+                                                                                    {/* Unified Right Action Cluster */}
+                                                                                    <div className="flex flex-col gap-1 shrink-0 items-center justify-center pl-2">
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); toggleBookmark(item.id); }}
+                                                                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${item.is_bookmarked ? 'text-[#E0DED9]' : 'text-slate-600 hover:text-slate-400'}`}
+                                                                                        >
+                                                                                            <Star size={18} fill={item.is_bookmarked ? "currentColor" : "none"} strokeWidth={item.is_bookmarked ? 2 : 2} className="transition-all duration-300" />
+                                                                                        </button>
+
+                                                                                        <div onClick={(e) => e.stopPropagation()}>
+                                                                                            <ReactionBar
+                                                                                                incidentId={item.id}
+                                                                                                reactions={item.reactions || []}
+                                                                                                currentUserId={currentUserId || ''}
+                                                                                                onAddReaction={(emoji) => addReaction(item.id, emoji)}
+                                                                                                onRemoveReaction={(emoji) => removeReaction(item.id, emoji)}
+                                                                                                orientation="vertical"
+                                                                                            />
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                                        </motion.div>
+                                                                    );
+                                                                })}
+                                                            </AnimatePresence>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -560,12 +638,57 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                                             <div className="px-2 space-y-0.5">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-1 h-3 rounded-full bg-brand-peach" />
-                                                    <span className="text-xs font-bold text-brand-peach">今日のおねがい</span>
+                                                    <span className="text-xs font-bold text-brand-peach">今日のおねがい ({completedCareTasks}/{totalCareTasks})</span>
                                                 </div>
                                                 <p className="text-[10px] text-white/40 pl-3">カードを押して完了・長押しで写真付き記録</p>
                                             </div>
                                             <QuestGrid className="w-full" />
                                         </div>
+
+                                        {/* Active Medications Section */}
+                                        {activeMedications.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="px-2 flex items-center gap-2">
+                                                    <div className="w-1 h-3 rounded-full bg-blue-400" />
+                                                    <span className="text-xs font-bold text-blue-400">現在のお薬（治療中）</span>
+                                                </div>
+                                                <div className="space-y-2 px-1">
+                                                    {activeMedications.map(log => {
+                                                        const cat = cats.find(c => c.id === log.cat_id);
+                                                        return (
+                                                            <div key={log.id} className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center">
+                                                                        {cat?.avatar ? (
+                                                                            <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover" alt="" />
+                                                                        ) : (
+                                                                            <Cat className="w-5 h-5 text-slate-500" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-white leading-tight">{log.product_name}</p>
+                                                                        <div className="flex gap-2 items-center mt-1">
+                                                                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30 line-clamp-1">
+                                                                                {log.frequency === 'daily' ? '1日1回' :
+                                                                                    log.frequency === 'twice_daily' ? '1日2回' :
+                                                                                        log.frequency === 'weekly' ? '週1回' :
+                                                                                            log.frequency === 'once' ? '1回のみ' : '頓服'}
+                                                                            </span>
+                                                                            {log.dosage && (
+                                                                                <span className="text-[10px] text-slate-400 truncate max-w-[80px]">量: {log.dosage}</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+                                                                    <Heart className="w-4 h-4 fill-current" />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Divider or Spacer */}
                                         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mx-4" />
@@ -597,8 +720,9 @@ export function NyannlogSheet(props: NyannlogSheetProps) {
                         </div>
                     </motion.div>
                 </motion.div>
-            )}
-        </AnimatePresence>,
+            )
+            }
+        </AnimatePresence >,
         portalTarget
     );
 }

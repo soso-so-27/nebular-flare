@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAppState } from "@/store/app-store";
-import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image, Syringe } from "lucide-react";
+import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image, Syringe, Pill, Shield, Home, AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { format, differenceInYears, differenceInMonths, addYears } from "date-fns";
@@ -25,7 +25,8 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
         activeCatId,
         setActiveCatId,
         isDemo,
-        addCatWeightRecord
+        addCatWeightRecord,
+        medicationLogs
     } = useAppState();
     const selectedCat = cats.find(c => c.id === activeCatId) || cats[0];
 
@@ -194,36 +195,106 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                         </div>
                     </motion.div>
 
-                    {/* Vaccine Status Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.15 }}
-                        className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-2xl flex items-center justify-between"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-[#7CAA8E]/20 border border-[#7CAA8E]/40 flex items-center justify-center">
-                                <Syringe className="w-6 h-6 text-[#7CAA8E]" />
-                            </div>
-                            <div>
-                                <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">最新のワクチン</div>
-                                <div className="text-lg font-bold text-white">
-                                    {safeFormat(selectedCat.last_vaccine_date, 'yyyy/MM/dd') || "未接種"}
+                    {/* Preventative Care Grid (Restored Feature) */}
+                    <div className="grid grid-cols-1 gap-3">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                            className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-5 shadow-2xl space-y-4"
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-4 h-4 text-[#7CAA8E]" />
+                                    <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">予防プログラム</span>
                                 </div>
-                                {selectedCat.vaccine_type && (
-                                    <div className="text-[10px] text-white/30 font-medium">種類: {selectedCat.vaccine_type}</div>
-                                )}
+                                <span className="text-[10px] bg-[#7CAA8E]/20 text-[#7CAA8E] px-2 py-0.5 rounded-full font-bold">ACTIVE</span>
                             </div>
-                        </div>
-                        {selectedCat.last_vaccine_date && (
-                            <div className="text-right">
-                                <div className="text-[10px] text-white/30 font-bold uppercase">次回の目安</div>
-                                <div className="text-sm font-black text-white/60">
-                                    {safeFormat(addYears(new Date(selectedCat.last_vaccine_date), 1).toISOString(), 'yyyy/MM')}
+
+                            <div className="grid grid-cols-1 gap-3">
+                                {/* Vaccine */}
+                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-xl bg-[#7CAA8E]/20 flex items-center justify-center">
+                                            <Syringe className="w-4 h-4 text-[#7CAA8E]" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-white/40 font-bold">混合ワクチン</div>
+                                            <div className="text-xs font-bold text-white/90">{safeFormat(selectedCat.last_vaccine_date, 'yyyy/MM/dd') || "未登録"}</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-[9px] text-white/20 font-bold uppercase">Next</div>
+                                        <div className="text-[10px] font-black text-[#7CAA8E]/60">
+                                            {selectedCat.last_vaccine_date ? safeFormat(addYears(new Date(selectedCat.last_vaccine_date), 1).toISOString(), 'yyyy/MM') : '--'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Flea / Tick / Heartworm List */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { label: 'ノミ・ダニ', date: selectedCat.flea_tick_date, product: selectedCat.flea_tick_product },
+                                        { label: 'フィラリア', date: selectedCat.heartworm_date, product: selectedCat.heartworm_product },
+                                        { label: 'お腹の虫', date: selectedCat.deworming_date, product: selectedCat.deworming_product },
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                                            <div className="text-[9px] text-white/40 font-bold mb-1">{item.label}</div>
+                                            <div className="text-xs font-black text-white/90 mb-0.5">
+                                                {item.date ? format(new Date(item.date), 'MM/dd') : '---'}
+                                            </div>
+                                            <div className="text-[8px] text-white/20 truncate font-medium">{item.product || '未実施'}</div>
+                                        </div>
+                                    ))}
+                                    {/* Medication Status */}
+                                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 relative overflow-hidden group">
+                                        <div className="text-[9px] text-white/40 font-bold mb-1">現在のお薬</div>
+                                        <div className="text-xs font-black text-white/90">
+                                            {medicationLogs.filter(l => l.cat_id === selectedCat.id).length} 件
+                                        </div>
+                                        <Pill className="absolute -right-1 -bottom-1 w-6 h-6 text-white/5 group-hover:text-white/10 transition-colors" />
+                                    </div>
                                 </div>
                             </div>
-                        )}
-                    </motion.div>
+                        </motion.div>
+                    </div>
+
+                    {/* Basic Medical Profiling (Restored Feature) */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-4 shadow-lg flex flex-col gap-3"
+                        >
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                    <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">不妊手術</span>
+                            </div>
+                            <div className="text-sm font-black text-white px-1">
+                                {selectedCat.neutered_status === 'neutered' ? '手術済み' : selectedCat.neutered_status === 'intact' ? '未実施' : '不明・未登録'}
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.22 }}
+                            className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-4 shadow-lg flex flex-col gap-3"
+                        >
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                                    <Home className="w-4 h-4 text-orange-400" />
+                                </div>
+                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">飼育環境</span>
+                            </div>
+                            <div className="text-sm font-black text-white px-1">
+                                {selectedCat.living_environment === 'indoor' ? '完全室内' : selectedCat.living_environment === 'outdoor' ? '室外のみ' : selectedCat.living_environment === 'both' ? '内外両方' : '未登録'}
+                            </div>
+                        </motion.div>
+                    </div>
 
                     {/* Profile Stats Cards */}
                     <div className="grid grid-cols-2 gap-3">

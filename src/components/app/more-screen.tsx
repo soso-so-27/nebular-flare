@@ -69,7 +69,7 @@ export function MoreScreen({ onClose }: MoreScreenProps) {
     };
 
     return (
-        <div className="min-h-screen bg-transparent pb-20">
+        <div className="min-h-full bg-transparent pb-20">
             <ScreenHeader title="設定" onClose={onClose} />
             <div className="p-4 space-y-6">
                 {/* Account Section */}

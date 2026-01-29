@@ -32,8 +32,25 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
     const [loading, setLoading] = useState(false);
     const [showTags, setShowTags] = useState(false);
     const [isConsult, setIsConsult] = useState(false);
+    const [showHealthPanel, setShowHealthPanel] = useState(false);
+
+    // Advanced Symptom State
+    const [healthCategory, setHealthCategory] = useState<string | null>(null);
+    const [healthValue, setHealthValue] = useState<string | null>(null);
+    const [onsetAt, setOnsetAt] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [vomitDetails, setVomitDetails] = useState({ type: '', count: 1, hasBlood: false });
+    const [stoolDetails, setStoolDetails] = useState({ score: 4, hasBlood: false, hasMucus: false });
+    const [emergencySymptom, setEmergencySymptom] = useState({ lethargy: false, prayerPose: false, rapidBreathing: false });
+    const [ingestionSuspicion, setIngestionSuspicion] = useState({ active: false, object: '', amount: '', time: '' });
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const HEALTH_CATEGORIES = [
+        { id: 'vomit', label: '嘔吐', options: ['フードそのまま', '胃液/泡', '毛玉', 'その他'] },
+        { id: 'toilet', label: '排泄', options: ['おしっこ正常', 'うんち正常', '軟便/下痢', '硬い'] },
+        { id: 'physical', label: '体調', options: ['痒み/赤み', '目やに/涙', '跛行/元気ない', 'その他'] },
+    ];
 
     useEffect(() => {
         if (cats.length > 0 && selectedCatIds.size === 0) {
@@ -88,10 +105,35 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
         try {
             const catIds = Array.from(selectedCatIds);
             const type = isConsult ? 'worried' : 'daily';
+            const batch_id = catIds.length > 1 ? crypto.randomUUID() : undefined;
 
             for (const catId of catIds) {
+                // symptom_details を構築
+                const symptom_details: any = {};
+                if (healthCategory === 'vomit') {
+                    symptom_details.vomit = vomitDetails;
+                } else if (healthCategory === 'toilet') {
+                    symptom_details.stool = stoolDetails;
+                }
+                if (emergencySymptom.lethargy || emergencySymptom.prayerPose || emergencySymptom.rapidBreathing) {
+                    symptom_details.emergency = emergencySymptom;
+                }
+                if (ingestionSuspicion.active) {
+                    symptom_details.ingestion = ingestionSuspicion;
+                }
+
                 // addIncident handles photo upload internally
-                const { error } = await addIncident(catId, type, note, photos);
+                const { error } = await addIncident(
+                    catId,
+                    type,
+                    note,
+                    photos,
+                    healthCategory || undefined,
+                    healthValue || undefined,
+                    onsetAt,
+                    symptom_details,
+                    batch_id
+                );
                 if (error) throw error;
 
                 awardForNyannlog?.(catId);
@@ -103,7 +145,14 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
             setPhotos([]);
             setPreviewUrls([]);
             setShowTags(false);
+            setShowHealthPanel(false);
+            setHealthCategory(null);
+            setHealthValue(null);
             setIsConsult(false);
+            setVomitDetails({ type: '', count: 1, hasBlood: false });
+            setStoolDetails({ score: 4, hasBlood: false, hasMucus: false });
+            setEmergencySymptom({ lethargy: false, prayerPose: false, rapidBreathing: false });
+            setIngestionSuspicion({ active: false, object: '', amount: '', time: '' });
             onSubmitSuccess?.();
         } catch (e: any) {
             console.error('投稿エラー詳細:', e);
@@ -210,6 +259,109 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
                             })}
                         </motion.div>
                     )}
+
+                    {/* Health Panel (Restore Feature) */}
+                    {showHealthPanel && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-4 pt-2 border-t border-white/5"
+                        >
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-bold text-[#E8B4A0] uppercase tracking-wider">いつから？</label>
+                                <input
+                                    type="date"
+                                    value={onsetAt}
+                                    onChange={(e) => setOnsetAt(e.target.value)}
+                                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-[#E8B4A0]/30"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-bold text-[#E8B4A0] uppercase tracking-wider">お身体の記録</label>
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                                    {HEALTH_CATEGORIES.map(category => (
+                                        <button
+                                            key={category.id}
+                                            onClick={() => {
+                                                if (healthCategory === category.id) {
+                                                    setHealthCategory(null);
+                                                    setHealthValue(null);
+                                                } else {
+                                                    setHealthCategory(category.id);
+                                                    setHealthValue(null);
+                                                }
+                                            }}
+                                            className={`
+                                                px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all duration-200
+                                                ${healthCategory === category.id
+                                                    ? 'bg-[#E8B4A0]/20 text-[#E8B4A0] ring-1 ring-[#E8B4A0]'
+                                                    : 'bg-white/5 text-slate-500 hover:bg-white/10'}
+                                            `}
+                                        >
+                                            {category.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {healthCategory === 'vomit' && (
+                                    <div className="space-y-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <div className="flex gap-1.5 flex-wrap">
+                                            {['フードそのまま', '胃液/泡', '毛玉', '未消化物', 'その他'].map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setVomitDetails(prev => ({ ...prev, type: t }))}
+                                                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${vomitDetails.type === t ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-400'}`}
+                                                >
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-400 text-[10px]">回数</span>
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => setVomitDetails(prev => ({ ...prev, count: Math.max(1, prev.count - 1) }))} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-white text-xs">-</button>
+                                                <span className="text-white font-bold text-xs">{vomitDetails.count}</span>
+                                                <button onClick={() => setVomitDetails(prev => ({ ...prev, count: prev.count + 1 }))} className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-white text-xs">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {healthCategory === 'toilet' && (
+                                    <div className="space-y-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[9px] text-slate-500">
+                                                <span>便スコア: {stoolDetails.score}</span>
+                                                <span>{stoolDetails.score <= 2 ? '硬い' : stoolDetails.score <= 5 ? '理想' : '下痢'}</span>
+                                            </div>
+                                            <input
+                                                type="range" min="1" max="7" step="1"
+                                                value={stoolDetails.score}
+                                                onChange={(e) => setStoolDetails(prev => ({ ...prev, score: parseInt(e.target.value) }))}
+                                                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#E8B4A0]"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setStoolDetails(prev => ({ ...prev, hasBlood: !prev.hasBlood }))}
+                                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${stoolDetails.hasBlood ? 'border-red-500 bg-red-500/10 text-red-500' : 'border-white/10 text-slate-500'}`}
+                                            >
+                                                血便
+                                            </button>
+                                            <button
+                                                onClick={() => setStoolDetails(prev => ({ ...prev, hasMucus: !prev.hasMucus }))}
+                                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${stoolDetails.hasMucus ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-white/10 text-slate-500'}`}
+                                            >
+                                                粘膜
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
 
                 {/* Bottom Actions */}
@@ -227,6 +379,13 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
                             }`}
                     >
                         <Tag className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => setShowHealthPanel(prev => !prev)}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${showHealthPanel ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80'
+                            }`}
+                    >
+                        <Activity className="w-4 h-4" />
                     </button>
 
                     {/* Consult Toggle */}

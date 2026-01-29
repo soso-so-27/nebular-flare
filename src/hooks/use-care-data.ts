@@ -116,7 +116,7 @@ const getDynamicRequestTitle = (defId: string, slot?: string, originalTitle?: st
 
 // --- HOOK: Centralized Data Logic ---
 export function useCareData() {
-    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, setSettings, addCareLog, deleteCareLog, inventory, noticeLogs, incidents } = useAppState();
+    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, setSettings, addCareLog, deleteCareLog, inventory, noticeLogs, incidents, medicationLogs } = useAppState();
     const { awardForCare } = useFootprintContext();
     const { lastSeenPhotoAt, lastSeenIncidentAt } = useUserReadTimestamps();
     const { user } = useAuth();
@@ -183,6 +183,62 @@ export function useCareData() {
                     icon: item.icon // Make sure icon is passed if available
                 };
             });
+
+        // --- Medication Quests Start ---
+        if (medicationLogs && medicationLogs.length > 0) {
+            const today = new Date(catchUpData.today);
+
+            medicationLogs.forEach(med => {
+                const startDate = new Date(med.start_date);
+                const endDate = med.end_date ? new Date(med.end_date) : null;
+
+                // Active check
+                if (today < startDate || (endDate && today > endDate)) return;
+
+                // Weekly check
+                if (med.frequency === 'weekly') {
+                    if (today.getDay() !== startDate.getDay()) return;
+                }
+
+                const cat = cats.find(c => c.id === med.cat_id);
+                if (!cat) return;
+
+                const slots = med.frequency === 'twice_daily' ? ['morning', 'evening'] : ['daily'];
+
+                slots.forEach(slot => {
+                    const questId = `med:${med.id}:${slot}:${catchUpData.today}`;
+                    const actionId = `medication:${med.id}:${slot}`;
+
+                    const isDone = careLogs?.some(log => {
+                        if (log.type !== actionId) return false;
+                        const logDate = new Date((log as any).at || log.done_at).toISOString().split('T')[0];
+                        return logDate === catchUpData.today;
+                    });
+
+                    // Add as task (even if done, to show consistent list, or filter? Usually we filter out done in QuestGrid via logic)
+                    // But here we rely on 'done' prop.
+                    // Important: QuestGrid filters based on 'done' prop usually?
+                    // Let's check: "const questItems = careItems.filter(item => !item.done ..."
+                    // So we must set 'done' correctly.
+
+                    tasks.push({
+                        id: questId,
+                        actionId: actionId,
+                        defId: 'care_medicine',
+                        label: `${med.product_name} (${slot === 'morning' ? '朝' : slot === 'evening' ? '夜' : '1日1回'})`,
+                        subLabel: `${cat.name}のお薬・${med.dosage || ''}`,
+                        perCat: true,
+                        done: !!isDone,
+                        slot: slot,
+                        catId: med.cat_id,
+                        severity: 80,
+                        priority: 'high',
+                        icon: 'Pill'
+                    });
+                });
+            });
+        }
+        // --- Medication Quests End ---
 
         const ENABLE_INTEGRATED_PICKUP = true; // Always enabled for this unified logic
         let alerts: any[] = [];

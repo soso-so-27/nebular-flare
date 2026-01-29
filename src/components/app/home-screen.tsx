@@ -386,7 +386,7 @@ export function HomeScreen({ externalOpenSection, onOpenSectionChange }: HomeScr
 
 
     return (
-        <div className="relative min-h-screen">
+        <div className="relative min-h-full">
             <div className="space-y-4 pb-20">
                 {/* Hero Section - First */}
                 <HeroSection />

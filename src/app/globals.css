@@ -279,23 +279,78 @@
   }
 }
 
-/* iOS Safe Area Support */
+/* iOS Safe Area & Viewport Support - iOS 18 / Iron Root Protocol */
+:root {
+  --app-height: 100%;
+}
+
 html {
-  height: 100%;
-  height: -webkit-fill-available;
+  height: 100lvh !important;
+  min-height: 100lvh !important;
+  min-height: -webkit-fill-available;
+  /* Iron Root: Lock viewport */
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--background);
 }
 
 body {
-  min-height: 100%;
+  height: 100lvh !important;
+  min-height: 100lvh !important;
   min-height: -webkit-fill-available;
-  /* Allow content to extend under status bar */
-  padding: 0;
+  /* Iron Root: Lock viewport */
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  /* SOLO Protocol: Fix origin regression */
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
 
-/* Bottom navigation safe area */
+/* SOLO Protocol: Main scrolling container */
+.iron-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100lvh !important;
+  min-height: 100lvh !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Allow natural momentum scroll */
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+}
+
+/* 100dvh fallback for containers */
+.h-screen-dvh {
+  height: 100lvh;
+}
+
+.min-h-screen-dvh {
+  min-height: 100lvh;
+}
+
+/* Safe Area Utilities */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mt-safe {
+  margin-top: env(safe-area-inset-top, 0px);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Fixed bottom nav with safe area */
@@ -315,11 +370,9 @@ body {
 /* For fullscreen backgrounds that should cover status bar area */
 .fullscreen-bg {
   position: fixed;
-  top: calc(-1 * env(safe-area-inset-top, 0px));
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(100% + env(safe-area-inset-top, 0px));
+  inset: 0;
+  width: 100%;
+  height: 100lvh !important;
 }
 
 /* ===== Enhanced Glassmorphism Utilities ===== */

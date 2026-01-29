@@ -27,7 +27,7 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 w-full md:max-w-md h-[90vh] md:h-auto md:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                        className="bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 w-full md:max-w-md h-[100lvh] md:h-auto md:max-h-[85vh] rounded-t-[32px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
                     >
                         {/* Specular Highlight */}
                         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 rounded-t-[32px]" />

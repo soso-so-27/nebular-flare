@@ -34,7 +34,7 @@ export function LoginScreen() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
+        <div className="min-h-full bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#F0EDE8] flex flex-col items-center justify-center p-6">
             {/* Logo */}
             <div className="flex items-center gap-3 mb-8">
                 <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#7CAA8E] to-[#6B9B7A] flex items-center justify-center shadow-lg">

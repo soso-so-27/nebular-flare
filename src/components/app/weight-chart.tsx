@@ -23,9 +23,10 @@ interface WeightChartProps {
     onAddWeight: (weight: number, notes?: string) => Promise<any>;
     isDemo?: boolean;
     variant?: 'default' | 'glass';
+    hideControls?: boolean;
 }
 
-export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo, variant = 'default' }: WeightChartProps) {
+export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo, variant = 'default', hideControls }: WeightChartProps) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newWeight, setNewWeight] = useState(currentWeight?.toString() || "");
     const [notes, setNotes] = useState("");
@@ -123,16 +124,18 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
                         </span>
                     )}
                 </div>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className={cn(
-                        "flex items-center gap-1 text-xs transition-colors",
-                        isGlass ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                    )}
-                >
-                    <Plus className="h-3 w-3" />
-                    記録
-                </button>
+                {!hideControls && (
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className={cn(
+                            "flex items-center gap-1 text-xs transition-colors",
+                            isGlass ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        )}
+                    >
+                        <Plus className="h-3 w-3" />
+                        記録
+                    </button>
+                )}
             </div>
 
             {/* Chart */}
