@@ -181,6 +181,8 @@ export type Incident = {
   created_at: string;
   updated_at: string;
   resolved_at?: string;
+  is_bookmarked?: boolean;
+  reactions?: any[];
   updates?: IncidentUpdate[]; // Joined for UI
   // Medical Report Enhancement
   onset_at?: string; // When symptoms started
@@ -324,10 +326,8 @@ export type ReportConfigData = {
 export type AlbumLayoutType = 'hero3' | 'grid4' | 'filmstrip';
 
 export type WeeklyAlbumSettings = {
-  id: string;
-  user_id: string;
   cat_id: string;
-  week_key: string; // e.g., "2026-W04"
+  week_label: string; // e.g., "2026-W04"
   layout_type: AlbumLayoutType;
   created_at: string;
   updated_at: string;

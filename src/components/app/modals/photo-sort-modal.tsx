@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCoreContext } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -32,7 +32,8 @@ interface PhotoSortModalProps {
 }
 
 export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortModalProps) {
-    const { cats, isDemo } = useAppState();
+    const { cats } = useCatContext();
+    const { isDemo } = useCoreContext();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [assignments, setAssignments] = useState<Record<string, string>>({});
     const [analyzing, setAnalyzing] = useState(false);

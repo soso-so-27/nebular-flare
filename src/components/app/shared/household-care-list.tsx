@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useMedicationContext } from "@/store/app-store";
 import { Check, Clock, User, Utensils, Trash2, Home, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -27,7 +27,8 @@ const HOUSEHOLD_CARE_ITEMS = [
 ];
 
 export function HouseholdCareList() {
-    const { careLogs, addCareLog, isDemo, tasks, setTasks } = useAppState();
+    const { careLogs, addCareLog, tasks, setTasks } = useCareContext();
+    const { isDemo } = useCoreContext();
 
     const [today, setToday] = useState<string>("");
     useEffect(() => {

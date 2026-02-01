@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Check, Cat, UtensilsCrossed, Droplet, Trash2, Scissors, Sparkles, Pill, PenLine, Heart, MessageCircle, AlertCircle, Circle, Plus, X } from 'lucide-react';
 import { useCareData } from '@/hooks/use-care-logic';
 import { useAdhocTasks } from '@/hooks/use-supabase-data';
-import { useAppState } from '@/store/app-store';
+import { useCatContext } from '@/store/app-store';
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";
 import { sounds } from "@/lib/sounds";
 import { CelebrationOverlay, getRandomReaction } from '@/components/ui/celebration-overlay';
 import { getFullImageUrl } from '@/lib/utils';
 import { toCatPerspective } from '@/lib/cat-speech';
+import { Cat as CatType } from '@/types';
 
 interface QuestGridProps {
     className?: string;
@@ -33,7 +34,7 @@ const ICON_MAP: Record<string, any> = {
 
 export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) {
     const { careItems, addCareLog, awardForCare, activeCatId } = useCareData();
-    const { cats } = useAppState();
+    const { cats } = useCatContext();
     const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
     const [celebration, setCelebration] = useState<{
         active: boolean;
@@ -50,7 +51,7 @@ export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) 
     // Collect all cat photos for random backgrounds
     const allCatPhotos = useMemo(() => {
         const photos: string[] = [];
-        cats.forEach(cat => {
+        cats.forEach((cat: CatType) => {
             if (cat.images && cat.images.length > 0) {
                 cat.images.forEach(img => {
                     if (img.storagePath) photos.push(img.storagePath);
@@ -260,55 +261,48 @@ export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) 
             </AnimatePresence>
 
             {/* Ad-hoc Tasks */}
-            <AnimatePresence mode="popLayout">
-                {adhocTasks.map((task, idx) => {
-                    // Assign photo background like regular quest items
-                    const bgPhoto = allCatPhotos.length > 0
-                        ? getFullImageUrl(allCatPhotos[(task.id.charCodeAt(0) + idx) % allCatPhotos.length])
-                        : undefined;
+            {adhocTasks.map((task, idx) => {
+                // Assign photo background like regular quest items
+                const bgPhoto = allCatPhotos.length > 0
+                    ? getFullImageUrl(allCatPhotos[(task.id.charCodeAt(0) + idx) % allCatPhotos.length])
+                    : undefined;
 
-                    return (
-                        <motion.div
-                            key={task.id}
-                            layout
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5, y: -50 }}
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                            onClick={async () => {
-                                triggerFeedback('success');
-                                sounds.success();
-                                await completeAdhocTask(task.id);
-                                // Also record in care_logs for history
-                                await addCareLog(`adhoc:${task.label}`, null, task.label);
-                            }}
-                            className="aspect-[4/3] relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.96] transition-all duration-100 border border-dashed border-white/20 shadow-xl"
-                        >
-                            {/* Photo Background */}
-                            {bgPhoto ? (
-                                <img src={bgPhoto} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                            ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#3a3a3a] to-[#2a2a2a]" />
-                            )}
-                            {/* Dark Overlay */}
-                            <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                            <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 pointer-events-none" />
-                            {/* Icon Badge */}
-                            <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-xl bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/80 shadow-lg">
-                                <Sparkles size={18} strokeWidth={2} />
+                return (
+                    <div
+                        key={task.id}
+                        onClick={async () => {
+                            triggerFeedback('success');
+                            sounds.success();
+                            await completeAdhocTask(task.id);
+                            // Also record in care_logs for history
+                            await addCareLog(`adhoc:${task.label}`, null, task.label);
+                        }}
+                        className="aspect-[4/3] relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.96] transition-all duration-100 border border-dashed border-white/20 shadow-xl"
+                    >
+                        {/* Photo Background */}
+                        {bgPhoto ? (
+                            <img src={bgPhoto} className="absolute inset-0 w-full h-full object-cover" alt="" />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#3a3a3a] to-[#2a2a2a]" />
+                        )}
+                        {/* Dark Overlay */}
+                        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 pointer-events-none" />
+                        {/* Icon Badge */}
+                        <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-xl bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/80 shadow-lg">
+                            <Sparkles size={18} strokeWidth={2} />
+                        </div>
+                        {/* Bottom Label */}
+                        <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
+                            <div className="text-[13px] font-bold text-white drop-shadow-lg truncate leading-tight">
+                                {task.label}
                             </div>
-                            {/* Bottom Label */}
-                            <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
-                                <div className="text-[13px] font-bold text-white drop-shadow-lg truncate leading-tight">
-                                    {task.label}
-                                </div>
-                                <div className="text-[10px] text-white/60 mt-0.5">追加タスク</div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </AnimatePresence>
+                            <div className="text-[10px] text-white/60 mt-0.5">追加タスク</div>
+                        </div>
+                    </div>
+                );
+            })}
 
             {/* Add Task Button (Slim, Full Width) */}
             <motion.button
@@ -326,8 +320,8 @@ export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) 
                     isActive={celebration.active}
                     onComplete={() => setCelebration(null)}
                     tapPosition={celebration.tapPosition}
-                    catAvatar={cats.find(c => c.id === activeCatId)?.avatar}
-                    catName={cats.find(c => c.id === activeCatId)?.name || 'ねこ'}
+                    catAvatar={(cats as CatType[]).find((c: CatType) => c.id === activeCatId)?.avatar}
+                    catName={(cats as CatType[]).find((c: CatType) => c.id === activeCatId)?.name || 'ねこ'}
                     reactionMessage={celebration.message}
                 />
             )}

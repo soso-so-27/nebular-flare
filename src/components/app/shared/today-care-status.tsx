@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useMedicationContext } from "@/store/app-store";
 import { Check, Clock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,9 @@ interface CareItem {
 }
 
 export function TodayCareStatus() {
-    const { tasks, noticeLogs, activeCatId, cats } = useAppState();
+    const { activeCatId, cats } = useCatContext();
+    const { tasks, noticeLogs } = useCareContext();
+    const { settings } = useSettingsContext();
     const activeCat = cats.find(c => c.id === activeCatId);
 
     const today = useMemo(() => {

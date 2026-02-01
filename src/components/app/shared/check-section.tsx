@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCareContext, useCatContext, useInventoryContext, useSettingsContext, useCoreContext } from "@/store/app-store";
 import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -25,17 +25,11 @@ interface CheckItem {
 }
 
 export function CheckSection() {
-    const {
-        tasks, setTasks,
-        noticeDefs, noticeLogs, setNoticeLogs,
-        inventory, setInventory,
-        cats, activeCatId,
-        settings,
-        careLogs, addCareLog,
-        observations, addObservation,
-        isDemo,
-        careTaskDefs
-    } = useAppState();
+    const { activeCatId, cats } = useCatContext();
+    const { careTaskDefs, careLogs, addCareLog, noticeDefs, noticeLogs, observations, addObservation } = useCareContext();
+    const { inventory, setInventory } = useInventoryContext();
+    const { settings } = useSettingsContext();
+    const { isDemo } = useCoreContext();
 
     const { awardForCare, awardForObservation } = useFootprintContext();
 
@@ -237,7 +231,6 @@ export function CheckSection() {
 
         return items;
     }, [careTaskDefs, careLogs, addCareLog, currentHour, activeCatId]);
-
     // Get ABNORMAL observation items for active cat (items marked as "注意" today)
     const pendingObservationItems: CheckItem[] = useMemo(() => {
         const activeCat = cats.find(c => c.id === activeCatId);
@@ -268,21 +261,7 @@ export function CheckSection() {
                 // Action: Mark as resolved/OK
                 onAction: async () => {
                     if (isDemo) {
-                        setNoticeLogs(prev => ({
-                            ...prev,
-                            [activeCatId]: {
-                                ...prev[activeCatId],
-                                [notice.id]: {
-                                    id: `${activeCatId}_${notice.id}_${Date.now()}`,
-                                    catId: activeCatId,
-                                    noticeId: notice.id,
-                                    value: 'いつも通り',
-                                    at: new Date().toISOString(),
-                                    done: true,
-                                    later: false
-                                }
-                            }
-                        }));
+                        await addObservation(activeCatId, notice.id, 'いつも通り');
                         toast.success(`${notice.title}: 状態を確認しました`);
                     } else {
                         // Supabase - use UUID directly
@@ -296,7 +275,7 @@ export function CheckSection() {
                     }
                 }
             }));
-    }, [cats, activeCatId, noticeDefs, noticeLogs, observations, today, isDemo, setNoticeLogs, addObservation]);
+    }, [cats, activeCatId, noticeDefs, noticeLogs, observations, today, isDemo, addObservation]);
 
     // Get urgent inventory items based on stockLevel (low or empty)
     const urgentInventoryItems: CheckItem[] = useMemo(() => {
@@ -318,7 +297,7 @@ export function CheckSection() {
                     urgency: urgency as 'danger' | 'warn' | 'soon',
                     stockLevel: it.stockLevel,
                     onAction: () => {
-                        setInventory(prev => prev.map(item => {
+                        setInventory((prev: any[]) => prev.map((item: any) => {
                             if (item.id === it.id) {
                                 return {
                                     ...item,

@@ -5,7 +5,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCareContext, useCatContext, useCoreContext } from "@/store/app-store";
 import { Check, AlertTriangle, Utensils, Droplets, Pill, Cat, Circle, Camera, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -58,11 +58,10 @@ function getChoicesForObservation(obs: CatObservation, noticeDefs: any[]): strin
 }
 
 export function CatObservationList() {
-    const {
-        noticeDefs, noticeLogs, activeCatId, cats,
-        setNoticeLogs, setActiveCatId,
-        isDemo, observations, addObservation
-    } = useAppState();
+    const { noticeDefs, noticeLogs, observations, addObservation } = useCareContext();
+    const { activeCatId, cats } = useCatContext();
+    const { isDemo } = useCoreContext();
+
     const activeCat = cats.find(c => c.id === activeCatId);
 
     const [today, setToday] = useState<string>("");
@@ -140,43 +139,21 @@ export function CatObservationList() {
         // 1. Optimistic Update (Immediate Feedback)
         setOptimisticLogs(prev => ({ ...prev, [obs.id]: value }));
 
-        if (isDemo) {
-            // Demo mode: update local state
-            setNoticeLogs(prev => ({
-                ...prev,
-                [activeCatId]: {
-                    ...prev[activeCatId],
-                    [obs.id]: {
-                        id: `${activeCatId}_${obs.id}_${Date.now()}`,
-                        catId: activeCatId,
-                        noticeId: obs.id,
-                        value,
-                        at: new Date().toISOString(),
-                        done: true,
-                        later: false
-                    }
-                }
-            }));
-            toast.success(`${obs.label}: ${value}`);
-        } else {
-            // Supabase mode: add observation
-            try {
-                const result = await addObservation(activeCatId, obs.id, value);
-                if (result?.error) {
-                    throw new Error(result.error.message);
-                }
-                toast.success(`${obs.label}: ${value}`);
-                // Note: We don't clear optimistic log here immediately.
-                // We wait for the real-time subscription to update `observations`.
-            } catch (e: any) {
-                // Revert optimistic update on error
-                setOptimisticLogs(prev => {
-                    const next = { ...prev };
-                    delete next[obs.id];
-                    return next;
-                });
-                toast.error("記録に失敗しました");
+        try {
+            // Use addObservation for both Demo and Supabase modes (Provider handles logic)
+            const result = await addObservation(activeCatId, obs.id, value);
+            if (result?.error) {
+                throw new Error(result.error.message);
             }
+            toast.success(`${obs.label}: ${value}`);
+        } catch (e: any) {
+            // Revert optimistic update on error
+            setOptimisticLogs(prev => {
+                const next = { ...prev };
+                delete next[obs.id];
+                return next;
+            });
+            toast.error("記録に失敗しました");
         }
     }
 

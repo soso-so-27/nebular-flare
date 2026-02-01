@@ -6,7 +6,13 @@ import {
     ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User, ArrowUpRight
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
-import { useAppState } from "@/store/app-store";
+import {
+    useCatContext,
+    useCareContext,
+    useInventoryContext,
+    useSettingsContext,
+    useCoreContext
+} from "@/store/app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from '@/lib/supabase';
@@ -64,19 +70,18 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
     };
 
     // State Hooks
+    const { activeCatId } = useCatContext();
     const {
-        activeCatId,
         careTaskDefs,
         careLogs,
         noticeDefs,
         noticeLogs,
-        inventory,
-        setInventory,
         addCareLog,
-        addObservation,
-        settings,
-        isDemo
-    } = useAppState();
+        addObservation
+    } = useCareContext();
+    const { inventory, setInventory, updateInventoryItem } = useInventoryContext();
+    const { settings, aiEnabled, setAiEnabled, setSettings, isPro, setIsPro } = useSettingsContext();
+    const { isDemo } = useCoreContext();
 
     // Modal states - moved to SidebarMenu level to persist across re-renders
     const [isCareModalOpen, setIsCareModalOpen] = useState(false);
@@ -181,13 +186,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
     )
 
     const RootView = () => {
-        const { inventory } = useAppState();
+        const { inventory } = useInventoryContext();
 
         const inventoryItems = useMemo(() => {
             if (!inventory) return [];
             return inventory
-                .filter(it => it.enabled !== false && it.deleted_at === null)
-                .map(it => {
+                .filter((it: any) => it.enabled !== false && it.deleted_at === null)
+                .map((it: any) => {
                     const rangeMax = it.range_max || 30;
                     let daysLeft = rangeMax;
                     if (it.last_bought) {
@@ -202,10 +207,10 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
                     return { ...it, daysLeft, status };
                 })
-                .sort((a, b) => a.daysLeft - b.daysLeft);
+                .sort((a: any, b: any) => a.daysLeft - b.daysLeft);
         }, [inventory]);
 
-        const urgentCount = inventoryItems.filter(it => it.status !== 'ok').length;
+        const urgentCount = inventoryItems.filter((it: any) => it.status !== 'ok').length;
 
         // Reusable Menu Item Component - More compact and premium
         const MenuItem = ({ icon: Icon, title, subtext, onClick, urgent }: any) => (
@@ -280,7 +285,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
     }
 
     const InventoryView = () => {
-        const { inventory, updateInventoryItem } = useAppState();
+        const { inventory, updateInventoryItem } = useInventoryContext();
 
         // Use type casting to avoid lint errors if type definition is lagging
         const inventoryItemsFormatted = inventory.map((item: any) => {
@@ -316,7 +321,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                 <div className="flex items-center gap-3">
                                     <div className={`w-2 h-2 rounded-full ${item.isLow ? 'bg-red-400 animate-pulse' : 'bg-brand-sage'}`} />
                                     <span className="text-sm font-bold text-slate-700">{item.label}</span>
-                                    {item.isLow && <span className="text-[10px] text-red-500 font-bold bg-red-100 px-1.5 py-0.5 rounded-md">補充！</span>}
+                                    {!!item.isLow && <span className="text-[10px] text-red-500 font-bold bg-red-100 px-1.5 py-0.5 rounded-md">補充！</span>}
                                 </div>
                                 <button
                                     onClick={() => handleInventoryRefill(item.id, item.label)}
@@ -360,7 +365,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
     );
 
     const SettingsView = () => {
-        const { isPro, setIsPro, aiEnabled, setAiEnabled, settings, setSettings, isDemo } = useAppState();
+        const { settings, setSettings, aiEnabled, setAiEnabled, isPro, setIsPro } = useSettingsContext();
+        const { isDemo } = useCoreContext();
         const { user, signOut } = useAuth();
         const [isLoggingOut, setIsLoggingOut] = useState(false);
         // Modal states moved to SidebarMenu level - use parent state here
@@ -449,7 +455,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         </div>
                         <select
                             value={settings.dayStartHour}
-                            onChange={(e) => setSettings(s => ({ ...s, dayStartHour: parseInt(e.target.value) }))}
+                            onChange={(e) => setSettings((s: any) => ({ ...s, dayStartHour: parseInt(e.target.value) }))}
                             className="text-xs border rounded p-1 bg-white/50"
                         >
                             {[...Array(24)].map((_, i) => (

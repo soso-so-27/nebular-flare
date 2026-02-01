@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, ChevronRight, Heart, MessageCircle, Calendar } from "lucide-react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useSettingsContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { toast } from "sonner";
@@ -27,7 +27,8 @@ interface PhotoItem {
 }
 
 export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
-    const { cats, settings } = useAppState();
+    const { cats } = useCatContext();
+    const { settings } = useSettingsContext();
     const { user } = useAuth();
     const { markPhotosAsSeen } = useUserReadTimestamps();
     const [selectedPhoto, setSelectedPhoto] = useState<PhotoItem | null>(null);

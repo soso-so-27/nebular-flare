@@ -26,10 +26,11 @@ function getAudioContext(): AudioContext | null {
 async function resumeContext(ctx: AudioContext): Promise<boolean> {
     if (ctx.state === 'suspended') {
         try {
-            await ctx.resume();
-            console.log('[Audio] Resumed context, state:', ctx.state);
+            // Only attempt resume if we have a user gesture or have unlocked before
+            // We use a silent catch to avoid "AudioContext was not allowed to start" warning spam 
+            await ctx.resume().catch(() => { });
         } catch (e) {
-            console.error('[Audio] Failed to resume context:', e);
+            // Silent catch preferred for auto-resume attempts
             return false;
         }
     }
@@ -38,6 +39,7 @@ async function resumeContext(ctx: AudioContext): Promise<boolean> {
 
 // Unlock audio on first user interaction
 export async function unlockAudio(): Promise<boolean> {
+    if (isUnlocked) return true;
     const ctx = getAudioContext();
     if (!ctx) return false;
 

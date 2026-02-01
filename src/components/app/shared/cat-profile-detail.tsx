@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useMedicationContext } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,10 +28,18 @@ interface CatProfileDetailProps {
     isOpen: boolean;
     onClose: () => void;
     catId: string;
+    onOpenGallery?: () => void;
 }
 
-export function CatProfileDetail({ isOpen, onClose, catId }: CatProfileDetailProps) {
-    const { cats, updateCat, addCatWeightRecord, isDemo, settings } = useAppState();
+export function CatProfileDetail({ isOpen, onClose, catId, onOpenGallery }: CatProfileDetailProps) {
+    const { cats, updateCat, addCatWeightRecord } = useCatContext();
+    const { medicationLogs } = useMedicationContext();
+    const { isDemo } = useCoreContext();
+    const { settings } = useSettingsContext();
+
+    // Note: medicationLogs is likely in MedicationContext or needs useMedicationContext. 
+    // Checking previous steps, MedicationContext is separate. 
+    // I should import useMedicationContext !!
     const cat = cats.find(c => c.id === catId);
 
     const [isEditing, setIsEditing] = useState(false);

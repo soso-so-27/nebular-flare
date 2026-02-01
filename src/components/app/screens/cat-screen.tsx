@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useMedicationContext, useSettingsContext, useCoreContext } from "@/store/app-store";
 import { Cat as CatIcon, Edit, Cake, Scale, Cpu, FileText, Image, Syringe, Pill, Shield, Home, AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -20,14 +20,10 @@ interface CatScreenProps {
 }
 
 export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpenGallery }: CatScreenProps) {
-    const {
-        cats,
-        activeCatId,
-        setActiveCatId,
-        isDemo,
-        addCatWeightRecord,
-        medicationLogs
-    } = useAppState();
+    const { activeCatId, cats, setActiveCatId, addCatWeightRecord } = useCatContext();
+    const { settings } = useSettingsContext();
+    const { medicationLogs } = useMedicationContext();
+    const { isDemo } = useCoreContext();
     const selectedCat = cats.find(c => c.id === activeCatId) || cats[0];
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);

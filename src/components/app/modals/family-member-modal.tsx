@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useAppState } from "@/store/app-store";
+import { useCoreContext } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ interface FamilyMemberModalProps {
 }
 
 export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
-    const { householdId, isDemo, householdUsers } = useAppState();
+    const { householdId, isDemo, householdUsers } = useCoreContext();
     const { user } = useAuth();
     const [inviteUrl, setInviteUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);

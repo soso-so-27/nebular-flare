@@ -1,14 +1,18 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { useAppState } from "@/store/app-store";
+import {
+    useCoreContext,
+    useCatContext
+} from "@/store/app-store";
 import { toast } from "sonner";
 import { Cat } from "@/types";
 
 export function useCatForm() {
     const supabase = createClient() as any;
-    const { householdId, isDemo, refetchCats, addCatWeightRecord } = useAppState();
+    const { householdId, isDemo } = useCoreContext();
+    const { refetchCats, addCatWeightRecord } = useCatContext();
 
     const [isLoading, setIsLoading] = useState(false);
     const [editingCatId, setEditingCatId] = useState<string | null>(null);
@@ -68,6 +72,42 @@ export function useCatForm() {
         setVaccineType("");
     };
 
+    const handleFilesSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        const newFiles = Array.from(files);
+        setSelectedFiles((prev: any) => [...prev, ...newFiles]);
+
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setPreviewUrls((prev: any) => [...prev, ...newPreviews]);
+
+        if (avatar === "🐈" && newPreviews.length > 0) {
+            setAvatar(newPreviews[0]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setSelectedFiles((prev: any) => prev.filter((_: any, i: any) => i !== index));
+        setPreviewUrls((prev: any) => {
+            const newUrls = prev.filter((_: any, i: any) => i !== index);
+            if (avatar === prev[index]) {
+                if (newUrls.length > 0) setAvatar(newUrls[0]);
+                else setAvatar("🐈");
+            }
+            return newUrls;
+        });
+    };
+
+    const handleBgFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setBgFile(file);
+        setBgPreview(URL.createObjectURL(file));
+        setBackgroundMode('media');
+    };
+
     const uploadFiles = async (catId: string) => {
         if (selectedFiles.length === 0) return { firstPublicUrl: null };
         const results = [];
@@ -117,7 +157,7 @@ export function useCatForm() {
                     created_by: user?.id,
                 } as any).select().single();
                 if (error) throw error;
-                currentCatId = newCat.id; // Type assertion handled by 'as any' above if needed, but newCat usually has id
+                currentCatId = newCat.id;
                 if (parsedWeight && currentCatId) await addCatWeightRecord(currentCatId, parsedWeight, "初期登録");
             }
 
@@ -226,7 +266,8 @@ export function useCatForm() {
             fleaTickDate, setFleaTickDate, fleaTickProduct, setFleaTickProduct,
             dewormingDate, setDewormingDate, dewormingProduct, setDewormingProduct,
             heartwormDate, setHeartwormDate, heartwormProduct, setHeartwormProduct,
-            lastVaccineDate, setLastVaccineDate, vaccineType, setVaccineType
+            lastVaccineDate, setLastVaccineDate, vaccineType, setVaccineType,
+            handleFilesSelect, removeFile, handleBgFileSelect
         },
         resetForm, handleSubmit, handleDelete, startEdit, startAdd
     };

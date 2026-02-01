@@ -2,65 +2,96 @@
 
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { useAppState } from "@/store/app-store";
-import { createClient } from "@/lib/supabase";
+import {
+    useCatContext,
+    useIncidentContext,
+    useSettingsContext,
+    useCoreContext
+} from "@/store/app-store";
 import {
     LayoutGrid,
     Activity,
     Menu,
     Cat,
     Calendar,
-    Settings,
-    Heart,
-    X
+    Archive,
+    PawPrint,
+    Library
 } from "lucide-react";
 import { CheckSection } from "../shared/check-section";
 import { ActivityFeed } from "../shared/activity-feed";
 import { ZenGestures } from "../immersive/zen-gestures";
 import { EditorialCorners } from "../immersive/editorial-corners";
-import { BubblePickupList } from "../immersive/bubble-pickup-list";
+
 import { unlockAudio } from "@/lib/sounds";
-import { LayoutIslandNeo } from "../immersive/layout-island-neo";
+import { triggerFeedback } from "@/lib/haptics";
 import { BackgroundVideo } from "../shared/background-video";
 import { BrandLoader } from "../../ui/brand-loader";
+import { HomeViewToggle } from "@/components/app/shared/home-view-toggle"; // Keeping for safety/history or remove? 
+// Actually I replaced the usage, so I can remove imports.
+// But wait, `task_boundary` said I am refactoring.
+// I'll remove `LayoutIslandNeo`.
 import { HomeBackground } from "./home-background";
 import { useCareData } from "@/hooks/use-care-logic";
-import { ActionPlusMenu } from "../immersive/action-plus-menu";
+
 import { ImmersivePhotoView } from "../immersive/ImmersivePhotoView";
-import { useCatMedia } from "@/hooks/use-cat-media";
+import { useHouseholdMedia } from "@/hooks/use-household-media";
 import { useHomeGestures } from "@/hooks/use-home-gestures";
 
+
 // Lazy load heavy modals and sheets to reduce initial bundle size
-const ThemeExchangeModal = React.lazy(() => import("../modals/theme-exchange-modal").then(m => ({ default: m.ThemeExchangeModal })));
-const PhotoModal = React.lazy(() => import("../modals/photo-modal").then(m => ({ default: m.PhotoModal })));
-const IncidentModal = React.lazy(() => import("../modals/incident-modal").then(m => ({ default: m.IncidentModal })));
-const IncidentDetailModal = React.lazy(() => import("../modals/incident-detail-modal").then(m => ({ default: m.IncidentDetailModal })));
-const PhotoListSheet = React.lazy(() => import("../modals/photo-list-sheet").then(m => ({ default: m.PhotoListSheet })));
-const IncidentListSheet = React.lazy(() => import("../modals/incident-list-sheet").then(m => ({ default: m.IncidentListSheet })));
-const NyannlogSheet = React.lazy(() => import("../modals/nyannlog-sheet").then(m => ({ default: m.NyannlogSheet })));
+// Modals are now handled in page.tsx for global access
+// const ThemeExchangeModal = React.lazy(() => import("../modals/theme-exchange-modal").then(m => ({ default: m.ThemeExchangeModal })));
+// const PhotoModal = React.lazy(() => import("../modals/photo-modal").then(m => ({ default: m.PhotoModal })));
+// const IncidentModal = React.lazy(() => import("../modals/incident-modal").then(m => ({ default: m.IncidentModal })));
+// const IncidentDetailModal = React.lazy(() => import("../modals/incident-detail-modal").then(m => ({ default: m.IncidentDetailModal })));
+// const PhotoListSheet = React.lazy(() => import("../modals/photo-list-sheet").then(m => ({ default: m.PhotoListSheet })));
+// const IncidentListSheet = React.lazy(() => import("../modals/incident-list-sheet").then(m => ({ default: m.IncidentListSheet })));
+// const NyannlogSheet = React.lazy(() => import("../modals/nyannlog-sheet").then(m => ({ default: m.NyannlogSheet })));
 
 interface ImmersiveHomeProps {
     onOpenSidebar?: (section?: 'care' | 'activity') => void;
     onNavigate?: (tab: string) => void;
     onOpenCalendar?: () => void;
     onCatClick?: () => void;
+    onSelectItem?: (id: string, type: string, photos?: string[]) => void;
+    // New Props
+    onOpenExchange: () => void;
+    onOpenPhoto: () => void;
+    onOpenIncident: () => void;
+    onOpenNyannlogSheet: (tab?: 'events' | 'requests') => void;
+    onOpenIncidentDetail: (id: string) => void;
+    isNyannlogOpen?: boolean;
 }
 
 
-export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCatClick }: ImmersiveHomeProps) {
-    const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded, settings, incidents } = useAppState();
-    const [showThemeExchange, setShowThemeExchange] = useState(false);
-    const [showPhotoModal, setShowPhotoModal] = useState(false);
-    const [showIncidentModal, setShowIncidentModal] = useState(false);
-    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
-    const [showActionMenu, setShowActionMenu] = useState(false);
-    const [showPickup, setShowPickup] = useState(false);
-    const [showPhotoListSheet, setShowPhotoListSheet] = useState(false);
-    const [showIncidentListSheet, setShowIncidentListSheet] = useState(false);
-    const [showNyannlogSheet, setShowNyannlogSheet] = useState(false);
-    const [nyannlogTab, setNyannlogTab] = useState<'events' | 'requests'>('events');
-    const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
+export function ImmersiveHome({
+    onOpenSidebar,
+    onNavigate,
+    onOpenCalendar,
+    onCatClick,
+    onSelectItem,
+    onOpenExchange,
+    onOpenPhoto,
+    onOpenIncident,
+    onOpenNyannlogSheet,
+    onOpenIncidentDetail,
+    isNyannlogOpen
+}: ImmersiveHomeProps) {
+    const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded } = useCatContext();
+    const { settings } = useSettingsContext();
+    const { incidents } = useIncidentContext();
+    // Local state for modals removed - lifted to page.tsx
     const { progress } = useCareData();
+
+    // Use passed prop for detail opening
+    const handleOpenIncidentDetail = useCallback((id: string) => {
+        if (onOpenIncidentDetail) {
+            onOpenIncidentDetail(id);
+        } else {
+            onSelectItem?.(id, 'incident');
+        }
+    }, [onOpenIncidentDetail, onSelectItem]);
 
     // Feature 4: Ambient Light (Night Mode)
     const [isNight, setIsNight] = useState(false);
@@ -78,11 +109,20 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         setIsNight(hour < 6 || hour >= 18);
     }, [activeCat, setIsHeroImageLoaded]);
 
-    const {
-        displayMedia,
-        isVideo,
-        allPhotos
-    } = useCatMedia(activeCat);
+    // Feature: Household Random Media
+    const { selectedItem } = useHouseholdMedia(cats);
+
+    // Sync active cat with selected random media on initial load
+    const initializedRef = useRef(false);
+    useEffect(() => {
+        if (!initializedRef.current && selectedItem && cats.length > 0) {
+            setActiveCatId(selectedItem.catId);
+            initializedRef.current = true;
+        }
+    }, [selectedItem, cats.length, setActiveCatId]);
+
+    const displayMedia = selectedItem?.url || activeCat?.avatar || null;
+    const isVideo = selectedItem?.isVideo || false;
 
     const {
         uiVisible,
@@ -121,13 +161,12 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
     }, []);
 
     const handleOpenNyannlog = useCallback((tab: 'events' | 'requests' = 'events') => {
-        setNyannlogTab(tab);
-        setShowNyannlogSheet(true);
-    }, []);
-
-    const handleCloseNyannlog = useCallback(() => {
-        setShowNyannlogSheet(false);
-    }, []);
+        if (tab === 'events') {
+            onNavigate?.('dekigoto');
+        } else {
+            if (onOpenNyannlogSheet) onOpenNyannlogSheet(tab);
+        }
+    }, [onNavigate, onOpenNyannlogSheet]);
 
     const handleOpenCalendarWrapper = useCallback(() => {
         onOpenCalendar?.();
@@ -189,53 +228,9 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
         if (onOpenSidebar) onOpenSidebar(section);
     }, [onOpenSidebar]);
 
-    const handleTogglePickup = useCallback((e?: React.MouseEvent) => {
-        if (e) e.stopPropagation();
-        setShowPickup(prev => !prev);
-    }, []);
-
     const handleSelectItem = useCallback((id: string, type: string, photos?: string[]) => {
-        // If has photos, open photo viewer
-        if (photos && photos.length > 0) {
-            const cat = cats.find(c => {
-                // Find cat with this incident or standalone photo
-                const hasIncident = incidents?.some(inc => inc.id === id && inc.cat_id === c.id);
-                const hasImage = c.images?.some(img => img.id === id);
-                return hasIncident || hasImage;
-            });
-            setSelectedPhoto({
-                id,
-                url: photos[0].startsWith('http')
-                    ? photos[0]
-                    : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
-                storagePath: photos[0],
-                catName: cat?.name || '',
-                catAvatar: cat?.avatar || '',
-                allPhotos: photos
-            });
-        } else if (type === 'photo_standalone') {
-            // Legacy photo_standalone handling
-            let foundImg = null;
-            for (const cat of cats) {
-                const img = cat.images?.find(i => i.id === id);
-                if (img) {
-                    foundImg = {
-                        ...img,
-                        url: `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${img.storagePath}`,
-                        catName: cat.name,
-                        catAvatar: cat.avatar
-                    };
-                    break;
-                }
-            }
-            if (foundImg) {
-                setSelectedPhoto(foundImg);
-            }
-        } else {
-            // No photos - open incident detail
-            setSelectedIncidentId(id);
-        }
-    }, [cats, incidents]);
+        onSelectItem?.(id, type, photos);
+    }, [onSelectItem]);
 
 
     // Magic Dust Particles State
@@ -276,196 +271,124 @@ export function ImmersiveHome({ onOpenSidebar, onNavigate, onOpenCalendar, onCat
                 resetHideTimer();
             }}
         >
-            <HomeBackground
-                cats={cats}
-                activeCat={activeCat}
-                activeCatId={activeCatId}
-                currentIndex={currentIndex}
-                displayMedia={displayMedia}
-                isVideo={isVideo}
-                direction={direction}
-                handleSwipe={handleSwipe}
-                handleCatInteraction={handleCatInteraction}
-                setIsHeroImageLoaded={setIsHeroImageLoaded}
-                settings={settings}
-                particles={particles}
-                uiVisible={uiVisible}
-                isNight={isNight}
-            />
+            <motion.div
+                animate={{
+                    // Simplified animation relying on external state if needed, but for now fixed or use prop?
+                    // If onOpenNyannlogSheet is passed, we don't know the exact tab state here unless passed too.
+                    // Assuming 'y' animation was for sheet open effect. We can disable it or pass tab state.
+                    // For now, let's keep it static 0% as sheet is overlay.
+                    y: '0%'
+                }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="absolute inset-0 z-0"
+            >
+                <HomeBackground
+                    cats={cats}
+                    activeCat={activeCat}
+                    activeCatId={activeCatId}
+                    currentIndex={currentIndex}
+                    displayMedia={displayMedia}
+                    isVideo={isVideo}
+                    direction={direction}
+                    handleSwipe={handleSwipe}
+                    handleCatInteraction={handleCatInteraction}
+                    setIsHeroImageLoaded={setIsHeroImageLoaded}
+                    settings={settings}
+                    particles={particles}
+                    uiVisible={uiVisible}
+                    isNight={isNight}
+                />
+            </motion.div>
 
-            {/* Story Mode Tap Zones (Story Mode Only) */}
-            {
-                settings.homeViewMode === 'story' && (
-                    <>
-                        <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex - 1); resetHideTimer(); }} />
-                        <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex + 1); resetHideTimer(); }} />
-                    </>
-                )
-            }
-
-            {/* Story Mode Tap Zones (Story Mode Only) */}
-            {
-                settings.homeViewMode === 'story' && (
-                    <>
-                        <div className="absolute inset-y-0 left-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex - 1); resetHideTimer(); }} />
-                        <div className="absolute inset-y-0 right-0 w-[30%] z-10" onClick={(e) => { e.stopPropagation(); goToCat(currentIndex + 1); resetHideTimer(); }} />
-                    </>
-                )
-            }
+            {/* Manual switching tap zones removed per design change */}
 
 
 
-            {/* Layout Layer - Based on layoutType setting */}
-            <div className="fixed inset-0 pointer-events-none z-40">
-
-                {/* 2. Responsive Layout Components */}
-                <div className="absolute inset-0 pointer-events-none">
-                    {/* --- NEO LAYOUT (Island only) --- */}
-                    <LayoutIslandNeo
-                        onOpenPickup={() => { }}
-                        onOpenGallery={() => onNavigate?.('gallery')}
-                        onOpenPhoto={() => setShowPhotoListSheet(true)}
-                        onOpenMenu={() => handleOpenSidebar('care')}
-                        onOpenExchange={() => setShowThemeExchange(true)}
-                        onOpenIncident={() => setShowIncidentListSheet(true)}
-                        onOpenIncidentDetail={setSelectedIncidentId}
-
-                        onOpenCalendar={() => onOpenCalendar?.()}
-                        onOpenNyannlogSheet={handleOpenNyannlog}
-                    />
+            {/* Navigation Layer - New Layout 2026 */}
+            <motion.div
+                className="fixed inset-0 z-[100] pointer-events-none"
+                animate={{ opacity: isNyannlogOpen ? 0 : 1, pointerEvents: isNyannlogOpen ? 'none' : 'auto' }}
+                transition={{ duration: 0.3 }}
+            >
+                {/* 1. Top Right: Menu */}
+                <div
+                    className="absolute right-4 pointer-events-auto"
+                    style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
+                >
+                    <motion.button
+                        whileTap={{ scale: 0.92 }}
+                        onClick={() => {
+                            triggerFeedback('light');
+                            onOpenSidebar?.('care');
+                        }}
+                        className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"
+                    >
+                        <LayoutGrid className="w-6 h-6 text-white" strokeWidth={1.5} />
+                    </motion.button>
                 </div>
-            </div>
+
+                {/* Bottom Area */}
+                <div className="absolute inset-x-0 bottom-0 px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] flex items-end justify-between pointer-events-auto">
+
+                    {/* 2. Bottom Left: Onegai & Ashiato */}
+                    <div className="flex items-center gap-3">
+                        {/* Onegai (Requests) */}
+                        <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                                triggerFeedback('medium');
+                                onOpenNyannlogSheet('requests');
+                            }}
+                            className="group relative h-16 w-16 rounded-full bg-[#E8B4A0] shadow-[0_8px_32px_rgba(232,180,160,0.4)] flex items-center justify-center overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Cat className="w-8 h-8 text-white drop-shadow-sm" strokeWidth={2} />
+                            <div className="absolute bottom-2 text-[8px] font-bold text-white leading-none tracking-tighter shadow-black/10 drop-shadow-sm">おねがい</div>
+                        </motion.button>
+
+                        {/* Ashiato (Footprints/Exchange) */}
+                        <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                                triggerFeedback('light');
+                                onOpenExchange();
+                            }}
+                            className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center gap-0.5 shadow-lg active:bg-white/20 transition-colors"
+                        >
+                            <PawPrint className="w-4 h-4 text-white/90" strokeWidth={2} />
+                            {/* Optional: Show stats if needed, but keeping it clean for 'Icon' request 
+                                <span className="text-[9px] font-mono font-bold text-white/80">{stats?.householdTotal ?? 0}</span>
+                            */}
+                        </motion.button>
+                    </div>
+
+                    {/* 3. Bottom Right: Dekigoto (History) */}
+                    <div>
+                        <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                                triggerFeedback('medium');
+                                onOpenNyannlogSheet('events');
+                            }}
+                            className="h-14 w-14 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg flex flex-col items-center justify-center gap-0.5 active:bg-white/25 transition-colors group"
+                        >
+                            <Library className="w-6 h-6 text-white group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                            <span className="text-[8px] font-bold text-white/80 leading-none">できごと</span>
+                        </motion.button>
+                        {/* Note: User asked for 'Box to put memories in'. Archive/Package/Box. Archive looks classiest. */}
+                    </div>
+
+                </div>
+            </motion.div>
 
             {/* Note: Story mode cat switching is handled by swipe gestures */}
 
-            {/* Always visible: Floating Avatars (If Icon Mode) */}
-            {settings.homeViewMode === 'icon' && (
-                <div
-                    className="absolute bottom-24 left-0 right-0 z-30 flex items-center justify-center gap-6 pointer-events-auto px-4 py-8 overflow-x-auto no-scrollbar"
-                >
-                    {cats.map((cat, index) => (
-                        <motion.button
-                            key={cat.id}
-                            onClick={() => setActiveCatId(cat.id)}
-                            animate={{
-                                scale: index === currentIndex ? 1.3 : 1,
-                                y: index === currentIndex ? -10 : 0
-                            }}
-                            className={`relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 shadow-xl transition-all ${index === currentIndex
-                                ? 'border-white ring-4 ring-white/30'
-                                : 'border-white/50 opacity-60 hover:opacity-100 hover:scale-110'
-                                }`}
-                        >
-                            <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
-                        </motion.button>
-                    ))}
-                </div>
-            )}
 
 
-            {/* Theme Exchange Modal (lazy) */}
-            {showThemeExchange && (
-                <Suspense fallback={null}>
-                    <ThemeExchangeModal
-                        isOpen={showThemeExchange}
-                        onClose={() => setShowThemeExchange(false)}
-                    />
-                </Suspense>
-            )}
+            {/* Note: Story mode cat switching is handled by swipe gestures */}
 
-            {/* Photo Modal (lazy) */}
-            {showPhotoModal && (
-                <Suspense fallback={null}>
-                    <PhotoModal
-                        isOpen={showPhotoModal}
-                        onClose={() => setShowPhotoModal(false)}
-                    />
-                </Suspense>
-            )}
+            {/* All modals lifted to page.tsx */}
 
-            {/* Incident Creation Modal (lazy) */}
-            {showIncidentModal && (
-                <Suspense fallback={null}>
-                    <IncidentModal
-                        isOpen={showIncidentModal}
-                        onClose={() => setShowIncidentModal(false)}
-                        defaultCatId={activeCatId}
-                    />
-                </Suspense>
-            )}
-
-            {/* Incident Detail Modal (lazy) */}
-            {selectedIncidentId && (
-                <Suspense fallback={null}>
-                    <IncidentDetailModal
-                        isOpen={!!selectedIncidentId}
-                        onClose={() => setSelectedIncidentId(null)}
-                        incidentId={selectedIncidentId}
-                    />
-                </Suspense>
-            )}
-
-            {/* Action Plus Menu */}
-            <ActionPlusMenu
-                isOpen={showActionMenu}
-                onClose={() => setShowActionMenu(false)}
-                onOpenPhoto={() => setShowPhotoModal(true)}
-                onOpenIncident={() => setShowIncidentModal(true)}
-                onOpenNyannlog={handleOpenNyannlog}
-                variant="dock"
-            />
-
-
-            {/* --- Pickups Overlay (Legacy Mode) --- */}
-            <BubblePickupList
-                isOpen={showPickup}
-                onClose={() => setShowPickup(false)}
-            />
-
-            {/* Photo List Sheet (lazy) */}
-            {showPhotoListSheet && (
-                <Suspense fallback={null}>
-                    <PhotoListSheet
-                        isOpen={showPhotoListSheet}
-                        onClose={() => setShowPhotoListSheet(false)}
-                    />
-                </Suspense>
-            )}
-
-            {/* Incident List Sheet (lazy) */}
-            {showIncidentListSheet && (
-                <Suspense fallback={null}>
-                    <IncidentListSheet
-                        isOpen={showIncidentListSheet}
-                        onClose={() => setShowIncidentListSheet(false)}
-                    />
-                </Suspense>
-            )}
-
-            {/* Theme Exchange Modal (duplicate removed - using first instance) */}
-
-            {/* Nyannlog Sheet (lazy) */}
-            {showNyannlogSheet && (
-                <Suspense fallback={null}>
-                    <NyannlogSheet
-                        isOpen={showNyannlogSheet}
-                        initialTab={nyannlogTab}
-                        onClose={handleCloseNyannlog}
-                        onOpenCalendar={handleOpenCalendarWrapper}
-                        onOpenNew={handleOpenNewWrapper}
-                        onSelectItem={handleSelectItem}
-                    />
-                </Suspense>
-            )}
-
-
-
-            {/* Photo Viewer (from Nyannlog) */}
-            <ImmersivePhotoView
-                isOpen={!!selectedPhoto}
-                onClose={() => setSelectedPhoto(null)}
-                image={selectedPhoto}
-            />
 
         </div >
     );

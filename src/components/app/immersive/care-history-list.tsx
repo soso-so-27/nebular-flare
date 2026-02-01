@@ -1,7 +1,7 @@
 import { getFullImageUrl } from '@/lib/utils';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppState } from '@/store/app-store';
+import { useCatContext, useCoreContext } from '@/store/app-store';
 import { useCareData } from '@/hooks/use-care-logic';
 import { useAuth } from '@/providers/auth-provider';
 import { Cat, Check, Clock, ImageIcon, UtensilsCrossed, Droplet, Trash2, Scissors, Sparkles, Pill, PenLine, Heart, MessageCircle, AlertCircle, Camera, Undo2, RotateCcw } from 'lucide-react';
@@ -29,7 +29,8 @@ const ICON_MAP: Record<string, any> = {
 
 export function CareHistoryList({ className, style, onOpenPhoto }: CareHistoryListProps) {
     const { user: currentUser } = useAuth();
-    const { cats, householdUsers } = useAppState();
+    const { cats } = useCatContext();
+    const { householdUsers } = useCoreContext();
     const { careLogs, deleteCareLog, careTaskDefs } = useCareData();
 
     const handleUndo = async (logId: string) => {

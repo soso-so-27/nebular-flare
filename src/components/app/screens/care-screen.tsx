@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCareContext, useCatContext, useInventoryContext, useSettingsContext } from "@/store/app-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -28,19 +28,10 @@ interface CareScreenProps {
 }
 
 export function CareScreen({ externalSwipeMode = false, onSwipeModeChange, onClose }: CareScreenProps) {
-    const {
-        careLogs,
-        cats,
-        tasks,
-        setTasks,
-        noticeLogs,
-        inventory,
-        setInventory,
-        lastSeenAt,
-        settings,
-        careTaskDefs,
-        noticeDefs
-    } = useAppState();
+    const { careLogs, tasks, setTasks, noticeLogs, careTaskDefs, noticeDefs } = useCareContext();
+    const { cats } = useCatContext();
+    const { inventory, setInventory } = useInventoryContext();
+    const { settings, lastSeenAt } = useSettingsContext();
 
     const [internalShowSwipeMode, setInternalShowSwipeMode] = useState(false);
     const [progressIndex, setProgressIndex] = useState(0);

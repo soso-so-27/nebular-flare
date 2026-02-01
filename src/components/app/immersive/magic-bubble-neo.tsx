@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useSettingsContext } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Heart, Calendar, Image as ImageIcon, Activity, Menu, Settings, ChevronDown, PawPrint } from "lucide-react";
 import { sounds } from "@/lib/sounds";
@@ -65,7 +65,8 @@ export function MagicBubbleNeo({
         prevProgress.current = progress;
     }, [progress]);
 
-    const { cats, settings } = useAppState();
+    const { cats } = useCatContext();
+    const { settings } = useSettingsContext();
     const { stats } = useFootprintContext();
     const isLight = contrastMode === 'light';
     const isV2 = settings.layoutType.startsWith('v2-');

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAppState } from '@/store/app-store';
+import { useCatContext, useIncidentContext, useSettingsContext } from '@/store/app-store';
 import { Loader2, Camera, X, Sparkles, Wind, Bandage, Utensils, BatteryLow, Trash2, FileText, Cat } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -31,7 +31,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 
 export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalProps) {
-    const { cats, addIncident, settings } = useAppState();
+    const { cats } = useCatContext();
+    const { addIncident } = useIncidentContext();
+    const { settings } = useSettingsContext();
     const { awardForIncident } = useFootprintContext();
     const [loading, setLoading] = useState(false);
     const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(() => {

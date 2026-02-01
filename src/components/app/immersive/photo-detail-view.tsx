@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext } from "@/store/app-store";
 import { ImmersivePhotoView } from "./ImmersivePhotoView";
+import { Cat } from "@/types";
 
 interface PhotoTag {
     name: string;
@@ -29,17 +30,17 @@ interface PhotoDetailViewProps {
 }
 
 export function PhotoDetailView({ isOpen, onClose, image, onDelete, onUpdateTags }: PhotoDetailViewProps) {
-    const { cats } = useAppState();
+    const { cats } = useCatContext();
 
     if (!image) return null;
 
     // Resolve cat names if multiple catIds present
     const resolvedCatName = image.catIds && image.catIds.length > 0
-        ? image.catIds.map(id => cats.find(c => c.id === id)?.name).filter(Boolean).join(' & ')
+        ? image.catIds.map(id => (cats as Cat[]).find((c: Cat) => c.id === id)?.name).filter(Boolean).join(' & ')
         : image.catName;
 
     const resolvedCatAvatar = image.catIds && image.catIds.length === 1
-        ? cats.find(c => c.id === image.catIds![0])?.avatar
+        ? (cats as Cat[]).find((c: Cat) => c.id === image.catIds![0])?.avatar
         : undefined;
 
     return (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCareContext } from "@/store/app-store";
 import { X, Plus, Trash2, Edit2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -14,76 +14,44 @@ interface NoticeSettingsModalProps {
     onClose: () => void;
 }
 
+import { useNoticeSettings } from "@/hooks/use-notice-settings";
+
+interface NoticeSettingsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
 export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProps) {
-    const { noticeDefs, addNoticeDef, updateNoticeDef, deleteNoticeDef } = useAppState();
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const {
+        noticeDefs,
+        deleteNoticeDef,
+        isAdding,
+        setIsAdding,
+        editingId,
+        title,
+        setTitle,
+        category,
+        setCategory,
+        inputType,
+        setInputType,
+        required,
+        setRequired,
+        enabled,
+        setEnabled,
+        choices,
+        setChoices,
+        newChoice,
+        setNewChoice,
+        resetForm,
+        handleSave,
+        startEdit
+    } = useNoticeSettings(isOpen);
+
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     React.useEffect(() => {
         setPortalTarget(document.body);
     }, []);
-
-    // Form State
-    const [title, setTitle] = useState("");
-    const [category, setCategory] = useState<ObservationCategory>("health");
-    const [inputType, setInputType] = useState<ObservationInputType>("ok-notice");
-    const [required, setRequired] = useState(false);
-    const [enabled, setEnabled] = useState(true);
-    const [choices, setChoices] = useState<string[]>([]);
-    const [newChoice, setNewChoice] = useState("");
-
-    const resetForm = () => {
-        setTitle("");
-        setCategory("health");
-        setInputType("ok-notice");
-        setRequired(false);
-        setEnabled(true);
-        setChoices([]);
-        setNewChoice("");
-        setIsAdding(false);
-        setEditingId(null);
-    };
-
-    const handleSave = () => {
-        if (!title.trim()) {
-            toast.error("タイトルを入力してください");
-            return;
-        }
-
-        if (editingId) {
-            updateNoticeDef(editingId, {
-                title,
-                category,
-                inputType,
-                required,
-                enabled,
-                choices
-            });
-            toast.success("変更しました");
-        } else {
-            addNoticeDef(title, {
-                category,
-                inputType,
-                required,
-                enabled,
-                choices
-            });
-            toast.success("追加しました");
-        }
-        resetForm();
-    };
-
-    const startEdit = (def: NoticeDef) => {
-        setEditingId(def.id);
-        setTitle(def.title);
-        setCategory(def.category);
-        setInputType(def.inputType);
-        setRequired(def.required);
-        setEnabled(def.enabled !== false); // default to true if undefined
-        setChoices(def.choices || []);
-        setIsAdding(false);
-    };
 
     if (!portalTarget) return null;
 
@@ -119,7 +87,7 @@ export function NoticeSettingsModal({ isOpen, onClose }: NoticeSettingsModalProp
                         {/* Content */}
                         <div className="p-4 overflow-y-auto flex-1">
                             <div className="space-y-4">
-                                {noticeDefs.map(def => (
+                                {noticeDefs.map((def: any) => (
                                     <div key={def.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-3">
                                         {editingId === def.id ? (
                                             <div className="space-y-3">

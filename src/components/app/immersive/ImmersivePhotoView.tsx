@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, Download, Share, User, Calendar, Cat, CheckCircle2, Plus, Heart, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAppState } from "@/store/app-store";
+import { useCatContext } from "@/store/app-store";
 
 interface PhotoTag {
     name: string;
@@ -60,7 +60,7 @@ export function ImmersivePhotoView({
     myReaction = null,
     onReactionClick
 }: ImmersivePhotoViewProps) {
-    const { cats } = useAppState();
+    const { cats } = useCatContext();
     const [newTag, setNewTag] = React.useState('');
     const [mounted, setMounted] = useState(false);
     const [showUI, setShowUI] = useState(true);

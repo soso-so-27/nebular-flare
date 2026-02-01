@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { useAppState } from '@/store/app-store';
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useIncidentContext } from "@/store/app-store";
 import { Camera, Send, X, Loader2, MessageCircle, Tag, Utensils, Activity, Eye, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useFootprintContext } from "@/providers/footprint-provider";
-import { getFullImageUrl } from '@/lib/utils';
+import { getFullImageUrl, cn } from '@/lib/utils';
 
 // Tags
 const TAGS = [
@@ -19,10 +19,17 @@ const TAGS = [
 
 type Props = {
     onSubmitSuccess?: () => void;
+    onSuccess?: () => void;
+    isStandalone?: boolean;
+    initialCatId?: string;
 };
 
-export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
-    const { cats, addIncident, uploadCatImage } = useAppState();
+export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = false, initialCatId }: Props) {
+    const { cats, activeCatId, uploadCatImage } = useCatContext();
+    const { addObservation, addCareLog } = useCareContext();
+    const { addIncident } = useIncidentContext();
+    const { isDemo } = useCoreContext();
+    const { settings } = useSettingsContext();
     const { awardForNyannlog } = useFootprintContext();
 
     const [note, setNote] = useState('');
@@ -54,9 +61,9 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
 
     useEffect(() => {
         if (cats.length > 0 && selectedCatIds.size === 0) {
-            setSelectedCatIds(new Set([cats[0].id]));
+            setSelectedCatIds(new Set([initialCatId || cats[0].id]));
         }
-    }, [cats]);
+    }, [cats, initialCatId]);
 
     const toggleCat = (catId: string) => {
         setSelectedCatIds(prev => {
@@ -154,6 +161,7 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
             setEmergencySymptom({ lethargy: false, prayerPose: false, rapidBreathing: false });
             setIngestionSuspicion({ active: false, object: '', amount: '', time: '' });
             onSubmitSuccess?.();
+            onSuccess?.();
         } catch (e: any) {
             console.error('投稿エラー詳細:', e);
             console.error('エラーメッセージ:', e?.message);
@@ -178,9 +186,12 @@ export function EmbeddedInputCard({ onSubmitSuccess }: Props) {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#222226] rounded-2xl border border-white/10 shadow-lg overflow-hidden"
+            className={cn(
+                isStandalone ? "" : "overflow-hidden",
+                isStandalone ? "bg-transparent border-none shadow-none" : "bg-[#222226] rounded-2xl border border-white/10 shadow-lg"
+            )}
         >
-            <div className="p-4 space-y-3">
+            <div className={cn("space-y-3", isStandalone ? "px-4 pb-4 pt-0" : "p-4")}>
                 {/* Cat Avatars + Text Input */}
                 <div className="flex gap-3">
                     {/* Cat Selector */}

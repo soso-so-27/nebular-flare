@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppState } from '@/store/app-store';
+import { useCatContext, useSettingsContext } from '@/store/app-store';
 import { X, Loader2, Image as ImageIcon, MessageCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { CatAvatar } from "@/components/ui/cat-avatar";
@@ -17,7 +17,8 @@ type PhotoModalProps = {
 };
 
 export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProps) {
-    const { cats, uploadCatImage, settings } = useAppState();
+    const { cats, uploadCatImage } = useCatContext();
+    const { settings } = useSettingsContext();
     const { awardForPhoto } = useFootprintContext();
     const [loading, setLoading] = useState(false);
     const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(() => {

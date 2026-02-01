@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, Loader2, Save, User, Camera } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
-import { useAppState } from "@/store/app-store";
+import { useCoreContext, useSettingsContext } from "@/store/app-store";
 import { toast } from "sonner";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +19,8 @@ interface ProfileSettingsModalProps {
 
 export function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
     const { user, updateProfile } = useAuth();
-    const { uploadUserImage } = useAppState();
+    const { uploadUserImage } = useCoreContext();
+    const { updateSettings } = useSettingsContext();
     const [displayName, setDisplayName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);

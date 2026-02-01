@@ -7,7 +7,7 @@ import { X, AlertTriangle, Check, Cat, ChevronDown, ChevronUp } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCoreContext } from "@/store/app-store";
 
 interface ObservationRecord {
     id: string;
@@ -24,7 +24,8 @@ interface ObservationHistoryModalProps {
 }
 
 export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryModalProps) {
-    const { cats, householdId, isDemo } = useAppState();
+    const { cats } = useCatContext();
+    const { householdId, isDemo } = useCoreContext();
     const [observations, setObservations] = useState<ObservationRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCatId, setSelectedCatId] = useState<string | null>(null);

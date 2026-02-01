@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext } from "@/store/app-store";
 import { Plus, Image as ImageIcon, Loader2, CheckCircle2, ChevronRight, Camera, X, Utensils, MessageCircle, Cat as CatIcon, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -55,7 +55,9 @@ interface GalleryScreenProps {
 }
 
 export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
-    const { cats, householdId, uploadCatImage, deleteCatImage, updateCatImage } = useAppState();
+    const { cats, uploadCatImage, deleteCatImage, updateCatImage } = useCatContext();
+    const { activeCatId } = useCatContext(); // Redundant but safe
+    const { isDemo, householdId } = useCoreContext();
 
     // UI State
     const [filterCatId, setFilterCatId] = useState<string | null>(initialCatId || null);

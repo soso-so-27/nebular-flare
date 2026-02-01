@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { format, startOfISOWeek, getISOWeek } from "date-fns";
-import { useAppState } from "@/store/app-store";
+import { useAlbumContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import type { AlbumLayoutType } from "@/types";
 
 export function useWeeklySummary(catId: string, photoCount: number = 0, customDate?: Date) {
-    const { weeklyAlbumSettings, updateWeeklyAlbumLayout } = useAppState();
+    const { weeklyAlbumSettings, updateWeeklyAlbumLayout } = useAlbumContext();
     const [weekKey, setWeekKey] = useState("");
 
     // 1. Calculate Week Key (e.g., "2026-W05")
@@ -24,7 +24,7 @@ export function useWeeklySummary(catId: string, photoCount: number = 0, customDa
     const layout = useMemo(() => {
         if (!catId || !weekKey) return "hero3";
 
-        const setting = weeklyAlbumSettings.find(s => s.cat_id === catId && s.week_key === weekKey);
+        const setting = weeklyAlbumSettings.find(s => s.cat_id === catId && s.week_label === weekKey);
         if (setting) return setting.layout_type as AlbumLayoutType;
 
         // Intelligent selection based on photo density

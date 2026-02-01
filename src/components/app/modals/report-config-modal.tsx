@@ -12,8 +12,8 @@ import type { ReportConfigData, TodayStatusLevel, TodayStatus, EmergencyFlags, A
 interface ReportConfigModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onComplete: (data: ReportConfigData) => void;
-    catName: string;
+    onComplete: (data: ReportConfigData & { cat_id: string }) => void;
+    cats: any[];
 }
 
 const STATUS_LEVELS: { value: TodayStatusLevel; label: string; color: string }[] = [
@@ -30,8 +30,9 @@ const STATUS_ITEMS: { key: keyof TodayStatus; label: string; icon: React.ReactNo
     { key: 'hydration', label: '飲水', icon: <Heart className="w-4 h-4" /> },
 ];
 
-export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: ReportConfigModalProps) {
-    const [step, setStep] = useState(1);
+export function ReportConfigModal({ isOpen, onClose, onComplete, cats }: ReportConfigModalProps) {
+    const [step, setStep] = useState(0); // 0: Cat selection, 1: Basic info, 2: Emergency, 3: Vitals
+    const [selectedCatId, setSelectedCatId] = useState<string | null>(cats[0]?.id || null);
 
     // Step 1: Basic Summary
     const [chiefComplaint, setChiefComplaint] = useState('');
@@ -63,7 +64,9 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
     };
 
     const handleComplete = () => {
-        const data: ReportConfigData = {
+        if (!selectedCatId) return;
+        const data: ReportConfigData & { cat_id: string } = {
+            cat_id: selectedCatId,
             chief_complaint: chiefComplaint,
             onset,
             last_normal: lastNormal,
@@ -77,7 +80,8 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
         onComplete(data);
     };
 
-    const canProceed = step === 1 ? chiefComplaint.trim().length > 0 : true;
+    const canProceed = step === 0 ? !!selectedCatId : step === 1 ? chiefComplaint.trim().length > 0 : true;
+    const selectedCat = cats.find(c => c.id === selectedCatId);
 
     return (
         <AnimatePresence>
@@ -100,7 +104,9 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
                         <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm pt-[env(safe-area-inset-top)]">
                             <div>
                                 <h2 className="text-lg font-bold">受診レポート設定</h2>
-                                <p className="text-sm text-slate-500">{catName} のレポート</p>
+                                <p className="text-sm text-slate-500">
+                                    {step === 0 ? '対象の猫を選んでください' : `${selectedCat?.name || '猫'} のレポート`}
+                                </p>
                             </div>
                             <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
                                 <X className="w-5 h-5" />
@@ -109,7 +115,7 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
 
                         {/* Step Indicator */}
                         <div className="flex justify-center gap-2 p-4">
-                            {[1, 2, 3].map((s) => (
+                            {[0, 1, 2, 3].map((s) => (
                                 <div
                                     key={s}
                                     className={`w-8 h-1 rounded-full transition-colors ${s === step ? 'bg-sage-500' : s < step ? 'bg-sage-300' : 'bg-slate-200'
@@ -120,8 +126,45 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
                         </div>
 
                         {/* Content */}
-                        <div className="p-4 space-y-4">
+                        <div className="p-4 space-y-4 min-h-[300px]">
                             <AnimatePresence mode="wait">
+                                {step === 0 && (
+                                    <motion.div
+                                        key="step0"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-4"
+                                    >
+                                        <h3 className="font-semibold text-slate-700 dark:text-slate-200">対象の猫を選択</h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {cats.map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => setSelectedCatId(cat.id)}
+                                                    className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${selectedCatId === cat.id
+                                                        ? 'bg-brand-peach/10 border-brand-peach ring-2 ring-brand-peach/20'
+                                                        : 'bg-slate-50 dark:bg-slate-800 border-transparent hover:border-slate-200'
+                                                        }`}
+                                                >
+                                                    <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shadow-inner ring-2 ring-white/50">
+                                                        {cat.avatar?.startsWith('http') ? (
+                                                            <img src={cat.avatar} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="flex items-center justify-center h-full text-2xl">
+                                                                {cat.avatar || '🐈'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className={`font-bold text-sm ${selectedCatId === cat.id ? 'text-brand-peach' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                        {cat.name}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+
                                 {step === 1 && (
                                     <motion.div
                                         key="step1"
@@ -341,7 +384,7 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, catName }: Repo
 
                         {/* Footer */}
                         <div className="sticky bottom-0 flex gap-2 p-4 border-t bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-                            {step > 1 && (
+                            {step > 0 && (
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep(step - 1)}

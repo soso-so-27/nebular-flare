@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
-import { useAppState } from "@/store/app-store";
+import { useCareContext, useCatContext, useIncidentContext, useSettingsContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -16,15 +16,10 @@ import {
 import { ActivityLogItem, ActivityItem } from "./activity-log-item";
 
 export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: { embedded?: boolean; limit?: number, filter?: 'all' | 'care' }) {
-    const {
-        careLogs,
-        observations,
-        incidents, // Added
-        cats,
-        careTaskDefs,
-        noticeDefs,
-        householdUsers
-    } = useAppState();
+    const { careLogs, observations, careTaskDefs, noticeDefs } = useCareContext();
+    const { incidents } = useIncidentContext();
+    const { cats, activeCatId } = useCatContext();
+    const { householdUsers } = useCoreContext();
 
     // Default collapsed, unless embedded
     const [isExpanded, setIsExpanded] = useState(embedded);
@@ -249,8 +244,7 @@ export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: {
         }
     }, [cats, activeCatIdLocal]);
 
-    // Need activeCatId from store
-    const { activeCatId } = useAppState();
+
     useEffect(() => {
         setActiveCatIdLocal(activeCatId);
     }, [activeCatId]);

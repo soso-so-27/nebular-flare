@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ChevronDown, Check, AlertCircle, MessageCircle, Bell, X, Cat } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAppState } from '@/store/app-store';
+import { useCatContext } from '@/store/app-store';
 import { useFootprintContext } from '@/providers/footprint-provider';
 import { getCatchUpItems } from '@/lib/utils-catchup';
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { haptics } from "@/lib/haptics";
 import { sounds } from "@/lib/sounds";
 import { CelebrationOverlay, getRandomReaction, PawParticle, SparkleParticle } from '@/components/ui/celebration-overlay';
 import { useAuth } from '@/providers/auth-provider';
+import { Cat as CatType } from '@/types';
 // --- CONSTANTS: Request Variations (Pseudo-AI) ---
 const REQUEST_VARIATIONS: Record<string, { base: string, slots?: Record<string, string[]> }> = {
     'care_food': {
@@ -210,8 +211,8 @@ export function UnifiedCareList({
 
     const [bursts, setBursts] = useState<{ id: string, x: number, y: number }[]>([]);
 
-    const { cats } = useAppState();
-    const activeCat = cats.find(c => c.id === activeCatId);
+    const { cats } = useCatContext();
+    const activeCat = cats.find((c: CatType) => c.id === activeCatId);
 
     // Use props passed from useCareData
 
@@ -411,11 +412,11 @@ export function UnifiedCareList({
                                         <div className="relative shrink-0">
                                             {item.catId ? (
                                                 <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden bg-white/5">
-                                                    {cats.find(c => c.id === item.catId)?.avatar ? (
-                                                        <img src={cats.find(c => c.id === item.catId)?.avatar} className="w-full h-full object-cover" alt="" />
+                                                    {cats.find((c: CatType) => c.id === item.catId)?.avatar ? (
+                                                        <img src={cats.find((c: CatType) => c.id === item.catId)?.avatar} className="w-full h-full object-cover" alt="" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-[10px] text-white/50 lowercase">
-                                                            {cats.find(c => c.id === item.catId)?.name.substring(0, 1)}
+                                                            {cats.find((c: CatType) => c.id === item.catId)?.name.substring(0, 1)}
                                                         </div>
                                                     )}
                                                 </div>

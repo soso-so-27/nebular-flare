@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
-import { useAppState } from '@/store/app-store';
+import { useCoreContext } from '@/store/app-store';
 import { dbLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ export interface AdhocTask {
 export function useAdhocTasks() {
     const [adhocTasks, setAdhocTasks] = useState<AdhocTask[]>([]);
     const [loading, setLoading] = useState(true);
-    const { householdId } = useAppState();
+    const { householdId } = useCoreContext();
     const supabase = createClient() as any;
 
     // Fetch adhoc tasks for today

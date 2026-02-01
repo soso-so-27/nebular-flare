@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin, MessageSquare, AlertCircle, Syringe, Pill, Stethoscope, Trash2, Check, Heart, Cat } from "lucide-react";
-import { useAppState } from "@/store/app-store";
+import { useCareContext, useCatContext, useIncidentContext, useCoreContext, useMedicationContext } from "@/store/app-store";
 import { useAuth } from '@/providers/auth-provider';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -13,7 +13,11 @@ import { useUserProfile, useDateLogs, useCalendarData } from "@/hooks/use-supaba
 import { ActivityLogItem, ActivityItem } from "../shared/activity-log-item";
 
 export function CalendarScreen() {
-    const { events, careTaskDefs, noticeDefs, deleteCareLog, deleteObservation, cats, incidents, deleteIncident, householdUsers, medicationLogs } = useAppState();
+    const { careTaskDefs, noticeDefs, deleteCareLog, deleteObservation } = useCareContext();
+    const { cats } = useCatContext();
+    const { incidents, deleteIncident } = useIncidentContext();
+    const { householdUsers, events } = useCoreContext();
+    const { medicationLogs } = useMedicationContext();
     const { user: currentUser } = useAuth();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());

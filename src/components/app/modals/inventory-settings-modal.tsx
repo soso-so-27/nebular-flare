@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Trash2, Edit2, Package, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { createClient } from "@/lib/supabase";
-import { useAppState } from "@/store/app-store";
+import { useCoreContext } from "@/store/app-store";
+import { useInventorySettings } from "@/hooks/use-inventory-settings";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,129 +13,26 @@ interface InventorySettingsModalProps {
     onClose: () => void;
 }
 
-interface InventoryItem {
-    id: string;
-    label: string;
-    last_bought: string | null;
-    range_max: number;
-}
-
 export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsModalProps) {
-    const { householdId } = useAppState();
-    const [items, setItems] = useState<InventoryItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [isAdding, setIsAdding] = useState(false);
+    const { isDemo } = useCoreContext();
+    const {
+        inventory: items,
+        editingId,
+        isAdding, setIsAdding,
+        label, setLabel,
+        rangeMax, setRangeMax,
+        lastBought, setLastBought,
+        handleSave,
+        handleDelete,
+        startEdit,
+        resetForm
+    } = useInventorySettings();
+
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-
-    // Form State
-    const [label, setLabel] = useState("");
-    const [rangeMax, setRangeMax] = useState(30);
-    const [lastBought, setLastBought] = useState("");
-
-    const supabase = createClient() as any;
 
     useEffect(() => {
         setPortalTarget(document.body);
     }, []);
-
-    useEffect(() => {
-        if (isOpen && householdId) {
-            fetchItems();
-        }
-    }, [isOpen, householdId]);
-
-    const fetchItems = async () => {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('inventory')
-            .select('id, label, last_bought, range_max')
-            .eq('household_id', householdId)
-            .is('deleted_at', null)
-            .order('label', { ascending: true });
-
-        if (!error && data) {
-            setItems(data);
-        }
-        setLoading(false);
-    };
-
-    const resetForm = () => {
-        setLabel("");
-        setRangeMax(30);
-        setLastBought(new Date().toISOString().split('T')[0]); // Default to today
-        setIsAdding(false);
-        setEditingId(null);
-    };
-
-    const handleSave = async () => {
-        if (!label.trim()) {
-            toast.error("アイテム名を入力してください");
-            return;
-        }
-
-        if (editingId) {
-            // Update existing
-            const { error } = await supabase
-                .from('inventory')
-                .update({
-                    label,
-                    range_max: rangeMax,
-                    last_bought: lastBought || null
-                })
-                .eq('id', editingId);
-
-            if (error) {
-                toast.error("更新に失敗しました");
-                return;
-            }
-            toast.success("更新しました");
-        } else {
-            // Add new
-            const { error } = await supabase
-                .from('inventory')
-                .insert({
-                    household_id: householdId,
-                    label,
-                    range_max: rangeMax,
-                    range_min: Math.floor(rangeMax * 0.7), // default range_min to 70% of range_max
-                    last_bought: lastBought || null,
-                    stock_level: 'full',
-                    alert_enabled: true
-                });
-
-            if (error) {
-                toast.error("追加に失敗しました");
-                return;
-            }
-            toast.success("追加しました");
-        }
-
-        resetForm();
-        fetchItems();
-    };
-
-    const handleDelete = async (id: string) => {
-        const { error } = await supabase
-            .from('inventory')
-            .update({ deleted_at: new Date().toISOString() })
-            .eq('id', id);
-
-        if (error) {
-            toast.error("削除に失敗しました");
-            return;
-        }
-        toast.success("削除しました");
-        fetchItems();
-    };
-
-    const startEdit = (item: InventoryItem) => {
-        setEditingId(item.id);
-        setLabel(item.label);
-        setRangeMax(item.range_max || 30);
-        setLastBought(item.last_bought ? item.last_bought.split('T')[0] : "");
-        setIsAdding(false);
-    };
 
     if (!portalTarget) return null;
 
@@ -171,106 +67,102 @@ export function InventorySettingsModal({ isOpen, onClose }: InventorySettingsMod
 
                         {/* Content */}
                         <div className="p-4 overflow-y-auto flex-1">
-                            {loading ? (
-                                <div className="text-center py-8 text-slate-400">読み込み中...</div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {items.map(item => (
-                                        <div key={item.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                            {editingId === item.id ? (
-                                                <div className="space-y-3">
-                                                    <div className="space-y-1">
-                                                        <label className="text-xs font-bold text-slate-500">アイテム名</label>
-                                                        <input
-                                                            type="text"
-                                                            value={label}
-                                                            onChange={(e) => setLabel(e.target.value)}
-                                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                                                            placeholder="フード、猫砂など"
-                                                        />
-                                                    </div>
+                            <div className="space-y-3">
+                                {items.map(item => (
+                                    <div key={item.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                        {editingId === item.id ? (
+                                            <div className="space-y-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-bold text-slate-500">アイテム名</label>
+                                                    <input
+                                                        type="text"
+                                                        value={label}
+                                                        onChange={(e) => setLabel(e.target.value)}
+                                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                                                        placeholder="フード、猫砂など"
+                                                    />
+                                                </div>
 
-                                                    <div className="space-y-1">
-                                                        <label className="text-xs font-bold text-slate-500">補充サイクル（日数）</label>
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="range"
-                                                                min={1}
-                                                                max={90}
-                                                                value={rangeMax}
-                                                                onChange={(e) => setRangeMax(parseInt(e.target.value))}
-                                                                className="flex-1"
-                                                            />
-                                                            <span className="text-sm font-bold w-12 text-right">{rangeMax}日</span>
-                                                        </div>
-                                                        <p className="text-[10px] text-slate-400">
-                                                            この日数を過ぎると「そろそろ補充」通知が届きます
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-bold text-slate-500">補充サイクル（日数）</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="range"
+                                                            min={1}
+                                                            max={90}
+                                                            value={rangeMax}
+                                                            onChange={(e) => setRangeMax(parseInt(e.target.value))}
+                                                            className="flex-1"
+                                                        />
+                                                        <span className="text-sm font-bold w-12 text-right">{rangeMax}日</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        この日数を過ぎると「そろそろ補充」通知が届きます
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-1 pt-2">
+                                                    <label className="text-xs font-bold text-slate-500">最終購入日</label>
+                                                    <input
+                                                        type="date"
+                                                        value={lastBought}
+                                                        onChange={(e) => setLastBought(e.target.value)}
+                                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                                                    />
+                                                </div>
+
+                                                <div className="flex gap-2 pt-2">
+                                                    <button
+                                                        onClick={handleSave}
+                                                        className="flex-1 py-1.5 rounded-lg bg-primary text-white text-xs font-bold"
+                                                    >
+                                                        保存
+                                                    </button>
+                                                    <button
+                                                        onClick={resetForm}
+                                                        className="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold"
+                                                    >
+                                                        キャンセル
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <ShoppingCart className="w-5 h-5 text-slate-400" />
+                                                    <div>
+                                                        <p className="font-bold text-sm">{item.label}</p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {item.range_max || (Array.isArray(item.range) ? item.range[1] : 30)}日サイクル
+                                                            {item.last_bought && ` • 最終購入: ${new Date(item.last_bought).toLocaleDateString('ja-JP')}`}
                                                         </p>
                                                     </div>
-
-                                                    <div className="space-y-1 pt-2">
-                                                        <label className="text-xs font-bold text-slate-500">最終購入日</label>
-                                                        <input
-                                                            type="date"
-                                                            value={lastBought}
-                                                            onChange={(e) => setLastBought(e.target.value)}
-                                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-
-                                                    <div className="flex gap-2 pt-2">
-                                                        <button
-                                                            onClick={handleSave}
-                                                            className="flex-1 py-1.5 rounded-lg bg-primary text-white text-xs font-bold"
-                                                        >
-                                                            保存
-                                                        </button>
-                                                        <button
-                                                            onClick={resetForm}
-                                                            className="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold"
-                                                        >
-                                                            キャンセル
-                                                        </button>
-                                                    </div>
                                                 </div>
-                                            ) : (
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <ShoppingCart className="w-5 h-5 text-slate-400" />
-                                                        <div>
-                                                            <p className="font-bold text-sm">{item.label}</p>
-                                                            <p className="text-xs text-slate-500">
-                                                                {item.range_max || 30}日サイクル
-                                                                {item.last_bought && ` • 最終購入: ${new Date(item.last_bought).toLocaleDateString('ja-JP')}`}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-1">
-                                                        <button
-                                                            onClick={() => startEdit(item)}
-                                                            className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
-                                                        >
-                                                            <Edit2 className="h-4 w-4 text-slate-500" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(item.id)}
-                                                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </button>
-                                                    </div>
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        onClick={() => startEdit(item)}
+                                                        className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
+                                                    >
+                                                        <Edit2 className="h-4 w-4 text-slate-500" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
 
-                                    {items.length === 0 && !isAdding && (
-                                        <div className="text-center py-8 text-slate-400 text-sm">
-                                            在庫アイテムがありません
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                {items.length === 0 && !isAdding && (
+                                    <div className="text-center py-8 text-slate-400 text-sm">
+                                        在庫アイテムがありません
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Add New */}
                             {!isAdding && !editingId && (

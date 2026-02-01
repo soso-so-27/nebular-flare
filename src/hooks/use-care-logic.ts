@@ -1,5 +1,13 @@
 import { useMemo } from 'react';
-import { useAppState } from '@/store/app-store';
+import {
+    useCareContext,
+    useCatContext,
+    useIncidentContext,
+    useMedicationContext,
+    useInventoryContext,
+    useSettingsContext,
+    useCoreContext
+} from '@/store/app-store';
 import { useFootprintContext } from '@/providers/footprint-provider';
 import { getCatchUpItems } from '@/lib/utils-catchup';
 import { useAuth } from '@/providers/auth-provider';
@@ -116,7 +124,28 @@ const getDynamicRequestTitle = (defId: string, slot?: string, originalTitle?: st
 
 // --- HOOK: Centralized Data Logic ---
 export function useCareData() {
-    const { careLogs, careTaskDefs, activeCatId, cats, catsLoading, noticeDefs, observations, settings, setSettings, addCareLog, deleteCareLog, inventory, noticeLogs, incidents, medicationLogs } = useAppState();
+    const {
+        careLogs,
+        careTaskDefs,
+        noticeDefs,
+        addCareLog,
+        deleteCareLog,
+        noticeLogs,
+        observations
+    } = useCareContext();
+
+    const {
+        cats,
+        activeCatId,
+        catsLoading
+    } = useCatContext();
+
+    const { incidents } = useIncidentContext();
+    const { medicationLogs } = useMedicationContext();
+    const { inventory } = useInventoryContext();
+    const { settings, setSettings } = useSettingsContext();
+    const { isDemo } = useCoreContext();
+
     const { awardForCare } = useFootprintContext();
     const { lastSeenPhotoAt, lastSeenIncidentAt } = useUserReadTimestamps();
     const { user } = useAuth();

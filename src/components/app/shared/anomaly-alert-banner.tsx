@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext } from "@/store/app-store";
 import { AlertTriangle, X, CheckCircle, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function AnomalyAlertBanner() {
-    const { noticeLogs, cats, activeCatId } = useAppState();
+    const { cats } = useCatContext();
+    const { noticeLogs } = useCareContext();
 
     // Find any abnormal notices from today
     const [today, setToday] = useState<string>("");

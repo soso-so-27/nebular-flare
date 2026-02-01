@@ -133,14 +133,15 @@ export function FootprintStatsCard({
                                         style={{ background: 'var(--muted)' }}
                                     >
                                         <motion.div
-                                            className="h-full rounded-full"
+                                            className="h-full rounded-full origin-left"
                                             style={{
                                                 background: isCurrentUser
                                                     ? 'var(--sage)'
                                                     : 'var(--peach)',
+                                                width: '100%',
                                             }}
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${percentage}%` }}
+                                            initial={{ scaleX: 0 }}
+                                            animate={{ scaleX: percentage / 100 }}
                                             transition={{ duration: 0.5, delay: index * 0.1 }}
                                         />
                                     </div>

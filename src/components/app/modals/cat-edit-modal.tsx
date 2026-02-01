@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCoreContext, useMedicationContext } from "@/store/app-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -30,7 +30,8 @@ interface CatEditModalProps {
 }
 
 export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
-    const { cats, updateCat, isDemo } = useAppState();
+    const { cats, updateCat } = useCatContext();
+    const { isDemo } = useCoreContext();
     const cat = cats.find(c => c.id === catId);
 
     const [editData, setEditData] = useState({
@@ -50,7 +51,7 @@ export function CatEditModal({ isOpen, onClose, catId }: CatEditModalProps) {
     });
 
     const [isMedModalOpen, setIsMedModalOpen] = useState(false);
-    const { medicationLogs } = useAppState();
+    const { medicationLogs } = useMedicationContext();
 
     // Update local state when cat changes (if modal is open)
     React.useEffect(() => {

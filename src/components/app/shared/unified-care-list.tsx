@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useMedicationContext } from "@/store/app-store";
 import { Check, Clock, ChevronRight, AlertTriangle, Utensils, Droplets, Pill, CheckSquare, Package, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -40,7 +40,9 @@ function getIconForTask(group?: string): LucideIcon {
 }
 
 export function UnifiedCareList({ onItemTap, onCatchUpAll }: UnifiedCareListProps) {
-    const { tasks, noticeDefs, noticeLogs, activeCatId, cats } = useAppState();
+    const { cats, activeCatId } = useCatContext();
+    const { tasks, noticeDefs, noticeLogs } = useCareContext();
+    const { settings } = useSettingsContext();
     const activeCat = cats.find(c => c.id === activeCatId);
 
     const [today, setToday] = useState<string>("");

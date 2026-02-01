@@ -1,23 +1,32 @@
 "use client";
+// Force Rebuild: 2026-02-01 22:45
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { AppProvider } from "@/store/app-store";
 import { useAuth } from "@/providers/auth-provider";
 import { useUserProfile } from "@/hooks/use-supabase-data";
 import { toast } from "sonner";
 import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal, X } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { useAppState } from "@/store/app-store";
+import {
+  AppProvider,
+  useCatContext,
+  useCareContext,
+  useInventoryContext,
+  useSettingsContext,
+  useCoreContext
+} from "@/store/app-store";
 import { getCatchUpItems } from "@/lib/utils-catchup";
 import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/screens/splash-screen";
 import { SidebarMenu } from "@/components/app/shared/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/home/immersive-home";
+import { DekigotoScreen } from "@/components/app/screens/dekigoto-screen";
 import { FootprintProvider } from "@/providers/footprint-provider";
-import { CatsProvider } from "@/store/cats-context";
+import { BackdropSurface } from "@/components/ui/backdrop-surface";
+
 
 // Lazy load heavy components
 const CatScreen = dynamic(() => import("@/components/app/screens/cat-screen").then(m => ({ default: m.CatScreen })), { ssr: false });
@@ -27,6 +36,16 @@ const LoginScreen = dynamic(() => import("@/components/app/screens/login-screen"
 const OnboardingScreen = dynamic(() => import("@/components/app/screens/onboarding-screen").then(m => ({ default: m.OnboardingScreen })), { ssr: false });
 
 const CalendarModal = dynamic(() => import("@/components/app/modals/calendar-modal").then(m => ({ default: m.CalendarModal })), { ssr: false });
+const IncidentDetailModal = dynamic(() => import("@/components/app/modals/incident-detail-modal").then(m => ({ default: m.IncidentDetailModal })), { ssr: false });
+const ImmersivePhotoView = dynamic(() => import("@/components/app/immersive/ImmersivePhotoView").then(m => ({ default: m.ImmersivePhotoView })), { ssr: false });
+
+// New Modals Lifted from ImmersiveHome
+const ThemeExchangeModal = dynamic(() => import("@/components/app/modals/theme-exchange-modal").then(m => ({ default: m.ThemeExchangeModal })), { ssr: false });
+const PhotoModal = dynamic(() => import("@/components/app/modals/photo-modal").then(m => ({ default: m.PhotoModal })), { ssr: false });
+const IncidentModal = dynamic(() => import("@/components/app/modals/incident-modal").then(m => ({ default: m.IncidentModal })), { ssr: false });
+const PhotoListSheet = dynamic(() => import("@/components/app/modals/photo-list-sheet").then(m => ({ default: m.PhotoListSheet })), { ssr: false });
+const IncidentListSheet = dynamic(() => import("@/components/app/modals/incident-list-sheet").then(m => ({ default: m.IncidentListSheet })), { ssr: false });
+const NyannlogSheet = dynamic(() => import("@/components/app/modals/nyannlog-sheet").then(m => ({ default: m.NyannlogSheet })), { ssr: false });
 
 
 /* eslint-disable @next/next/no-img-element */
@@ -44,11 +63,36 @@ function AppContent() {
   const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
 
   // Get data and functions for quick actions
-  const {
-    tasks, noticeLogs, inventory, lastSeenAt, settings, cats, catsLoading,
-    careTaskDefs, careLogs, noticeDefs, activeCatId,
-    addCareLog, addObservation, setInventory, isDemo
-  } = useAppState();
+  const { cats, catsLoading, activeCatId, isHeroImageLoaded } = useCatContext();
+  const { tasks, noticeLogs, careTaskDefs, careLogs, noticeDefs, addCareLog, addObservation } = useCareContext();
+  const { inventory, setInventory } = useInventoryContext();
+  const { settings, lastSeenAt } = useSettingsContext();
+  const { isDemo } = useCoreContext();
+
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
+
+  // Lifted Navigation State
+  const [showThemeExchange, setShowThemeExchange] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showIncidentModal, setShowIncidentModal] = useState(false);
+  const [showPhotoListSheet, setShowPhotoListSheet] = useState(false);
+  const [showIncidentListSheet, setShowIncidentListSheet] = useState(false);
+  const [showNyannlogSheet, setShowNyannlogSheet] = useState(false);
+  const [nyannlogTab, setNyannlogTab] = useState<'events' | 'requests' | 'input'>('events');
+
+  const handleOpenNyannlog = React.useCallback((tab: 'events' | 'requests' | 'input' = 'events') => {
+    if (tab === 'events') {
+      setTab('dekigoto');
+    } else {
+      setNyannlogTab(tab);
+      setShowNyannlogSheet(true);
+    }
+  }, []);
+
+  const handleOpenIncidentDetail = React.useCallback((id: string) => {
+    setSelectedIncidentId(id);
+  }, []);
 
   const [showSplashOverlay, setShowSplashOverlay] = useState(true);
 
@@ -78,6 +122,28 @@ function AppContent() {
   const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
   const catCount = catchup.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
   const totalCount = careCount + catCount;
+
+  const handleSelectItem = React.useCallback((id: string, type: string, photos?: string[]) => {
+    if (photos && photos.length > 0) {
+      const cat = cats.find(c => {
+        const hasIncident = tasks?.some(t => t.id === id && t.catId === c.id);
+        const hasImage = c.images?.some(img => img.id === id);
+        return hasIncident || hasImage;
+      });
+      setSelectedPhoto({
+        id,
+        url: photos[0].startsWith('http')
+          ? photos[0]
+          : `https://zfuuzgazbdzyclwnqkqm.supabase.co/storage/v1/object/public/avatars/${photos[0]}`,
+        storagePath: photos[0],
+        catName: cat?.name || '',
+        catAvatar: cat?.avatar || '',
+        allPhotos: photos
+      });
+    } else {
+      setSelectedIncidentId(id);
+    }
+  }, [cats, tasks]);
 
   // Quick action handler for sidebar - immediate completion
   const handleQuickAction = async (section: string, itemId: string) => {
@@ -151,24 +217,6 @@ function AppContent() {
     }
   };
 
-  // Combined swipe mode handler
-  const handleSwipeClick = () => {
-    haptics.impactLight();
-    if (careCount > 0) {
-      setCareSwipeMode(true);
-    } else if (catCount > 0) {
-      setCatSwipeMode(true);
-    } else {
-      // Open care swipe anyway if nothing pending
-      setCareSwipeMode(true);
-    }
-  };
-
-  // Force layout re-calculation for mobile viewport height hack - REMOVED (using dvh)
-
-  // Use isHeroImageLoaded to control Splash Screen
-  const { isHeroImageLoaded } = useAppState();
-
   return (
     <>
       {/* Smart Splash Screen - Waits for Hero Image */}
@@ -184,98 +232,236 @@ function AppContent() {
         onNavigate={handleSidebarNavigate}
       />
 
-      <main className="relative w-full h-full flex flex-col">
-        <div className="flex-1 w-full max-w-md mx-auto relative flex flex-col">
+      <BackdropSurface
+        isRevealed={showNyannlogSheet}
+        onConceal={() => setShowNyannlogSheet(false)}
+        revealOffset={nyannlogTab === 'requests' ? '-38%' : nyannlogTab === 'input' ? '-30%' : '-92%'}
+        backLayer={
+          <React.Suspense fallback={null}>
+            <NyannlogSheet
+              onTabChange={setNyannlogTab}
+              isOpen={showNyannlogSheet}
+              initialTab={nyannlogTab}
+              onClose={() => setShowNyannlogSheet(false)}
+              onOpenCalendar={() => setShowCalendar(true)}
+              onOpenNew={() => { }}
+              onSelectItem={handleSelectItem}
+              usePortal={false}
+            />
+          </React.Suspense>
+        }
+        frontLayer={
+          <>
+            <CalendarModal
+              isOpen={showCalendar}
+              onClose={() => setShowCalendar(false)}
+            />
 
-          <CalendarModal
-            isOpen={showCalendar}
-            onClose={() => setShowCalendar(false)}
-          />
-
-          {/* Immersive Home - Always mounted for background context */}
-          <ImmersiveHome
-            onOpenSidebar={() => setShowSidebar(true)}
-            onNavigate={(t) => setTab(t)}
-            onOpenCalendar={() => setShowCalendar(true)}
-            onCatClick={() => setTab("cat")}
-          />
-
-          {/* Smart Splash Overlay - "Perfect Load" */}
-          <AnimatePresence mode="wait">
-            {showSplashOverlay && (
-              <motion.div
-                key="smart-splash"
-                className="fixed inset-0 z-[10005] flex items-center justify-center bg-[#FAF9F7]"
-                exit={{
-                  opacity: 0,
-                  scale: 1.1,
-                  filter: "blur(20px)",
-                  transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
-                }}
-              >
-                <SplashScreen />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Overlays */}
-          <AnimatePresence>
-            {tab === "cat" && (
-              <motion.div
-                key="cat-screen"
-                className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ duration: 0.4, type: "spring", damping: 25, stiffness: 300 }}
-              >
-                <div className="absolute top-4 right-4 z-[10003]">
-                  <button
-                    onClick={() => setTab("home")}
-                    className="p-2 rounded-full bg-white/40 backdrop-blur-md shadow-sm border border-white/20 text-slate-800 dark:text-white hover:bg-white/60"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-                <div className="h-full overflow-y-auto pt-16 px-4 pb-24">
-                  <CatScreen
-                    onOpenGallery={() => {
-                      setGalleryCatId(activeCatId); // Use current active cat
-                      setTab("gallery");
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {tab === "gallery" && (
-              <motion.div
-                key="gallery-screen"
-                className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
-                initial={{ opacity: 0, y: "100%" }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: "100%" }}
-                transition={{ duration: 0.3, ease: "circOut" }}
-              >
-                <GalleryScreen
-                  onClose={() => {
-                    setGalleryCatId(null);
-                    setTab("home");
+            {/* Main Application Layers: Managed with coordinated Depth Zoom */}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {/* Immersive Home - Onegai View */}
+              {tab === "home" && (
+                <motion.div
+                  key="home-layer"
+                  initial={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.9,
+                    filter: "blur(10px)",
+                    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
                   }}
-                  initialCatId={galleryCatId}
+                  className="fixed inset-0 z-0"
+                >
+                  <ImmersiveHome
+                    onOpenSidebar={() => setShowSidebar(true)}
+                    onNavigate={(t) => setTab(t)}
+                    onOpenCalendar={() => setShowCalendar(true)}
+                    onCatClick={() => setTab("cat")}
+                    onSelectItem={handleSelectItem}
+                    // Lifted Props
+                    onOpenExchange={() => setShowThemeExchange(true)}
+                    onOpenPhoto={() => setShowPhotoListSheet(true)}
+                    onOpenIncident={() => setShowIncidentListSheet(true)}
+                    onOpenIncidentDetail={handleOpenIncidentDetail}
+                    onOpenNyannlogSheet={handleOpenNyannlog}
+                    isNyannlogOpen={showNyannlogSheet}
+                  />
+                </motion.div>
+              )}
+
+              {tab === "dekigoto" && (
+                <motion.div
+                  key="dekigoto-layer"
+                  initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    filter: "blur(0px)",
+                    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }
+                  }}
+                  exit={{
+                    opacity: 0,
+                    scale: 1.1,
+                    filter: "blur(20px)",
+                    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+                  }}
+                  className="fixed inset-0 z-[10001]"
+                >
+                  <DekigotoScreen
+                    onClose={() => setTab("home")}
+                    onOpenCalendar={() => setShowCalendar(true)}
+                    onOpenSidebar={handleSidebarNavigate}
+                    onSelectItem={handleSelectItem}
+                    onNavigate={setTab}
+                    // Lifted Props
+                    onOpenExchange={() => setShowThemeExchange(true)}
+                    onOpenPhoto={() => setShowPhotoListSheet(true)}
+                    onOpenIncident={() => setShowIncidentListSheet(true)}
+                    onOpenIncidentDetail={handleOpenIncidentDetail}
+                    onOpenNyannlogSheet={handleOpenNyannlog}
+                    isNyannlogOpen={showNyannlogSheet}
+                    activeNyannlogTab={nyannlogTab}
+                    onCloseNyannlog={() => setShowNyannlogSheet(false)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Smart Splash Overlay - "Perfect Load" */}
+            <AnimatePresence mode="wait">
+              {showSplashOverlay && (
+                <motion.div
+                  key="smart-splash"
+                  className="fixed inset-0 z-[10005] flex items-center justify-center bg-[#FAF9F7]"
+                  exit={{
+                    opacity: 0,
+                    scale: 1.1,
+                    filter: "blur(20px)",
+                    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+                  }}
+                >
+                  <SplashScreen />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Secondary Overlays (Cat, Gallery) */}
+            <AnimatePresence>
+              {tab === "cat" && (
+                <motion.div
+                  key="cat-screen"
+                  className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85 }}
+                  transition={{ duration: 0.4, type: "spring", damping: 25, stiffness: 300 }}
+                >
+                  <div className="absolute top-4 right-4 z-[10003]">
+                    <button
+                      onClick={() => setTab("home")}
+                      className="p-2 rounded-full bg-white/40 backdrop-blur-md shadow-sm border border-white/20 text-slate-800 dark:text-white hover:bg-white/60"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <div className="h-full overflow-y-auto pt-16 px-4 pb-24">
+                    <CatScreen
+                      onOpenGallery={() => {
+                        setGalleryCatId(activeCatId); // Use current active cat
+                        setTab("gallery");
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {tab === "gallery" && (
+                <motion.div
+                  key="gallery-screen"
+                  className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
+                  initial={{ opacity: 0, y: "100%" }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: "100%" }}
+                  transition={{ duration: 0.3, ease: "circOut" }}
+                >
+                  <GalleryScreen
+                    onClose={() => {
+                      setGalleryCatId(null);
+                      setTab("home");
+                    }}
+                    initialCatId={galleryCatId}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Shared Modals - Unified across screens */}
+            {selectedIncidentId && (
+              <React.Suspense fallback={null}>
+                <IncidentDetailModal
+                  isOpen={!!selectedIncidentId}
+                  onClose={() => setSelectedIncidentId(null)}
+                  incidentId={selectedIncidentId}
                 />
-              </motion.div>
+              </React.Suspense>
             )}
 
+            <ImmersivePhotoView
+              isOpen={!!selectedPhoto}
+              onClose={() => setSelectedPhoto(null)}
+              image={selectedPhoto}
+            />
 
+            {/* Lifted Modals */}
+            {showThemeExchange && (
+              <React.Suspense fallback={null}>
+                <ThemeExchangeModal
+                  isOpen={showThemeExchange}
+                  onClose={() => setShowThemeExchange(false)}
+                />
+              </React.Suspense>
+            )}
 
+            {showPhotoModal && (
+              <React.Suspense fallback={null}>
+                <PhotoModal
+                  isOpen={showPhotoModal}
+                  onClose={() => setShowPhotoModal(false)}
+                />
+              </React.Suspense>
+            )}
 
-          </AnimatePresence>
-        </div>
-      </main>
+            {showIncidentModal && (
+              <React.Suspense fallback={null}>
+                <IncidentModal
+                  isOpen={showIncidentModal}
+                  onClose={() => setShowIncidentModal(false)}
+                  defaultCatId={activeCatId}
+                />
+              </React.Suspense>
+            )}
 
-      {/* Navigation - hidden on immersive home */}
-      {/* Footer navigation has been removed for full immersive experience */}
+            {showPhotoListSheet && (
+              <React.Suspense fallback={null}>
+                <PhotoListSheet
+                  isOpen={showPhotoListSheet}
+                  onClose={() => setShowPhotoListSheet(false)}
+                />
+              </React.Suspense>
+            )}
+
+            {showIncidentListSheet && (
+              <React.Suspense fallback={null}>
+                <IncidentListSheet
+                  isOpen={showIncidentListSheet}
+                  onClose={() => setShowIncidentListSheet(false)}
+                />
+              </React.Suspense>
+            )}
+          </>
+        }
+      />
     </>
   );
 }
@@ -328,9 +514,7 @@ function AuthenticatedAppWithProfile({ user }: { user: any }) {
       isDemo={false}
     >
       <AppProvider householdId={profile?.householdId ?? null} currentUserId={profile?.userId ?? null} isDemo={false}>
-        <CatsProvider householdId={profile?.householdId ?? null} isDemo={false}>
-          <AppContent />
-        </CatsProvider>
+        <AppContent />
       </AppProvider>
     </FootprintProvider>
   );
@@ -365,9 +549,7 @@ function AuthenticatedApp() {
     return (
       <FootprintProvider isDemo={true}>
         <AppProvider householdId={null} isDemo={true}>
-          <CatsProvider householdId={null} isDemo={true}>
-            <AppContent />
-          </CatsProvider>
+          <AppContent />
         </AppProvider>
       </FootprintProvider>
     );

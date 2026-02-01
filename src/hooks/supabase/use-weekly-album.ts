@@ -84,11 +84,10 @@ export function useWeeklyAlbumSettings() {
                 .upsert({
                     household_id: userData.household_id,
                     cat_id: catId,
-                    week_key: weekKey,
+                    week_label: weekKey,
                     layout_type: layoutType,
-                    user_id: user.id,
                     updated_at: new Date().toISOString()
-                } as any, { onConflict: 'household_id,cat_id,week_key' } as any));
+                } as any, { onConflict: 'cat_id,week_label' } as any));
 
             if (error) throw error;
         } catch (e) {

@@ -38,6 +38,8 @@ export function useHomeGestures(
     }, [resetHideTimer]);
 
     const handleSwipe = (_event: any, info: PanInfo) => {
+        // Swipe to switch cat disabled per design change
+        /*
         const currentIndex = cats.findIndex(c => c.id === activeCatId);
         const threshold = 50;
         if (info.offset.x < -threshold && currentIndex < cats.length - 1) {
@@ -47,14 +49,18 @@ export function useHomeGestures(
             setDirection(-1);
             setActiveCatId(cats[currentIndex - 1].id);
         }
+        */
     };
 
     const goToCat = (index: number) => {
+        // Jump to cat disabled per design change
+        /*
         const currentIndex = cats.findIndex(c => c.id === activeCatId);
         if (index >= 0 && index < cats.length) {
             setDirection(index > currentIndex ? 1 : -1);
             setActiveCatId(cats[index].id);
         }
+        */
     };
 
     return {

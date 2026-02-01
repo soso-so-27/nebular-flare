@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle as ChatIcon, ChevronRight, MessageCircle, Check, Plus, AlertCircle } from "lucide-react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext, useIncidentContext, useSettingsContext } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 import { IncidentDetailModal } from "./incident-detail-modal";
 import { IncidentModal } from "./incident-modal";
@@ -30,7 +30,9 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
-    const { cats, incidents, settings } = useAppState();
+    const { settings } = useSettingsContext();
+    const { cats } = useCatContext();
+    const { incidents } = useIncidentContext();
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [showNewIncidentModal, setShowNewIncidentModal] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);

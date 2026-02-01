@@ -2,12 +2,13 @@
 
 import React, { useState, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useAppState } from "@/store/app-store";
+import { useCatContext } from "@/store/app-store";
 import { X, Plus, Trash2, Image as ImageIcon, Loader2, CheckCircle2, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase";
 import { AnimatePresence, motion } from "framer-motion";
+import { Cat, CatImage } from "@/types";
 
 interface CatGalleryModalProps {
     isOpen: boolean;
@@ -17,14 +18,14 @@ interface CatGalleryModalProps {
 }
 
 export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryModalProps) {
-    const { cats, uploadCatImage, deleteCatImage, refetchCats } = useAppState();
+    const { cats, uploadCatImage, deleteCatImage, refetchCats } = useCatContext();
     const [uploading, setUploading] = useState(false);
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const activeCat = cats.find(c => c.id === catId);
+    const activeCat = cats.find((c: Cat) => c.id === catId);
     const images = activeCat?.images || [];
 
     // Helper to get public URL
@@ -43,7 +44,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
-        sorted.forEach(img => {
+        sorted.forEach((img: CatImage) => {
             const date = new Date(img.createdAt);
             const key = `${date.getFullYear()}年${date.getMonth() + 1}月`;
             if (!groups[key]) groups[key] = [];
@@ -86,7 +87,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
 
         let successCount = 0;
         for (const id of Array.from(selectedImageIds)) {
-            const img = images.find(i => i.id === id);
+            const img = images.find((i: CatImage) => i.id === id);
             if (img) {
                 const { error } = await deleteCatImage(img.id, img.storagePath);
                 if (!error) successCount++;
@@ -113,7 +114,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
     return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-toast flex items-end justify-center sm:items-center">
+                <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -128,6 +129,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         className="bg-[#FAF9F7]/90 backdrop-blur-xl border border-white/40 shadow-2xl w-full max-w-md max-h-[90vh] sm:rounded-2xl rounded-t-[32px] overflow-hidden flex flex-col relative"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
                         <div className="px-4 py-3 border-b border-black/5 shrink-0 flex items-center justify-between z-10">
@@ -181,15 +183,13 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                                 <h3 className="text-sm font-bold text-slate-800">{dateLabel}</h3>
                                             </div>
                                             <div className="grid grid-cols-3 gap-0.5">
-                                                {groupImages.map(img => (
+                                                {groupImages.map((img: CatImage) => (
                                                     <div
                                                         key={img.id}
                                                         className="relative aspect-square bg-slate-100 cursor-pointer overflow-hidden"
                                                         onClick={() => {
                                                             if (isSelectMode) {
                                                                 toggleSelection(img.id);
-                                                            } else {
-                                                                // View full screen? For now just simple view or nothing
                                                             }
                                                         }}
                                                     >

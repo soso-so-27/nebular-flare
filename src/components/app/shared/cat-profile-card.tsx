@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppState } from "@/store/app-store";
+import { useCatContext } from "@/store/app-store";
 import { Cat, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CatProfileDetail } from "./cat-profile-detail";
 
 export function CatProfileCard() {
-    const { cats, activeCatId, setActiveCatId } = useAppState();
-    const activeCat = cats.find(c => c.id === activeCatId) || cats[0];
+    const { cats, activeCatId, setActiveCatId } = useCatContext();
+    const activeCat = cats.find((c: any) => c.id === activeCatId) || cats[0];
     const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     if (!activeCat) return null;
@@ -20,7 +20,7 @@ export function CatProfileCard() {
                 {cats.length > 1 && (
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                         <div className="flex gap-2">
-                            {cats.map(cat => (
+                            {cats.map((cat: any) => (
                                 <button
                                     key={cat.id}
                                     onClick={() => setActiveCatId(cat.id)}
