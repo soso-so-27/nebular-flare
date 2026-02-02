@@ -63,7 +63,7 @@ export function useIncidents(householdId: string | null) {
                     created_by: (await supabase.auth.getUser()).data.user?.id,
                     health_category,
                     health_value,
-                    onset,
+                    onset_at: onset,
                     symptom_details,
                     batch_id
                 } as any)
