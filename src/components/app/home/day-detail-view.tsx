@@ -222,230 +222,233 @@ export function DayDetailView({
                 <h1 className="text-base font-semibold text-white">{dayLabel}</h1>
             </header>
 
-            {/* TOP HALF: Requests Area (exactly 50% of remaining height) */}
-            <div className="h-[50%] flex flex-col shrink-0 border-b border-white/10">
-                {/* Sub-Tabs for Requests */}
-                <div className="px-4 py-3 shrink-0">
-                    <div className="bg-white/5 p-1 rounded-xl flex items-center relative overflow-hidden backdrop-blur-sm border border-white/5">
-                        <button
-                            onClick={() => setRequestTab('pending')}
-                            className={cn(
-                                "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
-                                requestTab === 'pending' ? "text-white" : "text-white/40"
-                            )}
-                        >
-                            おねがい
-                            {pendingTasks.length > 0 && (
-                                <span className="ml-1 opacity-60">({pendingTasks.length})</span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setRequestTab('completed')}
-                            className={cn(
-                                "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
-                                requestTab === 'completed' ? "text-white" : "text-white/40"
-                            )}
-                        >
-                            おねがいの記録
-                            {completedTasks.length > 0 && (
-                                <span className="ml-1 opacity-60">({completedTasks.length})</span>
-                            )}
-                        </button>
+            {/* Main content area: split 50/50 after header */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* TOP HALF: Requests Area */}
+                <div className="h-1/2 flex flex-col overflow-hidden border-b border-white/10">
+                    {/* Sub-Tabs for Requests */}
+                    <div className="px-4 py-3 shrink-0">
+                        <div className="bg-white/5 p-1 rounded-xl flex items-center relative overflow-hidden backdrop-blur-sm border border-white/5">
+                            <button
+                                onClick={() => setRequestTab('pending')}
+                                className={cn(
+                                    "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
+                                    requestTab === 'pending' ? "text-white" : "text-white/40"
+                                )}
+                            >
+                                おねがい
+                                {pendingTasks.length > 0 && (
+                                    <span className="ml-1 opacity-60">({pendingTasks.length})</span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setRequestTab('completed')}
+                                className={cn(
+                                    "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
+                                    requestTab === 'completed' ? "text-white" : "text-white/40"
+                                )}
+                            >
+                                おねがいの記録
+                                {completedTasks.length > 0 && (
+                                    <span className="ml-1 opacity-60">({completedTasks.length})</span>
+                                )}
+                            </button>
 
-                        <motion.div
-                            className="absolute inset-y-1 bg-white/10 rounded-lg shadow-sm border border-white/10"
-                            initial={false}
-                            animate={{
-                                left: requestTab === 'pending' ? '4px' : '50%',
-                                right: requestTab === 'pending' ? '50%' : '4px',
-                            }}
-                            transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
-                        />
+                            <motion.div
+                                className="absolute inset-y-1 bg-white/10 rounded-lg shadow-sm border border-white/10"
+                                initial={false}
+                                animate={{
+                                    left: requestTab === 'pending' ? '4px' : '50%',
+                                    right: requestTab === 'pending' ? '50%' : '4px',
+                                }}
+                                transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Sub-Tab Content Area */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-4">
+                        <AnimatePresence mode="wait">
+                            {requestTab === 'pending' ? (
+                                <motion.div
+                                    key="pending"
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -5 }}
+                                    className="space-y-2"
+                                >
+                                    {pendingTasks.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-10 gap-2">
+                                            <Sparkles className="w-5 h-5 text-white/20" />
+                                            <p className="text-xs text-white/30 italic">すべてのおねがいをききました</p>
+                                        </div>
+                                    ) : (
+                                        pendingTasks.map((task: any) => {
+                                            const IconComponent = getIconComponent(task.icon);
+                                            return (
+                                                <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.08] border border-white/5 shadow-sm">
+                                                    <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                                                        {IconComponent ? (
+                                                            <IconComponent className="w-4 h-4 text-white/70" />
+                                                        ) : (
+                                                            <span className="text-sm">{task.emoji || '📋'}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold text-white/90 truncate">{task.label || task.name}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleToggleTask(task.id)}
+                                                        className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="completed"
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -5 }}
+                                    className="space-y-2"
+                                >
+                                    {completedTasks.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-10 gap-2">
+                                            <Moon className="w-5 h-5 text-white/20" />
+                                            <p className="text-xs text-white/30 italic">まだ記録がありません</p>
+                                        </div>
+                                    ) : (
+                                        completedTasks.map((task: any) => {
+                                            const IconComponent = getIconComponent(task.icon);
+                                            return (
+                                                <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-transparent">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400/50 flex items-center justify-center">
+                                                        {IconComponent ? (
+                                                            <IconComponent className="w-3.5 h-3.5" />
+                                                        ) : (
+                                                            <Check className="w-3.5 h-3.5" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-white/40 truncate line-through">
+                                                            {task.label || task.name}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleToggleTask(task.id)}
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/20 hover:text-white/40 transition-colors"
+                                                    >
+                                                        <Undo2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
-                {/* Sub-Tab Content Area */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4">
-                    <AnimatePresence mode="wait">
-                        {requestTab === 'pending' ? (
-                            <motion.div
-                                key="pending"
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -5 }}
-                                className="space-y-2"
-                            >
-                                {pendingTasks.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-10 gap-2">
-                                        <Sparkles className="w-5 h-5 text-white/20" />
-                                        <p className="text-xs text-white/30 italic">すべてのおねがいをききました</p>
-                                    </div>
-                                ) : (
-                                    pendingTasks.map((task: any) => {
-                                        const IconComponent = getIconComponent(task.icon);
-                                        return (
-                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.08] border border-white/5 shadow-sm">
-                                                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
-                                                    {IconComponent ? (
-                                                        <IconComponent className="w-4 h-4 text-white/70" />
-                                                    ) : (
-                                                        <span className="text-sm">{task.emoji || '📋'}</span>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold text-white/90 truncate">{task.label || task.name}</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleToggleTask(task.id)}
-                                                    className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                                                >
-                                                    <Check className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="completed"
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -5 }}
-                                className="space-y-2"
-                            >
-                                {completedTasks.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-10 gap-2">
-                                        <Moon className="w-5 h-5 text-white/20" />
-                                        <p className="text-xs text-white/30 italic">まだ記録がありません</p>
-                                    </div>
-                                ) : (
-                                    completedTasks.map((task: any) => {
-                                        const IconComponent = getIconComponent(task.icon);
-                                        return (
-                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-transparent">
-                                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400/50 flex items-center justify-center">
-                                                    {IconComponent ? (
-                                                        <IconComponent className="w-3.5 h-3.5" />
-                                                    ) : (
-                                                        <Check className="w-3.5 h-3.5" />
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-white/40 truncate line-through">
-                                                        {task.label || task.name}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleToggleTask(task.id)}
-                                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white/20 hover:text-white/40 transition-colors"
-                                                >
-                                                    <Undo2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </motion.div>
+                {/* BOTTOM HALF: Life Events Area */}
+                <div className="h-1/2 flex flex-col overflow-hidden bg-white/[0.01]">
+                    <div className="px-5 py-4 shrink-0 flex items-center justify-between">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 focus:text-white/50 transition-colors">
+                            できごと
+                        </h2>
+                        {lifeEvents.length > 0 && (
+                            <span className="text-[10px] text-white/20 font-bold bg-white/5 px-2 py-0.5 rounded-full">
+                                {lifeEvents.length}
+                            </span>
                         )}
-                    </AnimatePresence>
-                </div>
-            </div>
+                    </div>
 
-            {/* BOTTOM HALF: Life Events Area (exactly 50% of remaining height) */}
-            <div className="h-[50%] flex flex-col shrink-0 bg-white/[0.01]">
-                <div className="px-5 py-4 shrink-0 flex items-center justify-between">
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 focus:text-white/50 transition-colors">
-                        できごと
-                    </h2>
-                    {lifeEvents.length > 0 && (
-                        <span className="text-[10px] text-white/20 font-bold bg-white/5 px-2 py-0.5 rounded-full">
-                            {lifeEvents.length}
-                        </span>
-                    )}
-                </div>
-
-                <div className="flex-1 overflow-y-auto px-4 pb-24">
-                    <div className="space-y-3">
-                        {lifeEvents.length === 0 ? (
-                            <div className="py-12 flex flex-col items-center gap-2">
-                                <Wind className="w-5 h-5 text-white/10" />
-                                <p className="text-xs text-white/20 italic">静かな一日です</p>
-                            </div>
-                        ) : (
-                            lifeEvents.map((event: any, idx: number) => (
-                                <motion.div
-                                    key={event.id || idx}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className="bg-white/[0.04] rounded-2xl border border-white/5 overflow-hidden"
-                                >
-                                    {event.type === 'incident' && (
-                                        <div className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className={cn(
-                                                    "flex items-center gap-2",
-                                                    (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
-                                                )}>
-                                                    {(event.incident_type === 'daily' || event.incident_type === 'other') ? (
-                                                        <MessageCircle className="w-3.5 h-3.5" />
-                                                    ) : (
-                                                        <AlertTriangle className="w-3.5 h-3.5" />
-                                                    )}
-                                                    <span className="text-[9px] font-black uppercase tracking-widest">
-                                                        {incidentTypeLabels[event.incident_type] || 'RECORD'}
+                    <div className="flex-1 overflow-y-auto px-4 pb-24">
+                        <div className="space-y-3">
+                            {lifeEvents.length === 0 ? (
+                                <div className="py-12 flex flex-col items-center gap-2">
+                                    <Wind className="w-5 h-5 text-white/10" />
+                                    <p className="text-xs text-white/20 italic">静かな一日です</p>
+                                </div>
+                            ) : (
+                                lifeEvents.map((event: any, idx: number) => (
+                                    <motion.div
+                                        key={event.id || idx}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        className="bg-white/[0.04] rounded-2xl border border-white/5 overflow-hidden"
+                                    >
+                                        {event.type === 'incident' && (
+                                            <div className="p-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className={cn(
+                                                        "flex items-center gap-2",
+                                                        (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
+                                                    )}>
+                                                        {(event.incident_type === 'daily' || event.incident_type === 'other') ? (
+                                                            <MessageCircle className="w-3.5 h-3.5" />
+                                                        ) : (
+                                                            <AlertTriangle className="w-3.5 h-3.5" />
+                                                        )}
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">
+                                                            {incidentTypeLabels[event.incident_type] || 'RECORD'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[10px] text-white/30 font-mono">
+                                                        {format(event.timestamp, 'HH:mm')}
                                                     </span>
                                                 </div>
-                                                <span className="text-[10px] text-white/30 font-mono">
-                                                    {format(event.timestamp, 'HH:mm')}
-                                                </span>
+                                                <p className="text-sm text-white/90 leading-relaxed">
+                                                    {event.note || event.memo || event.description || '内容なし'}
+                                                </p>
+                                                {event.photos && event.photos.length > 0 && (
+                                                    <div className="mt-3 grid grid-cols-2 gap-2">
+                                                        {event.photos.map((path: string, i: number) => (
+                                                            <img key={i} src={getFullImageUrl(path)} className="w-full aspect-square object-cover rounded-xl border border-white/5" alt="" />
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <p className="text-sm text-white/90 leading-relaxed">
-                                                {event.note || event.memo || event.description || '内容なし'}
-                                            </p>
-                                            {event.photos && event.photos.length > 0 && (
-                                                <div className="mt-3 grid grid-cols-2 gap-2">
-                                                    {event.photos.map((path: string, i: number) => (
-                                                        <img key={i} src={getFullImageUrl(path)} className="w-full aspect-square object-cover rounded-xl border border-white/5" alt="" />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {event.type === 'observation' && (
-                                        <div className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2 text-sky-400">
-                                                    <Activity className="w-3.5 h-3.5" />
-                                                    <span className="text-[9px] font-black tracking-widest uppercase">health</span>
+                                        {event.type === 'observation' && (
+                                            <div className="p-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2 text-sky-400">
+                                                        <Activity className="w-3.5 h-3.5" />
+                                                        <span className="text-[9px] font-black tracking-widest uppercase">health</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-white/30 font-mono">
+                                                        {format(event.timestamp, 'HH:mm')}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] text-white/30 font-mono">
-                                                    {format(event.timestamp, 'HH:mm')}
-                                                </span>
+                                                <p className="text-sm text-white/90 font-medium">{event.value}</p>
+                                                {(event.notes || event.note) && (
+                                                    <p className="text-xs text-white/50 mt-1 italic leading-relaxed">{event.notes || event.note}</p>
+                                                )}
                                             </div>
-                                            <p className="text-sm text-white/90 font-medium">{event.value}</p>
-                                            {(event.notes || event.note) && (
-                                                <p className="text-xs text-white/50 mt-1 italic leading-relaxed">{event.notes || event.note}</p>
-                                            )}
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {event.type === 'photo' && (
-                                        <div className="relative aspect-[1.4] group">
-                                            <img src={getFullImageUrl(event.storage_path || event.url)} alt="" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs text-white/90 font-medium truncate pr-4">{event.caption}</p>
-                                                    <span className="text-[10px] text-white/40 font-mono shrink-0">{format(event.timestamp, 'HH:mm')}</span>
+                                        {event.type === 'photo' && (
+                                            <div className="relative aspect-[1.4] group">
+                                                <img src={getFullImageUrl(event.storage_path || event.url)} alt="" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-xs text-white/90 font-medium truncate pr-4">{event.caption}</p>
+                                                        <span className="text-[10px] text-white/40 font-mono shrink-0">{format(event.timestamp, 'HH:mm')}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            ))
-                        )}
+                                        )}
+                                    </motion.div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
