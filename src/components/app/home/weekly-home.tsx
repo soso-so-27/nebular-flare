@@ -28,7 +28,7 @@ const HEADER_BAR_HEIGHT = 44;
 const FAB_HEIGHT = 56;
 const FAB_BOTTOM_PADDING = 12;
 const BENTO_TOP_GAP = 12;    // HeaderBottom + 12px
-const BENTO_BOTTOM_GAP = 8;  // FABTop - 8px
+const BENTO_BOTTOM_GAP = 16; // FABTop - 16px (Adjusted for breathing room)
 const MARGIN = 16;           // 左右マージン
 const GUTTER = 6;            // ガター
 
@@ -213,9 +213,9 @@ export function WeeklyHome({
                     </AnimatePresence>
                 </div>
 
-                {/* Horizontal Feed Carousel - Place immediately below Bento grid */}
+                {/* Horizontal Feed Carousel - Place with comfortable gap below Bento grid */}
                 {!selectedDay && (
-                    <div className="flex-1 flex flex-col justify-start pt-1 min-h-0">
+                    <div className="flex-1 flex flex-col justify-start pt-4 min-h-0">
                         <WeeklyFeedCarousel screenWidth={screenWidth} />
                     </div>
                 )}
