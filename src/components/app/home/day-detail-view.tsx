@@ -107,6 +107,9 @@ export function DayDetailView({
     // Track completed tasks (for strikethrough + undo)
     const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
 
+    // Track active tab
+    const [activeTab, setActiveTab] = useState<'requests' | 'events'>('requests');
+
     const dayLabel = format(day, "M月d日（E）", { locale: ja });
 
     // Get tasks for this day
@@ -207,7 +210,7 @@ export function DayDetailView({
     return (
         <div className="h-full flex flex-col overflow-hidden bg-[#0A0A0B]">
             {/* Header */}
-            <header className="flex items-center gap-3 px-4 py-3">
+            <header className="flex items-center gap-3 px-4 pt-3 pb-1 shrink-0">
                 <button
                     onClick={onBack}
                     className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
@@ -217,259 +220,302 @@ export function DayDetailView({
                 <h1 className="text-base font-semibold text-white">{dayLabel}</h1>
             </header>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto">
-                {/* Today's Requests Section */}
-                <section className="p-4 pt-0">
-                    <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
-                        今日のおねがい
-                    </h2>
-
-                    <div className="space-y-2">
-                        {dayTasks.length === 0 ? (
-                            <p className="text-sm text-white/40 py-4 text-center">
-                                タスクはありません
-                            </p>
-                        ) : (
-                            dayTasks.map((task: any) => {
-                                const isCompleted = completedTaskIds.has(task.id);
-                                const IconComponent = getIconComponent(task.icon);
-
-                                return (
-                                    <motion.div
-                                        key={task.id}
-                                        layout
-                                        className={`
-                                            flex items-center gap-3 p-3 rounded-xl
-                                            ${isCompleted ? 'bg-white/5' : 'bg-white/10'}
-                                            transition-colors
-                                        `}
-                                    >
-                                        <div className={`
-                                            w-9 h-9 rounded-full flex items-center justify-center
-                                            ${isCompleted ? 'bg-white/10' : 'bg-white/15'}
-                                        `}>
-                                            {IconComponent ? (
-                                                <IconComponent className={`w-4 h-4 ${isCompleted ? 'text-white/30' : 'text-white/70'}`} />
-                                            ) : (
-                                                <span className="text-sm">{task.emoji || '📋'}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`
-                                                text-sm font-medium truncate
-                                                ${isCompleted ? 'text-white/30 line-through' : 'text-white/90'}
-                                            `}>
-                                                {task.label || task.name}
-                                            </p>
-                                            {task.deadline && !isCompleted && (
-                                                <p className="text-xs text-white/40">
-                                                    残り {task.deadline}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <button
-                                            onClick={() => handleToggleTask(task.id)}
-                                            className={`
-                                                w-8 h-8 rounded-full flex items-center justify-center shrink-0
-                                                transition-all
-                                                ${isCompleted
-                                                    ? 'bg-white/10 text-white/40'
-                                                    : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                                                }
-                                            `}
-                                        >
-                                            {isCompleted ? (
-                                                <Undo2 className="w-4 h-4" />
-                                            ) : (
-                                                <Check className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </motion.div>
-                                );
-                            })
+            {/* Tabbed Navigation (Segmented Control) */}
+            <div className="px-4 py-3 shrink-0">
+                <div className="bg-white/5 p-1 rounded-xl flex items-center relative overflow-hidden backdrop-blur-sm border border-white/5">
+                    <button
+                        onClick={() => setActiveTab('requests')}
+                        className={cn(
+                            "flex-1 py-2 text-xs font-bold transition-all duration-300 relative z-10",
+                            activeTab === 'requests' ? "text-white" : "text-white/40"
                         )}
-                    </div>
-
-                    {/* History Link */}
-                    {onOpenHistory && (
-                        <button
-                            onClick={onOpenHistory}
-                            className="mt-4 text-xs text-white/40 hover:text-white/60 transition-colors"
-                        >
-                            履歴を見る →
-                        </button>
-                    )}
-                </section>
-
-                {/* Events Section */}
-                <section className="px-4 pb-4">
-                    <div className="flex items-center justify-between mb-3 pt-3 border-t border-white/5">
-                        <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-                            できごと
-                        </h2>
+                    >
+                        おねがい
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('events')}
+                        className={cn(
+                            "flex-1 py-2 text-xs font-bold transition-all duration-300 relative z-10",
+                            activeTab === 'events' ? "text-white" : "text-white/40"
+                        )}
+                    >
+                        できごと
                         {dayEvents.length > 0 && (
-                            <span className="text-xs text-white/30 bg-white/5 px-2 py-0.5 rounded-full">
-                                {dayEvents.length}件
-                            </span>
+                            <span className="ml-1.5 opacity-40 font-normal">({dayEvents.length})</span>
                         )}
-                    </div>
+                    </button>
 
-                    <div className="space-y-2">
-                        {dayEvents.length === 0 ? (
-                            <p className="text-sm text-white/40 py-4 text-center">
-                                イベントはありません
-                            </p>
-                        ) : (
-                            dayEvents.map((event: any, idx: number) => (
-                                <motion.div
-                                    key={event.id || idx}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.03 }}
-                                    className="bg-white/5 rounded-xl overflow-hidden"
-                                >
-                                    {event.type === 'incident' && (
-                                        <div className="p-3">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className={cn(
-                                                    "flex items-center gap-2",
-                                                    (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
-                                                )}>
-                                                    {(event.incident_type === 'daily' || event.incident_type === 'other') ? (
-                                                        <MessageCircle className="w-3.5 h-3.5" />
-                                                    ) : (
-                                                        <AlertTriangle className="w-3.5 h-3.5" />
-                                                    )}
-                                                    <span className="text-[10px] font-bold uppercase tracking-wide">
-                                                        {incidentTypeLabels[event.incident_type] || 'できごと'}
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] text-white/30">
-                                                    {format(event.timestamp, 'HH:mm', { locale: ja })}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-white/90 whitespace-pre-wrap">
-                                                {event.note || event.memo || event.description || '内容なし'}
-                                            </p>
-                                            {/* Images for incidents */}
-                                            {event.photos && event.photos.length > 0 && (
-                                                <div className="mt-3 grid grid-cols-2 gap-2">
-                                                    {event.photos.map((path: string, i: number) => (
-                                                        <img
-                                                            key={i}
-                                                            src={getFullImageUrl(path)}
-                                                            className="w-full aspect-[4/3] object-cover rounded-lg border border-white/5"
-                                                            alt=""
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {event.type === 'care' && (
-                                        <div className="p-3">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                                                        <Check className="w-3.5 h-3.5" />
-                                                    </div>
-                                                    <p className="text-sm font-semibold text-white/90 truncate">
-                                                        {event.type_name || event.task_name || event.careType || 'お世話完了'}
-                                                    </p>
-                                                </div>
-                                                <span className="text-[10px] text-white/40">
-                                                    {format(event.timestamp, 'HH:mm', { locale: ja })}
-                                                </span>
-                                            </div>
-                                            {(event.notes || event.note) && (
-                                                <p className="text-sm text-white/60 ml-11 mt-1 whitespace-pre-wrap">
-                                                    {event.notes || event.note}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {event.type === 'observation' && (
-                                        <div className="p-3">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2 text-sky-400">
-                                                    <Activity className="w-3.5 h-3.5" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wide">
-                                                        {event.type || '記録'}
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] text-white/30">
-                                                    {format(event.timestamp, 'HH:mm', { locale: ja })}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-white/90">
-                                                {event.value}
-                                            </p>
-                                            {(event.notes || event.note) && (
-                                                <p className="text-xs text-white/60 mt-1 whitespace-pre-wrap">
-                                                    {event.notes || event.note}
-                                                </p>
-                                            )}
-                                            {/* Images for observations */}
-                                            {event.images && event.images.length > 0 && (
-                                                <div className="mt-3 grid grid-cols-2 gap-2">
-                                                    {event.images.map((path: string, i: number) => (
-                                                        <img
-                                                            key={i}
-                                                            src={getFullImageUrl(path)}
-                                                            className="w-full aspect-[4/3] object-cover rounded-lg border border-white/5"
-                                                            alt=""
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {event.type === 'photo' && (
-                                        <div>
-                                            <img
-                                                src={getFullImageUrl(event.storage_path || event.url)}
-                                                alt=""
-                                                className="w-full aspect-[16/9] object-cover"
-                                            />
-                                            {event.caption && (
-                                                <p className="p-3 text-sm text-white/70">
-                                                    {event.caption}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Fallback for unknown types */}
-                                    {!['incident', 'care', 'photo'].includes(event.type) && (
-                                        <div className="p-3">
-                                            <p className="text-xs text-white/40 mb-1">type: {event.type}</p>
-                                            <p className="text-sm text-white/80">
-                                                {event.title || event.description || event.name || JSON.stringify(event).slice(0, 100)}
-                                            </p>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            ))
-                        )}
-                    </div>
-                </section>
+                    {/* Sliding Background Indicator */}
+                    <motion.div
+                        className="absolute inset-y-1 bg-white/10 rounded-lg shadow-sm border border-white/10"
+                        initial={false}
+                        animate={{
+                            left: activeTab === 'requests' ? '4px' : '50%',
+                            right: activeTab === 'requests' ? '50%' : '4px',
+                        }}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+                    />
+                </div>
             </div>
 
-            {/* Camera FAB */}
-            {onOpenCamera && (
-                <button
-                    onClick={onOpenCamera}
-                    className="absolute bottom-24 right-4 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center hover:bg-white/15 transition-colors"
-                >
-                    <Camera className="w-5 h-5 text-white/80" />
-                </button>
-            )}
+            {/* Scrollable Content Container */}
+            <div className="flex-1 overflow-hidden relative">
+                <AnimatePresence mode="wait">
+                    {activeTab === 'requests' ? (
+                        <motion.div
+                            key="requests"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 overflow-y-auto px-4 pb-20"
+                        >
+                            <div className="space-y-2 pt-2">
+                                {dayTasks.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                            <Sparkles className="w-5 h-5 text-white/20" />
+                                        </div>
+                                        <p className="text-sm text-white/30">
+                                            タスクはありません
+                                        </p>
+                                    </div>
+                                ) : (
+                                    dayTasks.map((task: any) => {
+                                        const isCompleted = completedTaskIds.has(task.id);
+                                        const IconComponent = getIconComponent(task.icon);
+
+                                        return (
+                                            <motion.div
+                                                key={task.id}
+                                                layout
+                                                className={cn(
+                                                    "flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300",
+                                                    isCompleted
+                                                        ? "bg-white/[0.02] border-transparent"
+                                                        : "bg-white/[0.08] border-white/5 shadow-lg"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                                    isCompleted ? "bg-white/5" : "bg-white/10"
+                                                )}>
+                                                    {IconComponent ? (
+                                                        <IconComponent className={cn("w-4.5 h-4.5", isCompleted ? "text-white/20" : "text-white/70")} />
+                                                    ) : (
+                                                        <span className="text-base">{task.emoji || '📋'}</span>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={cn(
+                                                        "text-sm font-semibold truncate transition-colors",
+                                                        isCompleted ? "text-white/20 line-through" : "text-white/90"
+                                                    )}>
+                                                        {task.label || task.name}
+                                                    </p>
+                                                    {task.deadline && !isCompleted && (
+                                                        <p className="text-[10px] text-white/40 mt-0.5">
+                                                            残り {task.deadline}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleToggleTask(task.id)}
+                                                    className={cn(
+                                                        "w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-300",
+                                                        isCompleted
+                                                            ? "bg-white/5 text-white/20"
+                                                            : "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/20"
+                                                    )}
+                                                >
+                                                    {isCompleted ? (
+                                                        <Undo2 className="w-4.5 h-4.5" />
+                                                    ) : (
+                                                        <Check className="w-4.5 h-4.5" />
+                                                    )}
+                                                </button>
+                                            </motion.div>
+                                        );
+                                    })
+                                )}
+                            </div>
+
+                            {/* History Link */}
+                            {onOpenHistory && dayTasks.length > 0 && (
+                                <button
+                                    onClick={onOpenHistory}
+                                    className="mt-6 w-full py-4 text-xs text-white/30 hover:text-white/50 transition-colors border-t border-white/5"
+                                >
+                                    履歴を見る →
+                                </button>
+                            )}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="events"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 overflow-y-auto px-4 pb-24"
+                        >
+                            <div className="space-y-3 pt-2">
+                                {dayEvents.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                            <Wind className="w-5 h-5 text-white/20" />
+                                        </div>
+                                        <p className="text-sm text-white/30">
+                                            できごとはまだありません
+                                        </p>
+                                    </div>
+                                ) : (
+                                    dayEvents.map((event: any, idx: number) => (
+                                        <motion.div
+                                            key={event.id || idx}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm"
+                                        >
+                                            {event.type === 'incident' && (
+                                                <div className="p-4">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className={cn(
+                                                            "flex items-center gap-2",
+                                                            (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
+                                                        )}>
+                                                            <div className="w-6 h-6 rounded-lg bg-current/10 flex items-center justify-center">
+                                                                {(event.incident_type === 'daily' || event.incident_type === 'other') ? (
+                                                                    <MessageCircle className="w-3.5 h-3.5" />
+                                                                ) : (
+                                                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                                                )}
+                                                            </div>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">
+                                                                {incidentTypeLabels[event.incident_type] || 'できごと'}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px] text-white/30 font-medium bg-white/5 px-2 py-1 rounded-md">
+                                                            {format(event.timestamp, 'HH:mm', { locale: ja })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">
+                                                        {event.note || event.memo || event.description || '内容なし'}
+                                                    </p>
+                                                    {/* Images for incidents */}
+                                                    {event.photos && event.photos.length > 0 && (
+                                                        <div className="mt-4 grid grid-cols-2 gap-2">
+                                                            {event.photos.map((path: string, i: number) => (
+                                                                <img
+                                                                    key={i}
+                                                                    src={getFullImageUrl(path)}
+                                                                    className="w-full aspect-square object-cover rounded-xl border border-white/10"
+                                                                    alt=""
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {event.type === 'care' && (
+                                                <div className="p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/10">
+                                                                <Check className="w-4.5 h-4.5" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-white/90">
+                                                                    {event.type_name || event.task_name || event.careType || 'お世話完了'}
+                                                                </p>
+                                                                <span className="text-[10px] text-white/30">
+                                                                    {format(event.timestamp, 'HH:mm', { locale: ja })}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {(event.notes || event.note) && (
+                                                        <div className="mt-3 ml-11 pl-2 border-l-2 border-white/5">
+                                                            <p className="text-xs text-white/50 italic leading-relaxed whitespace-pre-wrap">
+                                                                {event.notes || event.note}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {event.type === 'observation' && (
+                                                <div className="p-4">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center gap-2 text-sky-400">
+                                                            <div className="w-6 h-6 rounded-lg bg-sky-400/10 flex items-center justify-center">
+                                                                <Activity className="w-3.5 h-3.5" />
+                                                            </div>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">
+                                                                {event.type || '記録'}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px] text-white/30 font-medium bg-white/5 px-2 py-1 rounded-md">
+                                                            {format(event.timestamp, 'HH:mm', { locale: ja })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-white/90 font-medium">
+                                                        {event.value}
+                                                    </p>
+                                                    {(event.notes || event.note) && (
+                                                        <p className="text-xs text-white/60 mt-2 bg-white/5 p-2 rounded-lg italic">
+                                                            {event.notes || event.note}
+                                                        </p>
+                                                    )}
+                                                    {/* Images for observations */}
+                                                    {event.images && event.images.length > 0 && (
+                                                        <div className="mt-4 grid grid-cols-2 gap-2">
+                                                            {event.images.map((path: string, i: number) => (
+                                                                <img
+                                                                    key={i}
+                                                                    src={getFullImageUrl(path)}
+                                                                    className="w-full aspect-square object-cover rounded-xl border border-white/10"
+                                                                    alt=""
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {event.type === 'photo' && (
+                                                <div className="relative group">
+                                                    <img
+                                                        src={getFullImageUrl(event.storage_path || event.url)}
+                                                        alt=""
+                                                        className="w-full aspect-[4/3] object-cover"
+                                                    />
+                                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] text-white/60 bg-white/10 px-2 py-1 rounded backdrop-blur-md">
+                                                                {format(event.timestamp, 'HH:mm', { locale: ja })}
+                                                            </span>
+                                                        </div>
+                                                        {event.caption && (
+                                                            <p className="mt-2 text-sm text-white/90 font-medium leading-relaxed">
+                                                                {event.caption}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }

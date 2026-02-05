@@ -14,6 +14,7 @@ import {
 } from "date-fns";
 import { WeeklyGrid } from "./weekly-grid";
 import { DayDetailView } from "./day-detail-view";
+import { cn } from "@/lib/utils";
 import { WeeklyFeedCarousel } from "./weekly-feed-carousel";
 
 interface WeeklyHomeProps {
@@ -177,8 +178,11 @@ export function WeeklyHome({
 
             {/* Main Content Area - Fixed height, no outer scroll */}
             <div className="flex-1 flex flex-col min-h-0 relative px-0 overflow-hidden">
-                {/* Bento Area - Use auto height to allow content below to fit in the same screen */}
-                <div style={{ flexShrink: 0, position: 'relative' }}>
+                {/* Bento Area - Use flex-1 when DayDetailView is shown to allow scrolling */}
+                <div
+                    className={cn("relative transition-all duration-300", selectedDay ? "flex-1" : "shrink-0")}
+                    style={{ position: 'relative' }}
+                >
                     <AnimatePresence mode="wait">
                         {selectedDay ? (
                             <motion.div
