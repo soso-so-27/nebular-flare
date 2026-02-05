@@ -180,13 +180,14 @@ export function WeeklyHome({
             <div className="flex-1 flex flex-col min-h-0 relative px-0 overflow-hidden">
                 {/* Bento Area - Use flex-1 when DayDetailView is shown to allow scrolling */}
                 <div
-                    className={cn("relative transition-all duration-300", selectedDay ? "flex-1" : "shrink-0")}
+                    className={cn("relative transition-all duration-300", selectedDay ? "flex-1 min-h-0" : "shrink-0")}
                     style={{ position: 'relative' }}
                 >
                     <AnimatePresence mode="wait">
                         {selectedDay ? (
                             <motion.div
                                 key="detail"
+                                className="h-full"
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 50 }}
