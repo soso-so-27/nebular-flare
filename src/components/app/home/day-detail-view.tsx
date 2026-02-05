@@ -192,6 +192,11 @@ export function DayDetailView({
         return (careItems || []).filter(task => !completedTaskIds.has(task.id));
     }, [careItems, completedTaskIds]);
 
+    // Completed tasks (from UI toggle) for the day
+    const completedTasks = useMemo(() => {
+        return (careItems || []).filter(task => completedTaskIds.has(task.id));
+    }, [careItems, completedTaskIds]);
+
     const handleToggleTask = (taskId: string) => {
         setCompletedTaskIds(prev => {
             const next = new Set(prev);
@@ -217,8 +222,8 @@ export function DayDetailView({
                 <h1 className="text-base font-semibold text-white">{dayLabel}</h1>
             </header>
 
-            {/* TOP HALF: Requests Area (50%) */}
-            <div className="flex-[0.5] flex flex-col min-h-0 border-b border-white/10">
+            {/* TOP HALF: Requests Area (exactly 50% of remaining height) */}
+            <div className="h-[50%] flex flex-col shrink-0 border-b border-white/10">
                 {/* Sub-Tabs for Requests */}
                 <div className="px-4 py-3 shrink-0">
                     <div className="bg-white/5 p-1 rounded-xl flex items-center relative overflow-hidden backdrop-blur-sm border border-white/5">
@@ -242,8 +247,8 @@ export function DayDetailView({
                             )}
                         >
                             おねがいの記録
-                            {careRecords.length > 0 && (
-                                <span className="ml-1 opacity-60">({careRecords.length})</span>
+                            {completedTasks.length > 0 && (
+                                <span className="ml-1 opacity-60">({completedTasks.length})</span>
                             )}
                         </button>
 
@@ -309,31 +314,37 @@ export function DayDetailView({
                                 exit={{ opacity: 0, y: -5 }}
                                 className="space-y-2"
                             >
-                                {careRecords.length === 0 ? (
+                                {completedTasks.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-10 gap-2">
                                         <Moon className="w-5 h-5 text-white/20" />
                                         <p className="text-xs text-white/30 italic">まだ記録がありません</p>
                                     </div>
                                 ) : (
-                                    careRecords.map((log: any, idx: number) => (
-                                        <div key={log.id || idx} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-transparent">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-500/5 text-emerald-500/40 flex items-center justify-center">
-                                                <Check className="w-3.5 h-3.5" />
+                                    completedTasks.map((task: any) => {
+                                        const IconComponent = getIconComponent(task.icon);
+                                        return (
+                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-transparent">
+                                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400/50 flex items-center justify-center">
+                                                    {IconComponent ? (
+                                                        <IconComponent className="w-3.5 h-3.5" />
+                                                    ) : (
+                                                        <Check className="w-3.5 h-3.5" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-white/40 truncate line-through">
+                                                        {task.label || task.name}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleToggleTask(task.id)}
+                                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white/20 hover:text-white/40 transition-colors"
+                                                >
+                                                    <Undo2 className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-white/50 truncate">{log.type_name || log.task_name || '記録済み'}</p>
-                                            </div>
-                                            <span className="text-[9px] text-white/20 font-mono">
-                                                {format(log.timestamp, 'HH:mm')}
-                                            </span>
-                                            <button
-                                                onClick={() => handleToggleTask(log.task_id || log.id)}
-                                                className="w-7 h-7 rounded-full flex items-center justify-center text-white/20 hover:text-white/40"
-                                            >
-                                                <Undo2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </motion.div>
                         )}
@@ -341,8 +352,8 @@ export function DayDetailView({
                 </div>
             </div>
 
-            {/* BOTTOM HALF: Life Events Area (50%) */}
-            <div className="flex-[0.5] flex flex-col min-h-0 bg-white/[0.01]">
+            {/* BOTTOM HALF: Life Events Area (exactly 50% of remaining height) */}
+            <div className="h-[50%] flex flex-col shrink-0 bg-white/[0.01]">
                 <div className="px-5 py-4 shrink-0 flex items-center justify-between">
                     <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 focus:text-white/50 transition-colors">
                         できごと
