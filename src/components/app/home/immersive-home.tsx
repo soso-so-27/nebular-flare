@@ -62,6 +62,7 @@ interface ImmersiveHomeProps {
     onOpenNyannlogSheet: (tab?: 'events' | 'requests') => void;
     onOpenIncidentDetail: (id: string) => void;
     isNyannlogOpen?: boolean;
+    onToggleView?: () => void; // Toggle to Weekly Home
 }
 
 
@@ -76,7 +77,8 @@ export function ImmersiveHome({
     onOpenIncident,
     onOpenNyannlogSheet,
     onOpenIncidentDetail,
-    isNyannlogOpen
+    isNyannlogOpen,
+    onToggleView
 }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded } = useCatContext();
     const { settings } = useSettingsContext();
@@ -310,11 +312,24 @@ export function ImmersiveHome({
                 animate={{ opacity: isNyannlogOpen ? 0 : 1, pointerEvents: isNyannlogOpen ? 'none' : 'auto' }}
                 transition={{ duration: 0.3 }}
             >
-                {/* 1. Top Right: Menu */}
+                {/* 1. Top Right: Menu & Weekly Toggle */}
                 <div
-                    className="absolute right-4 pointer-events-auto"
+                    className="absolute right-4 pointer-events-auto flex items-center gap-2"
                     style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
                 >
+                    {onToggleView && (
+                        <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                                triggerFeedback('light');
+                                onToggleView();
+                            }}
+                            className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"
+                            title="Week Bentoに切替"
+                        >
+                            <Calendar className="w-6 h-6 text-amber-400" strokeWidth={1.5} />
+                        </motion.button>
+                    )}
                     <motion.button
                         whileTap={{ scale: 0.92 }}
                         onClick={() => {

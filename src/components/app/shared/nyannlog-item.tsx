@@ -62,12 +62,29 @@ export const NyannlogItem = React.memo(({
                         </span>
                     </div>
                 </div>
-                {item.health_category && (
-                    <div className="px-1.5 py-0.5 rounded bg-brand-peach/10 border border-brand-peach/20 flex items-center gap-1 shrink-0">
-                        <AlertCircle className="w-2.5 h-2.5 text-brand-peach" />
-                        <span className="text-[8px] font-black text-brand-peach uppercase tracking-widest">{item.health_category}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {item.health_category && (
+                        <div className="px-1.5 py-0.5 rounded bg-brand-peach/10 border border-brand-peach/20 flex items-center gap-1">
+                            <AlertCircle className="w-2.5 h-2.5 text-brand-peach" />
+                            <span className="text-[8px] font-black text-brand-peach uppercase tracking-widest">{item.health_category === 'vomit' ? '嘔吐' : item.health_category === 'toilet' ? '排泄' : item.health_category}</span>
+                        </div>
+                    )}
+                    {item.symptom_details?.vomit && (
+                        <div className="px-1.5 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 flex items-center gap-1">
+                            <span className="text-[8px] font-black text-orange-400 uppercase tracking-widest">嘔吐 {item.symptom_details.vomit.count}回</span>
+                        </div>
+                    )}
+                    {item.symptom_details?.emergency?.prayerPose && (
+                        <div className="px-1.5 py-0.5 rounded bg-red-500 border border-red-600 shadow-[0_0_10px_rgba(239,68,68,0.4)] flex items-center gap-1 animate-pulse">
+                            <span className="text-[8px] font-black text-white uppercase tracking-widest">祈りポーズあり</span>
+                        </div>
+                    )}
+                    {item.symptom_details?.stool?.hasBlood && (
+                        <div className="px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 flex items-center gap-1">
+                            <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">血便あり</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* 2. Photo Section (Media) */}
@@ -119,6 +136,11 @@ export const NyannlogItem = React.memo(({
 
             {/* 4. Information Section (Caption & Time) */}
             <div className="px-4 pb-4 pt-2 flex flex-col gap-1.5">
+                {item.onset_at && (
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-white/40">
+                        <span>発症: {format(new Date(item.onset_at), 'MM/dd HH:mm')}</span>
+                    </div>
+                )}
                 {!!item.note && (
                     <div className="text-[13px] leading-relaxed">
                         <span className="font-bold text-white mr-2">{item.userName || item.catName}</span>

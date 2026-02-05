@@ -42,7 +42,9 @@ export function processRawIncidents(incidents: any[], cats: Cat[], householdUser
             health_value: inc.health_value,
             status: inc.status,
             severity: inc.severity,
-            batch_id: inc.batch_id
+            batch_id: inc.batch_id,
+            onset_at: inc.onset_at,
+            symptom_details: inc.symptom_details
         };
 
         if (inc.batch_id) {

@@ -23,6 +23,7 @@ import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/screens/splash-screen";
 import { SidebarMenu } from "@/components/app/shared/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/home/immersive-home";
+import { WeeklyHome } from "@/components/app/home/weekly-home";
 import { DekigotoScreen } from "@/components/app/screens/dekigoto-screen";
 import { FootprintProvider } from "@/providers/footprint-provider";
 import { BackdropSurface } from "@/components/ui/backdrop-surface";
@@ -53,6 +54,7 @@ const NyannlogSheet = dynamic(() => import("@/components/app/modals/nyannlog-she
 
 function AppContent() {
   const [tab, setTab] = useState("home");
+  const [useWeeklyHome, setUseWeeklyHome] = useState(true); // Toggle for new weekly calendar home (testing)
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
 
@@ -98,12 +100,18 @@ function AppContent() {
 
   // Perfect Load Logic: Wait for data + 0.8s safety buffer
   useEffect(() => {
-    if (!catsLoading && cats.length > 0) {
+    // Temporarily relaxed for testing WeeklyHome
+    if (!catsLoading) {
       const timer = setTimeout(() => {
         setShowSplashOverlay(false);
       }, 800);
       return () => clearTimeout(timer);
     }
+    // Fallback: dismiss after 3 seconds regardless of loading state
+    const fallbackTimer = setTimeout(() => {
+      setShowSplashOverlay(false);
+    }, 3000);
+    return () => clearTimeout(fallbackTimer);
   }, [catsLoading, cats]);
 
   const catchup = React.useMemo(() => getCatchUpItems({
@@ -219,8 +227,8 @@ function AppContent() {
 
   return (
     <>
-      {/* Smart Splash Screen - Waits for Hero Image */}
-      {!isHeroImageLoaded && (
+      {/* Smart Splash Screen - Temporarily bypassed for testing WeeklyHome */}
+      {false && !isHeroImageLoaded && (
         <div className="fixed inset-0 z-[9999]">
           <SplashScreen />
         </div>
@@ -259,7 +267,7 @@ function AppContent() {
 
             {/* Main Application Layers: Managed with coordinated Depth Zoom */}
             <AnimatePresence mode="popLayout" initial={false}>
-              {/* Immersive Home - Onegai View */}
+              {/* Home View - Switch between Immersive and Weekly */}
               {tab === "home" && (
                 <motion.div
                   key="home-layer"
@@ -273,20 +281,30 @@ function AppContent() {
                   }}
                   className="fixed inset-0 z-0"
                 >
-                  <ImmersiveHome
-                    onOpenSidebar={() => setShowSidebar(true)}
-                    onNavigate={(t) => setTab(t)}
-                    onOpenCalendar={() => setShowCalendar(true)}
-                    onCatClick={() => setTab("cat")}
-                    onSelectItem={handleSelectItem}
-                    // Lifted Props
-                    onOpenExchange={() => setShowThemeExchange(true)}
-                    onOpenPhoto={() => setShowPhotoListSheet(true)}
-                    onOpenIncident={() => setShowIncidentListSheet(true)}
-                    onOpenIncidentDetail={handleOpenIncidentDetail}
-                    onOpenNyannlogSheet={handleOpenNyannlog}
-                    isNyannlogOpen={showNyannlogSheet}
-                  />
+                  {useWeeklyHome ? (
+                    <WeeklyHome
+                      onOpenSidebar={() => setShowSidebar(true)}
+                      onOpenNewEvent={() => handleOpenNyannlog('input')}
+                      onNavigate={(t) => setTab(t)}
+                      onToggleView={() => setUseWeeklyHome(false)}
+                    />
+                  ) : (
+                    <ImmersiveHome
+                      onOpenSidebar={() => setShowSidebar(true)}
+                      onNavigate={(t) => setTab(t)}
+                      onOpenCalendar={() => setShowCalendar(true)}
+                      onCatClick={() => setTab("cat")}
+                      onSelectItem={handleSelectItem}
+                      // Lifted Props
+                      onOpenExchange={() => setShowThemeExchange(true)}
+                      onOpenPhoto={() => setShowPhotoListSheet(true)}
+                      onOpenIncident={() => setShowIncidentListSheet(true)}
+                      onOpenIncidentDetail={handleOpenIncidentDetail}
+                      onOpenNyannlogSheet={handleOpenNyannlog}
+                      isNyannlogOpen={showNyannlogSheet}
+                      onToggleView={() => setUseWeeklyHome(true)}
+                    />
+                  )}
                 </motion.div>
               )}
 

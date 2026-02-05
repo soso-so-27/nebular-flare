@@ -347,6 +347,10 @@ export interface Database {
                     is_bookmarked: boolean | null;
                     health_category: string | null;
                     health_value: string | null;
+                    onset_at: string | null;
+                    last_normal_at: string | null;
+                    symptom_details: Json | null;
+                    batch_id: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -362,6 +366,13 @@ export interface Database {
                     updated_at?: string;
                     resolved_at?: string | null;
                     deleted_at?: string | null;
+                    is_bookmarked?: boolean | null;
+                    health_category?: string | null;
+                    health_value?: string | null;
+                    onset_at?: string | null;
+                    last_normal_at?: string | null;
+                    symptom_details?: Json | null;
+                    batch_id?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -380,6 +391,10 @@ export interface Database {
                     is_bookmarked?: boolean | null;
                     health_category?: string | null;
                     health_value?: string | null;
+                    onset_at?: string | null;
+                    last_normal_at?: string | null;
+                    symptom_details?: Json | null;
+                    batch_id?: string | null;
                 };
             };
             incident_reactions: {

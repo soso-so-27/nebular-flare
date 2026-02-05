@@ -1,4 +1,4 @@
-import { IncidentType, IncidentStatus, IncidentSeverity } from './index';
+import { IncidentType, IncidentStatus, IncidentSeverity, SymptomDetails } from './index';
 
 export type TimelineReaction = {
     incident_id: string;
@@ -44,6 +44,8 @@ export type TimelineItem = {
     status?: IncidentStatus;
     severity?: IncidentSeverity;
     batch_id?: string;
+    onset_at?: string;
+    symptom_details?: SymptomDetails;
 };
 
 export type TimelineGroup = {

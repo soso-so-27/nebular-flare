@@ -158,14 +158,32 @@ export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'snee
 
 // Symptom details for medical report
 export type SymptomDetails = {
-  vomit_count?: number; // Number of times vomited in 24h
-  vomit_content?: string; // Description of vomit content
-  stool_score?: 1 | 2 | 3 | 4 | 5 | 6 | 7; // Bristol stool scale
-  stool_blood?: boolean;
-  stool_mucus?: boolean;
-  urine_frequency?: 'normal' | 'frequent' | 'rare' | 'none';
-  urine_pain?: boolean;
-  urine_blood?: boolean;
+  vomit?: {
+    type: string;
+    count: number;
+    hasBlood: boolean;
+  };
+  stool?: {
+    score: number;
+    hasBlood: boolean;
+    hasMucus: boolean;
+  };
+  emergency?: {
+    lethargy: boolean;
+    prayerPose: boolean;
+    rapidBreathing: boolean;
+  };
+  ingestion?: {
+    active: boolean;
+    object: string;
+    amount: string;
+    time: string;
+  };
+  urine?: {
+    frequency?: 'normal' | 'frequent' | 'rare' | 'none';
+    pain?: boolean;
+    blood?: boolean;
+  };
 };
 
 export type Incident = {
