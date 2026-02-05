@@ -213,29 +213,29 @@ export function WeeklyHome({
                     </AnimatePresence>
                 </div>
 
-                {/* Horizontal Feed Carousel - Place in the remaining space */}
+                {/* Horizontal Feed Carousel - Place immediately below Bento grid */}
                 {!selectedDay && (
-                    <div className="flex-1 flex flex-col justify-center min-h-0">
+                    <div className="flex-1 flex flex-col justify-start pt-1 min-h-0">
                         <WeeklyFeedCarousel screenWidth={screenWidth} />
                     </div>
                 )}
             </div>
 
-            {/* Fixed FAB Area - Top-level of the screen container */}
+            {/* Fixed FAB Area - Pattern 1: Side FAB (Right Corner) */}
             {!selectedDay && (
                 <div
-                    className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
+                    className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none overflow-hidden"
                     style={{ height: FAB_HEIGHT + FAB_BOTTOM_PADDING + safeAreaBottom + 40 }}
                 >
-                    {/* Smoother, taller gradient to protect FAB area */}
-                    <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/90 to-transparent backdrop-blur-[1px]" />
+                    {/* Minimal corner protection if needed, or none for 100% clarity */}
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A0A0B]/80 to-transparent pointer-events-none" />
 
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        <div className="absolute left-4 pointer-events-auto" style={{ bottom: 16 + safeAreaBottom }}>
+                    <div className="relative w-full h-full flex items-center">
+                        <div className="absolute left-6 pointer-events-auto" style={{ bottom: 20 + safeAreaBottom }}>
                             <button
                                 onClick={() => onNavigate?.('home')}
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
-                                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
+                                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shadow-lg"
+                                style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.03)' }}
                             >
                                 N
                             </button>
@@ -243,10 +243,11 @@ export function WeeklyHome({
 
                         <button
                             onClick={onOpenNewEvent}
-                            className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl pointer-events-auto relative mb-6"
+                            className="absolute right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl pointer-events-auto"
                             style={{
                                 background: 'linear-gradient(135deg, #52525b 0%, #3f3f46 100%)',
-                                bottom: safeAreaBottom
+                                bottom: 12 + safeAreaBottom,
+                                border: '1px solid rgba(255,255,255,0.1)'
                             }}
                         >
                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white">
