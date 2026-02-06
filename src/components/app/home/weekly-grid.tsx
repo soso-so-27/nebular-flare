@@ -8,7 +8,8 @@ import { DayCell } from "./day-cell";
 const MARGIN = 16;
 const OUTER_RADIUS = 24;  // Rounded corners only on outer edges
 const HAIRLINE = 1;       // Hairline border between cells
-const DIVIDER_COLOR = 'rgba(255,255,255,0.15)';  // More visible divider lines
+const DIVIDER_COLOR = 'rgba(0,0,0,0.10)';  // Light gray divider for light theme
+const GRID_BG = '#FFFFFF';  // White background for Otherkind-style
 
 /**
  * 理想的なアスペクト比（写真/デザインの標準に基づく）
@@ -112,7 +113,7 @@ export function WeeklyGrid({
                 overflow: 'hidden',
                 position: 'relative',
                 borderRadius: OUTER_RADIUS,
-                background: 'rgba(255,255,255,0.02)',
+                background: GRID_BG,
             }}
         >
             {/* Top Row: TODAY + Right Column (3 cells) */}

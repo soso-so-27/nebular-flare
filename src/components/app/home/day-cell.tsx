@@ -23,10 +23,17 @@ interface DayCellProps {
     cornerRadius?: CornerRadius;
 }
 
-// UI Constants (統一)
+// UI Constants (統一) - Light Theme
 const DEFAULT_BORDER_RADIUS = 16;
-const BORDER_COLOR = 'rgba(255, 255, 255, 0.10)'; // 1px白10%
-const BORDER_COLOR_TODAY = 'rgba(255, 255, 255, 0.12)';
+const BORDER_COLOR = 'rgba(0, 0, 0, 0.08)'; // Light gray border
+const BORDER_COLOR_TODAY = 'rgba(0, 0, 0, 0.12)';
+
+// Light theme colors
+const CELL_BG = '#FFFFFF';  // White
+const CELL_BG_TODAY = '#F8F8F8';  // Slightly off-white for today
+const TEXT_COLOR_PRIMARY = 'rgba(0, 0, 0, 0.85)';
+const TEXT_COLOR_SECONDARY = 'rgba(0, 0, 0, 0.55)';
+const TEXT_COLOR_MUTED = 'rgba(0, 0, 0, 0.35)';
 
 export function DayCell({
     day,
@@ -125,8 +132,8 @@ export function DayCell({
                 background: thumbnailUrl
                     ? '#18181b'
                     : isToday
-                        ? 'linear-gradient(145deg, #3f3f46 0%, #27272a 100%)'
-                        : '#27272a',
+                        ? CELL_BG_TODAY
+                        : CELL_BG,
                 border: cornerRadius ? 'none' : `1px solid ${isToday ? BORDER_COLOR_TODAY : BORDER_COLOR}`
             }}
         >
@@ -158,26 +165,28 @@ export function DayCell({
                 <div className="flex flex-col items-start">
                     <span
                         style={{
-                            fontSize: isLarge ? 10 : 8, // TODAYラベルを少し大きく
+                            fontSize: isLarge ? 10 : 8,
                             fontWeight: 600,
                             letterSpacing: '0.08em',
-                            color: isToday
-                                ? 'rgba(255, 255, 255, 0.75)' // 主役としてやや強く
-                                : 'rgba(255, 255, 255, 0.45)'
+                            color: thumbnailUrl
+                                ? 'rgba(255, 255, 255, 0.75)'
+                                : isToday
+                                    ? TEXT_COLOR_SECONDARY
+                                    : TEXT_COLOR_MUTED
                         }}
                     >
                         {isToday ? 'TODAY' : dayLabel}
                     </span>
                     <span
                         style={{
-                            fontSize: isLarge ? 24 : 16, // 28→24 弱く
-                            fontWeight: 600, // 700→600
+                            fontSize: isLarge ? 24 : 16,
+                            fontWeight: 600,
                             lineHeight: 1,
                             color: thumbnailUrl
                                 ? 'rgba(255, 255, 255, 0.80)'
                                 : isToday
-                                    ? 'rgba(255, 255, 255, 0.40)' // 0.55→0.40 器感強化
-                                    : 'rgba(255, 255, 255, 0.55)'
+                                    ? TEXT_COLOR_PRIMARY
+                                    : TEXT_COLOR_SECONDARY
                         }}
                     >
                         {dateNumber}
