@@ -7,6 +7,8 @@ import { DayCell } from "./day-cell";
 
 const GUTTER = 6;
 const MARGIN = 16;
+const INNER_GAP = 3;      // Gap between cells inside the unified container
+const INNER_PADDING = 6;  // Padding inside the unified container
 
 /**
  * 理想的なアスペクト比（写真/デザインの標準に基づく）
@@ -93,9 +95,13 @@ export function WeeklyGrid({
 }: WeeklyGridProps) {
     const { bentoH, contentWidth, safeH, screenWidth } = layoutData;
 
+    // Account for inner padding when calculating tile sizes
+    const innerContentWidth = contentWidth - INNER_PADDING * 2;
+    const innerBentoH = bentoH - INNER_PADDING * 2;
+
     const tiles = useMemo(() => {
-        return calculateIdealLayout(contentWidth, bentoH);
-    }, [bentoH, contentWidth]);
+        return calculateIdealLayout(innerContentWidth, innerBentoH);
+    }, [innerBentoH, innerContentWidth]);
 
     // 実際のアスペクト比
     const todayAspect = tiles.todayW / tiles.todayH;
@@ -129,34 +135,68 @@ export function WeeklyGrid({
                 position: 'relative'
             }}
         >
+            {/* Unified Container for Bento Grid */}
+            <div
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 24,
+                    overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    padding: INNER_PADDING,
+                    boxSizing: 'border-box'
+                }}
+            >
+                {/* 上段: TODAY + 右列3枠 */}
+                <div style={{ display: 'flex', gap: INNER_GAP, height: tiles.topRowH }}>
+                    {/* TODAY - 縦長大 (2:3) */}
+                    <motion.div
+                        style={{ width: tiles.todayW, height: tiles.todayH, flexShrink: 0 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <DayCell
+                            day={todayDate}
+                            isToday={true}
+                            isLarge={true}
+                            selectedCatIds={selectedCatIds}
+                            onClick={() => onDaySelect(todayDate)}
+                        />
+                    </motion.div>
 
-            {/* 上段: TODAY + 右列3枠 */}
-            <div style={{ display: 'flex', gap: GUTTER, height: tiles.topRowH }}>
-                {/* TODAY - 縦長大 (2:3) */}
-                <motion.div
-                    style={{ width: tiles.todayW, height: tiles.todayH, flexShrink: 0 }}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <DayCell
-                        day={todayDate}
-                        isToday={true}
-                        isLarge={true}
-                        selectedCatIds={selectedCatIds}
-                        onClick={() => onDaySelect(todayDate)}
-                    />
-                </motion.div>
+                    {/* 右列 - 横長小×3 (16:10) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: INNER_GAP, flex: 1 }}>
+                        {rightColumn.map((day, index) => (
+                            <motion.div
+                                key={day.toISOString()}
+                                style={{ width: tiles.rightW, height: tiles.rightH }}
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.15 + index * 0.05 }}
+                            >
+                                <DayCell
+                                    day={day}
+                                    isToday={false}
+                                    isLarge={false}
+                                    selectedCatIds={selectedCatIds}
+                                    onClick={() => onDaySelect(day)}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
 
-                {/* 右列 - 横長小×3 (16:10) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GUTTER, flex: 1 }}>
-                    {rightColumn.map((day, index) => (
+                {/* 下段 - 縦長小×3 (5:6) */}
+                <div style={{ display: 'flex', gap: INNER_GAP, marginTop: INNER_GAP }}>
+                    {bottomRow.map((day, index) => (
                         <motion.div
                             key={day.toISOString()}
-                            style={{ width: tiles.rightW, height: tiles.rightH }}
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.15 + index * 0.05 }}
+                            style={{ width: tiles.bottomW, height: tiles.bottomH }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 + index * 0.05 }}
                         >
                             <DayCell
                                 day={day}
@@ -168,27 +208,6 @@ export function WeeklyGrid({
                         </motion.div>
                     ))}
                 </div>
-            </div>
-
-            {/* 下段 - 縦長小×3 (5:6) */}
-            <div style={{ display: 'flex', gap: GUTTER, marginTop: GUTTER }}>
-                {bottomRow.map((day, index) => (
-                    <motion.div
-                        key={day.toISOString()}
-                        style={{ width: tiles.bottomW, height: tiles.bottomH }}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + index * 0.05 }}
-                    >
-                        <DayCell
-                            day={day}
-                            isToday={false}
-                            isLarge={false}
-                            selectedCatIds={selectedCatIds}
-                            onClick={() => onDaySelect(day)}
-                        />
-                    </motion.div>
-                ))}
             </div>
         </div>
     );
