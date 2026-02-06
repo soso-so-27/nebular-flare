@@ -23,17 +23,16 @@ interface DayCellProps {
     cornerRadius?: CornerRadius;
 }
 
-// UI Constants (統一) - Light Theme
+// UI Constants (統一) - Soft Dark Theme
 const DEFAULT_BORDER_RADIUS = 16;
-const BORDER_COLOR = 'rgba(0, 0, 0, 0.08)'; // Light gray border
-const BORDER_COLOR_TODAY = 'rgba(0, 0, 0, 0.12)';
+const BORDER_COLOR = 'rgba(255, 255, 255, 0.10)';
+const BORDER_COLOR_TODAY = 'rgba(255, 255, 255, 0.10)';  // Same as regular cells
 
-// Light theme colors
-const CELL_BG = '#FFFFFF';  // White
-const CELL_BG_TODAY = '#F8F8F8';  // Slightly off-white for today
-const TEXT_COLOR_PRIMARY = 'rgba(0, 0, 0, 0.85)';
-const TEXT_COLOR_SECONDARY = 'rgba(0, 0, 0, 0.55)';
-const TEXT_COLOR_MUTED = 'rgba(0, 0, 0, 0.35)';
+// Soft dark theme colors - UNIFIED for all cells
+const CELL_BG = '#1C1C1E';  // Same as grid background, unified
+const TEXT_COLOR_PRIMARY = 'rgba(255, 255, 255, 0.90)';
+const TEXT_COLOR_SECONDARY = 'rgba(255, 255, 255, 0.60)';
+const TEXT_COLOR_MUTED = 'rgba(255, 255, 255, 0.40)';
 
 export function DayCell({
     day,
@@ -131,10 +130,8 @@ export function DayCell({
                 borderRadius: borderRadiusStyle,
                 background: thumbnailUrl
                     ? '#18181b'
-                    : isToday
-                        ? CELL_BG_TODAY
-                        : CELL_BG,
-                border: cornerRadius ? 'none' : `1px solid ${isToday ? BORDER_COLOR_TODAY : BORDER_COLOR}`
+                    : CELL_BG,  // Unified background for all cells
+                border: cornerRadius ? 'none' : `1px solid ${BORDER_COLOR}`
             }}
         >
             {/* Background Photo - cover + 上寄せ(35%) */}

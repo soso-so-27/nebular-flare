@@ -8,8 +8,8 @@ import { DayCell } from "./day-cell";
 const MARGIN = 16;
 const OUTER_RADIUS = 24;  // Rounded corners only on outer edges
 const HAIRLINE = 1;       // Hairline border between cells
-const DIVIDER_COLOR = 'rgba(0,0,0,0.10)';  // Light gray divider for light theme
-const GRID_BG = '#FFFFFF';  // White background for Otherkind-style
+const DIVIDER_COLOR = 'rgba(255,255,255,0.12)';  // Soft white divider for dark theme
+const GRID_BG = '#1C1C1E';  // Slightly elevated dark background (iOS dark mode)
 
 /**
  * 理想的なアスペクト比（写真/デザインの標準に基づく）
