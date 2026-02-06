@@ -23,16 +23,15 @@ interface DayCellProps {
     cornerRadius?: CornerRadius;
 }
 
-// UI Constants (統一) - Soft Dark Theme
+// UI Constants (統一) - White Theme (Otherkind-style)
 const DEFAULT_BORDER_RADIUS = 16;
-const BORDER_COLOR = 'rgba(255, 255, 255, 0.10)';
-const BORDER_COLOR_TODAY = 'rgba(255, 255, 255, 0.10)';  // Same as regular cells
+const BORDER_COLOR = 'rgba(0, 0, 0, 0.08)';
 
-// Soft dark theme colors - UNIFIED for all cells
-const CELL_BG = '#1C1C1E';  // Same as grid background, unified
-const TEXT_COLOR_PRIMARY = 'rgba(255, 255, 255, 0.90)';
-const TEXT_COLOR_SECONDARY = 'rgba(255, 255, 255, 0.60)';
-const TEXT_COLOR_MUTED = 'rgba(255, 255, 255, 0.40)';
+// White theme colors - UNIFIED for all cells
+const CELL_BG = '#FFFFFF';  // White for all cells (including TODAY)
+const TEXT_COLOR_PRIMARY = 'rgba(0, 0, 0, 0.85)';
+const TEXT_COLOR_SECONDARY = 'rgba(0, 0, 0, 0.55)';
+const TEXT_COLOR_MUTED = 'rgba(0, 0, 0, 0.35)';
 
 export function DayCell({
     day,
