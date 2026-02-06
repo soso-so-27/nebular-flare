@@ -11,6 +11,7 @@ interface CareHistoryListProps {
     className?: string;
     style?: React.CSSProperties;
     onOpenPhoto?: (url: string) => void;
+    logs?: any[]; // Optional: Pass specific logs (e.g. for a specific past date)
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -27,11 +28,14 @@ const ICON_MAP: Record<string, any> = {
     'Camera': Camera
 };
 
-export function CareHistoryList({ className, style, onOpenPhoto }: CareHistoryListProps) {
+export function CareHistoryList({ className, style, onOpenPhoto, logs: customLogs }: CareHistoryListProps) {
     const { user: currentUser } = useAuth();
     const { cats } = useCatContext();
     const { householdUsers } = useCoreContext();
-    const { careLogs, deleteCareLog, careTaskDefs } = useCareData();
+    const { careLogs: contextLogs, deleteCareLog, careTaskDefs } = useCareData();
+
+    // Use custom logs if provided, otherwise fallback to context logs
+    const sourceLogs = customLogs || contextLogs;
 
     const handleUndo = async (logId: string) => {
         const result = await deleteCareLog(logId);
@@ -54,7 +58,7 @@ export function CareHistoryList({ className, style, onOpenPhoto }: CareHistoryLi
         };
 
         // Map logs to detailed info
-        const items = careLogs.map((log: any) => {
+        const items = sourceLogs.map((log: any) => {
             const def = careTaskDefs.find((d: any) => d.id === log.type || log.type.startsWith(d.id));
             const cat = cats.find((c: any) => c.id === log.cat_id || c.id === (def?.targetCatIds?.[0]));
 
@@ -104,7 +108,7 @@ export function CareHistoryList({ className, style, onOpenPhoto }: CareHistoryLi
         }).sort((a: any, b: any) => b.timestamp - a.timestamp);
 
         return items;
-    }, [careLogs, careTaskDefs, cats, householdUsers, currentUser]);
+    }, [sourceLogs, careTaskDefs, cats, householdUsers, currentUser]);
 
     if (historyItems.length === 0) {
         return (

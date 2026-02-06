@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Lightbulb, History, TrendingUp, Heart } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
 
-interface FeedItem {
+export interface FeedItem {
     id: string;
     type: 'stats' | 'tip' | 'memory';
     title: string;
@@ -18,10 +18,11 @@ interface FeedItem {
 
 interface WeeklyFeedCarouselProps {
     screenWidth: number;
+    paddingX: number;
     items?: FeedItem[];
 }
 
-export function WeeklyFeedCarousel({ screenWidth, items }: WeeklyFeedCarouselProps) {
+export function WeeklyFeedCarousel({ screenWidth, paddingX, items }: WeeklyFeedCarouselProps) {
     // Generate dummy items if none provided
     const displayItems: FeedItem[] = items || [
         {
@@ -39,7 +40,7 @@ export function WeeklyFeedCarousel({ screenWidth, items }: WeeklyFeedCarouselPro
             title: '猫の豆知識',
             content: '猫が喉を鳴らすのは、リラックスしている時だけでなく、不安な時や体を癒そうとしている時もあります。',
             icon: Lightbulb,
-            color: 'text-amber-400'
+            color: 'text-sky-400'
         },
         {
             id: 'memory-1',
@@ -66,22 +67,27 @@ export function WeeklyFeedCarousel({ screenWidth, items }: WeeklyFeedCarouselPro
 
     return (
         <section className="mt-0 mb-0 overflow-hidden relative">
-            <div className="px-5 mb-1.5 flex items-center justify-between">
-                <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                    <Sparkles className="w-3 h-3 text-amber-400/60" />
-                    あなたの記録
+            <div
+                className="mb-1.5 flex items-center justify-between"
+                style={{ paddingLeft: paddingX, paddingRight: paddingX }}
+            >
+                <h2 className="text-[10px] font-bold text-white/60 uppercase tracking-[0.15em] flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-white/40" />
+                    今週のまとめ
                 </h2>
-                <button className="text-[9px] font-bold text-white/20 hover:text-white/40 transition-colors tracking-wider">
-                    すべて見る
-                </button>
             </div>
 
             {/* Right edge fade gradient to suggest scrolling */}
             <div className="absolute right-0 top-8 bottom-0 w-16 bg-gradient-to-l from-[#0A0A0B] to-transparent z-20 pointer-events-none" />
 
             <div
-                className="flex gap-3 overflow-x-auto px-5 pb-5 no-scrollbar snap-x snap-mandatory relative z-10"
-                style={{ WebkitOverflowScrolling: 'touch' }}
+                className="flex gap-3 overflow-x-auto pb-5 no-scrollbar snap-x snap-mandatory relative z-10"
+                style={{
+                    WebkitOverflowScrolling: 'touch',
+                    paddingLeft: paddingX,
+                    paddingRight: paddingX,
+                    scrollPaddingLeft: paddingX
+                }}
             >
                 {displayItems.map((item) => (
                     <div
@@ -91,7 +97,7 @@ export function WeeklyFeedCarousel({ screenWidth, items }: WeeklyFeedCarouselPro
                     >
                         <motion.div
                             whileTap={{ scale: 0.98 }}
-                            className="relative h-full overflow-hidden rounded-[24px] bg-[#1C1C1E]/80 backdrop-blur-md border border-white/5 shadow-2xl flex flex-col"
+                            className="relative h-full overflow-hidden rounded-[20px] bg-[#1C1C1E]/80 backdrop-blur-md border border-white/5 shadow-2xl flex flex-col"
                             style={{ height: cardHeight }}
                         >
                             {/* Background image for memories */}

@@ -31,6 +31,7 @@ import {
 } from "@/store/app-store";
 import { useCareData } from "@/hooks/use-care-logic";
 import { getFullImageUrl, cn } from "@/lib/utils";
+import { CareHistoryList } from "@/components/app/immersive/care-history-list";
 
 // アイコン名からLucideコンポーネントへのマッピング
 const iconMap: Record<string, LucideIcon> = {
@@ -94,7 +95,7 @@ export function DayDetailView({
     const { cats } = useCatContext();
     const { careLogs, observations, careTaskDefs } = useCareContext();
     const { incidents } = useIncidentContext();
-    const { careItems } = useCareData();
+    const { careItems, addCareLog, deleteCareLog } = useCareData();
 
     // Get all photos from cats
     const allPhotos = useMemo(() => {
@@ -103,9 +104,6 @@ export function DayDetailView({
             (cat.images || []).map((img: any) => ({ ...img, cat_id: cat.id }))
         );
     }, [cats]);
-
-    // Track completed tasks (for strikethrough + undo)
-    const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
 
     // Track active sub-tab for the Requests section
     const [requestTab, setRequestTab] = useState<'pending' | 'completed'>('pending');
@@ -137,12 +135,7 @@ export function DayDetailView({
             .filter((log: any) => {
                 const logDate = new Date(log.completed_at || log.created_at || log.done_at);
                 return logDate >= dayStart && logDate <= dayEnd;
-            })
-            .map((log: any) => ({
-                ...log,
-                type: 'care',
-                timestamp: new Date(log.completed_at || log.created_at || log.done_at)
-            }));
+            });
 
         // Observations
         const dayObs = (observations || [])
@@ -188,25 +181,30 @@ export function DayDetailView({
     }, [incidents, careLogs, observations, allPhotos, day]);
 
     // Active (pending) tasks for the day
+    // careItems already excludes completed tasks (via useCareData logic)
     const pendingTasks = useMemo(() => {
-        return (careItems || []).filter(task => !completedTaskIds.has(task.id));
-    }, [careItems, completedTaskIds]);
+        return careItems || [];
+    }, [careItems]);
 
-    // Completed tasks (from UI toggle) for the day
-    const completedTasks = useMemo(() => {
-        return (careItems || []).filter(task => completedTaskIds.has(task.id));
-    }, [careItems, completedTaskIds]);
-
-    const handleToggleTask = (taskId: string) => {
-        setCompletedTaskIds(prev => {
-            const next = new Set(prev);
-            if (next.has(taskId)) {
-                next.delete(taskId);
-            } else {
-                next.add(taskId);
+    const handleToggleTask = async (task: any) => {
+        // If it's a completed task (has log ID), delete it (Undo)
+        if (requestTab === 'completed') {
+            if (task.id) {
+                await deleteCareLog(task.id);
             }
-            return next;
-        });
+            return;
+        }
+
+        // If it's a pending task, add it (Do)
+        // task is from careItems
+        try {
+            await addCareLog(
+                task.actionId || task.id,
+                task.catId
+            );
+        } catch (e) {
+            console.error("Failed to add care log", e);
+        }
     };
 
     return (
@@ -252,8 +250,8 @@ export function DayDetailView({
                                 )}
                             >
                                 おねがいの記録
-                                {completedTasks.length > 0 && (
-                                    <span className="ml-1 opacity-60">({completedTasks.length})</span>
+                                {careRecords.length > 0 && (
+                                    <span className="ml-1 opacity-60">({careRecords.length})</span>
                                 )}
                             </button>
 
@@ -301,7 +299,7 @@ export function DayDetailView({
                                                         <p className="text-sm font-semibold text-white/90 truncate">{task.label || task.name}</p>
                                                     </div>
                                                     <button
-                                                        onClick={() => handleToggleTask(task.id)}
+                                                        onClick={() => handleToggleTask(task)}
                                                         className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
                                                     >
                                                         <Check className="w-4 h-4" />
@@ -317,40 +315,9 @@ export function DayDetailView({
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -5 }}
-                                    className="space-y-2"
+                                    className="h-full"
                                 >
-                                    {completedTasks.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-10 gap-2">
-                                            <Moon className="w-5 h-5 text-white/20" />
-                                            <p className="text-xs text-white/30 italic">まだ記録がありません</p>
-                                        </div>
-                                    ) : (
-                                        completedTasks.map((task: any) => {
-                                            const IconComponent = getIconComponent(task.icon);
-                                            return (
-                                                <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-transparent">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400/50 flex items-center justify-center">
-                                                        {IconComponent ? (
-                                                            <IconComponent className="w-3.5 h-3.5" />
-                                                        ) : (
-                                                            <Check className="w-3.5 h-3.5" />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-white/40 truncate line-through">
-                                                            {task.label || task.name}
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleToggleTask(task.id)}
-                                                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/20 hover:text-white/40 transition-colors"
-                                                    >
-                                                        <Undo2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            );
-                                        })
-                                    )}
+                                    <CareHistoryList logs={careRecords} />
                                 </motion.div>
                             )}
                         </AnimatePresence>

@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay } from "date-fns";
 import { Camera } from "lucide-react";
-import { useCareContext, useCatContext, useIncidentContext } from "@/store/app-store";
+import { useCatContext, useIncidentContext } from "@/store/app-store";
 import { getFullImageUrl } from "@/lib/utils";
 
 interface CornerRadius {
@@ -41,7 +41,6 @@ export function DayCell({
     onClick,
     cornerRadius
 }: DayCellProps) {
-    const { careLogs } = useCareContext();
     const { cats } = useCatContext();
     const { incidents } = useIncidentContext();
 
@@ -93,20 +92,7 @@ export function DayCell({
         return incidents.filter((inc: any) => isSameDay(new Date(inc.created_at), day));
     }, [incidents, day]);
 
-    // Event count
-    const eventCount = useMemo(() => {
-        const dayStart = new Date(day);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(day);
-        dayEnd.setHours(23, 59, 59, 999);
 
-        const careCount = (careLogs || []).filter((log: any) => {
-            const logDate = new Date(log.completed_at || log.created_at);
-            return logDate >= dayStart && logDate <= dayEnd;
-        }).length;
-
-        return careCount + dayPhotos.length + dayIncidents.length;
-    }, [careLogs, dayPhotos, dayIncidents, day]);
 
     // Labels (統一フォーマット)
     const dayLabel = format(day, "EEE").toUpperCase();
@@ -193,33 +179,7 @@ export function DayCell({
                     </span>
                 </div>
 
-                {/* 右上: +N バッジ (写真ありタイルのみ、薄め、角丸ピル) */}
-                {thumbnailUrl && eventCount >= 2 && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            background: 'rgba(0, 0, 0, 0.25)', // より透明度の高い背景へ
-                            backdropFilter: 'blur(8px)',     // グラスモーフィズム
-                            WebkitBackdropFilter: 'blur(8px)',
-                            borderRadius: 12,
-                            padding: '3px 8px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)' // 微細な境界線
-                        }}
-                    >
-                        <span
-                            style={{
-                                fontSize: 9,
-                                fontWeight: 800, // バッジ文字を鮮明に
-                                color: 'rgba(255, 255, 255, 0.95)',
-                                letterSpacing: '0.02em'
-                            }}
-                        >
-                            +{eventCount}
-                        </span>
-                    </div>
-                )}
+
 
                 <div className="flex-1" />
 

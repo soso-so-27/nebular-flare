@@ -14,11 +14,15 @@ import {
     ChevronLeft,
     ChevronRight,
     Sparkles,
-    Menu
+    Menu,
+    TrendingUp,
+    Lightbulb,
+    History,
 } from "lucide-react";
 import { WeeklyGrid } from "./weekly-grid";
 import { DayDetailView } from "./day-detail-view";
-import { WeeklyFeedCarousel } from "./weekly-feed-carousel";
+import { WeeklyFeedCarousel, FeedItem } from "./weekly-feed-carousel";
+import { useCareData } from "@/hooks/use-care-logic";
 // HomeBackground はコンテキストプロップスが必要なため、WeeklyHomeでは使用しない
 
 // UI Layout Constants
@@ -123,6 +127,48 @@ export function WeeklyHome({
     const handleDaySelect = useCallback((day: Date) => setSelectedDay(day), []);
     const handleBackToGrid = useCallback(() => setSelectedDay(null), []);
 
+    const { careLogs } = useCareData();
+
+    const carouselItems = useMemo<FeedItem[]>(() => {
+        const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
+
+        // Calculate weekly care count
+        const weeklyLogs = (careLogs || []).filter((log: any) => {
+            const date = new Date(log.completed_at || log.done_at || log.created_at);
+            return date >= currentWeekStart && date <= weekEnd;
+        });
+
+        return [
+            {
+                id: 'stats-1',
+                type: 'stats',
+                title: '今週のお世話',
+                content: '完了したタスク',
+                value: weeklyLogs.length.toString(),
+                icon: TrendingUp,
+                color: 'text-emerald-400'
+            },
+            // Keep other items static for now or randomize slightly
+            {
+                id: 'tip-1',
+                type: 'tip',
+                title: '猫の豆知識',
+                content: '猫が喉を鳴らすのは、リラックスしている時だけでなく、不安な時や体を癒そうとしている時もあります。',
+                icon: Lightbulb,
+                color: 'text-sky-400'
+            },
+            {
+                id: 'memory-1',
+                type: 'memory',
+                title: '去年の今日',
+                content: '日向ぼっこ中の一枚。穏やかな午後でした。',
+                imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400',
+                icon: History,
+                color: 'text-rose-400'
+            }
+        ];
+    }, [currentWeekStart, careLogs]);
+
     return (
         <div className="fixed inset-0 bg-[#0A0A0B] overflow-hidden select-none">
 
@@ -137,28 +183,42 @@ export function WeeklyHome({
                         height: HEADER_BAR_HEIGHT,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center', // Center the main group
                         padding: '0 16px',
                         zIndex: 30
                     }}
                 >
-                    <button onClick={onOpenSidebar} className="p-2 -ml-2 rounded-full hover:bg-white/10">
+                    {/* Left: Menu Button */}
+                    <button
+                        onClick={onOpenSidebar}
+                        className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-white/10"
+                    >
                         <Menu className="w-6 h-6 text-white/70" />
                     </button>
-                    <span className="text-white/80 font-medium">{weekRangeLabel}</span>
+
+                    {/* Center: Date + Navigation Controls */}
                     <div className="flex items-center gap-1">
                         <button onClick={handlePrevWeek} className="p-1.5 rounded-full hover:bg-white/10">
                             <ChevronLeft className="w-5 h-5 text-white/70" />
                         </button>
+
+                        <span className="mx-1 text-white/90 font-bold tracking-wide tabular-nums">
+                            {weekRangeLabel}
+                        </span>
+
                         <button onClick={handleNextWeek} className="p-1.5 rounded-full hover:bg-white/10">
                             <ChevronRight className="w-5 h-5 text-white/70" />
                         </button>
-                        {onToggleView && (
-                            <button onClick={onToggleView} className="p-1.5 rounded-full hover:bg-white/10 ml-1">
-                                <Sparkles className="w-5 h-5 text-amber-400" />
-                            </button>
-                        )}
                     </div>
+
+                    {/* Right: View Toggle (if exists) */}
+                    {onToggleView && (
+                        <div className="absolute right-4 flex items-center">
+                            <button onClick={onToggleView} className="p-1.5 rounded-full hover:bg-white/10">
+                                <Sparkles className="w-5 h-5 text-white/70" />
+                            </button>
+                        </div>
+                    )}
                 </header>
             )}
 
@@ -194,17 +254,24 @@ export function WeeklyHome({
                             layoutData={layoutData}
                         />
 
-                        {/* Carousel Layer - Positioned exactly relative to grid */}
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: layoutData.bentoTop + layoutData.bentoH + 16,
-                                width: '100%',
-                                height: CAROUSEL_AREA_HEIGHT,
-                            }}
-                        >
-                            <WeeklyFeedCarousel screenWidth={screenWidth} />
-                        </div>
+                        {/* Horizontal Feed Carousel */}
+                        {!selectedDay && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    top: layoutData.bentoTop + layoutData.bentoH + 16,
+                                    width: '100%',
+                                    height: CAROUSEL_AREA_HEIGHT,
+                                }}
+                            >
+                                <WeeklyFeedCarousel
+                                    screenWidth={screenWidth}
+                                    paddingX={20}
+                                    items={carouselItems}
+                                    key="fix-final-20px"
+                                />
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
