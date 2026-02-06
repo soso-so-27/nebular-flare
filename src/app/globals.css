@@ -294,6 +294,8 @@
 /* iOS Safe Area & Viewport Support - iOS 18 / Iron Root Protocol */
 :root {
   --app-height: 100%;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
 }
 
 html {
