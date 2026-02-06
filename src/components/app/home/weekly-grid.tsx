@@ -8,6 +8,7 @@ import { DayCell } from "./day-cell";
 const MARGIN = 16;
 const OUTER_RADIUS = 24;  // Rounded corners only on outer edges
 const HAIRLINE = 1;       // Hairline border between cells
+const DIVIDER_COLOR = 'rgba(255,255,255,0.15)';  // More visible divider lines
 
 /**
  * 理想的なアスペクト比（写真/デザインの標準に基づく）
@@ -122,8 +123,8 @@ export function WeeklyGrid({
                         width: tiles.todayW,
                         height: tiles.todayH,
                         flexShrink: 0,
-                        borderRight: `${HAIRLINE}px solid rgba(255,255,255,0.08)`,
-                        borderBottom: `${HAIRLINE}px solid rgba(255,255,255,0.08)`,
+                        borderRight: `${HAIRLINE}px solid ${DIVIDER_COLOR}`,
+                        borderBottom: `${HAIRLINE}px solid ${DIVIDER_COLOR}`,
                     }}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -147,7 +148,7 @@ export function WeeklyGrid({
                             style={{
                                 width: tiles.rightW,
                                 height: tiles.rightH,
-                                borderBottom: index < 2 ? `${HAIRLINE}px solid rgba(255,255,255,0.08)` : `${HAIRLINE}px solid rgba(255,255,255,0.08)`,
+                                borderBottom: index < 2 ? `${HAIRLINE}px solid ${DIVIDER_COLOR}` : `${HAIRLINE}px solid ${DIVIDER_COLOR}`,
                             }}
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -179,7 +180,7 @@ export function WeeklyGrid({
                         style={{
                             width: tiles.bottomW,
                             height: tiles.bottomH,
-                            borderRight: index < 2 ? `${HAIRLINE}px solid rgba(255,255,255,0.08)` : 'none',
+                            borderRight: index < 2 ? `${HAIRLINE}px solid ${DIVIDER_COLOR}` : 'none',
                         }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
