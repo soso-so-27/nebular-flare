@@ -2,97 +2,110 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-import { useCatContext } from "@/store/app-store";
 import {
-    startOfWeek,
-    endOfWeek,
+    format,
     addWeeks,
     subWeeks,
-    format,
+    startOfWeek,
+    endOfWeek,
     eachDayOfInterval
 } from "date-fns";
+import {
+    ChevronLeft,
+    ChevronRight,
+    Sparkles,
+    Menu
+} from "lucide-react";
 import { WeeklyGrid } from "./weekly-grid";
 import { DayDetailView } from "./day-detail-view";
-import { cn } from "@/lib/utils";
 import { WeeklyFeedCarousel } from "./weekly-feed-carousel";
+// HomeBackground はコンテキストプロップスが必要なため、WeeklyHomeでは使用しない
 
-interface WeeklyHomeProps {
-    onOpenSidebar?: () => void;
-    onOpenNewEvent?: () => void;
-    onNavigate?: (tab: string) => void;
-    onToggleView?: () => void; // Toggle to Immersive Home
-}
-
-// Layout constants - アンカーポイント
-const HEADER_BAR_HEIGHT = 44;
+// UI Layout Constants
+const HEADER_BAR_HEIGHT = 56;
+const BENTO_TOP_GAP = 16;
+const BENTO_BOTTOM_GAP = 16;
+const CAROUSEL_AREA_HEIGHT = 160;
 const FAB_HEIGHT = 56;
 const FAB_BOTTOM_PADDING = 12;
-const BENTO_TOP_GAP = 12;    // HeaderBottom + 12px
-const BENTO_BOTTOM_GAP = 16; // FABTop - 16px (Adjusted for breathing room)
-const MARGIN = 16;           // 左右マージン
-const GUTTER = 6;            // ガター
+const HAIRLINE = 1;
+const MARGIN = 16;
+const GUTTER = 1;
+
+interface WeeklyHomeProps {
+    onOpenSidebar: () => void;
+    onOpenNewEvent: () => void;
+    onNavigate?: (id: string) => void;
+    onToggleView?: () => void;
+    selectedCatIds: string[];
+}
 
 export function WeeklyHome({
     onOpenSidebar,
     onOpenNewEvent,
     onNavigate,
-    onToggleView
+    onToggleView,
+    selectedCatIds
 }: WeeklyHomeProps) {
-    const { cats } = useCatContext();
-
-    // State
-    const [currentWeekStart, setCurrentWeekStart] = useState(() =>
-        startOfWeek(new Date(), { weekStartsOn: 1 })
-    );
+    const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-    const [selectedCatIds, setSelectedCatIds] = useState<string[]>([]);
+    const [screenWidth, setScreenWidth] = useState(0);
+    const [screenHeight, setScreenHeight] = useState(0);
+    const [safeAreaTop, setSafeAreaTop] = useState(0);
+    const [safeAreaBottom, setSafeAreaBottom] = useState(0);
 
-    // Screen dimensions
-    const [screenWidth, setScreenWidth] = useState(375);
-    const [screenHeight, setScreenHeight] = useState(812);
-    const [safeAreaTop, setSafeAreaTop] = useState(47);
-    const [safeAreaBottom, setSafeAreaBottom] = useState(34);
-
+    // Initial measurement
     useEffect(() => {
         const updateDimensions = () => {
             setScreenWidth(window.innerWidth);
             setScreenHeight(window.innerHeight);
-
-            const isNotched = window.innerHeight >= 812 && window.innerWidth <= 430;
-            setSafeAreaTop(isNotched ? 47 : 20);
-            setSafeAreaBottom(isNotched ? 34 : 0);
+            // safeAreaTop/Bottom は CSS 側で設定されている前提、あるいはここでは0とする(後で計算に含める)
+            const root = document.documentElement;
+            const sat = parseFloat(getComputedStyle(root).getPropertyValue('--sat') || '0');
+            const sab = parseFloat(getComputedStyle(root).getPropertyValue('--sab') || '0');
+            setSafeAreaTop(sat);
+            setSafeAreaBottom(sab);
         };
-
         updateDimensions();
         window.addEventListener('resize', updateDimensions);
         return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
-    // Bento寸法計算 - アンカーベース
+    // Bento寸法計算 - 物理画素スナップ (Integer Pixel Snap)
     const layoutData = useMemo(() => {
-        const safeH = screenHeight - safeAreaTop - safeAreaBottom;
-        const contentWidth = screenWidth - MARGIN * 2;
+        // 全ての入力を整数に丸める
+        const sTop = Math.floor(safeAreaTop);
+        const sBottom = Math.floor(safeAreaBottom);
+        const sWidth = Math.floor(screenWidth);
+        const sHeight = Math.floor(screenHeight);
 
-        // アンカーポイントからBento高さを算出
-        const headerBottom = safeAreaTop + HEADER_BAR_HEIGHT;
-        const fabTop = screenHeight - safeAreaBottom - FAB_BOTTOM_PADDING - FAB_HEIGHT;
-        const bentoTop = headerBottom + BENTO_TOP_GAP;
-        const bentoBottom = fabTop - BENTO_BOTTOM_GAP;
-        const bentoH = bentoBottom - bentoTop;
+        // 1. 幅の決定
+        const availableW = sWidth - MARGIN * 2;
+        const unitW = Math.floor((availableW - 4 * HAIRLINE) / 3);
+        const contentWidth = unitW * 3 + 4 * HAIRLINE;
+        const xOffset = Math.floor((sWidth - contentWidth) / 2);
+
+        // 2. 高さの決定
+        const headerBottomY = sTop + HEADER_BAR_HEIGHT;
+        const bentoTopY = headerBottomY + BENTO_TOP_GAP;
+
+        const fabTopY = sHeight - sBottom - FAB_BOTTOM_PADDING - FAB_HEIGHT;
+        const totalGridAvailableH = fabTopY - bentoTopY - CAROUSEL_AREA_HEIGHT - BENTO_BOTTOM_GAP;
+
+        const unitH = Math.floor((totalGridAvailableH - 5 * HAIRLINE) / 4);
+        const bentoH = unitH * 4 + 5 * HAIRLINE;
 
         return {
-            safeH,
             bentoH,
-            bentoTop,
+            bentoTop: bentoTopY,
             contentWidth,
-            screenWidth,
-            gutter: GUTTER,
-            margin: MARGIN
+            screenWidth: sWidth,
+            unitW,
+            unitH,
+            xOffset,
         };
     }, [screenWidth, screenHeight, safeAreaTop, safeAreaBottom]);
 
-    // Computed week data
     const weekDays = useMemo(() => {
         const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
         return eachDayOfInterval({ start: currentWeekStart, end: weekEnd });
@@ -105,57 +118,34 @@ export function WeeklyHome({
         return `${startStr} – ${endStr}`;
     }, [currentWeekStart]);
 
-    // Handlers
-    const handlePrevWeek = useCallback(() => {
-        setCurrentWeekStart(prev => subWeeks(prev, 1));
-    }, []);
-
-    const handleNextWeek = useCallback(() => {
-        setCurrentWeekStart(prev => addWeeks(prev, 1));
-    }, []);
-
-    const handleDaySelect = useCallback((day: Date) => {
-        setSelectedDay(day);
-    }, []);
-
-    const handleBackToGrid = useCallback(() => {
-        setSelectedDay(null);
-    }, []);
+    const handlePrevWeek = useCallback(() => setCurrentWeekStart(prev => subWeeks(prev, 1)), []);
+    const handleNextWeek = useCallback(() => setCurrentWeekStart(prev => addWeeks(prev, 1)), []);
+    const handleDaySelect = useCallback((day: Date) => setSelectedDay(day), []);
+    const handleBackToGrid = useCallback(() => setSelectedDay(null), []);
 
     return (
-        <div
-            className="flex flex-col text-white"
-            style={{
-                background: '#0A0A0B',
-                height: screenHeight,
-                overflow: 'hidden'
-            }}
-        >
-            {/* Safe Area Top Spacer */}
-            <div style={{ height: safeAreaTop, flexShrink: 0, background: '#0A0A0B' }} />
+        <div className="fixed inset-0 bg-[#0A0A0B] overflow-hidden select-none">
 
-            {/* Header Bar - 詳細表示時は非表示 */}
+            {/* Header Area - Perfectly Integer Positioned */}
             {!selectedDay && (
                 <header
-                    className="flex items-center justify-between shrink-0"
                     style={{
+                        position: 'absolute',
+                        top: Math.floor(safeAreaTop),
+                        left: 0,
+                        right: 0,
                         height: HEADER_BAR_HEIGHT,
-                        paddingLeft: 16,
-                        paddingRight: 16,
-                        background: '#0A0A0B'
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 16px',
+                        zIndex: 30
                     }}
                 >
-                    <button
-                        onClick={onOpenSidebar}
-                        className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
-                    >
+                    <button onClick={onOpenSidebar} className="p-2 -ml-2 rounded-full hover:bg-white/10">
                         <Menu className="w-6 h-6 text-white/70" />
                     </button>
-
-                    <span className="text-sm font-medium text-white/80">
-                        {weekRangeLabel}
-                    </span>
-
+                    <span className="text-white/80 font-medium">{weekRangeLabel}</span>
                     <div className="flex items-center gap-1">
                         <button onClick={handlePrevWeek} className="p-1.5 rounded-full hover:bg-white/10">
                             <ChevronLeft className="w-5 h-5 text-white/70" />
@@ -164,11 +154,7 @@ export function WeeklyHome({
                             <ChevronRight className="w-5 h-5 text-white/70" />
                         </button>
                         {onToggleView && (
-                            <button
-                                onClick={onToggleView}
-                                className="p-1.5 rounded-full hover:bg-white/10 ml-1"
-                                title="旧ホームに切替"
-                            >
+                            <button onClick={onToggleView} className="p-1.5 rounded-full hover:bg-white/10 ml-1">
                                 <Sparkles className="w-5 h-5 text-amber-400" />
                             </button>
                         )}
@@ -176,90 +162,75 @@ export function WeeklyHome({
                 </header>
             )}
 
-            {/* Main Content Area - Fixed height, no outer scroll */}
-            <div className="flex-1 flex flex-col min-h-0 relative px-0 overflow-hidden">
-                {/* Bento Area - Use flex-1 when DayDetailView is shown to allow scrolling */}
-                <div
-                    className={cn("relative transition-all duration-300", selectedDay ? "flex-1 min-h-0" : "shrink-0")}
-                    style={{ position: 'relative' }}
-                >
-                    <AnimatePresence mode="wait">
-                        {selectedDay ? (
-                            <motion.div
-                                key="detail"
-                                className="h-full"
-                                initial={{ opacity: 0, y: 50 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 50 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            >
-                                <DayDetailView
-                                    day={selectedDay}
-                                    selectedCatIds={selectedCatIds}
-                                    onBack={handleBackToGrid}
-                                />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="grid"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            >
-                                <WeeklyGrid
-                                    weekDays={weekDays}
-                                    selectedCatIds={selectedCatIds}
-                                    onDaySelect={handleDaySelect}
-                                    layoutData={layoutData}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+            {/* Content Layer */}
+            <AnimatePresence mode="wait">
+                {selectedDay ? (
+                    <motion.div
+                        key="detail"
+                        className="absolute inset-0 z-40 bg-[#0A0A0B]"
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    >
+                        <DayDetailView
+                            day={selectedDay}
+                            selectedCatIds={selectedCatIds}
+                            onBack={handleBackToGrid}
+                        />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="grid-layer"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0"
+                    >
+                        <WeeklyGrid
+                            weekDays={weekDays}
+                            selectedCatIds={selectedCatIds}
+                            onDaySelect={handleDaySelect}
+                            layoutData={layoutData}
+                        />
 
-                {/* Horizontal Feed Carousel - Place with comfortable gap below Bento grid */}
-                {!selectedDay && (
-                    <div className="flex-1 flex flex-col justify-start pt-4 min-h-0">
-                        <WeeklyFeedCarousel screenWidth={screenWidth} />
-                    </div>
-                )}
-            </div>
-
-            {/* Fixed FAB Area - Pattern 1: Side FAB (Right Corner) */}
-            {!selectedDay && (
-                <div
-                    className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none overflow-hidden"
-                    style={{ height: FAB_HEIGHT + FAB_BOTTOM_PADDING + safeAreaBottom + 40 }}
-                >
-                    {/* Minimal corner protection if needed, or none for 100% clarity */}
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A0A0B]/80 to-transparent pointer-events-none" />
-
-                    <div className="relative w-full h-full flex items-center">
-                        <div className="absolute left-6 pointer-events-auto" style={{ bottom: 20 + safeAreaBottom }}>
-                            <button
-                                onClick={() => onNavigate?.('home')}
-                                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shadow-lg"
-                                style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.03)' }}
-                            >
-                                N
-                            </button>
-                        </div>
-
-                        <button
-                            onClick={onOpenNewEvent}
-                            className="absolute right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl pointer-events-auto"
+                        {/* Carousel Layer - Positioned exactly relative to grid */}
+                        <div
                             style={{
-                                background: 'linear-gradient(135deg, #52525b 0%, #3f3f46 100%)',
-                                bottom: 12 + safeAreaBottom,
-                                border: '1px solid rgba(255,255,255,0.1)'
+                                position: 'absolute',
+                                top: layoutData.bentoTop + layoutData.bentoH + 16,
+                                width: '100%',
+                                height: CAROUSEL_AREA_HEIGHT,
                             }}
                         >
-                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white">
-                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                            </svg>
-                        </button>
-                    </div>
+                            <WeeklyFeedCarousel screenWidth={screenWidth} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* FAB Area */}
+            {!selectedDay && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: Math.floor(safeAreaBottom) + FAB_BOTTOM_PADDING,
+                        right: 16,
+                        zIndex: 50,
+                    }}
+                >
+                    <button
+                        onClick={onOpenNewEvent}
+                        className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl"
+                        style={{
+                            background: 'linear-gradient(135deg, #52525b 0%, #3f3f46 100%)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                    </button>
                 </div>
             )}
         </div>

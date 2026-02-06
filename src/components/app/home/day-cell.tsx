@@ -24,11 +24,11 @@ interface DayCellProps {
 }
 
 // UI Constants (統一) - White Theme (Otherkind-style)
-const DEFAULT_BORDER_RADIUS = 16;
+const DEFAULT_BORDER_RADIUS = 8;
 const BORDER_COLOR = 'rgba(0, 0, 0, 0.08)';
 
 // White theme colors - UNIFIED for all cells
-const CELL_BG = '#FFFFFF';  // White for all cells (including TODAY)
+const CELL_BG = '#F6F6F6';  // Off-white for all cells (Otherkind exact)
 const TEXT_COLOR_PRIMARY = 'rgba(0, 0, 0, 0.85)';
 const TEXT_COLOR_SECONDARY = 'rgba(0, 0, 0, 0.55)';
 const TEXT_COLOR_MUTED = 'rgba(0, 0, 0, 0.35)';
@@ -80,7 +80,7 @@ export function DayCell({
         return allPhotos.filter((img: any) => {
             const imgDate = new Date(img.createdAt || img.created_at);
             const inDateRange = imgDate >= dayStart && imgDate <= dayEnd;
-            if (selectedCatIds.length > 0 && img.cat_id) {
+            if (selectedCatIds?.length > 0 && img.cat_id) {
                 return inDateRange && selectedCatIds.includes(img.cat_id);
             }
             return inDateRange;
@@ -121,16 +121,19 @@ export function DayCell({
         : `${DEFAULT_BORDER_RADIUS}px`;
 
     return (
-        <motion.button
+        <motion.div
+            role="button"
+            tabIndex={0}
             onClick={onClick}
-            whileTap={{ scale: 0.98, opacity: 0.95 }} // ミニマルなタップフィードバック
-            className="relative w-full h-full overflow-hidden"
+            whileTap={{ opacity: 0.85 }}
+            className="relative w-full h-full overflow-hidden cursor-pointer"
             style={{
                 borderRadius: borderRadiusStyle,
                 background: thumbnailUrl
                     ? '#18181b'
-                    : CELL_BG,  // Unified background for all cells
-                border: cornerRadius ? 'none' : `1px solid ${BORDER_COLOR}`
+                    : CELL_BG,
+                border: 'none',
+                outline: 'none'
             }}
         >
             {/* Background Photo - cover + 上寄せ(35%) */}
@@ -142,7 +145,8 @@ export function DayCell({
                         className="w-full h-full"
                         style={{
                             objectFit: 'cover',
-                            objectPosition: '50% 35%' // 猫の顔が切れにくい上寄せ
+                            objectPosition: '50% 35%',
+                            imageRendering: 'pixelated' // 境界線の鮮明度を最大化
                         }}
                     />
                     {/* 薄めオーバーレイ（UI視認性確保） */}
@@ -176,10 +180,10 @@ export function DayCell({
                     <span
                         style={{
                             fontSize: isLarge ? 24 : 16,
-                            fontWeight: 600,
+                            fontWeight: isToday ? 900 : 600, // TODAYを強調するために極太に
                             lineHeight: 1,
                             color: thumbnailUrl
-                                ? 'rgba(255, 255, 255, 0.80)'
+                                ? 'rgba(255, 255, 255, 0.85)'
                                 : isToday
                                     ? TEXT_COLOR_PRIMARY
                                     : TEXT_COLOR_SECONDARY
@@ -196,16 +200,20 @@ export function DayCell({
                             position: 'absolute',
                             top: 8,
                             right: 8,
-                            background: 'rgba(0, 0, 0, 0.40)',
-                            borderRadius: 10,
-                            padding: '2px 6px'
+                            background: 'rgba(0, 0, 0, 0.25)', // より透明度の高い背景へ
+                            backdropFilter: 'blur(8px)',     // グラスモーフィズム
+                            WebkitBackdropFilter: 'blur(8px)',
+                            borderRadius: 12,
+                            padding: '3px 8px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)' // 微細な境界線
                         }}
                     >
                         <span
                             style={{
                                 fontSize: 9,
-                                fontWeight: 600,
-                                color: 'rgba(255, 255, 255, 0.75)'
+                                fontWeight: 800, // バッジ文字を鮮明に
+                                color: 'rgba(255, 255, 255, 0.95)',
+                                letterSpacing: '0.02em'
                             }}
                         >
                             +{eventCount}
@@ -228,6 +236,6 @@ export function DayCell({
                     )}
                 </div>
             </div>
-        </motion.button>
+        </motion.div>
     );
 }
