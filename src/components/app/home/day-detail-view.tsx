@@ -212,7 +212,10 @@ export function DayDetailView({
     return (
         <div className="h-full flex flex-col overflow-hidden bg-[#0A0A0B]">
             {/* Header */}
-            <header className="flex items-center gap-3 px-4 pt-3 pb-2 shrink-0 border-b border-white/5">
+            <header
+                className="flex items-center gap-3 px-4 pb-2 shrink-0 border-b border-white/5 bg-[#0A0A0B] relative z-20"
+                style={{ paddingTop: 'calc(env(safe-area-inset-top, 20px) + 12px)' }}
+            >
                 <button
                     onClick={onBack}
                     className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
