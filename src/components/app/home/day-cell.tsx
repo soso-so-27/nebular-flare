@@ -7,16 +7,24 @@ import { Camera } from "lucide-react";
 import { useCareContext, useCatContext, useIncidentContext } from "@/store/app-store";
 import { getFullImageUrl } from "@/lib/utils";
 
+interface CornerRadius {
+    topLeft: number;
+    topRight: number;
+    bottomLeft: number;
+    bottomRight: number;
+}
+
 interface DayCellProps {
     day: Date;
     isToday: boolean;
     isLarge: boolean;
     selectedCatIds: string[];
     onClick: () => void;
+    cornerRadius?: CornerRadius;
 }
 
 // UI Constants (統一)
-const BORDER_RADIUS = 16;
+const DEFAULT_BORDER_RADIUS = 16;
 const BORDER_COLOR = 'rgba(255, 255, 255, 0.10)'; // 1px白10%
 const BORDER_COLOR_TODAY = 'rgba(255, 255, 255, 0.12)';
 
@@ -25,7 +33,8 @@ export function DayCell({
     isToday,
     isLarge,
     selectedCatIds,
-    onClick
+    onClick,
+    cornerRadius
 }: DayCellProps) {
     const { careLogs } = useCareContext();
     const { cats } = useCatContext();
@@ -101,19 +110,24 @@ export function DayCell({
         ? getFullImageUrl(dayPhotos[0].storagePath || dayPhotos[0].storage_path || dayPhotos[0].url)
         : null;
 
+    // Compute border radius string
+    const borderRadiusStyle = cornerRadius
+        ? `${cornerRadius.topLeft}px ${cornerRadius.topRight}px ${cornerRadius.bottomRight}px ${cornerRadius.bottomLeft}px`
+        : `${DEFAULT_BORDER_RADIUS}px`;
+
     return (
         <motion.button
             onClick={onClick}
             whileTap={{ scale: 0.98, opacity: 0.95 }} // ミニマルなタップフィードバック
             className="relative w-full h-full overflow-hidden"
             style={{
-                borderRadius: BORDER_RADIUS,
+                borderRadius: borderRadiusStyle,
                 background: thumbnailUrl
                     ? '#18181b'
                     : isToday
                         ? 'linear-gradient(145deg, #3f3f46 0%, #27272a 100%)'
                         : '#27272a',
-                border: `1px solid ${isToday ? BORDER_COLOR_TODAY : BORDER_COLOR}`
+                border: cornerRadius ? 'none' : `1px solid ${isToday ? BORDER_COLOR_TODAY : BORDER_COLOR}`
             }}
         >
             {/* Background Photo - cover + 上寄せ(35%) */}
