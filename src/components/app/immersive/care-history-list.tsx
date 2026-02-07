@@ -214,6 +214,13 @@ export function CareHistoryList({ className, style, onOpenPhoto, logs: customLog
                                     >
                                         <RotateCcw size={14} strokeWidth={2.5} />
                                     </button>
+                                    <button
+                                        onClick={() => item.id && handleUndo(item.id)}
+                                        className="w-8 h-8 rounded-full bg-rose-500/5 border border-rose-500/10 flex items-center justify-center text-rose-500/30 active:scale-90 transition-all hover:bg-rose-500/10 hover:text-rose-500/60"
+                                        title="削除する"
+                                    >
+                                        <Trash2 size={14} strokeWidth={2.5} />
+                                    </button>
                                 </div>
                             </motion.div>
                         )

@@ -155,6 +155,19 @@ export function useIncidents(householdId: string | null) {
         },
     });
 
+    const updateNoteMutation = useMutation({
+        mutationFn: async ({ id, note }: { id: string, note: string }) => {
+            const { error } = await supabase
+                .from('incidents')
+                .update({ note, updated_at: new Date().toISOString() } as any)
+                .eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
     const addReactionMutation = useMutation({
         mutationFn: async ({ incidentId, emoji }: any) => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -293,7 +306,9 @@ export function useIncidents(householdId: string | null) {
         removeReaction: useCallback((incidentId: string, emoji: string) =>
             removeReactionMutation.mutateAsync({ incidentId, emoji }), [removeReactionMutation]),
         toggleBookmark: useCallback((incidentId: string) =>
-            toggleBookmarkMutation.mutateAsync(incidentId), [toggleBookmarkMutation])
+            toggleBookmarkMutation.mutateAsync(incidentId), [toggleBookmarkMutation]),
+        updateIncidentNote: useCallback((id: string, note: string) =>
+            updateNoteMutation.mutateAsync({ id, note }), [updateNoteMutation])
     };
 }
 

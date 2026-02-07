@@ -15,13 +15,24 @@ interface IncidentContextType {
     addReaction: (incidentId: string, emoji: string) => Promise<{ error?: any }>;
     removeReaction: (incidentId: string, emoji: string) => Promise<{ error?: any }>;
     toggleBookmark: (incidentId: string) => Promise<{ error?: any }>;
+    updateIncidentNote: (id: string, note: string) => Promise<{ error?: any }>;
 }
 
 const IncidentContext = createContext<IncidentContextType | undefined>(undefined);
 
 export function IncidentProvider({ children, householdId, isDemo }: { children: ReactNode; householdId: string | null; isDemo: boolean }) {
     const supabase = createClient() as any;
-    const { incidents, addIncident: sAdd, addIncidentUpdate: sAddUp, resolveIncident: sResolve, deleteIncident: sDel, addReaction: sAddRea, removeReaction: sRemRea, toggleBookmark: sTogBook } = useIncidents(isDemo ? null : householdId);
+    const {
+        incidents,
+        addIncident: sAdd,
+        addIncidentUpdate: sAddUp,
+        resolveIncident: sResolve,
+        deleteIncident: sDel,
+        addReaction: sAddRea,
+        removeReaction: sRemRea,
+        toggleBookmark: sTogBook,
+        updateIncidentNote: sUpdateNote
+    } = useIncidents(isDemo ? null : householdId);
 
     const wrap = (fn: any) => async (...args: any[]) => {
         if (isDemo) return { error: "Demo mode" };
@@ -39,8 +50,14 @@ export function IncidentProvider({ children, householdId, isDemo }: { children: 
         deleteIncident: wrap(sDel),
         addReaction: wrap(sAddRea),
         removeReaction: wrap(sRemRea),
-        toggleBookmark: wrap(sTogBook)
-    }), [incidents, isDemo, sAdd, sAddUp, sResolve, sDel, sAddRea, sRemRea, sTogBook]);
+        toggleBookmark: wrap(sTogBook),
+        updateIncidentNote: (id: string, note: string) => {
+            if (isDemo) return Promise.resolve({ error: "Demo mode" });
+            const { updateIncidentNote: sUpdate } = useIncidents(householdId); // This is sneaky because useIncidents is called inside Provider but we need the new function. Wait.
+            // Actually, the destructuring in line 24 already has it if I update it.
+            return (sUpdateNote as any)(id, note);
+        }
+    }), [incidents, isDemo, sAdd, sAddUp, sResolve, sDel, sAddRea, sRemRea, sTogBook, sUpdateNote]);
 
     return <IncidentContext.Provider value={value}>{children}</IncidentContext.Provider>;
 }

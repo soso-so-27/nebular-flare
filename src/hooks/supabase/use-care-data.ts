@@ -87,6 +87,19 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         },
     });
 
+    const updateNoteMutation = useMutation({
+        mutationFn: async ({ id, note }: { id: string, note: string }) => {
+            const { error } = await supabase
+                .from('care_logs')
+                .update({ notes: note })
+                .eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
     useEffect(() => {
         if (!householdId) return;
         const channel = supabase
@@ -107,7 +120,9 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
         addCareLog: useCallback((type: string, catId?: string, note?: string, images: File[] = []) =>
             addMutation.mutateAsync({ type, catId, note, images }), [addMutation]),
         deleteCareLog: useCallback((id: string) =>
-            deleteMutation.mutateAsync(id), [deleteMutation])
+            deleteMutation.mutateAsync(id), [deleteMutation]),
+        updateCareLogNote: useCallback((id: string, note: string) =>
+            updateNoteMutation.mutateAsync({ id, note }), [updateNoteMutation])
     };
 }
 
@@ -210,6 +225,19 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         },
     });
 
+    const updateNoteMutation = useMutation({
+        mutationFn: async ({ id, note }: { id: string, note: string }) => {
+            const { error } = await supabase
+                .from('observations')
+                .update({ notes: note })
+                .eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['observations', householdId] });
+        },
+    });
+
     useEffect(() => {
         if (!householdId) return;
         const channel = supabase
@@ -232,7 +260,9 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
         acknowledgeObservation: useCallback((id: string) =>
             acknowledgeMutation.mutateAsync(id), [acknowledgeMutation]),
         deleteObservation: useCallback((id: string) =>
-            deleteMutation.mutateAsync(id), [deleteMutation])
+            deleteMutation.mutateAsync(id), [deleteMutation]),
+        updateObservationNote: useCallback((id: string, note: string) =>
+            updateNoteMutation.mutateAsync({ id, note }), [updateNoteMutation])
     };
 }
 

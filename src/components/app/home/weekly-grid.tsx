@@ -23,6 +23,7 @@ interface WeeklyGridProps {
     weekDays: Date[];
     selectedCatIds: string[];
     onDaySelect: (day: Date) => void;
+    onQuickPost: () => void;
     layoutData: LayoutData;
 }
 
@@ -30,6 +31,7 @@ export function WeeklyGrid({
     weekDays,
     selectedCatIds,
     onDaySelect,
+    onQuickPost,
     layoutData
 }: WeeklyGridProps) {
     const { bentoH, contentWidth, unitW, unitH, xOffset, bentoTop } = layoutData;
@@ -81,6 +83,7 @@ export function WeeklyGrid({
                     isLarge={true}
                     selectedCatIds={selectedCatIds}
                     onClick={() => onDaySelect(todayDate)}
+                    onQuickPost={onQuickPost}
                     cornerRadius={{ topLeft: OUTER_RADIUS - HAIRLINE, topRight: 0, bottomLeft: 0, bottomRight: 0 }}
                 />
             </div>

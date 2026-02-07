@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { dbLogger } from "@/lib/logger";
 import type { Cat } from '@/types';
@@ -122,10 +122,28 @@ export function useCats(householdId: string | null) {
         };
     }, [householdId, queryClient, supabase]);
 
+    const deleteImageMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const { error } = await supabase
+                .from('cat_images')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cats', householdId] });
+        },
+    });
+
     const refetch = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['cats', householdId] });
     }, [householdId, queryClient]);
 
-    return { cats, loading, refetch };
+    return {
+        cats,
+        loading,
+        refetch,
+        deleteCatImage: (id: string) => deleteImageMutation.mutateAsync(id)
+    };
 }
 

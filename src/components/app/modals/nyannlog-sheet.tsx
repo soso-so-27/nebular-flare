@@ -189,7 +189,13 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                     exit={usePortal ? { opacity: 0 } : { opacity: 1, y: 0 }}
                     className={cn(
                         usePortal ? "fixed inset-0 z-[12000] flex items-end justify-center transition-all duration-500" : "absolute inset-x-0 bottom-0 z-[1] h-full flex items-end justify-center pointer-events-auto", // z-1 & pointer-events-auto
-                        usePortal ? (activeTab === 'requests' ? "bg-black/20" : "bg-black/60 backdrop-blur-sm") : ""
+                        usePortal ? (
+                            activeTab === 'requests'
+                                ? "bg-black/20"
+                                : activeTab === 'input'
+                                    ? "bg-white/10 backdrop-blur-sm"
+                                    : "bg-black/60 backdrop-blur-sm"
+                        ) : ""
                     )}
                     onClick={onClose}
                 >
@@ -200,10 +206,14 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
                         className={cn(
-                            "bg-[#18181B] shadow-2xl flex flex-col w-full max-w-md overflow-y-auto no-scrollbar transition-all duration-500 pointer-events-auto relative z-[9999]",
-                            activeTab === 'input' ? "h-auto max-h-[25vh] rounded-t-[32px]" : "h-[100lvh]",
-                            activeTab === 'requests' && "justify-end",
-                            !usePortal && activeTab !== 'input' && "rounded-none"
+                            "flex flex-col w-full max-w-md no-scrollbar transition-all duration-500 pointer-events-auto relative z-[9999]",
+                            activeTab === 'requests'
+                                ? "h-auto max-h-[85vh] rounded-t-[40px] bg-[#F3F3F3]/90 backdrop-blur-3xl border-t border-white/50 shadow-2xl"
+                                : activeTab === 'input'
+                                    ? "h-full bg-[#F3F3F3]/90 backdrop-blur-3xl justify-end pb-[env(safe-area-inset-bottom,20px)]"
+                                    : "bg-[#18181B] h-[100lvh]",
+                            activeTab === 'requests' && "pb-[env(safe-area-inset-bottom,20px)]",
+                            !usePortal && activeTab !== 'input' && activeTab !== 'requests' && "rounded-none"
                         )}
                     >
                         {activeTab !== 'input' && (
@@ -254,19 +264,18 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                                         />
                                     </motion.div>
                                 ) : activeTab === 'input' ? (
-                                    <motion.div
-                                        key="input"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 20 }}
-                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                        className="w-full"
-                                    >
-                                        <NyannlogInputTabViewFinal
-                                            onClose={onClose}
-                                            selectedCatId={selectedCatId}
-                                        />
-                                    </motion.div>
+                                    <div key="input" className="w-full h-full flex flex-col justify-end pb-2 px-4 shadow-[0_-50px_100px_rgba(0,0,0,0.5)]">
+                                        <motion.div
+                                            initial={{ y: 100, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                                        >
+                                            <NyannlogInputTabViewFinal
+                                                onClose={onClose}
+                                                selectedCatId={selectedCatId}
+                                            />
+                                        </motion.div>
+                                    </div>
                                 ) : (
                                     <motion.div
                                         key="events"

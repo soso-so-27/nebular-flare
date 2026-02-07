@@ -20,6 +20,8 @@ import {
     Moon,
     Activity,
     MessageCircle,
+    MoreVertical,
+    Edit2,
     type LucideIcon
 } from "lucide-react";
 import { format } from "date-fns";
@@ -28,10 +30,15 @@ import {
     useCareContext,
     useIncidentContext,
     useCatContext,
+    useCoreContext,
 } from "@/store/app-store";
 import { useCareData } from "@/hooks/use-care-logic";
 import { getFullImageUrl, cn } from "@/lib/utils";
 import { CareHistoryList } from "@/components/app/immersive/care-history-list";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 // アイコン名からLucideコンポーネントへのマッピング
 const iconMap: Record<string, LucideIcon> = {
@@ -95,7 +102,7 @@ export function DayDetailView({
     const { cats } = useCatContext();
     const { careLogs, observations, careTaskDefs } = useCareContext();
     const { incidents } = useIncidentContext();
-    const { careItems, addCareLog, deleteCareLog } = useCareData();
+    const { careItems, addCareLog, deleteCareLog: requestDeleteLog } = useCareData();
 
     // Get all photos from cats
     const allPhotos = useMemo(() => {
@@ -110,7 +117,6 @@ export function DayDetailView({
 
     const dayLabel = format(day, "M月d日（E）", { locale: ja });
 
-    // Separate dayEvents into "Care Logs" (Records) and "Others" (Incidents, Photos, Obs)
     const { careRecords, lifeEvents } = useMemo(() => {
         const dayStart = new Date(day);
         dayStart.setHours(0, 0, 0, 0);
@@ -135,7 +141,12 @@ export function DayDetailView({
             .filter((log: any) => {
                 const logDate = new Date(log.completed_at || log.created_at || log.done_at);
                 return logDate >= dayStart && logDate <= dayEnd;
-            });
+            })
+            .map((log: any) => ({
+                ...log,
+                type: 'care_log',
+                timestamp: new Date(log.completed_at || log.created_at || log.done_at)
+            }));
 
         // Observations
         const dayObs = (observations || [])
@@ -170,7 +181,7 @@ export function DayDetailView({
                 timestamp: new Date(img.created_at || img.createdAt)
             }));
 
-        // Sort life events (Photos, Incidents, Observations)
+        // Sort life events (Photos, Incidents, Observations, Care Logs - Unified for timeline)
         const life = [...dayIncidents, ...dayObs, ...dayPhotos];
         life.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
@@ -179,6 +190,50 @@ export function DayDetailView({
             lifeEvents: life
         };
     }, [incidents, careLogs, observations, allPhotos, day]);
+
+    const [editingItem, setEditingItem] = useState<{ id: string, type: string, note: string } | null>(null);
+    const [editNote, setEditNote] = useState("");
+
+    const { updateIncidentNote, deleteIncident } = useIncidentContext();
+    const { updateCareLogNote, deleteCareLog: contextDeleteLog, updateObservationNote, deleteObservation } = useCareContext();
+    const { deleteCatImage } = useCatContext();
+
+    const handleEdit = (item: any) => {
+        setEditingItem({
+            id: item.id,
+            type: item.type,
+            note: item.note || item.notes || item.memo || item.value || ""
+        });
+        setEditNote(item.note || item.notes || item.memo || item.value || "");
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingItem) return;
+        try {
+            if (editingItem.type === 'incident') await updateIncidentNote(editingItem.id, editNote);
+            else if (editingItem.type === 'care_log') await updateCareLogNote(editingItem.id, editNote);
+            else if (editingItem.type === 'observation') await updateObservationNote(editingItem.id, editNote);
+
+            toast.success("メモを更新しました");
+            setEditingItem(null);
+        } catch (e) {
+            toast.error("更新に失敗しました");
+        }
+    };
+
+    const handleDelete = async (item: any) => {
+        if (!confirm("本当に削除しますか？")) return;
+        try {
+            if (item.type === 'incident') await deleteIncident(item.id);
+            else if (item.type === 'care_log') await (contextDeleteLog as any)(item.id);
+            else if (item.type === 'observation') await deleteObservation(item.id);
+            else if (item.type === 'photo') await deleteCatImage(item.id);
+
+            toast.success("削除しました");
+        } catch (e) {
+            toast.error("削除に失敗しました");
+        }
+    };
 
     // Active (pending) tasks for the day
     // careItems already excludes completed tasks (via useCareData logic)
@@ -190,7 +245,7 @@ export function DayDetailView({
         // If it's a completed task (has log ID), delete it (Undo)
         if (requestTab === 'completed') {
             if (task.id) {
-                await deleteCareLog(task.id);
+                await (requestDeleteLog as any)(task.id);
             }
             return;
         }
@@ -354,8 +409,26 @@ export function DayDetailView({
                                         className="bg-white/[0.04] rounded-2xl border border-white/5 overflow-hidden"
                                     >
                                         {event.type === 'incident' && (
-                                            <div className="p-4">
-                                                <div className="flex items-center justify-between mb-2">
+                                            <div className="p-4 relative group">
+                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEdit(event)}
+                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(event)}
+                                                        className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <span className="text-[10px] text-white/20 font-mono ml-1">
+                                                        {format(event.timestamp, 'HH:mm')}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between mb-2 pr-20">
                                                     <div className={cn(
                                                         "flex items-center gap-2",
                                                         (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
@@ -369,9 +442,6 @@ export function DayDetailView({
                                                             {incidentTypeLabels[event.incident_type] || 'RECORD'}
                                                         </span>
                                                     </div>
-                                                    <span className="text-[10px] text-white/30 font-mono">
-                                                        {format(event.timestamp, 'HH:mm')}
-                                                    </span>
                                                 </div>
                                                 <p className="text-sm text-white/90 leading-relaxed">
                                                     {event.note || event.memo || event.description || '内容なし'}
@@ -387,15 +457,30 @@ export function DayDetailView({
                                         )}
 
                                         {event.type === 'observation' && (
-                                            <div className="p-4">
-                                                <div className="flex items-center justify-between mb-2">
+                                            <div className="p-4 relative group">
+                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEdit(event)}
+                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(event)}
+                                                        className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <span className="text-[10px] text-white/20 font-mono ml-1">
+                                                        {format(event.timestamp, 'HH:mm')}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between mb-2 pr-20">
                                                     <div className="flex items-center gap-2 text-sky-400">
                                                         <Activity className="w-3.5 h-3.5" />
                                                         <span className="text-[9px] font-black tracking-widest uppercase">health</span>
                                                     </div>
-                                                    <span className="text-[10px] text-white/30 font-mono">
-                                                        {format(event.timestamp, 'HH:mm')}
-                                                    </span>
                                                 </div>
                                                 <p className="text-sm text-white/90 font-medium">{event.value}</p>
                                                 {(event.notes || event.note) && (
@@ -409,8 +494,21 @@ export function DayDetailView({
                                                 <img src={getFullImageUrl(event.storage_path || event.url)} alt="" className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
                                                     <div className="flex items-center justify-between">
-                                                        <p className="text-xs text-white/90 font-medium truncate pr-4">{event.caption}</p>
-                                                        <span className="text-[10px] text-white/40 font-mono shrink-0">{format(event.timestamp, 'HH:mm')}</span>
+                                                        <div className="flex-1 min-w-0 pr-4">
+                                                            <p className="text-xs text-white/90 font-medium truncate">{event.caption}</p>
+                                                            {(event.memo || event.notes) && (
+                                                                <p className="text-[10px] text-white/60 truncate mt-0.5">{event.memo || event.notes}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="text-[10px] text-white/40 font-mono">{format(event.timestamp, 'HH:mm')}</span>
+                                                            <button
+                                                                onClick={() => handleDelete(event)}
+                                                                className="p-1 rounded-full hover:bg-rose-500/40 text-white/50 hover:text-rose-400 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -422,6 +520,38 @@ export function DayDetailView({
                     </div>
                 </div>
             </div>
+
+            {/* Edit Memo Modal */}
+            <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+                <DialogContent className="sm:max-w-[425px] bg-[#121214] border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle>メモを編集</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Textarea
+                            value={editNote}
+                            onChange={(e) => setEditNote(e.target.value)}
+                            placeholder="メモを入力..."
+                            className="min-h-[120px] bg-white/5 border-white/10 focus:border-brand-peach/50 focus:ring-brand-peach/20 text-white"
+                        />
+                    </div>
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setEditingItem(null)}
+                            className="text-white/60 hover:text-white"
+                        >
+                            キャンセル
+                        </Button>
+                        <Button
+                            onClick={handleSaveEdit}
+                            className="bg-brand-peach hover:bg-brand-peach/90 text-white"
+                        >
+                            保存する
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

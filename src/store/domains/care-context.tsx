@@ -29,6 +29,8 @@ interface CareContextType {
     updateNoticeDef: (id: string, updates: Partial<NoticeDef>) => void;
     deleteNoticeDef: (id: string) => void;
     initializeCareDefaults: () => Promise<void>;
+    updateCareLogNote: (id: string, note: string) => Promise<{ error?: any }>;
+    updateObservationNote: (id: string, note: string) => Promise<{ error?: any }>;
 }
 
 const CareContext = createContext<CareContextType | undefined>(undefined);
@@ -68,8 +70,8 @@ export function CareProvider({ children, householdId, isDemo, dayStartHour, catI
     });
     const [signalLogs] = useState<Record<string, Record<string, SignalLog>>>({});
 
-    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog, deleteCareLog: supabaseDeleteCareLog } = useTodayCareLogs(isDemo ? null : householdId, dayStartHour);
-    const { observations, addObservation: supabaseAddObservation, acknowledgeObservation: supabaseAcknowledgeObservation, deleteObservation: supabaseDeleteObservation } = useTodayHouseholdObservations(isDemo ? null : householdId, dayStartHour);
+    const { careLogs: supabaseCareLogs, addCareLog: supabaseAddCareLog, deleteCareLog: supabaseDeleteCareLog, updateCareLogNote: supabaseUpdateCareLogNote } = useTodayCareLogs(isDemo ? null : householdId, dayStartHour);
+    const { observations, addObservation: supabaseAddObservation, acknowledgeObservation: supabaseAcknowledgeObservation, deleteObservation: supabaseDeleteObservation, updateObservationNote: supabaseUpdateObservationNote } = useTodayHouseholdObservations(isDemo ? null : householdId, dayStartHour);
 
     useEffect(() => {
         if (isDemo) localStorage.setItem('demoCareLogsDone', JSON.stringify(demoCareLogsDone));
@@ -108,6 +110,11 @@ export function CareProvider({ children, householdId, isDemo, dayStartHour, catI
         };
         fetchData();
     }, [householdId, isDemo, supabase]);
+
+    const wrap = (fn: any) => async (...args: any[]) => {
+        if (isDemo) return { error: "Demo mode" };
+        return (await fn(...args)) || {};
+    };
 
     const addCareLog = useCallback(async (type: string, catId?: string | null, note?: string, images?: File[]) => {
         if (isDemo) { setDemoCareLogsDone(prev => ({ ...prev, [type]: new Date().toISOString() })); return {}; }
@@ -184,8 +191,10 @@ export function CareProvider({ children, householdId, isDemo, dayStartHour, catI
     const value = useMemo(() => ({
         careLogs, observations, noticeLogs, signalLogs, careTaskDefs, noticeDefs, tasks, setTasks, demoCareLogsDone,
         addCareLog, deleteCareLog, addObservation, acknowledgeObservation, deleteObservation,
-        addCareTask, updateCareTask, deleteCareTask, addNoticeDef, updateNoticeDef, deleteNoticeDef, initializeCareDefaults
-    }), [careLogs, observations, noticeLogs, signalLogs, careTaskDefs, noticeDefs, tasks, setTasks, demoCareLogsDone, addCareLog, deleteCareLog, addObservation, acknowledgeObservation, deleteObservation, addCareTask, updateCareTask, deleteCareTask, addNoticeDef, updateNoticeDef, deleteNoticeDef, initializeCareDefaults]);
+        addCareTask, updateCareTask, deleteCareTask, addNoticeDef, updateNoticeDef, deleteNoticeDef, initializeCareDefaults,
+        updateCareLogNote: wrap(supabaseUpdateCareLogNote),
+        updateObservationNote: wrap(supabaseUpdateObservationNote)
+    }), [careLogs, observations, noticeLogs, signalLogs, careTaskDefs, noticeDefs, tasks, setTasks, demoCareLogsDone, addCareLog, deleteCareLog, addObservation, acknowledgeObservation, deleteObservation, addCareTask, updateCareTask, deleteCareTask, addNoticeDef, updateNoticeDef, deleteNoticeDef, initializeCareDefaults, supabaseUpdateCareLogNote, supabaseUpdateObservationNote]);
 
     return <CareContext.Provider value={value}>{children}</CareContext.Provider>;
 }

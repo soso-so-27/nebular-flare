@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay } from "date-fns";
-import { Camera } from "lucide-react";
+import { Camera, Plus } from "lucide-react";
 import { useCatContext, useIncidentContext } from "@/store/app-store";
 import { getFullImageUrl } from "@/lib/utils";
 
@@ -20,6 +20,7 @@ interface DayCellProps {
     isLarge: boolean;
     selectedCatIds: string[];
     onClick: () => void;
+    onQuickPost?: () => void;
     cornerRadius?: CornerRadius;
 }
 
@@ -39,6 +40,7 @@ export function DayCell({
     isLarge,
     selectedCatIds,
     onClick,
+    onQuickPost,
     cornerRadius
 }: DayCellProps) {
     const { cats } = useCatContext();
@@ -181,7 +183,19 @@ export function DayCell({
 
 
 
-                <div className="flex-1" />
+                <div className="flex-1 flex items-center justify-center">
+                    {isToday && !thumbnailUrl && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onQuickPost?.();
+                            }}
+                            className="w-12 h-12 rounded-full border border-black/10 flex items-center justify-center bg-black/[0.04] active:scale-95 transition-transform"
+                        >
+                            <Plus className="w-6 h-6 text-black/40 stroke-[2.5]" />
+                        </button>
+                    )}
+                </div>
 
                 {/* 右下: カメラアイコン (状態表示、薄く小さく) */}
                 <div className="flex items-center justify-end">

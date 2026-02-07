@@ -115,10 +115,12 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
         }
     }, [isDemo, refetchCats, supabase]);
 
-    const deleteCatImage = useCallback(async (imageId: string, storagePath: string) => {
+    const deleteCatImage = useCallback(async (imageId: string, storagePath?: string) => {
         if (isDemo) return { error: null };
         try {
-            await supabase.storage.from('avatars').remove([storagePath]);
+            if (storagePath) {
+                await supabase.storage.from('avatars').remove([storagePath]);
+            }
             const { error } = await supabase.from('cat_images').delete().eq('id', imageId);
             if (error) throw error;
             refetchCats();

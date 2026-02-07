@@ -243,7 +243,7 @@ function AppContent() {
       <BackdropSurface
         isRevealed={showNyannlogSheet}
         onConceal={() => setShowNyannlogSheet(false)}
-        revealOffset={nyannlogTab === 'requests' ? '-38%' : nyannlogTab === 'input' ? '-30%' : '-92%'}
+        revealOffset={nyannlogTab === 'requests' ? '-38%' : nyannlogTab === 'input' ? '-50%' : '-92%'}
         backLayer={
           <React.Suspense fallback={null}>
             <NyannlogSheet
@@ -286,7 +286,16 @@ function AppContent() {
                       onOpenSidebar={() => setShowSidebar(true)}
                       onOpenNewEvent={() => handleOpenNyannlog('input')}
                       onNavigate={(t) => setTab(t)}
-                      onToggleView={() => setUseWeeklyHome(false)}
+                      onToggleView={() => setUseWeeklyHome(!useWeeklyHome)}
+                      selectedCatIds={[]}
+                      // Lifted Props for Dock
+                      onOpenCalendar={() => setShowCalendar(true)}
+                      onOpenExchange={() => setShowThemeExchange(true)}
+                      onOpenPhoto={() => setShowPhotoListSheet(true)}
+                      onOpenGallery={() => setTab("gallery")}
+                      onOpenIncident={() => setShowIncidentListSheet(true)}
+                      onOpenIncidentDetail={handleOpenIncidentDetail}
+                      onOpenNyannlogSheet={handleOpenNyannlog}
                     />
                   ) : (
                     <ImmersiveHome
@@ -298,6 +307,7 @@ function AppContent() {
                       // Lifted Props
                       onOpenExchange={() => setShowThemeExchange(true)}
                       onOpenPhoto={() => setShowPhotoListSheet(true)}
+                      onOpenGallery={() => setTab("gallery")}
                       onOpenIncident={() => setShowIncidentListSheet(true)}
                       onOpenIncidentDetail={handleOpenIncidentDetail}
                       onOpenNyannlogSheet={handleOpenNyannlog}
