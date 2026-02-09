@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { format } from "date-fns";
-import { MessageCircle, Camera, AlertCircle, Bookmark } from "lucide-react";
+import { MessageCircle, Camera, AlertCircle, Bookmark, Trash2 } from "lucide-react";
 import { getFullImageUrl, cn } from '@/lib/utils';
 import { ReactionBar } from './reaction-bar';
 import { TimelineItem, TimelineUpdate } from '@/types/timeline-types';
@@ -14,6 +14,7 @@ interface NyannlogItemProps {
     onToggleBookmark: (id: string) => void;
     onAddReaction: (id: string, reaction: string) => void;
     onRemoveReaction: (id: string, reaction: string) => void;
+    onDeleteItem?: (id: string) => void;
     variant?: 'default' | 'compact';
     scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
@@ -27,6 +28,7 @@ export const NyannlogItem = React.memo(({
     onToggleBookmark,
     onAddReaction,
     onRemoveReaction,
+    onDeleteItem,
     variant = 'default',
     scrollContainerRef
 }: NyannlogItemProps) => {
@@ -83,6 +85,19 @@ export const NyannlogItem = React.memo(({
                         <div className="px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 flex items-center gap-1">
                             <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">血便あり</span>
                         </div>
+                    )}
+                    {onDeleteItem && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm('この記録を削除してもよろしいですか？')) {
+                                    onDeleteItem(item.id);
+                                }
+                            }}
+                            className="p-1.5 rounded-full text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-all shrink-0 ml-1"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
                     )}
                 </div>
             </div>

@@ -58,16 +58,26 @@ export function useGroupedLogs(activeTab: 'events' | 'requests' | 'input', selec
             return true;
         });
 
-        // Sort: Latest First
-        const sortedItems = filteredItems.sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        // Sort: Latest First (Primary: onset_at/createdAt Date, Secondary: createdAt Timestamp for intra-day ordering)
+        const sortedItems = filteredItems.sort((a, b) => {
+            const dateA = a.onset_at ? new Date(a.onset_at) : new Date(a.createdAt);
+            const dateB = b.onset_at ? new Date(b.onset_at) : new Date(b.createdAt);
+
+            // Compare dates first
+            const diff = dateB.getTime() - dateA.getTime();
+            if (diff !== 0) return diff;
+
+            // If same day (or both same onset_at), sort by physical creation time
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
 
         // Group by Date
         const groups: Record<string, TimelineItem[]> = {};
         sortedItems.forEach(item => {
-            const date = new Date(item.createdAt);
+            // Priority: onset_at (user selected date) > createdAt (system time)
+            const date = item.onset_at ? new Date(item.onset_at) : new Date(item.createdAt);
             let dateKey = format(date, 'yyyy-MM-dd');
+
             if (isToday(date)) dateKey = '今日';
             else if (isYesterday(date)) dateKey = '昨日';
             else dateKey = format(date, 'M月d日(E)', { locale: ja });

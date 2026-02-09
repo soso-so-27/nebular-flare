@@ -12,7 +12,12 @@ import { ja } from "date-fns/locale";
 import { useUserProfile, useDateLogs, useCalendarData } from "@/hooks/use-supabase-data";
 import { ActivityLogItem, ActivityItem } from "../shared/activity-log-item";
 
-export function CalendarScreen() {
+interface CalendarScreenProps {
+    selectedDate?: Date;
+    onDateChange?: (date: Date) => void;
+}
+
+export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }: CalendarScreenProps) {
     const { careTaskDefs, noticeDefs, deleteCareLog, deleteObservation } = useCareContext();
     const { cats } = useCatContext();
     const { incidents, deleteIncident } = useIncidentContext();
@@ -21,7 +26,9 @@ export function CalendarScreen() {
     const { user: currentUser } = useAuth();
     const { profile } = useUserProfile();
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
+    const selectedDate = propSelectedDate || localSelectedDate;
+    const setSelectedDate = onDateChange || setLocalSelectedDate;
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
 
     const { data: monthData, loading } = useCalendarData(profile?.householdId || null, currentMonth);

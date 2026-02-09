@@ -14,6 +14,7 @@ interface NyannlogEventsTabProps {
     toggleBookmark: (id: string) => void;
     addReaction: (id: string, reaction: string) => void;
     removeReaction: (id: string, reaction: string) => void;
+    onDeleteItem?: (id: string) => void;
     inputCardRef: React.RefObject<HTMLDivElement>;
     dailyPhotos: Record<string, string>;
 }
@@ -25,6 +26,7 @@ export const NyannlogEventsTab = ({
     toggleBookmark,
     addReaction,
     removeReaction,
+    onDeleteItem,
     inputCardRef,
     dailyPhotos,
 }: NyannlogEventsTabProps) => {
@@ -65,6 +67,7 @@ export const NyannlogEventsTab = ({
                                     onToggleBookmark={toggleBookmark}
                                     onAddReaction={addReaction}
                                     onRemoveReaction={removeReaction}
+                                    onDeleteItem={onDeleteItem}
                                     variant="compact"
                                     scrollContainerRef={horizontalScrollRef}
                                 />

@@ -461,3 +461,18 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* 
+  === Nyannlog Sheet Open Overrides === 
+  Hides floating UI elements (fabs, bubbles) when the sheet is open 
+  to prevent overlap with the input card, BUT must NOT hide the main layers.
+*/
+
+/* Target only specific floating buttons or docks that might cause overlap */
+body.nyannlog-sheet-open .fixed.z-\[60\],
+body.nyannlog-sheet-open .fixed.z-\[50\]:not([class*="inset-0"]):not([class*="nyannlog-sheet"]) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(120%) scale(0.8) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}

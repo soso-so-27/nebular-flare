@@ -15,7 +15,7 @@ interface CatContextType {
     refetchCats: () => void;
     uploadCatImage: (catId: string, file: File, memo?: string, skipRefetch?: boolean) => Promise<{ error?: any; data?: any }>;
     updateCatImage: (imageId: string, updates: Record<string, any>) => Promise<{ error?: any }>;
-    deleteCatImage: (imageId: string, storagePath: string) => Promise<{ error?: any }>;
+    deleteCatImage: (imageId: string, storagePath?: string) => Promise<{ error?: any }>;
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
     isHeroImageLoaded: boolean;

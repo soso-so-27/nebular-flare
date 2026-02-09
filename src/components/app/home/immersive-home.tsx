@@ -59,10 +59,11 @@ interface ImmersiveHomeProps {
     onOpenExchange: () => void;
     onOpenPhoto: () => void;
     onOpenIncident: () => void;
-    onOpenNyannlogSheet: (tab?: 'events' | 'requests') => void;
+    onOpenNyannlogSheet: (tab?: 'events' | 'requests' | 'input', date?: Date) => void;
     onOpenIncidentDetail: (id: string) => void;
     isNyannlogOpen?: boolean;
     onToggleView?: () => void; // Toggle to Weekly Home
+    onOpenGallery: () => void;
 }
 
 
@@ -78,7 +79,8 @@ export function ImmersiveHome({
     onOpenNyannlogSheet,
     onOpenIncidentDetail,
     isNyannlogOpen,
-    onToggleView
+    onToggleView,
+    onOpenGallery
 }: ImmersiveHomeProps) {
     const { cats, activeCatId, setActiveCatId, setIsHeroImageLoaded } = useCatContext();
     const { settings } = useSettingsContext();
@@ -162,7 +164,7 @@ export function ImmersiveHome({
         };
     }, []);
 
-    const handleOpenNyannlog = useCallback((tab: 'events' | 'requests' = 'events') => {
+    const handleOpenNyannlog = useCallback((tab: 'events' | 'requests' | 'input' = 'events') => {
         if (tab === 'events') {
             onNavigate?.('dekigoto');
         } else {

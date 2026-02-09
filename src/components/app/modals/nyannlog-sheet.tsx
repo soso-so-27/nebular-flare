@@ -27,9 +27,6 @@ import { NyannlogRequestsTabView } from './nyannlog-requests-tab-view';
 import { NyannlogHeaderV2 } from './nyannlog-header-v2';
 import { NyannlogInputTabViewFinal } from './nyannlog-input-tab-view-final';
 
-// =====================================================
-// Types
-// =====================================================
 type NyannlogSheetProps = {
     isOpen: boolean;
     onClose: () => void;
@@ -39,17 +36,20 @@ type NyannlogSheetProps = {
     onTabChange?: (tab: 'events' | 'requests' | 'input') => void;
     initialTab?: 'events' | 'requests' | 'input';
     usePortal?: boolean;
+    onExpandChange?: (expanded: 'none' | 'tags' | 'health') => void;
+    onHeightChange?: (height: number) => void;
+    initialDate?: Date;
 };
 
 // =====================================================
 // Component
 // =====================================================
 export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSheetProps) {
-    const { isOpen, onClose, onSelectItem, onTabChange, usePortal = true } = props;
+    const { isOpen, onClose, onSelectItem, onTabChange, usePortal = true, onExpandChange, onHeightChange, initialDate } = props;
     const { cats } = useCatContext();
     const { settings } = useSettingsContext();
     const { currentUserId } = useCoreContext();
-    const { incidents: incidentList, toggleBookmark, addReaction, removeReaction } = useIncidentContext();
+    const { incidents: incidentList, toggleBookmark, addReaction, removeReaction, deleteIncident } = useIncidentContext();
     const { medicationLogs } = useMedicationContext();
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,15 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
 
     React.useEffect(() => {
         setPortalTarget(document.body);
-    }, []);
+        if (isOpen) {
+            document.body.classList.add('nyannlog-sheet-open');
+        } else {
+            document.body.classList.remove('nyannlog-sheet-open');
+        }
+        return () => {
+            document.body.classList.remove('nyannlog-sheet-open');
+        };
+    }, [isOpen]);
 
     // Track input card visibility for FAB
     useEffect(() => {
@@ -191,10 +199,10 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                         usePortal ? "fixed inset-0 z-[12000] flex items-end justify-center transition-all duration-500" : "absolute inset-x-0 bottom-0 z-[1] h-full flex items-end justify-center pointer-events-auto", // z-1 & pointer-events-auto
                         usePortal ? (
                             activeTab === 'requests'
-                                ? "bg-black/20"
+                                ? "bg-black/60 backdrop-blur-md"
                                 : activeTab === 'input'
-                                    ? "bg-white/10 backdrop-blur-sm"
-                                    : "bg-black/60 backdrop-blur-sm"
+                                    ? "bg-black/40 backdrop-blur-md"
+                                    : "bg-black/60 backdrop-blur-md"
                         ) : ""
                     )}
                     onClick={onClose}
@@ -208,9 +216,9 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                         className={cn(
                             "flex flex-col w-full max-w-md no-scrollbar transition-all duration-500 pointer-events-auto relative z-[9999]",
                             activeTab === 'requests'
-                                ? "h-auto max-h-[85vh] rounded-t-[40px] bg-[#F3F3F3]/90 backdrop-blur-3xl border-t border-white/50 shadow-2xl"
+                                ? "h-auto max-h-[85vh] rounded-t-[40px] bg-[#F3F3F3] shadow-2xl"
                                 : activeTab === 'input'
-                                    ? "h-full bg-[#F3F3F3]/90 backdrop-blur-3xl justify-end pb-[env(safe-area-inset-bottom,20px)]"
+                                    ? "h-full bg-[#F3F3F3] justify-end pb-[calc(env(safe-area-inset-bottom,20px)+12px)] overflow-y-auto overflow-x-hidden"
                                     : "bg-[#18181B] h-[100lvh]",
                             activeTab === 'requests' && "pb-[env(safe-area-inset-bottom,20px)]",
                             !usePortal && activeTab !== 'input' && activeTab !== 'requests' && "rounded-none"
@@ -264,7 +272,7 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                                         />
                                     </motion.div>
                                 ) : activeTab === 'input' ? (
-                                    <div key="input" className="w-full h-full flex flex-col justify-end pb-2 px-4 shadow-[0_-50px_100px_rgba(0,0,0,0.5)]">
+                                    <div key="input" className="w-full h-full flex flex-col justify-end pb-8 px-4">
                                         <motion.div
                                             initial={{ y: 100, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
@@ -273,6 +281,9 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                                             <NyannlogInputTabViewFinal
                                                 onClose={onClose}
                                                 selectedCatId={selectedCatId}
+                                                onExpandChange={onExpandChange}
+                                                onHeightChange={onHeightChange}
+                                                initialDate={props.initialDate}
                                             />
                                         </motion.div>
                                     </div>
@@ -295,6 +306,7 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                                                 toggleBookmark={toggleBookmark}
                                                 addReaction={addReaction}
                                                 removeReaction={removeReaction}
+                                                onDeleteItem={deleteIncident}
                                                 inputCardRef={inputCardRef as React.RefObject<HTMLDivElement>}
                                                 dailyPhotos={dailyPhotos}
                                             />
@@ -316,8 +328,9 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                         )}
                     </motion.div>
                 </motion.div>
-            )}
-        </AnimatePresence>
+            )
+            }
+        </AnimatePresence >
     );
 
     if (usePortal) {

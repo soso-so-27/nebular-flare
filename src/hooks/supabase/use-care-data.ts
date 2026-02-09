@@ -43,7 +43,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     });
 
     const addMutation = useMutation({
-        mutationFn: async ({ type, catId, note, images }: { type: string, catId?: string, note?: string, images: File[] }) => {
+        mutationFn: async ({ type, catId, note, images, date }: { type: string, catId?: string, note?: string, images: File[], date?: string | Date }) => {
             if (!householdId) throw new Error("Household ID not found");
             const { data: user } = await supabase.auth.getUser();
 
@@ -55,6 +55,8 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
                 if (errors.length > 0) console.warn('Some images failed to upload:', errors);
             }
 
+            const doneAt = date ? (typeof date === 'string' ? new Date(date).toISOString() : date.toISOString()) : new Date().toISOString();
+
             const { data, error } = await supabase.from('care_logs').insert({
                 household_id: householdId,
                 cat_id: catId || null,
@@ -62,7 +64,7 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
                 notes: note || null,
                 images: imageUrls.length > 0 ? imageUrls : null,
                 done_by: user.user?.id || null,
-                done_at: new Date().toISOString(),
+                done_at: doneAt,
             }).select().single();
 
             if (error) throw error;
@@ -117,8 +119,8 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     return {
         careLogs,
         loading,
-        addCareLog: useCallback((type: string, catId?: string, note?: string, images: File[] = []) =>
-            addMutation.mutateAsync({ type, catId, note, images }), [addMutation]),
+        addCareLog: useCallback((type: string, catId?: string, note?: string, images: File[] = [], date?: string | Date) =>
+            addMutation.mutateAsync({ type, catId, note, images, date }), [addMutation]),
         deleteCareLog: useCallback((id: string) =>
             deleteMutation.mutateAsync(id), [deleteMutation]),
         updateCareLogNote: useCallback((id: string, note: string) =>
@@ -164,7 +166,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     });
 
     const addMutation = useMutation({
-        mutationFn: async ({ catId, type, value, note, images }: { catId: string, type: string, value: string, note?: string, images: File[] }) => {
+        mutationFn: async ({ catId, type, value, note, images, date }: { catId: string, type: string, value: string, note?: string, images: File[], date?: string | Date }) => {
             if (!householdId) throw new Error("Household ID not found");
             const { data: user } = await supabase.auth.getUser();
 
@@ -175,6 +177,8 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
                 if (errors.length > 0) console.warn('Some images failed to upload:', errors);
             }
 
+            const recordedAt = date ? (typeof date === 'string' ? new Date(date).toISOString() : date.toISOString()) : new Date().toISOString();
+
             const { error } = await supabase.from('observations').insert({
                 household_id: householdId,
                 cat_id: catId,
@@ -183,7 +187,7 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
                 notes: note || null,
                 images: imageUrls.length > 0 ? imageUrls : null,
                 recorded_by: user.user?.id || null,
-                recorded_at: new Date().toISOString(),
+                recorded_at: recordedAt,
             });
 
             if (error) throw error;
@@ -255,8 +259,8 @@ export function useTodayHouseholdObservations(householdId: string | null, daySta
     return {
         observations,
         loading,
-        addObservation: useCallback((catId: string, type: string, value: string, note?: string, images: File[] = []) =>
-            addMutation.mutateAsync({ catId, type, value, note, images }), [addMutation]),
+        addObservation: useCallback((catId: string, type: string, value: string, note?: string, images: File[] = [], date?: string | Date) =>
+            addMutation.mutateAsync({ catId, type, value, note, images, date }), [addMutation]),
         acknowledgeObservation: useCallback((id: string) =>
             acknowledgeMutation.mutateAsync(id), [acknowledgeMutation]),
         deleteObservation: useCallback((id: string) =>

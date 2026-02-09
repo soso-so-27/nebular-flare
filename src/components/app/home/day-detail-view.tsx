@@ -22,6 +22,7 @@ import {
     MessageCircle,
     MoreVertical,
     Edit2,
+    Plus,
     type LucideIcon
 } from "lucide-react";
 import { format } from "date-fns";
@@ -90,6 +91,7 @@ interface DayDetailViewProps {
     onBack: () => void;
     onOpenHistory?: () => void;
     onOpenCamera?: () => void;
+    onOpenNewRecord?: (day: Date) => void;
 }
 
 export function DayDetailView({
@@ -97,7 +99,8 @@ export function DayDetailView({
     selectedCatIds,
     onBack,
     onOpenHistory,
-    onOpenCamera
+    onOpenCamera,
+    onOpenNewRecord
 }: DayDetailViewProps) {
     const { cats } = useCatContext();
     const { careLogs, observations, careTaskDefs } = useCareContext();
@@ -126,26 +129,26 @@ export function DayDetailView({
         // Incidents
         const dayIncidents = (incidents || [])
             .filter((inc: any) => {
-                const incDate = new Date(inc.created_at || inc.occurredAt);
+                const incDate = new Date(inc.onset_at || inc.created_at || inc.occurredAt);
                 return incDate >= dayStart && incDate <= dayEnd;
             })
             .map((inc: any) => ({
                 ...inc,
                 incident_type: inc.type,
                 type: 'incident',
-                timestamp: new Date(inc.created_at || inc.occurredAt)
+                timestamp: new Date(inc.onset_at || inc.created_at || inc.occurredAt)
             }));
 
         // Care logs (These are the "Records")
         const dayCares = (careLogs || [])
             .filter((log: any) => {
-                const logDate = new Date(log.completed_at || log.created_at || log.done_at);
+                const logDate = new Date(log.done_at || log.completed_at || log.created_at);
                 return logDate >= dayStart && logDate <= dayEnd;
             })
             .map((log: any) => ({
                 ...log,
                 type: 'care_log',
-                timestamp: new Date(log.completed_at || log.created_at || log.done_at)
+                timestamp: new Date(log.done_at || log.completed_at || log.created_at)
             }));
 
         // Observations
@@ -227,7 +230,7 @@ export function DayDetailView({
             if (item.type === 'incident') await deleteIncident(item.id);
             else if (item.type === 'care_log') await (contextDeleteLog as any)(item.id);
             else if (item.type === 'observation') await deleteObservation(item.id);
-            else if (item.type === 'photo') await deleteCatImage(item.id);
+            else if (item.type === 'photo') await deleteCatImage(item.id, item.storage_path || item.url);
 
             toast.success("削除しました");
         } catch (e) {
@@ -276,6 +279,23 @@ export function DayDetailView({
                     <ChevronLeft className="w-5 h-5 text-white/70" />
                 </button>
                 <h1 className="text-base font-semibold text-white">{dayLabel}</h1>
+                <div className="ml-auto flex items-center gap-1">
+                    <button
+                        onClick={() => onOpenNewRecord?.(day)}
+                        className="p-2 rounded-full bg-white/10 text-white/90 hover:bg-white/20 transition-colors"
+                        title="記録を追加"
+                    >
+                        <Plus className="w-5 h-5" />
+                    </button>
+                    {onOpenCamera && (
+                        <button
+                            onClick={onOpenCamera}
+                            className="p-2 rounded-full bg-white/10 text-white/90 hover:bg-white/20 transition-colors"
+                        >
+                            <Camera className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
             </header>
 
             {/* Main content area: split 50/50 after header */}
@@ -410,22 +430,22 @@ export function DayDetailView({
                                     >
                                         {event.type === 'incident' && (
                                             <div className="p-4 relative group">
-                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => handleEdit(event)}
-                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                                                    <span className="text-[10px] text-white/20 font-mono mr-1">
+                                                        {format(event.timestamp, 'HH:mm')}
+                                                    </span>
                                                     <button
                                                         onClick={() => handleDelete(event)}
                                                         className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <span className="text-[10px] text-white/20 font-mono ml-1">
-                                                        {format(event.timestamp, 'HH:mm')}
-                                                    </span>
+                                                    <button
+                                                        onClick={() => handleEdit(event)}
+                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-2 pr-20">
@@ -458,22 +478,22 @@ export function DayDetailView({
 
                                         {event.type === 'observation' && (
                                             <div className="p-4 relative group">
-                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => handleEdit(event)}
-                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                                                    <span className="text-[10px] text-white/20 font-mono mr-1">
+                                                        {format(event.timestamp, 'HH:mm')}
+                                                    </span>
                                                     <button
                                                         onClick={() => handleDelete(event)}
                                                         className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <span className="text-[10px] text-white/20 font-mono ml-1">
-                                                        {format(event.timestamp, 'HH:mm')}
-                                                    </span>
+                                                    <button
+                                                        onClick={() => handleEdit(event)}
+                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-2 pr-20">

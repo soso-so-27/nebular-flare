@@ -82,12 +82,20 @@ function AppContent() {
   const [showIncidentListSheet, setShowIncidentListSheet] = useState(false);
   const [showNyannlogSheet, setShowNyannlogSheet] = useState(false);
   const [nyannlogTab, setNyannlogTab] = useState<'events' | 'requests' | 'input'>('events');
+  const [inputExpansion, setInputExpansion] = useState<'none' | 'tags' | 'health'>('none');
+  const [inputHeight, setInputHeight] = useState(300); // Default placeholder
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const handleOpenNyannlog = React.useCallback((tab: 'events' | 'requests' | 'input' = 'events') => {
+  const handleOpenNyannlog = React.useCallback((tab: 'events' | 'requests' | 'input' = 'events', date?: Date) => {
+    if (date) {
+      setCalendarDate(date);
+    }
+
     if (tab === 'events') {
       setTab('dekigoto');
     } else {
       setNyannlogTab(tab);
+      if (tab !== 'input') setInputExpansion('none');
       setShowNyannlogSheet(true);
     }
   }, []);
@@ -243,7 +251,13 @@ function AppContent() {
       <BackdropSurface
         isRevealed={showNyannlogSheet}
         onConceal={() => setShowNyannlogSheet(false)}
-        revealOffset={nyannlogTab === 'requests' ? '-38%' : nyannlogTab === 'input' ? '-50%' : '-92%'}
+        revealOffset={
+          nyannlogTab === 'requests'
+            ? '-38%'
+            : nyannlogTab === 'input'
+              ? `-${inputHeight + 44}px`
+              : '-92%'
+        }
         backLayer={
           <React.Suspense fallback={null}>
             <NyannlogSheet
@@ -255,6 +269,9 @@ function AppContent() {
               onOpenNew={() => { }}
               onSelectItem={handleSelectItem}
               usePortal={false}
+              onExpandChange={setInputExpansion}
+              onHeightChange={setInputHeight}
+              initialDate={calendarDate}
             />
           </React.Suspense>
         }
@@ -263,6 +280,8 @@ function AppContent() {
             <CalendarModal
               isOpen={showCalendar}
               onClose={() => setShowCalendar(false)}
+              selectedDate={calendarDate}
+              onDateChange={setCalendarDate}
             />
 
             {/* Main Application Layers: Managed with coordinated Depth Zoom */}
@@ -295,7 +314,9 @@ function AppContent() {
                       onOpenGallery={() => setTab("gallery")}
                       onOpenIncident={() => setShowIncidentListSheet(true)}
                       onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={handleOpenNyannlog}
+                      onOpenNyannlogSheet={(tab, date) => handleOpenNyannlog(tab as any || 'events', date)}
+                      selectedDate={calendarDate}
+                      onDateChange={setCalendarDate}
                     />
                   ) : (
                     <ImmersiveHome
@@ -310,7 +331,7 @@ function AppContent() {
                       onOpenGallery={() => setTab("gallery")}
                       onOpenIncident={() => setShowIncidentListSheet(true)}
                       onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={handleOpenNyannlog}
+                      onOpenNyannlogSheet={(tab, date) => handleOpenNyannlog(tab as any || 'events', date)}
                       isNyannlogOpen={showNyannlogSheet}
                       onToggleView={() => setUseWeeklyHome(true)}
                     />

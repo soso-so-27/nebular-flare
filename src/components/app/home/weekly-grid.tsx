@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 import { isToday } from "date-fns";
 import { DayCell } from "./day-cell";
 
-const OUTER_RADIUS = 8;
+const OUTER_RADIUS = 16; // Increased for Natural theme
 const HAIRLINE = 1;
-const DIVIDER_COLOR = '#000000';
+const DIVIDER_COLOR = '#DED0B6'; // Warm Sand divider
+const ORIGINAL_DIVIDER_COLOR = '#000000';
 
 interface LayoutData {
     bentoH: number;
@@ -19,11 +20,18 @@ interface LayoutData {
     xOffset: number;
 }
 
+interface CornerRadius {
+    topLeft: number;
+    topRight: number;
+    bottomLeft: number;
+    bottomRight: number;
+}
+
 interface WeeklyGridProps {
     weekDays: Date[];
     selectedCatIds: string[];
     onDaySelect: (day: Date) => void;
-    onQuickPost: () => void;
+    onQuickPost: (day?: Date) => void;
     layoutData: LayoutData;
 }
 
@@ -83,7 +91,7 @@ export function WeeklyGrid({
                     isLarge={true}
                     selectedCatIds={selectedCatIds}
                     onClick={() => onDaySelect(todayDate)}
-                    onQuickPost={onQuickPost}
+                    onQuickPost={(day: Date) => onQuickPost(day)}
                     cornerRadius={{ topLeft: OUTER_RADIUS - HAIRLINE, topRight: 0, bottomLeft: 0, bottomRight: 0 }}
                 />
             </div>
@@ -107,6 +115,7 @@ export function WeeklyGrid({
                         isLarge={false}
                         selectedCatIds={selectedCatIds}
                         onClick={() => onDaySelect(day)}
+                        onQuickPost={(day: Date) => onQuickPost(day)}
                         cornerRadius={{
                             topLeft: 0,
                             topRight: i === 0 ? OUTER_RADIUS - HAIRLINE : 0,
@@ -136,6 +145,7 @@ export function WeeklyGrid({
                         isLarge={false}
                         selectedCatIds={selectedCatIds}
                         onClick={() => onDaySelect(day)}
+                        onQuickPost={(day: Date) => onQuickPost(day)}
                         cornerRadius={{
                             topLeft: 0,
                             topRight: 0,

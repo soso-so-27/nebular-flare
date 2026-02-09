@@ -8,9 +8,11 @@ import { CalendarScreen } from "../screens/calendar-screen";
 interface CalendarModalProps {
     isOpen: boolean;
     onClose: () => void;
+    selectedDate?: Date;
+    onDateChange?: (date: Date) => void;
 }
 
-export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
+export function CalendarModal({ isOpen, onClose, selectedDate, onDateChange }: CalendarModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -50,7 +52,10 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto scrollbar-hide">
                             <div className="p-4">
-                                <CalendarScreen />
+                                <CalendarScreen
+                                    selectedDate={selectedDate}
+                                    onDateChange={onDateChange}
+                                />
                             </div>
                         </div>
                     </motion.div>

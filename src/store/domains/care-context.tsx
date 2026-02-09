@@ -17,9 +17,9 @@ interface CareContextType {
     tasks: Task[];
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
     demoCareLogsDone: Record<string, string>;
-    addCareLog: (type: string, catId?: string | null, note?: string, images?: File[]) => Promise<{ error?: any }>;
+    addCareLog: (type: string, catId?: string | null, note?: string, images?: File[], date?: string | Date) => Promise<{ error?: any }>;
     deleteCareLog: (id: string) => Promise<{ error?: any }>;
-    addObservation: (catId: string, type: string, value: string, note?: string, images?: File[]) => Promise<{ error?: any }>;
+    addObservation: (catId: string, type: string, value: string, note?: string, images?: File[], date?: string | Date) => Promise<{ error?: any }>;
     acknowledgeObservation: (id: string) => Promise<{ error?: any }>;
     deleteObservation: (id: string) => Promise<{ error?: any }>;
     addCareTask: (title: string, settings?: Partial<CareTaskDef>) => void;
@@ -116,9 +116,9 @@ export function CareProvider({ children, householdId, isDemo, dayStartHour, catI
         return (await fn(...args)) || {};
     };
 
-    const addCareLog = useCallback(async (type: string, catId?: string | null, note?: string, images?: File[]) => {
+    const addCareLog = useCallback(async (type: string, catId?: string | null, note?: string, images?: File[], date?: string | Date) => {
         if (isDemo) { setDemoCareLogsDone(prev => ({ ...prev, [type]: new Date().toISOString() })); return {}; }
-        await supabaseAddCareLog(type, catId || undefined, note, images);
+        await supabaseAddCareLog(type, catId || undefined, note, images, date);
         return {};
     }, [isDemo, supabaseAddCareLog]);
 
@@ -128,9 +128,9 @@ export function CareProvider({ children, householdId, isDemo, dayStartHour, catI
         return {};
     }, [isDemo, supabaseDeleteCareLog]);
 
-    const addObservation = useCallback(async (catId: string, type: string, value: string, note?: string, images?: File[]) => {
+    const addObservation = useCallback(async (catId: string, type: string, value: string, note?: string, images?: File[], date?: string | Date) => {
         if (isDemo) { setNoticeLogs(prev => ({ ...prev, [catId]: { ...prev[catId], [type]: { id: `${catId}_${type}_${Date.now()}`, catId, noticeId: type, value, at: new Date().toISOString(), done: true, later: false } } })); return {}; }
-        await supabaseAddObservation(catId, type, value, note, images);
+        await supabaseAddObservation(catId, type, value, note, images, date);
         return {};
     }, [isDemo, supabaseAddObservation]);
 

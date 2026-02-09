@@ -64,11 +64,11 @@ export const BackdropSurface = ({
     className
 }: BackdropSurfaceProps) => {
 
-    // Premium Spring Animation Settings
+    // Snappy Premium Spring Transition
     const springTransition = {
         type: "spring" as const,
-        stiffness: 200,
-        damping: 24,
+        stiffness: 400, // Faster tracking
+        damping: 38,   // No bounce
         mass: 1
     };
 
@@ -88,17 +88,17 @@ export const BackdropSurface = ({
     };
 
     return (
-        <div className="relative w-full h-full flex flex-col overflow-hidden bg-[#18181B]">
+        <div className="relative w-full h-full flex flex-col overflow-hidden bg-[#FAF8F5]">
 
             {/* Back Layer (Static Context) */}
-            <div className="absolute inset-0 z-0 bg-[#18181B]">
+            <div className="absolute inset-0 z-0 bg-[#FAF8F5]">
                 {backLayer}
             </div>
 
             {/* Front Layer (Active Content) */}
             <motion.div
                 className={cn(
-                    "flex-1 w-full max-w-md mx-auto relative flex flex-col bg-[#18181B] z-30 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.9)] origin-top overflow-hidden",
+                    "flex-1 w-full max-w-md mx-auto relative flex flex-col bg-[#18181B] z-30 origin-top overflow-hidden",
                     className
                 )}
                 initial="concealed"
@@ -111,12 +111,15 @@ export const BackdropSurface = ({
                     }
                 }}
             >
-                {frontLayer}
+                {/* Visual Scrim Overlay on the front layer when revealed to fix overlap noise */}
+                <motion.div
+                    className="absolute inset-0 z-[31] pointer-events-none bg-black/50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isRevealed ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                />
 
-                {/* Optional: Add a scrim/overlay on the front layer when revealed to indicate inactivity? 
-            Current design doesn't use one, but standard Backdrops often do. 
-            Keeping it clean for now per user preference. 
-        */}
+                {frontLayer}
             </motion.div>
         </div>
     );

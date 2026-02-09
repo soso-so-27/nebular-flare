@@ -54,6 +54,8 @@ const FAB_BOTTOM_PADDING = 12;
 const HAIRLINE = 1;
 const MARGIN = 16;
 const GUTTER = 1;
+const PAGE_BG = '#FDF8F1'; // Natural Cream
+// const ORIGINAL_PAGE_BG = '#0A0A0B';
 
 interface WeeklyHomeProps {
     onOpenSidebar: () => void;
@@ -199,25 +201,26 @@ export function WeeklyHome({
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         const topToday = todaysPhotos[0];
+        const topTodayUrl = topToday ? getFullImageUrl(topToday.photos[0]) : undefined;
 
-        items.push({
+        // 2. Prepare Cards
+        const photoCard: FeedItem = {
             id: 'todays-photo',
             type: 'photo',
             title: '今日の1枚',
             content: topToday ? format(new Date(topToday.created_at), 'HH:mm') + ' の記録' : '今日の様子を写真に残しませんか？',
-            imageUrl: topToday ? getFullImageUrl(topToday.photos[0]) : undefined,
-            ctaLabel: topToday ? undefined : '今日の1枚を置く',
+            imageUrl: topTodayUrl,
+            ctaLabel: topToday ? '記録を追加' : '記録する',
             onClick: onOpenNewEvent,
             icon: Camera,
             color: 'text-white'
-        });
+        };
 
-        // 3. Today's Requests (Using useCareData for accurate cat-style labels & sync)
         const undoneTasks = (careItems || [])
             .filter(t => !t.done && belongsToSelectedCats(t.catId))
             .slice(0, 2);
 
-        items.push({
+        const requestsCard: FeedItem = {
             id: 'today-requests',
             type: 'care',
             title: '今日のおねがい',
@@ -231,7 +234,17 @@ export function WeeklyHome({
             onClick: undoneTasks.length > 0 ? undefined : onOpenNewEvent,
             icon: Heart,
             color: 'text-slate-400'
-        });
+        };
+
+        // 3. Dynamic Ordering: 
+        // If photo is taken, prioritize tasks. If not, prioritize the photo prompt.
+        if (topToday) {
+            items.push(requestsCard);
+            items.push(photoCard);
+        } else {
+            items.push(photoCard);
+            items.push(requestsCard);
+        }
 
         // 4. Weekly Album Card
         const weekStart = currentWeekStart;
@@ -265,13 +278,18 @@ export function WeeklyHome({
 
         const sortedPhotos = thisWeeksPhotos.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+        // Diversity Logic: Use a different photo for the album if multiple exist
+        const albumImage = (sortedPhotos.length > 1 && sortedPhotos[0].url === topTodayUrl)
+            ? sortedPhotos[1].url
+            : (sortedPhotos[0]?.url);
+
         items.push({
             id: 'weekly-album-card',
             type: 'album',
             title: '今週のアルバム',
             content: thisWeeksPhotos.length === 0 ? '一週間の思い出をまとめましょう' : undefined,
             subContent: thisWeeksPhotos.length > 0 ? `${thisWeeksPhotos.length}枚の写真` : undefined,
-            imageUrl: sortedPhotos.length > 0 ? sortedPhotos[0].url : undefined,
+            imageUrl: albumImage,
             onClick: () => setShowWeeklyAlbum(true)
         });
 
@@ -338,7 +356,12 @@ export function WeeklyHome({
                 imageUrl: getFullImageUrl(memoryCandidate.photos[0]),
                 dateLabel: format(new Date(memoryCandidate.created_at), 'yyyy/MM/dd'),
                 icon: History,
-                color: 'text-slate-400'
+                color: 'text-slate-400',
+                onClick: () => {
+                    const d = new Date(memoryCandidate!.created_at);
+                    setCurrentWeekStart(startOfWeek(d, { weekStartsOn: 1 }));
+                    setSelectedDay(d);
+                }
             });
         }
 
@@ -438,7 +461,7 @@ export function WeeklyHome({
 
 
     return (
-        <div className="absolute inset-0 bg-[#0A0A0B] overflow-hidden select-none">
+        <div className="absolute inset-0 bg-[#FDF8F1] overflow-hidden select-none">
 
             {/* Header Area - Perfectly Integer Positioned */}
             {!selectedDay && (
@@ -459,23 +482,23 @@ export function WeeklyHome({
                     {/* Left: Menu Button */}
                     <button
                         onClick={onOpenSidebar}
-                        className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-white/10"
+                        className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-[#4E342E]/10"
                     >
-                        <Menu className="w-6 h-6 text-white/70" />
+                        <Menu className="w-6 h-6 text-[#4E342E]/70" />
                     </button>
 
                     {/* Center: Date + Navigation Controls */}
                     <div className="flex items-center gap-1">
-                        <button onClick={handlePrevWeek} className="p-1.5 rounded-full hover:bg-white/10">
-                            <ChevronLeft className="w-5 h-5 text-white/70" />
+                        <button onClick={handlePrevWeek} className="p-1.5 rounded-full hover:bg-[#4E342E]/10">
+                            <ChevronLeft className="w-5 h-5 text-[#4E342E]/70" />
                         </button>
 
-                        <span className="mx-1 text-white/90 font-bold tracking-wide tabular-nums">
+                        <span className="mx-1 text-[#4E342E]/90 font-bold tracking-wide tabular-nums font-serif">
                             {weekRangeLabel}
                         </span>
 
-                        <button onClick={handleNextWeek} className="p-1.5 rounded-full hover:bg-white/10">
-                            <ChevronRight className="w-5 h-5 text-white/70" />
+                        <button onClick={handleNextWeek} className="p-1.5 rounded-full hover:bg-[#4E342E]/10">
+                            <ChevronRight className="w-5 h-5 text-[#4E342E]/70" />
                         </button>
                     </div>
 
@@ -486,11 +509,11 @@ export function WeeklyHome({
                                 setIsNotificationSheetOpen(true);
                                 setLastViewedAt(new Date());
                             }}
-                            className="p-1.5 rounded-full hover:bg-white/10 relative"
+                            className="p-1.5 rounded-full hover:bg-[#4E342E]/10 relative"
                         >
-                            <Bell className="w-5 h-5 text-white/70" />
+                            <Bell className="w-5 h-5 text-[#4E342E]/70" />
                             {hasUnread && (
-                                <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-[#0A0A0B]" />
+                                <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-[#FDF8F1]" />
                             )}
                         </button>
                     </div>
@@ -502,7 +525,7 @@ export function WeeklyHome({
                 {selectedDay ? (
                     <motion.div
                         key="detail"
-                        className="absolute inset-0 z-40 bg-[#0A0A0B]"
+                        className="absolute inset-0 z-40 bg-[#FDF8F1]"
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 50 }}

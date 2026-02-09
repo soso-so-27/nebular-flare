@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText } from "lucide-react";
+import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History } from "lucide-react";
 
 export interface FeedItem {
     id: string;
@@ -40,139 +40,153 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     // ラベルの開始位置（TODAYなどのテキストと揃える）
     const textStartPos = cardStartPos + GRID_INNER_PADDING;
 
+    // 初期化時にスクロール位置をリセット
+    React.useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollLeft = 0;
+        }
+    }, []);
+
     const displayItems: FeedItem[] = items || [];
     const cardWidth = Math.floor(screenWidth * 0.74);
     const cardHeight = 135;
 
     const renderPhotoCard = (item: FeedItem) => (
-        <div className="relative w-full h-full flex flex-col">
-            {item.imageUrl ? (
-                <div className="absolute inset-0">
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <div className="absolute bottom-3 left-4 right-4">
-                        <h3 className="text-sm font-bold text-white mb-0.5">{item.title}</h3>
-                        {item.dateLabel && <p className="text-[10px] text-white/70">{item.dateLabel}</p>}
-                    </div>
+        <div className="h-full flex overflow-hidden group/photo relative">
+            {/* Left Column: Context & Action */}
+            <div className="w-[42%] flex flex-col p-3.5 pr-2 z-10 bg-gradient-to-r from-white/20 to-transparent">
+                <div className="flex items-center gap-1.5 mb-1.5 shrink-0">
+                    <div className="w-1 h-1 rounded-full bg-brand-peach" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/60 truncate">
+                        {item.title}
+                    </h3>
                 </div>
-            ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-4 bg-white/5">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
-                        <Camera className="w-5 h-5 text-white/40" />
-                    </div>
-                    <p className="text-[11px] text-white/50 mb-3">{item.content}</p>
+
+                {item.dateLabel && (
+                    <span className="text-[8px] font-black text-[#8D6E63]/60 tracking-tight mb-2">
+                        {item.dateLabel}
+                    </span>
+                )}
+
+                <div className="mt-auto">
                     {item.ctaLabel && (
-                        <div className="px-5 py-1.5 bg-white/10 rounded-full text-[10px] font-bold text-white border border-white/10 group-hover:bg-white/20 transition-colors">
+                        <div className="inline-flex px-2 py-1 bg-[#4E342E]/5 rounded-md text-[8.5px] font-black text-[#4E342E]/70 border border-[#4E342E]/10 backdrop-blur-sm">
                             {item.ctaLabel}
                         </div>
                     )}
                 </div>
-            )}
+            </div>
+
+            {/* Right Column: The "Visible" Content */}
+            <div className="flex-1 relative overflow-hidden">
+                {item.imageUrl ? (
+                    <>
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                        {/* Decorative Paper Tape overlaying the seam */}
+                        <div className="absolute -left-1 top-4 w-3 h-10 bg-white/10 -rotate-12 backdrop-blur-[1px] border-x border-white/5" />
+                        {/* Subtle edge shadow for depth */}
+                        <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-black/20 to-transparent" />
+                    </>
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-[#4E342E]/[0.03] space-y-1">
+                        <Camera className="w-4 h-4 text-[#4E342E]/20" />
+                        <p className="text-[8px] text-[#4E342E]/30 font-bold px-4 text-center leading-tight">{item.content}</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 
-    const renderCareCard = (item: FeedItem) => (
-        <div className="h-full flex flex-col px-4 pt-2.5 pb-3">
-            <div className="flex items-center gap-2 mb-2">
-                <Heart className="w-3.5 h-3.5 text-slate-400" />
-                <h3 className="text-xs font-bold text-white/90">{item.title}</h3>
-            </div>
-            <div className="flex-1 flex flex-col gap-1 mt-0.5">
-                {item.listItems?.slice(0, 2).map((log, idx) => (
-                    <div
-                        key={idx}
-                        className={`group/item relative flex items-center justify-between px-3 py-2 rounded-xl border border-white/5 bg-white/[0.03] transition-all ${log.onClick ? 'cursor-pointer hover:bg-white/[0.08] active:scale-[0.96]' : ''}`}
-                        onClick={(e) => {
-                            if (log.onClick) {
-                                e.stopPropagation();
-                                log.onClick();
-                            }
-                        }}
-                    >
-                        <div className="flex-1 flex flex-col min-w-0 pr-2">
-                            <span className="text-[10.5px] font-bold text-white/80 group-hover/item:text-white transition-colors truncate">
-                                {log.label}
-                            </span>
-                            <span className="text-[8.5px] text-white/30 font-medium">
-                                {log.time}
-                            </span>
-                        </div>
-                        {log.onClick && (
-                            <div className="w-4.5 h-4.5 rounded-full border border-white/10 flex items-center justify-center group-hover/item:border-white/20 group-hover/item:bg-white/5 transition-all shrink-0">
-                                <Heart className="w-2 h-2 text-white/20 group-hover/item:text-white/40" />
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-            {item.ctaLabel && (
-                <div className="mt-auto pt-1 flex justify-end">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-white/40 group-hover:opacity-80 transition-opacity">
-                        {item.ctaLabel} <ArrowRight className="w-3 h-3" />
-                    </div>
+    const renderCareCard = (item: FeedItem) => {
+        const items = item.listItems?.slice(0, 2) || [];
+        return (
+            <div className="h-full flex flex-col px-4 pt-4 pb-3 overflow-hidden">
+                <div className="flex items-center gap-2 mb-2 shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-peach" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/50">{item.title}</h3>
                 </div>
-            )}
-        </div>
-    );
+                <div className="flex-1 flex flex-col justify-center gap-1.5 min-h-0 overflow-hidden">
+                    {items.map((log, idx) => (
+                        <div
+                            key={idx}
+                            className={`group/item flex items-center justify-between py-1.5 border-b border-[#4E342E]/[0.05] last:border-0 transition-all ${log.onClick ? 'cursor-pointer active:scale-[0.98]' : ''}`}
+                            onClick={(e) => {
+                                if (log.onClick) {
+                                    e.stopPropagation();
+                                    log.onClick();
+                                }
+                            }}
+                        >
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-[11.5px] font-black text-[#4E342E] truncate leading-tight">
+                                    {log.label}
+                                </span>
+                                <span className="text-[8.5px] text-[#8D6E63] font-bold tracking-tight">
+                                    {log.time}
+                                </span>
+                            </div>
+                            {log.onClick && (
+                                <div className="w-5 h-5 rounded-full bg-brand-peach/5 border border-brand-peach/10 flex items-center justify-center shrink-0">
+                                    <Heart className="w-2 h-2 text-brand-peach/50" />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     const renderAlbumCard = (item: FeedItem) => (
-        <div className="relative w-full h-full flex flex-col group/album">
-            {item.imageUrl ? (
-                <div className="absolute inset-0">
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover opacity-70 group-hover/album:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                    <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
-                        <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                                <BookOpen className="w-3 h-3 text-brand-peach" />
-                                <span className="text-[10px] font-bold text-brand-peach uppercase tracking-widest">Weekly Album</span>
+        <div className="relative w-full h-full flex group/album overflow-hidden bg-[#4E342E]/[0.02]">
+            <div className="w-full h-full relative">
+                {item.imageUrl ? (
+                    <>
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#4E342E]/80 via-transparent to-transparent" />
+                        <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-[#4E342E]/30 to-transparent" />
+
+                        <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+                            <div>
+                                <span className="text-[8px] font-black text-brand-peach/80 uppercase tracking-widest block mb-0.5">Summary</span>
+                                <h3 className="text-xs font-black text-white leading-tight">今週のアルバム</h3>
                             </div>
-                            <h3 className="text-sm font-black text-white leading-tight">今週のアルバム</h3>
-                            {item.subContent && <p className="text-[10px] text-white/60 mt-0.5">{item.subContent}</p>}
+                            <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
+                                <ArrowRight className="w-3 h-3 text-white" />
+                            </div>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover/album:bg-white/20 transition-colors">
-                            <ArrowRight className="w-4 h-4 text-white" />
-                        </div>
+                    </>
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                        <BookOpen className="w-6 h-6 text-[#4E342E]/10 mb-2" />
+                        <h3 className="text-[10px] font-bold text-[#4E342E]/40 tracking-widest uppercase">No Photos</h3>
                     </div>
-                </div>
-            ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-4 bg-white/5">
-                    <BookOpen className="w-8 h-8 text-white/20 mb-2" />
-                    <h3 className="text-xs font-bold text-white/80 mb-1">{item.title}</h3>
-                    <p className="text-[10px] text-white/40">{item.content}</p>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 
     const renderReportCard = (item: FeedItem) => (
-        <div className="h-full flex flex-col p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-white/5 relative overflow-hidden group/report">
-            {/* Background Medical Pattern */}
-            <div className="absolute top-0 right-0 p-2 opacity-[0.03] pointer-events-none">
-                <Stethoscope className="w-24 h-24 rotate-12" />
-            </div>
-
-            <div className="flex items-center gap-2 mb-3 relative z-10">
-                <div className="w-8 h-8 rounded-lg bg-brand-peach/20 flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-brand-peach" />
+        <div className="h-full flex flex-col p-4 bg-gradient-to-br from-[#FEFDFB] to-[#F5E6D3] relative overflow-hidden group/report">
+            <div className="flex items-center gap-2 mb-2 relative z-10">
+                <div className="w-7 h-7 rounded-lg bg-brand-peach/20 flex items-center justify-center">
+                    <FileText className="w-3.5 h-3.5 text-brand-peach" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-black text-white/90">受診用レポート</h3>
-                    <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Clinic Report</p>
+                    <h3 className="text-xs font-black text-[#4E342E]">受診用レポート</h3>
                 </div>
             </div>
 
-            <p className="text-[11px] text-white/70 leading-relaxed mb-3 relative z-10">
+            <p className="text-[10px] text-[#4E342E]/60 font-medium leading-tight mb-2 relative z-10">
                 {item.content || "今週の体調変化を獣医さんに。"}
             </p>
 
             <div className="mt-auto flex justify-between items-center relative z-10">
                 <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-peach animate-pulse" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                    <div className="w-1 h-1 rounded-full bg-brand-peach animate-pulse" />
+                    <div className="w-1 h-1 rounded-full bg-[#4E342E]/10" />
                 </div>
-                <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold text-white/60 border border-white/10 group-hover/report:bg-brand-peach group-hover/report:text-slate-900 group-hover/report:border-transparent transition-all">
+                <div className="px-3 py-1 bg-[#4E342E]/10 rounded-full text-[9px] font-bold text-[#4E342E]/70 border border-[#4E342E]/10">
                     レポートを作成
                 </div>
             </div>
@@ -180,32 +194,22 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     );
 
     const renderContent = (item: FeedItem) => {
-        const content = (
-            <div className="h-full flex flex-col group transition-all duration-300 active:scale-[0.98]">
-                {item.type === 'photo' || item.type === 'memory' ? renderPhotoCard(item) : (
-                    <div className="h-full flex flex-col bg-white/5 border border-white/5 rounded-2xl overflow-hidden group-hover:bg-white/10 transition-colors">
-                        {item.type === 'care' ? renderCareCard(item) : (
-                            item.type === 'album' ? renderAlbumCard(item) : (
-                                item.type === 'report' ? renderReportCard(item) : (
-                                    <div className="p-4 flex-1 flex flex-col">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            {item.icon && <item.icon className="w-3.5 h-3.5 text-slate-400" />}
-                                            <h3 className="text-xs font-bold text-white/90">{item.title}</h3>
-                                        </div>
-                                        <p className="text-[11px] text-white/60 leading-relaxed line-clamp-4">{item.content}</p>
-                                        {item.subContent && (
-                                            <div className="mt-auto pt-2 text-[10px] text-white/40 italic">
-                                                {item.subContent}
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            )
-                        )}
+        let content;
+        if (item.type === 'album') content = renderAlbumCard(item);
+        else if (item.type === 'report') content = renderReportCard(item);
+        else if (item.type === 'care') content = renderCareCard(item);
+        else if (item.type === 'photo' || item.type === 'memory') content = renderPhotoCard(item);
+        else {
+            content = (
+                <div className="p-4 flex-1 flex flex-col overflow-hidden">
+                    <div className="flex items-center gap-2 mb-2 shrink-0">
+                        {item.icon && <item.icon className="w-3 h-3 text-[#8D6E63]" />}
+                        <h3 className="text-xs font-bold text-[#4E342E]">{item.title}</h3>
                     </div>
-                )}
-            </div>
-        );
+                    <p className="text-[10px] text-[#4E342E]/70 font-medium leading-tight line-clamp-3">{item.content}</p>
+                </div>
+            );
+        }
 
         if (item.onClick) {
             return (
@@ -220,19 +224,25 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
     return (
         <section className="m-0 p-0 overflow-hidden relative">
-            {/* Header: Exact text alignment with paddingLeft */}
+            {/* Global SVG Filter for Paper Grain */}
+            <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                <filter id='paper-noise'>
+                    <feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch' />
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0" />
+                </filter>
+            </svg>
+
             <div
                 className="mb-2 relative flex items-center"
                 style={{ paddingLeft: textStartPos }}
             >
                 <div className="relative flex items-center">
-                    <h2 className="text-[10px] font-medium text-white/40 uppercase tracking-[0.12em] leading-none m-0">
-                        チェック
+                    <h2 className="text-[10px] font-black text-[#4E342E]/30 uppercase tracking-[0.2em] leading-none m-0 font-sans">
+                        チェックリスト
                     </h2>
                 </div>
             </div>
 
-            {/* Scroll Area: Exact matching with cardStartPos & Snap logic */}
             <div
                 ref={scrollRef}
                 className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide w-full pb-4"
@@ -241,7 +251,6 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     scrollPaddingLeft: cardStartPos
                 }}
             >
-                {/* Visual Gap correction */}
                 {displayItems.map((item) => (
                     <div
                         key={item.id}
@@ -252,18 +261,22 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                             marginRight: 10,
                         }}
                     >
-                        <div className="w-full h-full rounded-2xl bg-[#121214] border border-white/5 overflow-hidden shadow-sm">
-                            {renderContent(item)}
+                        {/* THE CARD CONTAINER: Standardized Vol. 6 Design */}
+                        <div className="w-full h-full rounded-2xl bg-[#FEFDFB]/70 border border-[#4E342E]/5 overflow-hidden shadow-[0_6px_20px_rgba(78,52,46,0.08)] backdrop-blur-sm relative">
+                            {/* Texture Overlay */}
+                            <div
+                                className="absolute inset-0 pointer-events-none opacity-[0.4]"
+                                style={{ filter: 'url(#paper-noise)' }}
+                            />
+
+                            <div className="relative w-full h-full">
+                                {renderContent(item)}
+                            </div>
                         </div>
                     </div>
                 ))}
-                {/* End spacer */}
                 <div className="flex-shrink-0" style={{ width: cardStartPos }} />
             </div>
-
-            {/* Smooth Edge Mask */}
-            {/* Subtle Edge Mask: Centered to cards */}
-            <div className="absolute top-[34px] bottom-6 right-0 w-8 bg-gradient-to-l from-black/60 to-transparent pointer-events-none z-20" />
         </section>
     );
 }
