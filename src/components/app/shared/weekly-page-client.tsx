@@ -147,9 +147,13 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
 
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        console.info("[WeeklyPageClient] Component mounted. Cats:", cats.length);
         setMounted(true);
-        return () => setMounted(false);
-    }, []);
+        return () => {
+            console.info("[WeeklyPageClient] Component unmounted.");
+            setMounted(false);
+        };
+    }, [cats.length]);
 
     // --- DATA GATHERING FOR AI ---
     const { data: careLogs = [] } = useQuery({
@@ -216,13 +220,15 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     // --- PRODUCTION GUARD: Don't return null too early ---
     if (!mounted) return null;
 
-    // Use loading state if cats aren't ready yet (Production fix)
+    // Use loading state if cats aren't ready yet (Production fix: NO PORTAL)
     if (cats.length === 0) {
-        return createPortal(
-            <div className="fixed inset-0 z-[99999] bg-[#F5F5F4] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[#4E342E]/20" />
-            </div>,
-            document.body
+        return (
+            <div className="fixed inset-0 z-[999999] bg-[#F5F5F4] flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#4E342E]/20" />
+                    <p className="text-[10px] font-black tracking-widest text-[#4E342E]/30 uppercase">Initializing Album...</p>
+                </div>
+            </div>
         );
     }
 
@@ -507,8 +513,10 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     };
 
     return (
-        <div
-            className="fixed inset-0 z-[999999] bg-[#F5F5F4] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000"
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[2147483647] bg-[#F5F5F4] flex flex-col items-center overflow-hidden"
             onMouseMove={revealControls}
             onClick={revealControls}
             onTouchStart={revealControls}
@@ -596,6 +604,6 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 }

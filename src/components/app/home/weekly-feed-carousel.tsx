@@ -213,9 +213,14 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
         if (item.onClick) {
             return (
-                <button onClick={item.onClick} className="w-full h-full text-left appearance-none">
+                <div
+                    onClick={item.onClick}
+                    className="w-full h-full cursor-pointer pointer-events-auto select-none active:scale-[0.99] transition-transform"
+                    role="button"
+                    tabIndex={0}
+                >
                     {content}
-                </button>
+                </div>
             );
         }
 
