@@ -3,199 +3,196 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-import type { Cat, AlbumLayoutType } from "@/types";
+import type { Cat } from "@/types";
 import { format } from "date-fns";
-import { Cat as CatIcon } from "lucide-react";
+import { Check } from "lucide-react";
 
 interface StoryCoverViewProps {
-    cat: Cat;
+    cat: Cat | null;
     weekKey: string;
-    layout: AlbumLayoutType;
     photos: { url: string; date: string }[];
+    layout?: string;
     forExport?: boolean;
+    aiCaption?: string;
+    dateRange?: string; // Vol. 8 specific
+    ambientColor?: string; // Vol. 10: Dynamic Color Sync
 }
 
-export function StoryCoverView({ cat, weekKey, layout, photos, forExport }: StoryCoverViewProps) {
-    // 日付フォーマットロジック: 2026.01.25 – 01.26
-    const dateRangeDisplay = React.useMemo(() => {
-        try {
-            if (photos.length > 0) {
-                const timestamps = photos.map(p => new Date(p.date).getTime()).filter(t => !isNaN(t));
-                if (timestamps.length > 0) {
-                    const minDate = new Date(Math.min(...timestamps));
-                    const maxDate = new Date(Math.max(...timestamps));
+export const StoryCoverView = ({
+    cat,
+    weekKey,
+    photos,
+    forExport = false,
+    aiCaption,
+    dateRange,
+    ambientColor = "#F5E6D3" // Default peach highlight
+}: StoryCoverViewProps) => {
+    // --- DESIGN CONSTANTS (Synced with Home Vol. 6) ---
+    const COFFEE_BROWN = "#4E342E";
+    const PEACH_ACCENT = "#C89386";
+    const PAPER_WHITE = "#FEFDFB";
+    // 1. iPhone 16 Pro Frame Design System
+    const bezelWidth = 6;
+    const dynamicIslandWidth = 120;
+    const dynamicIslandHeight = 36;
 
-                    if (minDate.toDateString() === maxDate.toDateString()) {
-                        return format(minDate, "yyyy.MM.dd");
-                    }
-                    return `${format(minDate, "yyyy.MM.dd")} – ${format(maxDate, "MM.dd")}`;
-                }
-            }
-        } catch (e) {
-            console.error("Date calc error", e);
-        }
-        return weekKey;
-    }, [photos, weekKey]);
-
-    // 自動レイアウト選択
-    const activeLayout = React.useMemo(() => {
-        const count = photos.length;
-        if (count >= 8) return 'C';
-        if (count >= 5) return 'B';
-        return 'A';
-    }, [photos.length]);
-
-    // 共通ベーススタイル (1080x1920 base)
-    const outerWrapperStyle: React.CSSProperties = {
-        width: '1080px',
-        height: '1920px',
-        background: 'radial-gradient(circle at center, #FDFDFD 0%, #F5F6F7 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '140px 60px 240px 60px',
-        position: 'relative',
-        overflow: 'hidden',
-        flexShrink: 0,
-        boxSizing: 'border-box'
-    };
-
-    const cardStyle: React.CSSProperties = {
-        width: '960px',
-        flex: 1, // Fills space between vertical padding
-        backgroundColor: 'white',
-        borderRadius: '32px',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '48px',
-        position: 'relative',
-        border: '1px solid rgba(0,0,0,0.07)', // Clear 1px border (black 7%)
-        boxShadow: '0 30px 100px rgba(0,0,0,0.02)', // Very thin wide shadow
-        flexShrink: 0,
-        boxSizing: 'border-box',
-        overflow: 'hidden'
-    };
+    const WeekWatermark = () => (
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center items-center pointer-events-none z-0 overflow-hidden">
+            <span
+                className="text-[320px] font-black opacity-[0.06] select-none tracking-tighter"
+                style={{ color: COFFEE_BROWN }}
+            >
+                {weekKey.split('-').pop() || "00"}
+            </span>
+        </div>
+    );
 
     const Header = () => (
-        <div className="flex flex-col items-start mb-[48px] pl-2 shrink-0">
-            <h2 className="text-[42px] font-medium tracking-tight text-[#1A1A1A] leading-tight">
-                今週のアルバム
-            </h2>
-            <p className="text-[#1A1A1A]/50 text-[24px] mt-[14px] font-medium">
-                {dateRangeDisplay}
+        <div className="pt-24 pb-12 px-12 text-center relative z-20">
+            <span className="text-[11px] font-black text-[#4E342E]/30 tracking-[0.4em] uppercase block mb-4 font-sans">
+                {cat?.name || "CAT"} JOURNAL
+            </span>
+            <div className="relative inline-block">
+                <h1 className="text-[56px] font-black text-[#4E342E] leading-none mb-8 relative z-10 tracking-tight">
+                    今週のアルバム
+                </h1>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-1 bg-brand-peach/30 rounded-full" />
+            </div>
+            <p className="text-[22px] font-black text-[#4E342E]/40 tracking-[0.2em] uppercase mt-4 font-sans">
+                {dateRange || "FEB 03 – 09, 2026"}
             </p>
         </div>
     );
 
-    const Signature = () => (
-        <div className="flex items-center justify-end w-full px-2 mt-auto shrink-0 pt-6">
-            <div className="flex flex-col items-end gap-1.5">
-                <span className="text-[14px] font-bold tracking-[0.4em] uppercase text-[#1A1A1A] opacity-30">
-                    NYARUHD
-                </span>
-                <div className="h-[1px] w-6 bg-black/10" />
-                <span className="text-[11px] font-medium italic text-[#1A1A1A] opacity-20 tracking-widest">
-                    Weekly Journal
-                </span>
+    const PhotoGrid = () => (
+        <div className="flex-1 px-8 pt-4 pb-6 flex flex-col relative z-20 min-h-0">
+            <div className="grid grid-cols-6 grid-rows-4 gap-4 h-full">
+                {/* Hero */}
+                <div className="col-span-4 row-span-3 rounded-[38px] overflow-hidden bg-white/50 border border-white/40 shadow-[0_30px_80px_rgba(78,52,46,0.15)] relative">
+                    {photos[0] ? (
+                        <img src={photos[0].url} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#4E342E]/[0.02]" />
+                    )}
+                    <div className="absolute top-6 left-8 px-5 py-2 bg-brand-peach/90 backdrop-blur-md rounded-full text-[11px] font-black text-white shadow-xl uppercase tracking-[0.2em]">
+                        Best Shot
+                    </div>
+                </div>
+
+                {/* Sides */}
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={`side-${i}`} className="col-span-2 row-span-1 rounded-[28px] overflow-hidden bg-white/40 border border-white/20 shadow-sm">
+                        {photos[i + 1] ? (
+                            <img src={photos[i + 1].url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-[#4E342E]/[0.01]" />
+                        )}
+                    </div>
+                ))}
+
+                {/* Bottom Row */}
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={`bottom-${i}`} className="col-span-2 row-span-1 rounded-[28px] overflow-hidden bg-white/40 border border-white/20 shadow-sm">
+                        {photos[i + 4] ? (
+                            <img src={photos[i + 4].url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-[#4E342E]/[0.01]" />
+                        )}
+                    </div>
+                ))}
             </div>
         </div>
     );
 
-    const PhotoCard = ({ url, className = "", style = {} }: { url: string; className?: string; style?: React.CSSProperties }) => (
-        <div
-            className={`rounded-[18px] overflow-hidden bg-[#F5F5F5] relative ${className}`}
-            style={{ ...style, flexShrink: 0 }}
-        >
-            <img
-                src={url}
-                className="absolute inset-0 w-full h-full object-cover object-[center_28%]"
-                alt=""
-                crossOrigin={url.startsWith('data:') ? undefined : "anonymous"}
-            />
-            {/* Subtle inner shadow for each photo card */}
-            <div className="absolute inset-0 ring-1 ring-inset ring-black/[0.03] pointer-events-none rounded-[18px]" />
+    const CaptionSection = () => (
+        <div className="px-10 pb-20 relative z-30 shrink-0">
+            <div className="relative p-12 pt-14 rounded-[56px] bg-white/75 backdrop-blur-[32px] border border-white/60 shadow-[0_60px_140px_rgba(78,52,46,0.18)] overflow-hidden">
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.4]"
+                    style={{ filter: 'url(#paper-noise)' }}
+                />
+                <div className="absolute top-0 left-0 w-full h-[6px] bg-brand-peach/30" />
+                <div className="absolute top-6 right-10 w-12 h-6 bg-brand-peach/15 -rotate-[15deg] border-l border-white/30 pointer-events-none" />
+
+                <div className="flex flex-col gap-6 relative z-10">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-brand-peach" />
+                        <span className="text-[11px] font-black text-[#4E342E]/50 tracking-[0.3em] uppercase font-sans">Weekly Word</span>
+                    </div>
+                    <p className="text-[34px] font-medium text-[#4E342E] leading-[1.6] tracking-tight break-all font-serif italic selection:bg-brand-peach/20">
+                        {aiCaption || "何気ない日常の断片が、かけがえのない宝物だと気づかせてくれた一週間でした。"}
+                    </p>
+                    <div className="mt-6 pt-6 border-t border-[#4E342E]/10 flex justify-between items-center">
+                        <span className="text-[13px] font-black tracking-[0.4em] uppercase text-[#4E342E]/35 font-sans">Journal Signature</span>
+                        <div className="flex gap-3">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="w-2.5 h-2.5 rounded-full border border-[#4E342E]/15" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
-    const NoiseOverlay = () => (
+    const DynamicIsland = () => (
         <div
-            className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay"
-            style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                backgroundSize: '150px 150px'
-            }}
-        />
+            className="absolute top-12 left-1/2 -translate-x-1/2 bg-black rounded-full z-50 flex items-center justify-between px-6"
+            style={{ width: dynamicIslandWidth, height: dynamicIslandHeight }}
+        >
+            <div className="w-2 h-2 rounded-full bg-white/10" />
+            <div className="w-1 h-1 rounded-full bg-green-400" />
+        </div>
     );
 
-    const Container = forExport ? "div" : motion.div;
-    const motionProps = forExport ? {} : {
-        initial: { opacity: 0, scale: 0.98 },
-        animate: { opacity: 1, scale: 1 },
+    const frameStyle: React.CSSProperties = {
+        width: '1080px',
+        height: '1920px',
+        background: '#040404',
+        borderRadius: '164px',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        boxShadow: '0 80px 200px rgba(0,0,0,0.7)',
+        border: '1px solid #1a1a1a',
+        boxSizing: 'border-box',
+        overflow: 'hidden'
+    };
+
+    const screenStyle: React.CSSProperties = {
+        flex: 1,
+        background: `radial-gradient(circle at 80% 20%, ${ambientColor}1A 0%, #FFFFFF 100%), #FEFDFB`,
+        borderRadius: '140px',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+        boxSizing: 'border-box'
     };
 
     return (
-        <div style={outerWrapperStyle}>
-            {!forExport && <NoiseOverlay />}
-            <Container
-                {...motionProps}
-                style={cardStyle}
-            >
-                {!forExport && <NoiseOverlay />}
+        <div style={frameStyle}>
+            <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                <filter id='paper-noise'>
+                    <feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch' />
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0" />
+                </filter>
+            </svg>
+
+            <div style={screenStyle}>
+                {/* Texture Layer */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.4] z-[100]"
+                    style={{ filter: 'url(#paper-noise)' }}
+                />
+
+                <DynamicIsland />
+                <WeekWatermark />
                 <Header />
-
-                <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-                    {activeLayout === 'A' && (
-                        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-[12px] min-h-0">
-                            {Array.from({ length: 4 }).map((_, i) => (
-                                photos[i] ? <PhotoCard key={i} url={photos[i].url} className="w-full h-full" /> : <div key={i} className="rounded-[18px] bg-[#F9F9F9]" />
-                            ))}
-                        </div>
-                    )}
-
-                    {activeLayout === 'B' && (
-                        <div className="flex-1 flex gap-[14px] min-h-0">
-                            {/* Hero: 60% width */}
-                            <PhotoCard url={photos[0].url} className="w-[60%] h-full" />
-
-                            {/* Bento Rest: 40% width grid */}
-                            <div className="flex-1 grid grid-cols-2 gap-[14px] min-h-0">
-                                {Array.from({ length: photos.length > 5 ? 6 : 4 }).map((_, i) => (
-                                    photos[i + 1] ? (
-                                        <PhotoCard
-                                            key={i}
-                                            url={photos[i + 1].url}
-                                            className="w-full h-full"
-                                        />
-                                    ) : (
-                                        <div key={i} className="rounded-[18px] bg-[#F9F9F9] flex items-center justify-center">
-                                            <div className="w-1 h-1 rounded-full bg-black/5" />
-                                        </div>
-                                    )
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeLayout === 'C' && (
-                        <div className="flex-1 grid grid-cols-3 grid-rows-3 gap-[10px] min-h-0">
-                            {Array.from({ length: 9 }).map((_, i) => (
-                                photos[i] ? (
-                                    <PhotoCard
-                                        key={i}
-                                        url={photos[i].url}
-                                        className="w-full h-full"
-                                        style={i === 4 ? { boxShadow: '0 25px 60px rgba(0,0,0,0.12)', zIndex: 10, scale: 1.02 } : {}}
-                                    />
-                                ) : (
-                                    <div key={i} className="rounded-[18px] bg-[#F9F9F9]" />
-                                )
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <Signature />
-            </Container>
+                <PhotoGrid />
+                <CaptionSection />
+            </div>
         </div>
     );
-}
+};

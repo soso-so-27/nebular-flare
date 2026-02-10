@@ -10,7 +10,9 @@ import { createClient } from "@/lib/supabase";
 import { useWeeklySummary } from "@/hooks/use-weekly-summary";
 import { StoryCoverView } from "./story-cover-view";
 import type { Cat, AlbumLayoutType } from "@/types";
-import { format } from "date-fns";
+import { format, startOfDay, subDays } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { generateWeeklyCaption, LogItem } from "@/lib/ai-album-helper";
 import {
     X,
     Share2,
@@ -139,6 +141,68 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         return () => setMounted(false);
     }, []);
 
+    // --- DATA GATHERING FOR AI ---
+    const { data: careLogs = [] } = useQuery({
+        queryKey: ['weekly-care-logs', dummyCat?.id],
+        queryFn: async () => {
+            if (!dummyCat) return [];
+            const supabase = createClient();
+            const { data } = await supabase
+                .from('care_logs')
+                .select('*')
+                .eq('cat_id', dummyCat.id)
+                .gte('done_at', subDays(new Date(), 7).toISOString());
+            return data || [];
+        },
+        enabled: !!dummyCat
+    });
+
+    const aiCaption = useMemo(() => {
+        const logs: LogItem[] = [
+            ...weeklyPhotos.map(p => ({ type: 'incident' as const, content: p.date, date: new Date(p.date) })),
+            ...incidents.filter(inc => {
+                const now = new Date();
+                const sevenDaysAgo = subDays(now, 7);
+                return new Date(inc.created_at) >= sevenDaysAgo;
+            }).map(inc => ({ type: 'incident' as const, content: inc.note || (inc as any).type, date: new Date(inc.created_at) })),
+            ...(careLogs as any[]).map(log => ({ type: 'care' as const, content: log.notes || log.type, date: new Date(log.done_at) }))
+        ];
+        return generateWeeklyCaption(logs);
+    }, [weeklyPhotos, incidents, careLogs]);
+
+    const dateRangeDisplay = useMemo(() => {
+        const p = weeklyPhotos;
+        if (p.length > 0) {
+            const ts = p.map(x => new Date(x.date).getTime()).filter(t => !isNaN(t));
+            if (ts.length > 0) {
+                const minD = new Date(Math.min(...ts));
+                const maxD = new Date(Math.max(...ts));
+                return minD.toDateString() === maxD.toDateString()
+                    ? format(minD, "yyyy.MM.dd")
+                    : `${format(minD, "MMM dd")} – ${format(maxD, "dd, yyyy")}`;
+            }
+        }
+        return weekKey;
+    }, [weeklyPhotos, weekKey]);
+
+    // Vol. 10: Dynamic Color Extraction (Smart Color Sync)
+    const [ambientColor, setAmbientColor] = useState("#C89386"); // Default peach highlight
+    useEffect(() => {
+        if (base64Photos[0]) {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                canvas.width = 1; canvas.height = 1;
+                ctx.drawImage(img, 0, 0, 1, 1);
+                const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                setAmbientColor(`rgb(${r}, ${g}, ${b})`);
+            };
+            img.src = base64Photos[0].url;
+        }
+    }, [base64Photos]);
+
     if (!dummyCat || !mounted) return null;
 
     // --- MANUAL CANVAS DRAWING ---
@@ -154,145 +218,199 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         ctx.closePath();
     };
 
-    const drawAlbumToCanvas = async (canvas: HTMLCanvasElement, photos: { url: string; date: string }[], dateDisplay: string) => {
+    const drawAlbumToCanvas = async (canvas: HTMLCanvasElement, photos: { url: string; date: string }[], dateDisplay: string, aiCaption: string, weekKey: string, ambientColor: string) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error("Canvas context failed");
 
-        const loadedImgs = await Promise.all(photos.slice(0, 9).map(p => {
+        const loadedImgs = await Promise.all(photos.slice(0, 7).map(p => {
             return new Promise<HTMLImageElement | null>((resolve) => {
                 const img = new Image();
                 img.onload = () => resolve(img);
-                img.onerror = () => {
-                    resolve(null);
-                };
+                img.onerror = () => resolve(null);
                 img.src = p.url;
             });
         }));
 
-        // Dimensions: 1080x1920
-        // 1. Background (Radial Gradient)
-        const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1100);
-        grad.addColorStop(0, '#FDFDFD');
-        grad.addColorStop(1, '#F5F6F7');
+        const fontSans = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif';
+
+        // 1. Wallpaper (Radial Gradient with Vol. 10 Ambient Color)
+        const grad = ctx.createRadialGradient(800, 200, 0, 800, 200, 1500);
+        grad.addColorStop(0, '#FEFDFB');
+        grad.addColorStop(1, '#F5E6D3');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 1080, 1920);
 
-        // 2. Card Background & Shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.05)';
-        ctx.shadowBlur = 40;
-        ctx.shadowOffsetY = 20;
-        ctx.fillStyle = 'white';
-        drawRoundRect(ctx, 60, 140, 960, 1540, 32);
-        ctx.fill();
-        ctx.shadowColor = 'transparent';
+        // Vol. 10: Analog Noise Simulation
+        ctx.save();
+        ctx.globalAlpha = 0.05;
+        for (let i = 0; i < 10000; i++) {
+            const x = Math.random() * 1080;
+            const y = Math.random() * 1920;
+            ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+            ctx.fillRect(x, y, 1, 1);
+        }
+        ctx.restore();
 
-        // 2b. Card Border
-        ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+        // 2. Week Watermark (NEW in Vol. 8)
+        const weekNum = weekKey.split('-').pop() || '';
+        ctx.save();
+        ctx.fillStyle = '#4E342E';
+        ctx.globalAlpha = 0.02;
+        ctx.font = `900 320px ${fontSans}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(weekNum, 540, 950);
+        ctx.restore();
+
+        // 3. iPhone Bezel
+        ctx.fillStyle = '#040404';
+        ctx.strokeStyle = '#1a1a1a';
         ctx.lineWidth = 1;
+        drawRoundRect(ctx, 24, 24, 1032, 1872, 164);
+        ctx.fill();
         ctx.stroke();
 
-        // 3. Header Text
-        ctx.fillStyle = '#1A1A1A';
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
+        // 4. Screen Area
+        ctx.save();
+        drawRoundRect(ctx, 48, 48, 984, 1824, 140);
+        ctx.clip();
 
-        // Font fallback for Safari
-        const fontSans = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif';
+        const sGrad = ctx.createRadialGradient(800, 200, 0, 800, 200, 1500);
+        sGrad.addColorStop(0, `${ambientColor}1A`); // Vol. 10: Dynamic Ambiance (10% opacity)
+        sGrad.addColorStop(1, '#FFFFFF');
+        ctx.fillStyle = sGrad;
+        ctx.fillRect(48, 48, 984, 1824);
 
-        ctx.font = `500 42px ${fontSans}`;
-        ctx.fillText("今週のアルバム", 60 + 48 + 8, 140 + 48);
+        // Header
+        ctx.fillStyle = '#4E342E';
+        ctx.textAlign = 'center';
+        ctx.font = `900 12px ${fontSans}`;
+        ctx.globalAlpha = 0.3;
+        ctx.fillText("WEEKLY JOURNAL", 540, 180);
+        ctx.globalAlpha = 1.0;
+        ctx.font = `900 52px ${fontSans}`;
+        ctx.fillText("今週のアルバム", 540, 260);
 
-        ctx.fillStyle = 'rgba(26,26,26,0.6)';
-        ctx.font = `500 24px ${fontSans}`;
-        ctx.fillText(dateDisplay, 60 + 48 + 8, 140 + 48 + 42 + 14);
+        ctx.fillStyle = '#C89386'; // Peach color for line
+        ctx.globalAlpha = 0.2;
+        ctx.fillRect(540 - 24, 290, 48, 2);
 
-        // 4. Photos
-        const photoAreaY = 140 + 48 + 42 + 14 + 24 + 48;
-        const photoAreaH = 1540 - (48 * 2 + 42 + 14 + 24 + 48 + 60); // 60 for signature
-        const cardStartX = 60 + 48;
-        const cardInnerWidth = 960 - 48 * 2;
+        ctx.fillStyle = '#4E342E';
+        ctx.globalAlpha = 0.4;
+        ctx.font = `900 22px ${fontSans}`;
+        ctx.fillText(dateDisplay.toUpperCase(), 540, 335);
+        ctx.globalAlpha = 1.0;
 
-        const drawPhoto = (img: HTMLImageElement | null, x: number, y: number, w: number, h: number) => {
+        // Photo Bento Grid (Vol. 8: Adjusted to push bottom down)
+        const gridX = 48 + 48;
+        const gridY = 410;
+        const gridW = 984 - 96;
+        const gridH = 920;
+        const gap = 12;
+
+        const drawPhoto = (img: HTMLImageElement | null, x: number, y: number, w: number, h: number, r: number = 32) => {
             if (!img) {
-                ctx.fillStyle = '#F9F9F9';
-                drawRoundRect(ctx, x, y, w, h, 18);
+                ctx.fillStyle = 'rgba(78,52,46,0.02)';
+                drawRoundRect(ctx, x, y, w, h, r);
                 ctx.fill();
                 return;
             }
             ctx.save();
-            drawRoundRect(ctx, x, y, w, h, 18);
+            drawRoundRect(ctx, x, y, w, h, r);
             ctx.clip();
-
             const imgW = img.width;
             const imgH = img.height;
             const targetRatio = w / h;
             const imgRatio = imgW / imgH;
-
-            let drawW, drawH, drawX, drawY;
+            let dW, dH, dX, dY;
             if (imgRatio > targetRatio) {
-                drawH = h;
-                drawW = h * imgRatio;
-                drawX = x - (drawW - w) / 2;
-                drawY = y;
+                dH = h; dW = h * imgRatio; dX = x - (dW - w) / 2; dY = y;
             } else {
-                drawW = w;
-                drawH = w / imgRatio;
-                drawX = x;
-                drawY = y - (drawH - h) * 0.28; // Focus top
+                dW = w; dH = w / imgRatio; dX = x; dY = y - (dH - h) * 0.28;
             }
-            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            ctx.drawImage(img, dX, dY, dW, dH);
             ctx.restore();
-
-            // Photo border
-            ctx.strokeStyle = 'rgba(0,0,0,0.03)';
-            ctx.lineWidth = 1;
-            drawRoundRect(ctx, x, y, w, h, 18);
-            ctx.stroke();
         };
 
-        const activeLayout = photos.length >= 8 ? 'C' : photos.length >= 5 ? 'B' : 'A';
+        const heroW = (gridW - gap * 2) * (4 / 6) + gap;
+        const heroH = (gridH - gap * 2) * (3 / 4) + gap;
+        drawPhoto(loadedImgs[0], gridX, gridY, heroW, heroH, 34);
 
-        if (activeLayout === 'A') {
-            const gap = 12;
-            const w = (cardInnerWidth - gap) / 2;
-            const h = (photoAreaH - gap) / 2;
-            for (let i = 0; i < 4; i++) {
-                const col = i % 2;
-                const row = Math.floor(i / 2);
-                drawPhoto(loadedImgs[i], cardStartX + col * (w + gap), photoAreaY + row * (h + gap), w, h);
-            }
-        } else if (activeLayout === 'B') {
-            const gap = 14;
-            const heroW = cardInnerWidth * 0.6;
-            const restW = cardInnerWidth * 0.4 - gap;
-            drawPhoto(loadedImgs[0], cardStartX, photoAreaY, heroW, photoAreaH);
-
-            const rows = photos.length > 5 ? 3 : 2;
-            const cellW = (restW - gap) / 2;
-            const cellH = (photoAreaH - gap * (rows - 1)) / rows;
-            for (let i = 0; i < rows * 2; i++) {
-                const col = i % 2;
-                const row = Math.floor(i / 2);
-                drawPhoto(loadedImgs[i + 1], cardStartX + heroW + gap + col * (cellW + gap), photoAreaY + row * (cellH + gap), cellW, cellH);
-            }
-        } else {
-            const gap = 10;
-            const w = (cardInnerWidth - gap * 2) / 3;
-            const h = (photoAreaH - gap * 2) / 3;
-            for (let i = 0; i < 9; i++) {
-                const col = i % 3;
-                const row = Math.floor(i / 3);
-                drawPhoto(loadedImgs[i], cardStartX + col * (w + gap), photoAreaY + row * (h + gap), w, h);
-            }
+        const sideW = (gridW - heroW - gap);
+        const sideH = (heroH - gap * 2) / 3;
+        for (let i = 0; i < 3; i++) {
+            drawPhoto(loadedImgs[i + 1], gridX + heroW + gap, gridY + i * (sideH + gap), sideW, sideH, 24);
         }
 
-        // 5. Signature
-        ctx.fillStyle = 'rgba(26,26,26,0.3)';
-        ctx.textAlign = 'right';
-        ctx.font = `bold 14px ${fontSans}`;
-        ctx.fillText("NYARUHD", 1080 - 60 - 48 - 8, 1920 - 240 - 48 - 30);
-        ctx.font = `italic 11px ${fontSans}`;
-        ctx.fillText("Weekly Journal", 1080 - 60 - 48 - 8, 1920 - 240 - 48 - 10);
+        const botW = (gridW - gap * 2) / 3;
+        const botH = (gridH - heroH - gap);
+        for (let i = 0; i < 3; i++) {
+            drawPhoto(loadedImgs[i + 4], gridX + i * (botW + gap), gridY + heroH + gap, botW, botH, 24);
+        }
+
+        // Caption Section (Vol. 10: Glassmorphism Simulation)
+        const capY = 1420;
+        ctx.shadowColor = 'rgba(78,52,46,0.12)';
+        ctx.shadowBlur = 100;
+        ctx.shadowOffsetY = 40;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // 70% opacity for glass look
+        drawRoundRect(ctx, 48 + 48, capY, 984 - 96, 350, 52);
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+
+        // Glass border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Tape Accent
+        ctx.fillStyle = '#C89386';
+        ctx.globalAlpha = 0.1;
+        ctx.save();
+        ctx.translate(gridX + gridW - 80, capY + 40);
+        ctx.rotate(-12 * Math.PI / 180);
+        ctx.fillRect(0, 0, 60, 25);
+        ctx.restore();
+        ctx.globalAlpha = 1.0;
+
+        ctx.fillStyle = '#4E342E';
+        ctx.font = `900 10px ${fontSans}`;
+        ctx.globalAlpha = 0.3;
+        ctx.textAlign = 'left';
+        ctx.fillText("WEEKLY WORD", 48 + 48 + 40, capY + 60);
+        ctx.globalAlpha = 1.0;
+
+        // Vol. 9: Use Serif for Japanese Text
+        const fontSerif = 'serif, "MS Mincho", "Hiragino Mincho ProN"';
+        ctx.font = `italic 500 30px ${fontSerif}`;
+
+        const words = aiCaption.split('');
+        let line = '';
+        let currentY = capY + 115;
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n];
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > 700 && n > 0) {
+                ctx.fillText(line, 48 + 48 + 40, currentY);
+                line = words[n];
+                currentY += 45;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, 48 + 48 + 40, currentY);
+
+        ctx.fillStyle = '#4E342E';
+        ctx.globalAlpha = 0.2;
+        ctx.font = `900 14px ${fontSans}`;
+        ctx.fillText("JOURNAL SIGNATURE", 48 + 48 + 40, capY + 290);
+        ctx.globalAlpha = 1.0;
+
+        // Dynamic Island
+        ctx.fillStyle = 'black';
+        drawRoundRect(ctx, 540 - 60, 96, 120, 36, 18);
+        ctx.fill();
+
+        ctx.restore();
     };
 
     const handleShare = async () => {
@@ -321,7 +439,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
             canvas.width = 1080;
             canvas.height = 1920;
 
-            await drawAlbumToCanvas(canvas, base64Photos.length > 0 ? base64Photos : weeklyPhotos, dateRangeDisplay);
+            await drawAlbumToCanvas(canvas, base64Photos.length > 0 ? base64Photos : weeklyPhotos, dateRangeDisplay, aiCaption, weekKey, ambientColor);
 
             const dataUrl = canvas.toDataURL("image/png");
 
@@ -367,58 +485,65 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] bg-[#18181B] flex flex-col overflow-hidden animate-in fade-in duration-500">
-            {/* Top Bar */}
-            <div className="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start pointer-events-none">
+        <div className="fixed inset-0 z-[99999] bg-[#0C0A09] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000">
+            {/* Top Navigation: Golden Ratio Placement */}
+            <div className="absolute top-0 left-0 right-0 p-12 z-30 flex justify-start items-start pointer-events-none">
                 <button
                     onClick={onClose}
-                    className="pointer-events-auto bg-white/10 backdrop-blur-xl transition-all active:scale-95 text-white rounded-full p-2.5 border border-white/10"
+                    className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/[0.12] hover:bg-white/[0.22] backdrop-blur-3xl transition-all active:scale-90 text-white/70 hover:text-white rounded-full border border-white/20 shadow-2xl"
                 >
-                    <ChevronLeft size={24} />
+                    <ChevronLeft size={22} />
                 </button>
             </div>
 
-            {/* Main Content: Scaled Preview */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden p-[env(safe-area-inset-top)_40px_env(safe-area-inset-bottom)_40px] relative">
-                <div
-                    id="preview-card"
-                    className="flex-shrink-0 shadow-[0_40px_100px_rgba(0,0,0,0.5)] bg-[#F8F9FA] rounded-[32px] overflow-hidden"
-                    style={{
-                        width: '1080px',
-                        height: '1920px',
-                        transform: `scale(${Math.min(0.45, (window.innerHeight * 0.72) / 1920)})`,
-                        transformOrigin: 'center center',
+            {/* Immersive Preview Arc: Focused on the Masterpiece */}
+            <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative pt-4 pb-24">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.35 }}
+                    animate={{
+                        opacity: 1,
+                        scale: isExporting ? 1.0 : Math.min(0.44, (window.innerHeight * 0.72) / 1920),
+                        y: isExporting ? 0 : -20
                     }}
+                    transition={{ type: "spring", stiffness: 220, damping: 35, delay: 0.2 }}
+                    className="flex-shrink-0 origin-center"
+                    style={{ width: '1080px', height: '1920px' }}
                 >
                     <StoryCoverView
-                        cat={{ ...dummyCat, name: "FAMILY MEMORIES" }}
+                        cat={dummyCat}
                         weekKey={weekKey}
                         layout={layout}
                         photos={base64Photos.length > 0 ? base64Photos : weeklyPhotos}
                         forExport={isExporting}
+                        aiCaption={aiCaption}
+                        dateRange={dateRangeDisplay}
+                        ambientColor={ambientColor}
                     />
-                </div>
+                </motion.div>
             </div>
 
-            {/* Bottom Controls */}
-            <div className="absolute bottom-12 inset-x-8 z-20">
-                <Button
+            {/* Luxury Tactile Button (Visible Premium) */}
+            <div className="absolute bottom-16 z-40">
+                <motion.button
+                    initial={{ y: 24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.6 }}
                     onClick={handleShare}
                     disabled={isSharing}
-                    className="w-full bg-white text-black font-black text-lg h-20 rounded-[1.5rem] shadow-2xl shadow-black/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="group bg-[#4E342E]/95 hover:bg-[#4E342E] backdrop-blur-xl border border-white/20 px-12 h-18 rounded-full shadow-[0_40px_100px_rgba(0,0,0,0.8)] active:scale-[0.96] transition-all flex items-center gap-6 disabled:opacity-30 border-t-white/20 border-b-black/40"
                 >
                     {isSharing ? (
-                        <>
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                            <span>GENERATING...</span>
-                        </>
+                        <Loader2 className="w-6 h-6 animate-spin text-brand-peach" />
                     ) : (
-                        <>
-                            <Share2 className="w-6 h-6" />
-                            <span>SAVE & SHARE</span>
-                        </>
+                        <div className="relative">
+                            <Share2 className="w-5 h-5 text-brand-peach group-hover:scale-110 transition-transform relative z-10" />
+                            <div className="absolute inset-0 bg-brand-peach/40 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity" />
+                        </div>
                     )}
-                </Button>
+                    <span className="text-[15px] font-black tracking-[0.3em] text-white/95 group-hover:text-white transition-colors uppercase font-sans">
+                        {isSharing ? "Processing..." : "Save & Share"}
+                    </span>
+                </motion.button>
             </div>
         </div>,
         document.body
