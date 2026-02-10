@@ -97,8 +97,8 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                             img.onload = () => {
                                 URL.revokeObjectURL(imgUrl);
 
-                                // Resize to 1000px max for better performance
-                                const MAX_SIZE = 1000;
+                                // Resize for mobile performance (Production Rescue Vol. 16)
+                                const MAX_SIZE = 800;
                                 let width = img.width;
                                 let height = img.height;
 
@@ -124,7 +124,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                                 }
 
                                 ctx.drawImage(img, 0, 0, width, height);
-                                const base64 = canvas.toDataURL("image/jpeg", 0.85);
+                                const base64 = canvas.toDataURL("image/jpeg", 0.75); // Lower quality for memory
                                 resolve({ url: base64, date: photo.date });
                             };
                             img.onerror = () => {
@@ -506,9 +506,9 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         }
     };
 
-    return createPortal(
+    return (
         <div
-            className="fixed inset-0 z-[99999] bg-[#F5F5F4] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000 cursor-none"
+            className="fixed inset-0 z-[99999] bg-[#F5F5F4] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000"
             onMouseMove={revealControls}
             onClick={revealControls}
             onTouchStart={revealControls}
@@ -596,7 +596,6 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>,
-        document.body
+        </div>
     );
 }
