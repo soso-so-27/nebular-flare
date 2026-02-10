@@ -506,7 +506,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         }
     };
 
-    return createPortal(
+    return (
         <div
             className="fixed inset-0 z-[999999] bg-[#F5F5F4] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000"
             onMouseMove={revealControls}
@@ -596,7 +596,6 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>,
-        document.body
+        </div>
     );
 }
