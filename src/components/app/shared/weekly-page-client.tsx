@@ -213,7 +213,18 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         }
     }, [base64Photos]);
 
-    if (!dummyCat || !mounted) return null;
+    // --- PRODUCTION GUARD: Don't return null too early ---
+    if (!mounted) return null;
+
+    // Use loading state if cats aren't ready yet (Production fix)
+    if (cats.length === 0) {
+        return createPortal(
+            <div className="fixed inset-0 z-[99999] bg-[#F5F5F4] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#4E342E]/20" />
+            </div>,
+            document.body
+        );
+    }
 
     // --- MANUAL CANVAS DRAWING ---
     const drawRoundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
@@ -502,18 +513,22 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
             onClick={revealControls}
             onTouchStart={revealControls}
         >
-            {/* Top Navigation: Ghost Placement (Top-Left) */}
+            {/* Top Navigation: Ghost Placement (Top-Left Corner + Safe Area) */}
             <AnimatePresence>
                 {showControls && !isExporting && (
                     <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
-                        className="absolute top-8 left-8 z-50 pointer-events-none"
+                        className="absolute z-50 pointer-events-none"
+                        style={{
+                            top: 'calc(1.5rem + env(safe-area-inset-top, 0px))',
+                            left: 'calc(1.5rem + env(safe-area-inset-left, 0px))'
+                        }}
                     >
                         <button
                             onClick={(e) => { e.stopPropagation(); onClose?.(); }}
-                            className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white backdrop-blur-xl transition-all active:scale-90 text-[#4E342E]/70 hover:text-[#4E342E] rounded-full border border-white/40 shadow-sm"
+                            className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-white/80 hover:bg-white backdrop-blur-xl transition-all active:scale-90 text-[#4E342E]/70 hover:text-[#4E342E] rounded-full border border-white shadow-sm"
                         >
                             <ChevronLeft size={20} />
                         </button>
@@ -522,13 +537,13 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
             </AnimatePresence>
 
             {/* Immersive Preview Arc: Focused on the Masterpiece */}
-            <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative pt-4 pb-20">
+            <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.35 }}
                     animate={{
                         opacity: 1,
-                        scale: isExporting ? 1.0 : Math.min(0.44, (window.innerHeight * 0.72) / 1920),
-                        y: isExporting ? 0 : -20
+                        scale: isExporting ? 1.0 : Math.min(0.42, (window.innerHeight * 0.68) / 1920),
+                        y: isExporting ? 0 : -10
                     }}
                     transition={{ type: "spring", stiffness: 220, damping: 35, delay: 0.2 }}
                     className="flex-shrink-0 origin-center relative"
@@ -551,14 +566,18 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                 </motion.div>
             </div>
 
-            {/* Ghost Tactile Button: Floating Corner (Bottom-Right) */}
+            {/* Ghost Tactile Button: Floating Corner (Bottom-Right + Safe Area) */}
             <AnimatePresence>
                 {showControls && !isExporting && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute bottom-10 right-10 z-50 pointer-events-none"
+                        className="absolute z-50 pointer-events-none"
+                        style={{
+                            bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+                            right: 'calc(1.5rem + env(safe-area-inset-right, 0px))'
+                        }}
                     >
                         <button
                             onClick={(e) => { e.stopPropagation(); handleShare(); }}
