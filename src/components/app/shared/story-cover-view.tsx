@@ -154,8 +154,8 @@ export const StoryCoverView = ({
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        boxShadow: '0 80px 200px rgba(0,0,0,0.7)',
-        border: '1px solid #1a1a1a',
+        boxShadow: '0 80px 200px rgba(78,52,46,0.15)',
+        border: '1px solid #080808',
         boxSizing: 'border-box',
         overflow: 'hidden'
     };

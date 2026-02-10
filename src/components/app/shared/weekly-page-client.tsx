@@ -68,6 +68,16 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     const [isSharing, setIsSharing] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [base64Photos, setBase64Photos] = useState<{ url: string; date: string }[]>([]);
+    const [showControls, setShowControls] = useState(true);
+
+    // Auto-hide controls timer
+    useEffect(() => {
+        if (!showControls || isSharing) return;
+        const timer = setTimeout(() => setShowControls(false), 3500);
+        return () => clearTimeout(timer);
+    }, [showControls, isSharing]);
+
+    const revealControls = () => setShowControls(true);
 
     // Convert photos to Base64 for stable rendering
     useEffect(() => {
@@ -225,6 +235,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         const loadedImgs = await Promise.all(photos.slice(0, 7).map(p => {
             return new Promise<HTMLImageElement | null>((resolve) => {
                 const img = new Image();
+                img.crossOrigin = "anonymous";
                 img.onload = () => resolve(img);
                 img.onerror = () => resolve(null);
                 img.src = p.url;
@@ -485,19 +496,33 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] bg-[#0C0A09] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000">
-            {/* Top Navigation: Golden Ratio Placement */}
-            <div className="absolute top-0 left-0 right-0 p-12 z-30 flex justify-start items-start pointer-events-none">
-                <button
-                    onClick={onClose}
-                    className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/[0.12] hover:bg-white/[0.22] backdrop-blur-3xl transition-all active:scale-90 text-white/70 hover:text-white rounded-full border border-white/20 shadow-2xl"
-                >
-                    <ChevronLeft size={22} />
-                </button>
-            </div>
+        <div
+            className="fixed inset-0 z-[99999] bg-[#F5F5F4] flex flex-col items-center overflow-hidden animate-in fade-in duration-1000 cursor-none"
+            onMouseMove={revealControls}
+            onClick={revealControls}
+            onTouchStart={revealControls}
+        >
+            {/* Top Navigation: Ghost Placement (Top-Left) */}
+            <AnimatePresence>
+                {showControls && !isExporting && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="absolute top-8 left-8 z-50 pointer-events-none"
+                    >
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onClose?.(); }}
+                            className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-white/70 hover:bg-white backdrop-blur-xl transition-all active:scale-90 text-[#4E342E]/70 hover:text-[#4E342E] rounded-full border border-white/40 shadow-sm"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Immersive Preview Arc: Focused on the Masterpiece */}
-            <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative pt-4 pb-24">
+            <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative pt-4 pb-20">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.35 }}
                     animate={{
@@ -506,8 +531,12 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                         y: isExporting ? 0 : -20
                     }}
                     transition={{ type: "spring", stiffness: 220, damping: 35, delay: 0.2 }}
-                    className="flex-shrink-0 origin-center"
-                    style={{ width: '1080px', height: '1920px' }}
+                    className="flex-shrink-0 origin-center relative"
+                    style={{
+                        width: '1080px',
+                        height: '1920px',
+                        filter: isExporting ? 'none' : 'drop-shadow(0 80px 120px rgba(78,52,46,0.12))'
+                    }}
                 >
                     <StoryCoverView
                         cat={dummyCat}
@@ -522,29 +551,32 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                 </motion.div>
             </div>
 
-            {/* Luxury Tactile Button (Visible Premium) */}
-            <div className="absolute bottom-16 z-40">
-                <motion.button
-                    initial={{ y: 24, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.8, duration: 0.6 }}
-                    onClick={handleShare}
-                    disabled={isSharing}
-                    className="group bg-[#4E342E]/95 hover:bg-[#4E342E] backdrop-blur-xl border border-white/20 px-12 h-18 rounded-full shadow-[0_40px_100px_rgba(0,0,0,0.8)] active:scale-[0.96] transition-all flex items-center gap-6 disabled:opacity-30 border-t-white/20 border-b-black/40"
-                >
-                    {isSharing ? (
-                        <Loader2 className="w-6 h-6 animate-spin text-brand-peach" />
-                    ) : (
-                        <div className="relative">
-                            <Share2 className="w-5 h-5 text-brand-peach group-hover:scale-110 transition-transform relative z-10" />
-                            <div className="absolute inset-0 bg-brand-peach/40 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                    )}
-                    <span className="text-[15px] font-black tracking-[0.3em] text-white/95 group-hover:text-white transition-colors uppercase font-sans">
-                        {isSharing ? "Processing..." : "Save & Share"}
-                    </span>
-                </motion.button>
-            </div>
+            {/* Ghost Tactile Button: Floating Corner (Bottom-Right) */}
+            <AnimatePresence>
+                {showControls && !isExporting && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-10 right-10 z-50 pointer-events-none"
+                    >
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleShare(); }}
+                            disabled={isSharing || (weeklyPhotos.length > 0 && base64Photos.length === 0)}
+                            className="pointer-events-auto group bg-[#4E342E] hover:bg-[#5D4037] px-8 h-11 rounded-full shadow-[0_20px_40px_rgba(78,52,46,0.2)] active:scale-[0.96] transition-all flex items-center gap-4 disabled:opacity-30 border border-white/10"
+                        >
+                            {isSharing ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-brand-peach" />
+                            ) : (
+                                <Share2 className="w-4 h-4 text-brand-peach group-hover:scale-110 transition-transform" />
+                            )}
+                            <span className="text-[13px] font-black tracking-[0.2em] text-white/95 group-hover:text-white transition-colors uppercase font-sans">
+                                {isSharing ? "Processing..." : "Save & Share"}
+                            </span>
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>,
         document.body
     );
