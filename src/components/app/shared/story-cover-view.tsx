@@ -148,14 +148,14 @@ export const StoryCoverView = ({
     const frameStyle: React.CSSProperties = {
         width: '1080px',
         height: '1920px',
-        background: '#040404',
+        background: '#FEFDFB', // Museum Paper White
         borderRadius: '164px',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        boxShadow: '0 80px 200px rgba(78,52,46,0.15)',
-        border: '1px solid #080808',
+        boxShadow: '0 80px 200px rgba(78,52,46,0.12)',
+        border: '1px solid #E8E4E1', // Titanium Silk Border
         boxSizing: 'border-box',
         overflow: 'hidden'
     };
