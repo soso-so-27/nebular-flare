@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Klee_One } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
 
@@ -10,6 +10,12 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const kleeOne = Klee_One({
+  variable: "--font-klee",
+  weight: ["400"],
   subsets: ["latin"],
 });
 
@@ -62,7 +68,7 @@ export default function RootLayout({
         `}} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-hide`}
+        className={`${geistSans.variable} ${geistMono.variable} ${kleeOne.variable} antialiased scrollbar-hide`}
         style={{ backgroundColor: '#FAF8F5', margin: 0, padding: 0 }}
         suppressHydrationWarning
       >
