@@ -12,35 +12,31 @@ interface StoryCoverViewProps {
 
 /*
  * ─────────────────────────────────────────────────────
- * Scrapbook v4 — Reference Image Deep Study
+ * Scrapbook v5 — Visibility & Mobile Top-Bar Fix
  *
- * Lessons copied from the reference:
- *   ✅ LOVE removed (user request)
- *   ✅ Tape wider & more opaque (reference: ~100px, prominent)
- *   ✅ Standalone tape piece (reference: bottom-right, no photo)
- *   ✅ Thinner white border (14→10, reference has thin borders)
- *   ✅ Stars removed (reference has none)
- *   ✅ Hearts smaller but crisper (reference: small, high-contrast)
- *   ✅ Composition rebalanced for more asymmetry
- *   ✅ Slight warm tint on photo borders (aged print feel)
+ * Improvements:
+ *   ✅ Safe Area: Moved top slots from y=55/70 to y=200+ to clear UI buttons.
+ *   ✅ Global Dates: Dates moved from photo-child to canvas-child with high z-index.
+ *   ✅ Date Contrast: Added subtle border to labels to ensure visibility on light photos.
+ *   ✅ Spacing: Optimized 5-photo layout to reduce messy overlap zones.
  * ─────────────────────────────────────────────────────
  */
 
 const BORDER = 10;
 
+/* 
+ * Re-calculated SLOTS for 1080x1920 canvas.
+ * Starting Y shifted to 200 to clear Back/Share buttons (approx 180px in scaled view).
+ */
 const SLOTS = [
-    { x: 45, y: 75, w: 540, h: 685, rotate: -2.5, z: 2 },   // 0: Hero tall, top-left
-    { x: 520, y: 105, w: 505, h: 435, rotate: 3, z: 3 },   // 1: wide, top-right
-    { x: 75, y: 740, w: 530, h: 405, rotate: -1.5, z: 5 },   // 2: wide, middle-left
-    { x: 490, y: 680, w: 450, h: 525, rotate: 3, z: 4 },   // 3: tall, mid-right
-    { x: 90, y: 1185, w: 620, h: 395, rotate: 1.5, z: 6 },   // 4: panoramic, bottom
+    { x: 55, y: 200, w: 520, h: 660, rotate: -3, z: 2 },   // 0: Hero, mid-top-left
+    { x: 540, y: 220, w: 485, h: 420, rotate: 2.5, z: 3 },   // 1: wide, mid-top-right
+    { x: 85, y: 810, w: 510, h: 390, rotate: -1.5, z: 5 },   // 2: wide, middle-left
+    { x: 530, y: 720, w: 430, h: 510, rotate: 3, z: 4 },   // 3: tall, mid-right
+    { x: 120, y: 1210, w: 600, h: 380, rotate: 1.5, z: 6 },   // 4: panoramic, bottom
 ];
 
-/*
- * Tapes: wider, more opaque — matching reference's prominent masking tape.
- * Reference uses ~100-120px wide tape strips, clearly visible.
- * Also includes a standalone tape piece (no photo attached).
- */
+/* Tape positions adjusted for new photo coordinates */
 const TAPES: {
     slot?: number;
     absX?: number; absY?: number;
@@ -50,23 +46,22 @@ const TAPES: {
     rotate: number;
     z?: number;
 }[] = [
-        // Photo-attached tapes
-        { slot: 0, right: 25, top: -9, w: 105, h: 24, rotate: 10 },
-        { slot: 1, left: 22, top: -8, w: 95, h: 22, rotate: -8 },
-        { slot: 1, right: 28, top: -7, w: 88, h: 22, rotate: 5 },
-        { slot: 2, left: 200, top: -10, w: 110, h: 24, rotate: 1 },
-        { slot: 3, left: 18, top: -8, w: 92, h: 22, rotate: -5 },
-        { slot: 4, right: 50, top: -9, w: 100, h: 23, rotate: 8 },
-        // Standalone tape piece (reference: bottom-right corner, decorative)
-        { absX: 940, absY: 1540, w: 90, h: 22, rotate: -15, z: 15 },
+        { slot: 0, right: 25, top: -9, w: 110, h: 24, rotate: 10 },
+        { slot: 1, left: 22, top: -8, w: 100, h: 22, rotate: -8 },
+        { slot: 1, right: 35, top: -7, w: 95, h: 22, rotate: 5 },
+        { slot: 2, left: 210, top: -10, w: 115, h: 24, rotate: 1 },
+        { slot: 3, left: 20, top: -8, w: 98, h: 22, rotate: -5 },
+        { slot: 4, right: 60, top: -9, w: 105, h: 23, rotate: 8 },
+        { absX: 950, absY: 1560, w: 95, h: 24, rotate: -15, z: 15 },
     ];
 
 const ACCENT = {
     heart: "#D65D4C",
     arrow: "#6B584D",
     tape: "rgba(232,226,216,0.72)",
-    dateBg: "rgba(255,255,255,0.78)",
-    dateText: "rgba(60,48,38,0.6)",
+    dateBg: "rgba(255,255,255,0.9)",
+    dateText: "rgba(60,48,38,0.7)",
+    dateBorder: "rgba(60,48,38,0.1)",
 };
 
 const KLEE = "var(--font-klee), 'Hiragino Mincho ProN', 'Yu Mincho', serif";
@@ -74,10 +69,7 @@ const KLEE = "var(--font-klee), 'Hiragino Mincho ProN', 'Yu Mincho', serif";
 function formatPhotoDate(dateStr: string): string {
     try {
         const d = new Date(dateStr);
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
-        const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
-        return `${month}/${day} ${weekday}`;
+        return `${d.getMonth() + 1}/${d.getDate()} ${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()]}`;
     } catch {
         return "";
     }
@@ -103,12 +95,11 @@ export const StoryCoverView = ({
                 background: "#F4F1EC",
             }}
         >
-            {/* ── Subtle ambient ── */}
             <div
                 style={{
                     position: "absolute",
                     inset: 0,
-                    opacity: 0.25,
+                    opacity: 0.2,
                     backgroundImage: `
                         radial-gradient(ellipse at 20% 25%, rgba(200,175,150,0.1) 0%, transparent 50%),
                         radial-gradient(ellipse at 80% 70%, rgba(190,165,140,0.07) 0%, transparent 50%)
@@ -120,10 +111,9 @@ export const StoryCoverView = ({
             {/* ── Photos ── */}
             {SLOTS.map((slot, i) => {
                 const photo = displayPhotos[i];
-                const dateLabel = photo ? formatPhotoDate(photo.date) : "";
                 return (
                     <div
-                        key={i}
+                        key={`photo-${i}`}
                         style={{
                             position: "absolute",
                             left: slot.x,
@@ -133,45 +123,21 @@ export const StoryCoverView = ({
                             transform: `rotate(${slot.rotate}deg)`,
                             zIndex: slot.z,
                             padding: BORDER,
-                            /* Slightly warm white — aged print feel */
                             background: "#FDFCFA",
                             boxShadow: "0 5px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
                         }}
                     >
                         {photo ? (
-                            <>
-                                <img
-                                    src={photo.url}
-                                    alt=""
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                        display: "block",
-                                    }}
-                                />
-                                {dateLabel && (
-                                    <div
-                                        style={{
-                                            position: "absolute",
-                                            bottom: BORDER + 10,
-                                            right: BORDER + 10,
-                                            background: ACCENT.dateBg,
-                                            backdropFilter: "blur(8px)",
-                                            padding: "4px 12px",
-                                            borderRadius: 7,
-                                            fontSize: 22,
-                                            fontFamily: KLEE,
-                                            fontWeight: 400,
-                                            color: ACCENT.dateText,
-                                            letterSpacing: "0.03em",
-                                            lineHeight: 1.3,
-                                        }}
-                                    >
-                                        {dateLabel}
-                                    </div>
-                                )}
-                            </>
+                            <img
+                                src={photo.url}
+                                alt=""
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    display: "block",
+                                }}
+                            />
                         ) : (
                             <div
                                 style={{
@@ -186,7 +152,60 @@ export const StoryCoverView = ({
                 );
             })}
 
-            {/* ── Tapes — wider, more opaque (matching reference) ── */}
+            {/* ── Global Date Labels (Higher Z-Index to prevent clipping) ── */}
+            {SLOTS.map((slot, i) => {
+                const photo = displayPhotos[i];
+                if (!photo) return null;
+                const label = formatPhotoDate(photo.date);
+
+                /*
+                 * Position date relative to the photo but at canvas level.
+                 * Calculation: slot.x/y + size - constant offset.
+                 * This keeps it "pinned" to the photo visually but prevents overlap clipping.
+                 */
+                const offsetX = slot.w - BORDER - 20;
+                const offsetY = slot.h - BORDER - 20;
+
+                return (
+                    <div
+                        key={`date-${i}`}
+                        style={{
+                            position: "absolute",
+                            // Using transform to handle both position and the photo's rotation
+                            left: slot.x,
+                            top: slot.y,
+                            width: slot.w,
+                            height: slot.h,
+                            transform: `rotate(${slot.rotate}deg)`,
+                            pointerEvents: "none",
+                            // Keep it above the photo it belongs to, 
+                            // but below OTHER decorations if needed.
+                            zIndex: slot.z + 1,
+                        }}
+                    >
+                        <div
+                            style={{
+                                position: "absolute",
+                                bottom: BORDER + 10,
+                                right: BORDER + 10,
+                                background: ACCENT.dateBg,
+                                border: `1px solid ${ACCENT.dateBorder}`,
+                                backdropFilter: "blur(4px)",
+                                padding: "4px 14px",
+                                borderRadius: 8,
+                                fontSize: 24,
+                                fontFamily: KLEE,
+                                color: ACCENT.dateText,
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                            }}
+                        >
+                            {label}
+                        </div>
+                    </div>
+                );
+            })}
+
+            {/* ── Tapes ── */}
             {TAPES.map((tape, i) => {
                 const css: React.CSSProperties = {
                     position: "absolute",
@@ -207,7 +226,6 @@ export const StoryCoverView = ({
                     if (tape.bottom !== undefined)
                         css.top = slot.y + slot.h - tape.bottom - tape.h;
                 } else {
-                    // Standalone tape
                     css.left = tape.absX;
                     css.top = tape.absY;
                     css.transform = `rotate(${tape.rotate}deg)`;
@@ -216,73 +234,39 @@ export const StoryCoverView = ({
                 return <div key={`t-${i}`} style={css} />;
             })}
 
-            {/* ── Hearts — small, crisp, high contrast (like reference) ── */}
-            <div style={{
-                position: "absolute", left: 38, top: 700,
-                fontSize: 40, color: ACCENT.heart,
-                transform: "rotate(-15deg)", zIndex: 30, lineHeight: 1,
-            }}>
+            {/* ── Doodles ── */}
+            <div style={{ position: "absolute", left: 38, top: 785, fontSize: 44, color: ACCENT.heart, transform: "rotate(-15deg)", zIndex: 30, lineHeight: 1 }}>
                 ♥
             </div>
-            <div style={{
-                position: "absolute", left: 65, top: 745,
-                fontSize: 30, color: ACCENT.heart,
-                transform: "rotate(8deg)", zIndex: 30, lineHeight: 1,
-            }}>
+            <div style={{ position: "absolute", left: 70, top: 835, fontSize: 32, color: ACCENT.heart, transform: "rotate(8deg)", zIndex: 30, lineHeight: 1 }}>
                 ♡
             </div>
 
-            {/* ── Paw prints ── */}
-            <div style={{
-                position: "absolute", left: 945, top: 1145,
-                fontSize: 36, transform: "rotate(15deg)",
-                zIndex: 30, opacity: 0.4,
-            }}>
-                🐾
-            </div>
-            <div style={{
-                position: "absolute", left: 900, top: 1200,
-                fontSize: 24, transform: "rotate(-10deg)",
-                zIndex: 30, opacity: 0.25,
-            }}>
+            <div style={{ position: "absolute", left: 955, top: 1160, fontSize: 38, transform: "rotate(15deg)", zIndex: 30, opacity: 0.4 }}>
                 🐾
             </div>
 
-            {/* ── Curved arrow (hand-drawn, like reference) ── */}
             <svg
                 style={{
                     position: "absolute",
-                    left: 310, top: 1155,
-                    width: 85, height: 60,
+                    left: 320, top: 1180,
+                    width: 90, height: 65,
                     zIndex: 30,
-                    transform: "rotate(14deg)",
-                    opacity: 0.4,
+                    transform: "rotate(12deg)",
+                    opacity: 0.45,
                 }}
-                viewBox="0 0 85 60"
+                viewBox="0 0 90 65"
                 fill="none"
             >
-                <path
-                    d="M8 45 C20 15, 50 8, 68 32"
-                    stroke={ACCENT.arrow}
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    fill="none"
-                />
-                <path
-                    d="M60 26 L70 33 L60 38"
-                    stroke={ACCENT.arrow}
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                />
+                <path d="M8 50 C25 20, 55 12, 75 35" stroke={ACCENT.arrow} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M66 28 L78 36 L66 43" stroke={ACCENT.arrow} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
 
             {/* ── Caption ── */}
             <div
                 style={{
                     position: "absolute",
-                    left: 80, right: 80, top: 1640,
+                    left: 80, right: 80, top: 1650,
                     zIndex: 30,
                 }}
             >
@@ -300,13 +284,12 @@ export const StoryCoverView = ({
                         WebkitBoxOrient: "vertical" as any,
                     }}
                 >
-                    {aiCaption ||
-                        "一週間の断片。静かな時間も、やんちゃな瞬間も。"}
+                    {aiCaption || "一週間の断片。静かな時間も、やんちゃな瞬間も。"}
                 </p>
                 <span
                     style={{
                         display: "block",
-                        marginTop: 14,
+                        marginTop: 16,
                         fontSize: 19,
                         fontWeight: 400,
                         fontFamily: KLEE,

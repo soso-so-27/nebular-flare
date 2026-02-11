@@ -383,6 +383,9 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     overflow: 'hidden',
+                    /* Ensure preview doesn't collide with absolute top bar buttons */
+                    paddingTop: 'calc(80px + env(safe-area-inset-top, 0px))',
+                    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
                 }}
             >
                 {/* Hidden export canvas (1:1 pixel) */}
