@@ -158,45 +158,30 @@ export const StoryCoverView = ({
                 if (!photo) return null;
                 const label = formatPhotoDate(photo.date);
 
-                /*
-                 * Position date relative to the photo but at canvas level.
-                 * Calculation: slot.x/y + size - constant offset.
-                 * This keeps it "pinned" to the photo visually but prevents overlap clipping.
-                 */
-                const offsetX = slot.w - BORDER - 20;
-                const offsetY = slot.h - BORDER - 20;
-
                 return (
                     <div
                         key={`date-${i}`}
                         style={{
                             position: "absolute",
-                            // Using transform to handle both position and the photo's rotation
                             left: slot.x,
                             top: slot.y,
                             width: slot.w,
                             height: slot.h,
                             transform: `rotate(${slot.rotate}deg)`,
                             pointerEvents: "none",
-                            // Keep it above the photo it belongs to, 
-                            // but below OTHER decorations if needed.
                             zIndex: slot.z + 1,
                         }}
                     >
                         <div
                             style={{
                                 position: "absolute",
-                                bottom: BORDER + 10,
-                                right: BORDER + 10,
-                                background: ACCENT.dateBg,
-                                border: `1px solid ${ACCENT.dateBorder}`,
-                                backdropFilter: "blur(4px)",
-                                padding: "4px 14px",
-                                borderRadius: 8,
-                                fontSize: 24,
+                                bottom: BORDER + 1,
+                                left: BORDER + 10,
+                                fontSize: 20,
                                 fontFamily: KLEE,
-                                color: ACCENT.dateText,
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                                color: "rgba(60,48,38,0.45)",
+                                letterSpacing: "0.02em",
+                                fontWeight: 400,
                             }}
                         >
                             {label}

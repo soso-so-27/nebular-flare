@@ -18,6 +18,7 @@ export function NotificationSettings() {
                 setSwReady(true);
             }).catch((err) => {
                 notificationLogger.error('Service Worker failed:', err);
+                setSwReady(true); // Recovery
             });
         } else {
             setSwReady(true);
@@ -35,7 +36,7 @@ export function NotificationSettings() {
                 });
             }
         }
-    }, []);
+    }, [saveToken]);
 
     const handleEnable = async () => {
         setLoading(true);
@@ -66,8 +67,6 @@ export function NotificationSettings() {
         updatePreference(key, !preferences[key]);
     };
 
-    // Nyaruhodo Theme Colors - ONLY core palette
-    // Nyaruhodo Theme Colors - ONLY core palette
     const colors = {
         bg: 'bg-background',
         text: 'text-foreground',
@@ -75,15 +74,92 @@ export function NotificationSettings() {
         cardBg: 'bg-card',
         cardBorder: 'border-border',
         toggleOff: 'bg-slate-200 dark:bg-slate-700',
-        // Core accent colors only
         peach: { bg: 'bg-brand-peach/20', text: 'text-brand-peach', highlight: 'bg-brand-peach' },
         sage: { bg: 'bg-brand-sage/20', text: 'text-brand-sage', highlight: 'bg-brand-sage' },
     };
 
+    const DiagnosticTools = () => (
+        <div className="pt-4 border-t border-slate-100 space-y-3 mt-4">
+            <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">デバッグ診断ツール</h5>
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    onClick={async () => {
+                        try {
+                            const id = toast.loading('サーバーと通信中...');
+                            const { createClient } = await import('@/lib/supabase');
+                            const supabase = createClient();
+                            const { data: { user } } = await supabase.auth.getUser();
+                            const { data, error } = await supabase.functions.invoke('push-notification', {
+                                body: { type: 'PING', record: { created_by: user?.id } }
+                            });
+                            toast.dismiss(id);
+                            if (error) throw error;
+                            const msg = `疎通成功: ${data?.status || 'OK'}`;
+                            const detail = data?.active_tokens ? ` (有効トークン数: ${data.active_tokens})` : '';
+                            toast.success(msg + detail, {
+                                description: data?.note
+                            });
+                        } catch (e: any) {
+                            toast.dismiss();
+                            toast.error(`接続失敗: ${e.message || 'Unknown'}`);
+                        }
+                    }}
+                    className={`py-2 px-3 ${colors.bg} ${colors.subText} rounded-xl text-[10px] font-bold border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2`}
+                >
+                    <span>サーバー疎通</span>
+                </button>
+
+                <button
+                    onClick={async () => {
+                        try {
+                            const id = toast.loading('テスト通知を送信中...');
+                            const { createClient } = await import('@/lib/supabase');
+                            const supabase = createClient();
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (!user) throw new Error('ユーザーが見つかりません');
+
+                            const { error, data } = await supabase.functions.invoke('push-notification', {
+                                body: { type: 'TEST', record: { created_by: user.id } }
+                            });
+
+                            if (error) {
+                                let msg = error.message;
+                                try {
+                                    const response = (error as any).context;
+                                    if (response && response.text) {
+                                        const text = await response.text();
+                                        const json = JSON.parse(text);
+                                        msg = json.error || json.message || text;
+                                    }
+                                } catch (err) { }
+                                throw new Error(msg);
+                            }
+                            if (data && data.success === false) throw new Error(data.message || '送信失敗');
+                            toast.dismiss(id);
+                            toast.success('送信成功！');
+                        } catch (e: any) {
+                            toast.dismiss();
+                            toast.error(`エラー: ${e.message?.slice(0, 50)}`);
+                        }
+                    }}
+                    className={`py-2 px-3 ${colors.sage.bg} ${colors.sage.text} rounded-xl text-[10px] font-bold border border-brand-sage/20 hover:bg-brand-sage/10 transition-colors flex items-center justify-center gap-2`}
+                >
+                    <Bell className="w-3 h-3" />
+                    <span>通知テスト</span>
+                </button>
+            </div>
+            <button
+                onClick={() => setPermission('granted')}
+                className="w-full py-1 text-[9px] text-slate-300 hover:text-slate-500 transition-colors"
+            >
+                [開発用] 強制的に設定画面へ進む
+            </button>
+        </div>
+    );
+
     if (permission === 'granted') {
         return (
             <div className="space-y-4">
-                {/* Status Card - Sage (success state) */}
                 <div className={`p-4 ${colors.sage.bg} rounded-2xl border border-white/50 flex items-center justify-between`}>
                     <div className="flex items-center gap-3">
                         <div className={`p-2 bg-white rounded-full ${colors.sage.text} shadow-sm`}>
@@ -96,17 +172,14 @@ export function NotificationSettings() {
                     </div>
                 </div>
 
-                {/* Settings Toggles */}
                 {prefsLoading ? (
                     <div className={`p-12 text-center ${colors.subText}`}>
                         <Loader2 className="w-6 h-6 animate-spin mx-auto opacity-50" />
                     </div>
                 ) : (
-                    <div className={`p-5 ${colors.cardBg} backdrop-blur-md rounded-3xl border ${colors.cardBorder} shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-6`}>
+                    <div className={`p-5 ${colors.cardBg} backdrop-blur-md rounded-3xl border ${colors.cardBorder} shadow-sm space-y-6`}>
                         <h4 className={`text-xs font-bold ${colors.subText} uppercase tracking-wider ml-1`}>受け取る通知</h4>
-
                         <div className="space-y-5">
-                            {/* Physical Condition / Notice */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
@@ -125,7 +198,6 @@ export function NotificationSettings() {
                                 </button>
                             </div>
 
-                            {/* Today's Photo */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
@@ -144,7 +216,6 @@ export function NotificationSettings() {
                                 </button>
                             </div>
 
-                            {/* Inventory Alert */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
@@ -163,7 +234,6 @@ export function NotificationSettings() {
                                 </button>
                             </div>
 
-                            {/* Care Reminder */}
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-start gap-4">
                                     <div className={`mt-0.5 p-2 ${colors.peach.bg} rounded-xl ${colors.peach.text}`}>
@@ -184,7 +254,7 @@ export function NotificationSettings() {
                         </div>
 
                         <div className={`pt-4 border-t ${colors.cardBorder}`}>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <span className={`text-sm font-bold ${colors.text}`}>通知時間</span>
                                     <p className={`text-xs ${colors.subText}`}>毎日この時間にお知らせ</p>
@@ -199,38 +269,7 @@ export function NotificationSettings() {
                                     <option value={20}>夜 20:00</option>
                                 </select>
                             </div>
-
-                            {/* Test Button */}
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        toast.loading('テスト通知を送信中...');
-                                        const { createClient } = await import('@/lib/supabase');
-                                        const supabase = createClient();
-
-                                        const { data: { user } } = await supabase.auth.getUser();
-                                        if (!user) throw new Error('ユーザーが見つかりません');
-
-                                        const { error } = await supabase.functions.invoke('push-notification', {
-                                            body: {
-                                                type: 'TEST',
-                                                record: { created_by: user.id } // Simulate record
-                                            }
-                                        });
-
-                                        if (error) throw error;
-                                        toast.dismiss();
-                                        toast.success('送信しました！通知が届くか確認してください');
-                                    } catch (e: any) {
-                                        toast.dismiss();
-                                        toast.error('テスト送信に失敗しました: ' + (e.message || e));
-                                    }
-                                }}
-                                className={`w-full py-2 ${colors.bg} ${colors.subText} rounded-xl text-xs font-bold border ${colors.cardBorder} hover:bg-stone-100 transition-colors flex items-center justify-center gap-2`}
-                            >
-                                <Bell className="w-3 h-3" />
-                                <span>テスト通知を送る</span>
-                            </button>
+                            <DiagnosticTools />
                         </div>
                     </div>
                 )}
@@ -240,26 +279,28 @@ export function NotificationSettings() {
 
     if (permission === 'denied') {
         return (
-            <div className="space-y-4">
-                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex items-start gap-3">
-                    <BellOff className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                    <div>
-                        <h3 className="font-bold text-red-900 text-sm mb-2">通知が許可されていません</h3>
-                        <p className="text-xs text-red-700 mb-3 leading-relaxed">
-                            ブラウザまたはデバイスの設定で通知がブロックされています。
-                        </p>
-                        <div className="text-xs bg-white/60 p-3 rounded-lg border border-red-200/50 space-y-3 text-red-900">
-                            <p>設定から通知を許可してください。</p>
+            <div className="space-y-4 text-center">
+                <div className={`p-6 ${colors.cardBg} rounded-3xl border ${colors.cardBorder} space-y-4`}>
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="p-4 bg-red-50 rounded-full text-red-500">
+                            <BellOff className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-red-900 text-sm">通知が許可されていません</h3>
+                            <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                                ブラウザの設定で通知がブロックされています。
+                            </p>
                         </div>
                     </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className={`w-full py-3 ${colors.cardBg} ${colors.text} rounded-xl text-sm font-bold border ${colors.cardBorder} flex items-center justify-center gap-2`}
+                    >
+                        <Loader2 className="w-4 h-4" />
+                        <span>再読み込み</span>
+                    </button>
+                    <DiagnosticTools />
                 </div>
-                <button
-                    onClick={() => window.location.reload()}
-                    className={`w-full py-3 ${colors.cardBg} ${colors.text} rounded-xl text-sm font-bold border ${colors.cardBorder} flex items-center justify-center gap-2`}
-                >
-                    <Loader2 className="w-4 h-4" />
-                    <span>再読み込み</span>
-                </button>
             </div>
         );
     }
@@ -277,12 +318,13 @@ export function NotificationSettings() {
             </div>
             <button
                 onClick={handleEnable}
-                disabled={loading || !swReady}
+                disabled={loading}
                 className={`w-full py-3 ${colors.sage.highlight} text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-sage/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
             >
-                {(loading || !swReady) && <Loader2 className="w-4 h-4 animate-spin" />}
-                {!swReady ? '準備中...' : '通知をオンにする'}
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {!swReady && !loading ? '通知を準備中...' : (loading ? '処理中...' : '通知をオンにする')}
             </button>
+            <DiagnosticTools />
         </div>
     );
 }

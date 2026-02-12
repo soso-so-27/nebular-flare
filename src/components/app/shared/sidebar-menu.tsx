@@ -3,7 +3,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
     X, Bell, Settings, ChevronRight, Check,
     Heart, Cat, ShoppingCart, Calendar, Activity, Image as ImageIcon,
-    ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User, ArrowUpRight
+    ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User, ArrowUpRight, BookOpen
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -248,6 +248,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     title="アルバム"
                     subtext="大切な思い出の写真を振り返る"
                     onClick={() => { onNavigate('gallery'); onClose(); }}
+                />
+
+                <MenuItem
+                    icon={BookOpen}
+                    title="図鑑"
+                    subtext="カテゴリで写真を探す"
+                    onClick={() => { onNavigate('zukan'); onClose(); }}
                 />
 
                 <MenuItem

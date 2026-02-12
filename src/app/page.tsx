@@ -32,6 +32,7 @@ import { BackdropSurface } from "@/components/ui/backdrop-surface";
 // Lazy load heavy components
 const CatScreen = dynamic(() => import("@/components/app/screens/cat-screen").then(m => ({ default: m.CatScreen })), { ssr: false });
 const GalleryScreen = dynamic(() => import("@/components/app/screens/gallery-screen").then(m => ({ default: m.GalleryScreen })), { ssr: false });
+const ZukanScreen = dynamic(() => import("@/components/app/screens/zukan-screen").then(m => ({ default: m.ZukanScreen })), { ssr: false });
 
 const LoginScreen = dynamic(() => import("@/components/app/screens/login-screen").then(m => ({ default: m.LoginScreen })), { ssr: false });
 const OnboardingScreen = dynamic(() => import("@/components/app/screens/onboarding-screen").then(m => ({ default: m.OnboardingScreen })), { ssr: false });
@@ -215,6 +216,8 @@ function AppContent() {
     } else if (section === 'gallery') {
       setGalleryCatId(null); // Reset filter when opening from sidebar
       setTab("gallery");
+    } else if (section === 'zukan') {
+      setTab("zukan");
     } else if (item) {
       // Quick action for specific item
       handleQuickAction(section, item);
@@ -440,6 +443,21 @@ function AppContent() {
                       setTab("home");
                     }}
                     initialCatId={galleryCatId}
+                  />
+                </motion.div>
+              )}
+
+              {tab === "zukan" && (
+                <motion.div
+                  key="zukan-screen"
+                  className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
+                  initial={{ opacity: 0, y: "100%" }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: "100%" }}
+                  transition={{ duration: 0.3, ease: "circOut" }}
+                >
+                  <ZukanScreen
+                    onClose={() => setTab("home")}
                   />
                 </motion.div>
               )}

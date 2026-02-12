@@ -245,6 +245,10 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                 quality: 0.95,
                 pixelRatio: 2,
                 cacheBust: true,
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left',
+                }
             });
             if (!dataUrl || dataUrl === 'data:,' || dataUrl.length < 1000) {
                 throw new Error("Generation failed");
@@ -348,7 +352,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                     {/* Share — icon only */}
                     <button
                         onClick={handleShare}
-                        disabled={isSharing || (weeklyPhotos.length > 0 && base64Photos.length === 0) || isAiLoading}
+                        disabled={isSharing || isAiLoading || (weeklyPhotos.length > 0 && base64Photos.length < weeklyPhotos.length)}
                         style={{
                             pointerEvents: 'auto',
                             width: 44,
@@ -392,7 +396,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
                 <div style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden' }}>
                     <div ref={exportRef} style={{ width: 1080, height: 1920 }}>
                         <StoryCoverView
-                            photos={base64Photos.length > 0 ? base64Photos : weeklyPhotos}
+                            photos={base64Photos}
                             aiCaption={aiCaption}
                             dateRange={dateRangeDisplay}
                             ambientColor={ambientColor}

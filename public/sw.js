@@ -3,7 +3,7 @@
 // NOTE: This file is generated at build time. Do not edit directly.
 
 // Cache versioning - Build hash will be injected
-const CACHE_VERSION = 'df4b14ac';
+const CACHE_VERSION = 'f7ad8fc3';
 const STATIC_CACHE = `catup-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `catup-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `catup-api-${CACHE_VERSION}`;
@@ -30,10 +30,17 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log('[sw.js] onBackgroundMessage received:', JSON.stringify(payload));
 
+    // If the payload has a 'notification' property, the browser has already shown it (or will).
+    // We should NOT show it again to avoid duplicates.
+    if (payload.notification) {
+        console.log('[sw.js] Notification payload present, skipping manual display to prevent duplicate.');
+        return;
+    }
+
     // Read from data payload (data-only message from Edge Function)
     const data = payload.data || {};
-    const notificationTitle = data.title || payload.notification?.title || 'CatUp';
-    const notificationBody = data.body || payload.notification?.body || '';
+    const notificationTitle = data.title || 'CatUp';
+    const notificationBody = data.body || '';
     const notificationIcon = data.icon || '/icon.svg';
 
     const notificationOptions = {

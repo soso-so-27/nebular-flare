@@ -336,6 +336,17 @@ export function ImmersiveHome({
                         whileTap={{ scale: 0.92 }}
                         onClick={() => {
                             triggerFeedback('light');
+                            onNavigate?.('zukan');
+                        }}
+                        className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"
+                        title="図鑑を開く"
+                    >
+                        <Library className="w-6 h-6 text-white" strokeWidth={1.5} />
+                    </motion.button>
+                    <motion.button
+                        whileTap={{ scale: 0.92 }}
+                        onClick={() => {
+                            triggerFeedback('light');
                             onOpenSidebar?.('care');
                         }}
                         className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"

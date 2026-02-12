@@ -26,6 +26,7 @@ import {
     Camera,
     Heart,
     FileText,
+    Library,
     X
 } from "lucide-react";
 import { WeeklyGrid } from "./weekly-grid";
@@ -283,12 +284,16 @@ export function WeeklyHome({
             ? sortedPhotos[1].url
             : (sortedPhotos[0]?.url);
 
+        // Vol. 25: Calculate Weekly Progress (Unique Days with Photos)
+        const uniqueDaysCount = new Set(thisWeeksPhotos.map(p => format(new Date(p.date), 'yyyy-MM-dd'))).size;
+
         items.push({
             id: 'weekly-album-card',
             type: 'album',
             title: '今週のアルバム',
             content: thisWeeksPhotos.length === 0 ? '一週間の思い出をまとめましょう' : undefined,
             subContent: thisWeeksPhotos.length > 0 ? `${thisWeeksPhotos.length}枚の写真` : undefined,
+            progress: { current: uniqueDaysCount, total: 7 }, // Vol. 25
             imageUrl: albumImage,
             onClick: () => setShowWeeklyAlbum(true)
         });
@@ -503,7 +508,14 @@ export function WeeklyHome({
                     </div>
 
                     {/* Right: Notification Toggle */}
-                    <div className="absolute right-4 flex items-center">
+                    <div className="absolute right-4 flex items-center gap-2">
+                        <button
+                            onClick={() => onNavigate?.('zukan')}
+                            className="p-1.5 rounded-full hover:bg-[#4E342E]/10"
+                            title="図鑑を開く"
+                        >
+                            <Library className="w-5 h-5 text-[#4E342E]/70" />
+                        </button>
                         <button
                             onClick={() => {
                                 setIsNotificationSheetOpen(true);

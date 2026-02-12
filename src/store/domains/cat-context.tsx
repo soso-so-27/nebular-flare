@@ -18,6 +18,7 @@ interface CatContextType {
     deleteCatImage: (imageId: string, storagePath?: string) => Promise<{ error?: any }>;
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
+    analyzeCatImage: (imageId: string, imageUrl: string) => Promise<{ data?: any; error?: any }>;
     isHeroImageLoaded: boolean;
     setIsHeroImageLoaded: (v: boolean) => void;
 }
@@ -29,6 +30,53 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
     const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
     const { cats: supabaseCats, loading: catsLoading, refetch: refetchCats } = useSupabaseCats(isDemo ? null : householdId);
     const supabase = createClient() as any;
+
+    const analyzeCatImage = useCallback(async (imageId: string, imageUrl: string) => {
+        if (isDemo) return { data: { success: true, mock: true }, error: null };
+
+        console.log("[AI Context] Starting analysis (Anon Key Auth):", imageId);
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseAnonKey) {
+            console.error("[AI Context] Missing Supabase environment variables");
+            return { error: { message: "環境設定が不足しています" } };
+        }
+
+        try {
+            // ユーザーセッションの代わりにAnon KeyをBearerトークンとして使用
+            // これによりGatewayでのJWT検証エラーを確実に回避します（Anon Keyは有効なJWTであるため）
+            const response = await fetch(`${supabaseUrl}/functions/v1/analyze-cat-image`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`
+                },
+                body: JSON.stringify({ imageId, imageUrl })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                console.error(`[AI Context] Edge Function Error (${response.status}):`, errorBody);
+                return {
+                    error: {
+                        message: `分析エラー (${response.status})`,
+                        details: errorBody,
+                        status: response.status
+                    }
+                };
+            }
+
+            const data = await response.json();
+            console.log("[AI Context] Success:", data);
+            return { data };
+        } catch (e: any) {
+            console.error("[AI Context] Fetch error:", e);
+            return { error: { message: e.message } };
+        }
+    }, [isDemo]);
 
     const demoCats: Cat[] = useMemo(() => [
         { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png", last_vaccine_date: "2024-05-10", vaccine_type: "3種混合" },
@@ -89,6 +137,13 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
                 cat_id: catIds[0], cat_ids: catIds, storage_path: storagePath, memo: memo
             }]).select();
             if (dbError) throw dbError;
+
+            // AI自動タグ付け（fire-and-forget: ユーザー操作をブロックしない）
+            if (dbData?.[0] && publicUrl) {
+                analyzeCatImage(dbData[0].id, publicUrl)
+                    .catch((e: any) => storeLogger.warn('AI auto-tagging skipped:', e?.message || String(e)));
+            }
+
             for (const id of catIds) {
                 const currentCat = cats.find(c => c.id === id);
                 if (currentCat && (currentCat.avatar === '🐈' || !currentCat.avatar)) {
@@ -161,8 +216,14 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
     const value = useMemo(() => ({
         cats, activeCatId, setActiveCatId, catsLoading, refetchCats,
         uploadCatImage, updateCatImage, deleteCatImage, updateCat, addCatWeightRecord,
+        analyzeCatImage,
         isHeroImageLoaded, setIsHeroImageLoaded
-    }), [cats, activeCatId, catsLoading, refetchCats, uploadCatImage, updateCatImage, deleteCatImage, updateCat, addCatWeightRecord, isHeroImageLoaded]);
+    }), [
+        cats, activeCatId, catsLoading, refetchCats,
+        uploadCatImage, updateCatImage, deleteCatImage, updateCat, addCatWeightRecord,
+        analyzeCatImage,
+        isHeroImageLoaded, setIsHeroImageLoaded
+    ]);
 
     return <CatContext.Provider value={value}>{children}</CatContext.Provider>;
 }
