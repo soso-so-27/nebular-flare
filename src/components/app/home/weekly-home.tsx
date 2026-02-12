@@ -160,21 +160,86 @@ export function WeeklyHome({
             });
         });
 
-        // 3. Photos (from cats.images)
+        // 3. Photos & AI Insights (Tags)
+        const allTagsByCat: Record<string, Record<string, { count: number, latest: Date }>> = {};
+        const weeklyTagCounts: Record<string, { count: number, latest: Date }> = {};
+        const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+
         cats?.forEach(cat => {
+            allTagsByCat[cat.id] = {};
             cat.images?.forEach((img: any) => {
                 const timestamp = new Date(img.createdAt);
-                if (timestamp < threshold) return;
-                items.push({
-                    id: img.id,
-                    type: 'photo',
-                    title: `${cat.name}の新しい写真`,
-                    message: img.memo || "可愛い写真が届きました 💕",
-                    timestamp,
-                    isUnread: timestamp > lastViewedAt
-                });
+
+                // 3a. Normal Photo Notification
+                if (timestamp > threshold) {
+                    items.push({
+                        id: img.id,
+                        type: 'photo',
+                        title: `${cat.name}の新しい写真`,
+                        message: img.memo || "可愛い写真が届きました 💕",
+                        timestamp,
+                        isUnread: timestamp > lastViewedAt
+                    });
+                }
+
+                // 3b. Aggregate Tags for Insight
+                if (Array.isArray(img.tags)) {
+                    img.tags.forEach((tag: any) => {
+                        const name = typeof tag === 'string' ? tag : tag.name;
+                        if (!name) return;
+
+                        if (!allTagsByCat[cat.id][name]) {
+                            allTagsByCat[cat.id][name] = { count: 0, latest: timestamp };
+                        }
+                        allTagsByCat[cat.id][name].count++;
+                        if (timestamp > allTagsByCat[cat.id][name].latest) {
+                            allTagsByCat[cat.id][name].latest = timestamp;
+                        }
+
+                        if (timestamp > weekAgo) {
+                            if (!weeklyTagCounts[name]) {
+                                weeklyTagCounts[name] = { count: 0, latest: timestamp };
+                            }
+                            weeklyTagCounts[name].count++;
+                            if (timestamp > weeklyTagCounts[name].latest) {
+                                weeklyTagCounts[name].latest = timestamp;
+                            }
+                        }
+                    });
+                }
+            });
+
+            // 4. AIShelf Discovery: If a tag has many photos, notify about the "Shelf"
+            Object.entries(allTagsByCat[cat.id]).forEach(([tagName, data]) => {
+                if (data.count >= 3) { // 3枚以上で棚としての価値ありと判断
+                    items.push({
+                        id: `shelf-${cat.id}-${tagName}`,
+                        type: 'system',
+                        title: `図鑑に新しい棚ができました: ${tagName}`,
+                        message: `${cat.name}ちゃんの「${tagName}」が${data.count}枚集まりました！図鑑でまとめて見てみませんか？`,
+                        timestamp: data.latest,
+                        isUnread: data.latest > lastViewedAt,
+                        link: 'zukan'
+                    });
+                }
             });
         });
+
+        // 5. Weekly AI Summary: Highlight the most frequent tag this week
+        const topWeeklyTag = Object.entries(weeklyTagCounts)
+            .sort((a, b) => b[1].count - a[1].count)[0];
+
+        if (topWeeklyTag && topWeeklyTag[1].count >= 2) {
+            items.push({
+                id: 'weekly-ai-summary',
+                type: 'system',
+                title: '今週のトレンド ✨',
+                message: `今週は「${topWeeklyTag[0]}」の瞬間がたくさん記録されました。AIがハイライトをまとめています。`,
+                timestamp: topWeeklyTag[1].latest,
+                isUnread: topWeeklyTag[1].latest > lastViewedAt,
+                link: 'zukan'
+            });
+        }
 
         return items.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 30);
     }, [careLogs, incidents, cats, members, careTaskDefs]);
@@ -592,6 +657,12 @@ export function WeeklyHome({
                 isOpen={isNotificationSheetOpen}
                 onClose={() => setIsNotificationSheetOpen(false)}
                 notifications={realNotifications}
+                onSelectItem={(item) => {
+                    if (item.link === 'zukan' && onNavigate) {
+                        onNavigate('zukan');
+                        setIsNotificationSheetOpen(false);
+                    }
+                }}
             />
 
             {/* Specialized Views (Reused) */}

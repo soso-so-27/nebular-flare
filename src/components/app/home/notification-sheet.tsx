@@ -21,9 +21,10 @@ interface NotificationSheetProps {
     isOpen: boolean;
     onClose: () => void;
     notifications: NotificationItem[];
+    onSelectItem?: (item: NotificationItem) => void;
 }
 
-export function NotificationSheet({ isOpen, onClose, notifications }: NotificationSheetProps) {
+export function NotificationSheet({ isOpen, onClose, notifications, onSelectItem }: NotificationSheetProps) {
     const getIcon = (type: NotificationItem['type']) => {
         switch (type) {
             case 'care': return <Heart className="w-4 h-4 text-emerald-400" />;
@@ -84,6 +85,7 @@ export function NotificationSheet({ isOpen, onClose, notifications }: Notificati
                                 notifications.map((item) => (
                                     <button
                                         key={item.id}
+                                        onClick={() => onSelectItem?.(item)}
                                         className={cn(
                                             "w-full flex gap-4 p-4 rounded-2xl transition-all border text-left",
                                             item.isUnread
