@@ -265,6 +265,44 @@ const FeatureSection = ({
     </div>
 );
 
+const PainSection = () => (
+    <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDF8F1]">
+        <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16 md:mb-20 space-y-4">
+                <h2 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif">こんなお悩み、ありませんか？</h2>
+                <p className="text-[#4E342E]/60 text-base md:text-lg">愛猫との毎日はあっという間。だからこそ、後悔しない記録を。</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                {[
+                    {
+                        title: "思い出が埋もれる",
+                        desc: "写真はたくさんあるけれど、あの時の記憶がスマホの奥底に。AIが自動で整理し、いつでも出会えるようにします。",
+                        icon: Cloud
+                    },
+                    {
+                        title: "共有がバラバラ",
+                        desc: "LINEやSNSでは情報が流れてしまう。家族全員で一つの「命の記録」を共有できる、特別な場所を用意しました。",
+                        icon: Users
+                    },
+                    {
+                        title: "病院で説明できない",
+                        desc: "「昨日から様子が変」を具体的に伝えるのは難しい。日々の記録が、獣医さんへの確かなレポートに変わります。",
+                        icon: AlertCircle
+                    }
+                ].map((item, i) => (
+                    <div key={i} className="space-y-4 text-center md:text-left">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#E8B4A0] shadow-sm mx-auto md:mx-0">
+                            <item.icon className="w-6 h-6" />
+                        </div>
+                        <h4 className="text-xl font-bold text-[#4E342E] font-serif">{item.title}</h4>
+                        <p className="text-sm text-[#4E342E]/60 leading-relaxed">{item.desc}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </section>
+);
+
 const FeaturesTour = () => (
     <section className="py-24 md:py-40 px-6 md:px-12 bg-white space-y-32 md:space-y-48">
         <div className="max-w-6xl mx-auto">
