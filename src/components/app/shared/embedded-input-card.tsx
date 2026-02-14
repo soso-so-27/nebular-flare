@@ -261,11 +261,11 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
                             className={cn(
                                 "flex items-center h-10 gap-2 px-1 rounded-full transition-all duration-300 shrink-0",
                                 isSelected
-                                    ? "bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] border-black/[0.04]"
+                                    ? "bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] border-[1.5px] border-brand-peach/30"
                                     : "bg-black/[0.03] opacity-50 grayscale hover:opacity-100"
                             )}
                         >
-                            <div className="w-8 h-8 rounded-full overflow-hidden shadow-inner">
+                            <div className="w-8 h-8 rounded-full overflow-hidden shadow-inner ring-1 ring-black/5">
                                 {cat.avatar ? (
                                     <img src={getFullImageUrl(cat.avatar)} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
@@ -275,7 +275,7 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
                                 )}
                             </div>
                             {isSelected && (
-                                <span className="text-[14px] font-bold text-[#3a3a3c] pr-3 tracking-tight">
+                                <span className="text-[14px] font-extrabold text-[#1c1c1e] pr-3 tracking-tight">
                                     {cat.name}
                                 </span>
                             )}
@@ -418,106 +418,90 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
                 </div>
             )}
 
-            {/* 3. Master Controller (Compact on Mobile) */}
-            <div className="flex items-center justify-between gap-1 h-11 w-full overflow-hidden px-1">
-                {/* Left: Input Tools (Precision Circles) */}
-                <div className="flex items-center gap-1 h-full shrink-0">
+            {/* 3. Master Controller (Optimized For Mobile - 2 Rows) */}
+            <div className="flex flex-col gap-3.5 w-full px-1">
+                {/* Row 1: Action Tools (Labels for everyone) */}
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-10 h-10 rounded-full bg-white/95 shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#5c5c5f] active:scale-90 transition-all border border-black/[0.02]"
+                        className="flex-1 h-11 rounded-2xl bg-white shadow-sm border border-black/[0.04] flex items-center justify-center gap-2 text-[#3a3a3c] active:scale-95 transition-all"
                     >
-                        <Camera className="w-5 h-5 stroke-[1.8]" />
+                        <Camera className="w-5 h-5 stroke-[2] text-brand-beach" />
+                        <span className="text-[14px] font-bold">写真</span>
                     </button>
                     <button
                         onClick={() => setShowTags(prev => !prev)}
                         className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all border border-black/[0.02]",
-                            showTags ? "bg-[#1c1c1e] text-white" : "bg-white/95 text-[#5c5c5f]"
+                            "flex-1 h-11 rounded-2xl flex items-center justify-center gap-2 shadow-sm border border-black/[0.04] active:scale-95 transition-all",
+                            showTags ? "bg-[#1c1c1e] text-white" : "bg-white text-[#3a3a3c]"
                         )}
                     >
-                        <Tag className="w-5 h-5 stroke-[1.8]" />
+                        <Tag className={cn("w-5 h-5 stroke-[2]", showTags ? "text-white" : "text-brand-beach")} />
+                        <span className="text-[14px] font-bold">タグ</span>
                     </button>
                     <button
                         onClick={() => setShowHealthPanel(prev => !prev)}
                         className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center shadow-[0_2px_8_rgba(0,0,0,0.08)] active:scale-90 transition-all border border-black/[0.02]",
-                            showHealthPanel ? "bg-[#1c1c1e] text-white" : "bg-white/95 text-[#5c5c5f]"
+                            "flex-1 h-11 rounded-2xl flex items-center justify-center gap-2 shadow-sm border border-black/[0.04] active:scale-95 transition-all",
+                            showHealthPanel ? "bg-[#1c1c1e] text-white" : "bg-white text-[#3a3a3c]"
                         )}
                     >
-                        <Activity className="w-5 h-5 stroke-[1.8]" />
+                        <Activity className={cn("w-5 h-5 stroke-[2]", showHealthPanel ? "text-white" : "text-brand-beach")} />
+                        <span className="text-[14px] font-bold">体調</span>
                     </button>
                 </div>
 
-                {/* Right: Submission Helpers (Pills) */}
-                <div className="flex items-center gap-1 h-full flex-1 justify-end min-w-0">
-                    <button
-                        onClick={() => setIsConsult(prev => !prev)}
-                        className={cn(
-                            "h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 transition-all active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-black/[0.01] shrink",
-                            isConsult
-                                ? "bg-[#1c1c1e] text-white shadow-inner"
-                                : "bg-white/60 text-[#8e8e93]"
-                        )}
-                    >
-                        <MessageCircle className={cn("w-4 h-4", isConsult && "fill-current")} />
-                        <span className="text-[12px] sm:text-[13px] font-black tracking-tight whitespace-nowrap hidden min-[380px]:inline">相談</span>
-                    </button>
-
-                    <div className="relative h-10 flex items-center shrink">
-                        <input
-                            type="date"
-                            value={onsetAt}
-                            onChange={(e) => setOnsetAt(e.target.value)}
-                            max={new Date().toISOString().split('T')[0]}
+                {/* Row 2: Status & Submit */}
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <button
+                            onClick={() => setIsConsult(prev => !prev)}
                             className={cn(
-                                "h-full px-2 sm:px-3 rounded-full flex items-center gap-1 transition-all active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-black/[0.01] appearance-none",
-                                isHistorySelected
-                                    ? "bg-[#1c1c1e] text-white shadow-inner"
-                                    : "bg-white/60 text-[#8e8e93]"
+                                "h-11 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm border border-black/[0.02] min-w-[80px]",
+                                isConsult
+                                    ? "bg-[#1c1c1e] text-white"
+                                    : "bg-white/80 text-[#8e8e93]"
                             )}
-                            style={{
-                                fontFamily: 'inherit'
-                            }}
-                        />
-                        {/* Icon Overlay (Must be pointer-events-none to let input handle clicks) */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none gap-1 px-2 sm:px-3">
-                            <Calendar className={cn("w-4 h-4", isHistorySelected ? "text-white" : "text-[#8e8e93]")} />
-                            <span className={cn("text-[12px] sm:text-[13px] font-black tracking-tight tabular-nums whitespace-nowrap", isHistorySelected ? "text-white" : "text-[#8e8e93]")}>
-                                {isHistorySelected ? onsetAt.slice(5) : <span className="hidden min-[380px]:inline">今日</span>}
-                                {!isHistorySelected && <span className="min-[380px]:hidden">今</span>}
-                            </span>
+                        >
+                            <MessageCircle className={cn("w-4 h-4", isConsult && "fill-current text-white")} />
+                            <span className="text-[13px] font-bold">相談</span>
+                        </button>
+
+                        <div
+                            className={cn(
+                                "relative h-11 flex-[1.5] flex items-center min-w-0 rounded-xl transition-all active:scale-95 shadow-sm border border-black/[0.02] overflow-hidden",
+                                isHistorySelected
+                                    ? "bg-[#1c1c1e]"
+                                    : "bg-white/80"
+                            )}
+                        >
+                            {/* Visual Labels (Custom UI) */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none gap-2 px-4">
+                                <Calendar className={cn("w-4 h-4", isHistorySelected ? "text-white" : "text-[#8e8e93]")} />
+                                <span className={cn("text-[13px] font-bold tabular-nums whitespace-nowrap", isHistorySelected ? "text-white" : "text-[#8e8e93]")}>
+                                    {isHistorySelected ? onsetAt.slice(5) : "今日"}
+                                </span>
+                            </div>
+
+                            {/* Native Input (Hidden but clickable) */}
+                            <input
+                                type="date"
+                                value={onsetAt}
+                                onChange={(e) => setOnsetAt(e.target.value)}
+                                max={new Date().toISOString().split('T')[0]}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
                         </div>
-                        {/* HACK: Mask transparent color on the native input text so we show our custom span */}
-                        <style jsx>{`
-                            input[type="date"]::-webkit-calendar-picker-indicator {
-                                position: absolute;
-                                top: 0;
-                                left: 0;
-                                right: 0;
-                                bottom: 0;
-                                width: auto;
-                                height: auto;
-                                color: transparent;
-                                background: transparent;
-                            }
-                            input[type="date"]::-webkit-inner-spin-button,
-                            input[type="date"]::-webkit-clear-button {
-                                display: none;
-                            }
-                            input[type="date"] {
-                                color: transparent;
-                            }
-                        `}</style>
                     </div>
 
                     <button
                         onClick={handleSubmit}
                         disabled={!hasContent || loading}
                         className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center shadow-[0_6px_16px_rgba(0,0,0,0.15)] active:scale-90 transition-all ml-0.5 border border-black/[0.02] shrink-0",
+                            "w-12 h-11 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all border border-black/[0.03] shrink-0",
                             hasContent
-                                ? "bg-[#1c1c1e] text-white shadow-black/20"
-                                : "bg-white/20 text-gray-300 cursor-not-allowed"
+                                ? "bg-brand-peach text-white shadow-brand-peach/30"
+                                : "bg-white/40 text-gray-300 cursor-not-allowed"
                         )}
                     >
                         {loading ? (

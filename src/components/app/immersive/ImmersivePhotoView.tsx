@@ -137,7 +137,7 @@ export function ImmersivePhotoView({
                                 initial={{ y: -100, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: -100, opacity: 0 }}
-                                className="absolute top-0 inset-x-0 h-24 z-50 flex items-center justify-between px-6 pointer-events-none"
+                                className="absolute top-0 inset-x-0 z-50 flex items-center justify-between px-6 pointer-events-none pt-[env(safe-area-inset-top,1.5rem)]"
                             >
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -187,7 +187,7 @@ export function ImmersivePhotoView({
                                 exit={{ y: 100, opacity: 0 }}
                                 className="absolute bottom-0 inset-x-0 z-50 pointer-events-none"
                             >
-                                <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-32 pb-12 px-6 pointer-events-auto">
+                                <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-32 pb-12 px-6 pointer-events-auto pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
                                     <div className="max-w-3xl mx-auto space-y-4">
                                         <div className="flex items-end justify-between gap-6">
                                             <div className="flex flex-col gap-3 flex-1">

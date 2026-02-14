@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     format,
@@ -33,6 +33,7 @@ import { WeeklyGrid } from "./weekly-grid";
 import { DayDetailView } from "./day-detail-view";
 import { WeeklyFeedCarousel, FeedItem } from "./weekly-feed-carousel";
 import { NotificationSheet, NotificationItem } from "./notification-sheet";
+import { CaptureWorkflowSheet } from "../shared/capture-workflow-sheet";
 import { useCatContext, useIncidentContext, useCareContext, useCoreContext } from "@/store/app-store";
 import { DEFAULT_CARE_TASK_DEFS } from "@/lib/constants";
 import { getFullImageUrl } from "@/lib/utils";
@@ -95,6 +96,9 @@ export function WeeklyHome({
     const [safeAreaTop, setSafeAreaTop] = useState(0);
     const [safeAreaBottom, setSafeAreaBottom] = useState(0);
     const [isNotificationSheetOpen, setIsNotificationSheetOpen] = useState(false);
+    const [isCaptureWorkflowOpen, setIsCaptureWorkflowOpen] = useState(false);
+    const [initialPhotos, setInitialPhotos] = useState<File[]>([]);
+    const hiddenFileInputRef = useRef<HTMLInputElement>(null);
     const [lastViewedAt, setLastViewedAt] = useState<Date>(() => new Date(Date.now() - 3600000)); // Default to 1 hour ago for demo/init
     const { householdId } = useCoreContext();
     const { members } = useHouseholdMembers(householdId);
@@ -246,6 +250,17 @@ export function WeeklyHome({
 
     const hasUnread = useMemo(() => realNotifications.some(n => n.isUnread), [realNotifications]);
 
+    const handleTriggerCapture = useCallback(() => {
+        hiddenFileInputRef.current?.click();
+    }, []);
+
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setInitialPhotos(Array.from(e.target.files));
+            setIsCaptureWorkflowOpen(true);
+        }
+    }, []);
+
     // Generate Smart Feed Items
     const feedItems = useMemo(() => {
         const items: FeedItem[] = [];
@@ -277,7 +292,7 @@ export function WeeklyHome({
             content: topToday ? format(new Date(topToday.created_at), 'HH:mm') + ' の記録' : '今日の様子を写真に残しませんか？',
             imageUrl: topTodayUrl,
             ctaLabel: topToday ? '記録を追加' : '記録する',
-            onClick: onOpenNewEvent,
+            onClick: handleTriggerCapture,
             icon: Camera,
             color: 'text-white'
         };
@@ -312,58 +327,9 @@ export function WeeklyHome({
             items.push(requestsCard);
         }
 
-        // 4. Weekly Album Card
+        // 4. Clinic Report Card
         const weekStart = currentWeekStart;
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-
-        const thisWeeksPhotos: { url: string, date: string }[] = [];
-
-        // Photos from cats
-        cats.forEach(cat => {
-            if (belongsToSelectedCats(cat.id)) {
-                cat.images?.forEach((img: any) => {
-                    const d = new Date(img.createdAt);
-                    if (d >= weekStart && d <= weekEnd) {
-                        thisWeeksPhotos.push({ url: getFullImageUrl(img.storagePath), date: img.createdAt });
-                    }
-                });
-            }
-        });
-
-        // Photos from incidents
-        (incidents || []).forEach(inc => {
-            if (inc.photos && inc.photos.length > 0 && belongsToSelectedCats(inc.cat_id)) {
-                const d = new Date(inc.created_at);
-                if (d >= weekStart && d <= weekEnd) {
-                    inc.photos.forEach(p => {
-                        thisWeeksPhotos.push({ url: getFullImageUrl(p), date: inc.created_at });
-                    });
-                }
-            }
-        });
-
-        const sortedPhotos = thisWeeksPhotos.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        // Diversity Logic: Use a different photo for the album if multiple exist
-        const albumImage = (sortedPhotos.length > 1 && sortedPhotos[0].url === topTodayUrl)
-            ? sortedPhotos[1].url
-            : (sortedPhotos[0]?.url);
-
-        // Vol. 25: Calculate Weekly Progress (Unique Days with Photos)
-        const uniqueDaysCount = new Set(thisWeeksPhotos.map(p => format(new Date(p.date), 'yyyy-MM-dd'))).size;
-
-        items.push({
-            id: 'weekly-album-card',
-            type: 'album',
-            title: '今週のアルバム',
-            content: thisWeeksPhotos.length === 0 ? '一週間の思い出をまとめましょう' : undefined,
-            subContent: thisWeeksPhotos.length > 0 ? `${thisWeeksPhotos.length}枚の写真` : undefined,
-            progress: { current: uniqueDaysCount, total: 7 }, // Vol. 25
-            imageUrl: albumImage,
-            onClick: () => setShowWeeklyAlbum(true)
-        });
-
-        // 5. Clinic Report Card
         const healthIncidents = (incidents || []).filter(inc => {
             const d = new Date(inc.created_at);
             const isHealthType = ['vomit', 'diarrhea', 'injury', 'appetite', 'energy'].includes(inc.type);
@@ -387,55 +353,7 @@ export function WeeklyHome({
             }
         });
 
-        // 6. Memories (Priority: Anniversary > Monthly > Past Record)
-        let memoryCandidate = (incidents || []).find(inc => {
-            if (!inc.photos || inc.photos.length === 0 || !belongsToSelectedCats(inc.cat_id)) return false;
-            const d = new Date(inc.created_at);
-            return d.getMonth() === today.getMonth() &&
-                d.getDate() === today.getDate() &&
-                d.getFullYear() < today.getFullYear();
-        });
-
-        let memoryTitle = '去年の今日';
-
-        if (!memoryCandidate) {
-            // Fallback 1: Same month in previous years
-            memoryCandidate = (incidents || []).find(inc => {
-                if (!inc.photos || inc.photos.length === 0 || !belongsToSelectedCats(inc.cat_id)) return false;
-                const d = new Date(inc.created_at);
-                return d.getMonth() === today.getMonth() && d.getFullYear() < today.getFullYear();
-            });
-            memoryTitle = '去年の今頃';
-        }
-
-        if (!memoryCandidate) {
-            // Fallback 2: Any photo older than 1 week
-            const oneWeekAgo = subWeeks(today, 1);
-            memoryCandidate = (incidents || [])
-                .filter(inc => inc.photos && inc.photos.length > 0 && belongsToSelectedCats(inc.cat_id))
-                .find(inc => new Date(inc.created_at) < oneWeekAgo);
-            memoryTitle = '思い出';
-        }
-
-        if (memoryCandidate) {
-            items.push({
-                id: 'memory-anniversary',
-                type: 'memory',
-                title: memoryTitle,
-                content: memoryCandidate.note || '大切にしたい一枚です',
-                imageUrl: getFullImageUrl(memoryCandidate.photos[0]),
-                dateLabel: format(new Date(memoryCandidate.created_at), 'yyyy/MM/dd'),
-                icon: History,
-                color: 'text-slate-400',
-                onClick: () => {
-                    const d = new Date(memoryCandidate!.created_at);
-                    setCurrentWeekStart(startOfWeek(d, { weekStartsOn: 1 }));
-                    setSelectedDay(d);
-                }
-            });
-        }
-
-        // 7. Fortune / Tips
+        // 5. Fortune / Tips
         items.push({
             id: 'fortune-today',
             type: 'fortune',
@@ -456,7 +374,7 @@ export function WeeklyHome({
         });
 
         return items;
-    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart]);
+    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems]);
 
 
     // Initial measurement
@@ -626,7 +544,7 @@ export function WeeklyHome({
                             weekDays={weekDays}
                             selectedCatIds={selectedCatIds}
                             onDaySelect={handleDaySelect}
-                            onQuickPost={onOpenNewEvent}
+                            onQuickPost={handleTriggerCapture}
                             layoutData={layoutData}
                         />
 
@@ -713,6 +631,24 @@ export function WeeklyHome({
             <div className={`absolute bottom-6 left-0 right-0 z-50 px-4 transition-all duration-300 ${isNotificationSheetOpen ? 'opacity-0 translate-y-10 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
                 {/* Dock Removed as per user request */}
             </div>
+
+            <CaptureWorkflowSheet
+                isOpen={isCaptureWorkflowOpen}
+                initialPhotos={initialPhotos}
+                onClose={() => {
+                    setIsCaptureWorkflowOpen(false);
+                    setInitialPhotos([]);
+                }}
+            />
+
+            <input
+                type="file"
+                ref={hiddenFileInputRef}
+                className="hidden"
+                accept="image/*"
+                multiple
+                onChange={handleFileSelect}
+            />
         </div>
     );
 }

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { Cat } from '@/types';
+import { getFullImageUrl } from '@/lib/utils';
 import { useCats as useSupabaseCats } from '@/hooks/use-supabase-data';
 import { uploadCatImage as uploadCatImageToStorage } from "@/lib/storage";
 import { createClient } from '@/lib/supabase';
@@ -18,7 +19,7 @@ interface CatContextType {
     deleteCatImage: (imageId: string, storagePath?: string) => Promise<{ error?: any }>;
     updateCat: (catId: string, updates: Partial<Cat>) => Promise<{ error?: any }>;
     addCatWeightRecord: (catId: string, weight: number, notes?: string) => Promise<{ error?: any }>;
-    analyzeCatImage: (imageId: string, imageUrl: string) => Promise<{ data?: any; error?: any }>;
+    analyzeCatImage: (imageId: string, imageUrl: string, catsForContext?: any[]) => Promise<{ data?: any; error?: any }>;
     isHeroImageLoaded: boolean;
     setIsHeroImageLoaded: (v: boolean) => void;
 }
@@ -31,7 +32,7 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
     const { cats: supabaseCats, loading: catsLoading, refetch: refetchCats } = useSupabaseCats(isDemo ? null : householdId);
     const supabase = createClient() as any;
 
-    const analyzeCatImage = useCallback(async (imageId: string, imageUrl: string) => {
+    const analyzeCatImage = useCallback(async (imageId: string, imageUrl: string, catsForContext?: any[]) => {
         if (isDemo) return { data: { success: true, mock: true }, error: null };
 
         console.log("[AI Context] Starting analysis (Anon Key Auth):", imageId);
@@ -45,8 +46,15 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
         }
 
         try {
+            // Prepare cat context for AI to improve accuracy
+            const catContext = catsForContext?.map(c => ({
+                id: c.id,
+                name: c.name,
+                notes: c.notes,
+                avatarUrl: c.avatar && c.avatar !== '🐈' ? getFullImageUrl(c.avatar) : null
+            }));
+
             // ユーザーセッションの代わりにAnon KeyをBearerトークンとして使用
-            // これによりGatewayでのJWT検証エラーを確実に回避します（Anon Keyは有効なJWTであるため）
             const response = await fetch(`${supabaseUrl}/functions/v1/analyze-cat-image`, {
                 method: 'POST',
                 headers: {
@@ -54,7 +62,7 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
                     'apikey': supabaseAnonKey,
                     'Authorization': `Bearer ${supabaseAnonKey}`
                 },
-                body: JSON.stringify({ imageId, imageUrl })
+                body: JSON.stringify({ imageId, imageUrl, catContext })
             });
 
             if (!response.ok) {

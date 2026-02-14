@@ -274,7 +274,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 fixed inset-0 z-50">
             {/* Unified Header */}
-            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
                 <div className="flex items-center justify-between px-4 h-14">
                     {isSelectMode ? (
                         <>

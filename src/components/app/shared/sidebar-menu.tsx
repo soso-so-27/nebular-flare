@@ -244,20 +244,6 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         return (
             <div className="space-y-4 pt-2">
                 <MenuItem
-                    icon={Grid}
-                    title="アルバム"
-                    subtext="大切な思い出の写真を振り返る"
-                    onClick={() => { onNavigate('gallery'); onClose(); }}
-                />
-
-                <MenuItem
-                    icon={BookOpen}
-                    title="図鑑"
-                    subtext="カテゴリで写真を探す"
-                    onClick={() => { onNavigate('zukan'); onClose(); }}
-                />
-
-                <MenuItem
                     icon={ShoppingBag}
                     title="在庫管理"
                     subtext="フードや消耗品のストック管理"

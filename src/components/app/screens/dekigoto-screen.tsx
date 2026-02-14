@@ -79,7 +79,7 @@ export function DekigotoScreen({
         <div className="fixed inset-0 z-[10002] bg-[#18181B] flex flex-col h-full">
 
             {/* Header: Pure Immersion (Balanced Space) */}
-            <div className="shrink-0 h-10" />
+            <div className="shrink-0 pt-[env(safe-area-inset-top,2.5rem)]" />
 
             {/* Main Content Area: Purely Horizontal 100vh Flow */}
             <div className="flex-1 overflow-hidden relative">

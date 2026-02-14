@@ -19,6 +19,8 @@ import { cn, getFullImageUrl } from "@/lib/utils";
 import { useCatContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { PhotoDetailView } from "../immersive/photo-detail-view";
+import { WeeklyPageClient } from "../shared/weekly-page-client";
+import { subDays, startOfWeek } from "date-fns";
 
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -111,6 +113,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     // Batch tagging state
     const [batchTagging, setBatchTagging] = useState(false);
     const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, done: false });
+    const [showWeeklyAlbum, setShowWeeklyAlbum] = useState(false);
 
     const supabaseRef = useRef(createClient());
 
@@ -195,6 +198,20 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             );
             return diffDays <= 3;
         });
+    }, [allPhotos]);
+
+    // Weekly Album Data
+    const weeklyAlbumData = useMemo(() => {
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const photos = allPhotos.filter(p => new Date(p.createdAt) >= weekStart);
+
+        // Use a photo for thumbnail (Diversity)
+        const thumbnail = photos.length > 0 ? photos[0].url : undefined;
+
+        return {
+            count: photos.length,
+            thumbnail
+        };
     }, [allPhotos]);
 
     // ─────────────────────────────────
@@ -300,7 +317,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     if (selectedShelf) {
         return (
             <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col">
-                <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10">
+                <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
                     <div className="flex items-center justify-between px-5 h-14">
                         <button
                             onClick={() => setSelectedShelf(null)}
@@ -356,7 +373,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     return (
         <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col">
             {/* Header */}
-            <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10">
+            <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
                 <div className="flex items-center justify-between px-5 h-14">
                     <button
                         onClick={onClose}
@@ -365,7 +382,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         <X className="h-5 w-5 text-[#8e8e93]" />
                     </button>
                     <h1 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">
-                        コレクション
+                        アルバム
                     </h1>
                     {untaggedCount > 0 && !batchTagging ? (
                         <button
@@ -480,36 +497,67 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             </h2>
                         </div>
 
-                        {/* Days Together Card */}
-                        {daysTogether && (
-                            <div className="px-5 mb-4">
+                        {/* Top Curation Cards */}
+                        <div className="px-5 flex gap-3 mb-4 overflow-x-auto scrollbar-hide">
+                            {/* Days Together Card */}
+                            {daysTogether && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 12 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5 }}
-                                    className="relative rounded-2xl overflow-hidden bg-[#1c1c1e] h-[120px]"
+                                    className="relative flex-shrink-0 rounded-2xl overflow-hidden bg-[#1c1c1e] h-[120px] w-[220px]"
                                 >
-                                    {/* Background thumbnail */}
                                     <img
                                         src={daysTogether.photo.url}
                                         alt=""
                                         className="absolute inset-0 w-full h-full object-cover opacity-30"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
-                                    <div className="relative h-full flex flex-col justify-center px-5">
+                                    <div className="relative h-full flex flex-col justify-center px-4">
                                         <div className="flex items-baseline gap-1.5 mb-1">
-                                            <span className="text-[32px] font-black text-white tabular-nums leading-none">
+                                            <span className="text-[28px] font-black text-white tabular-nums leading-none">
                                                 {daysTogether.days.toLocaleString()}
                                             </span>
-                                            <span className="text-[14px] font-semibold text-white/70">日</span>
+                                            <span className="text-[12px] font-semibold text-white/70">日</span>
                                         </div>
-                                        <p className="text-[13px] text-white/60 font-medium">
-                                            一緒に過ごした日々 · {daysTogether.totalPhotos}枚の思い出
+                                        <p className="text-[11px] text-white/60 font-medium leading-tight">
+                                            一緒に過ごした日々<br />{daysTogether.totalPhotos}枚の思い出
                                         </p>
                                     </div>
                                 </motion.div>
-                            </div>
-                        )}
+                            )}
+
+                            {/* Weekly Album Card */}
+                            {weeklyAlbumData && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    onClick={() => setShowWeeklyAlbum(true)}
+                                    className="relative flex-shrink-0 rounded-2xl overflow-hidden bg-[#1c1c1e] h-[120px] w-[220px] cursor-pointer active:scale-[0.98] transition-all"
+                                >
+                                    {weeklyAlbumData.thumbnail && (
+                                        <img
+                                            src={weeklyAlbumData.thumbnail}
+                                            alt=""
+                                            className="absolute inset-0 w-full h-full object-cover opacity-40"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                                    <div className="relative h-full flex flex-col justify-end p-4">
+                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-wider">Weekly Album</span>
+                                        </div>
+                                        <h3 className="text-[16px] font-black text-white leading-tight">
+                                            今週のアルバム
+                                        </h3>
+                                        <p className="text-[11px] text-white/60 font-medium">
+                                            {weeklyAlbumData.count}枚の写真
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
 
                         {/* Milestone Banner */}
                         {daysTogether?.milestone && (
@@ -680,6 +728,13 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 onClose={() => setSelectedDetailImage(null)}
                 image={selectedDetailImage}
             />
+
+            {/* Weekly Album Modal */}
+            <AnimatePresence>
+                {showWeeklyAlbum && (
+                    <WeeklyPageClient onClose={() => setShowWeeklyAlbum(false)} />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

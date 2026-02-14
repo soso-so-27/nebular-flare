@@ -115,7 +115,7 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
             <div className="relative z-10 h-screen overflow-y-auto overflow-x-hidden pb-32 scrollbar-hide">
 
                 {/* Header Actions */}
-                <div className="sticky top-0 z-header flex items-center justify-between px-4 py-4">
+                <div className="sticky top-0 z-header flex items-center justify-between px-4 py-4 pt-[env(safe-area-inset-top,1rem)]">
                     {/* Cat Switcher */}
                     <div className="flex gap-2 p-1 overflow-x-auto scrollbar-hide max-w-[70%] mask-linear-fade">
                         {cats.map(cat => (
