@@ -19,7 +19,9 @@ import {
     Calendar,
     Zap,
     PlayCircle,
-    Camera
+    Camera,
+    Play,
+    Lock
 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,21 +36,37 @@ const Navbar = () => (
             <span className="text-lg md:text-xl font-bold text-[#4E342E] tracking-tight font-serif">NyaruHD</span>
         </div>
         <div className="flex items-center gap-4">
-            <Link href="/" className="px-5 py-2 bg-[#4E342E] text-white rounded-full text-xs md:text-sm font-bold shadow-lg shadow-black/5 hover:scale-105 transition-transform active:scale-95">
-                アプリを開く
+            <Link href="/" className="text-xs md:text-sm font-bold text-[#4E342E]/60 hover:text-[#4E342E] transition-colors">
+                ログイン / 使っている方はこちら
             </Link>
         </div>
     </nav>
 );
 
-const PhoneMockup = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-    <div className={`relative mx-auto w-full max-w-[280px] md:max-w-[320px] aspect-[9/18.5] bg-[#121214] rounded-[3rem] border-[8px] border-[#222] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] p-3 overflow-hidden ${className}`}>
-        {/* Dynamic Island Area */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#222] rounded-b-2xl z-20 flex items-center justify-center">
-            <div className="w-8 h-1 bg-white/10 rounded-full" />
+const PhoneMockup = ({ children, className = "", scale = 1 }: { children: React.ReactNode, className?: string, scale?: number }) => (
+    <div
+        className={`relative mx-auto w-full max-w-[280px] md:max-w-[320px] aspect-[9/18.5] bg-[#121214] rounded-[3rem] border-[6px] md:border-[8px] border-[#222] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] p-2 md:p-3 overflow-hidden ${className}`}
+        style={{ transform: `scale(${scale})` }}
+    >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 md:w-24 h-5 md:h-6 bg-[#222] rounded-b-2xl z-20 flex items-center justify-center">
+            <div className="w-6 md:w-8 h-1 bg-white/10 rounded-full" />
         </div>
-        <div className="w-full h-full rounded-[2.2rem] overflow-hidden bg-white">
+        <div className="w-full h-full rounded-[2rem] md:rounded-[2.2rem] overflow-hidden bg-white">
             {children}
+        </div>
+    </div>
+);
+
+const StoreBadge = ({ type }: { type: 'apple' | 'google' }) => (
+    <div className="flex items-center gap-2 px-4 py-2 bg-[#4E342E] text-white rounded-xl cursor-pointer hover:bg-black transition-colors group">
+        {type === 'apple' ? (
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" /></svg>
+        ) : (
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 512 512"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" /></svg>
+        )}
+        <div className="flex flex-col leading-none">
+            <span className="text-[8px] font-bold opacity-60 uppercase">{type === 'apple' ? 'Download on the' : 'Get it on'}</span>
+            <span className="text-xs font-black">{type === 'apple' ? 'App Store' : 'Google Play'}</span>
         </div>
     </div>
 );
@@ -78,60 +96,127 @@ const ImageWithPlaceholder = ({ src, alt, icon: Icon = CatIcon }: { src: string,
 // --- Sections ---
 
 const Hero = () => (
-    <section className="relative min-h-[90lvh] md:h-[100lvh] w-full flex items-center bg-[#FAF8F5] overflow-hidden pt-20 md:pt-0">
-        <div className="absolute top-0 right-0 w-full md:w-[65%] h-full z-0 opacity-40 md:opacity-100">
+    <section className="relative min-h-[95lvh] md:h-[100lvh] w-full flex items-center bg-[#FAF8F5] overflow-hidden pt-20 md:pt-0">
+        {/* Background Image Area */}
+        <div className="absolute top-0 right-0 w-full md:w-[65%] h-full z-0">
             <ImageWithPlaceholder
                 src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=2043"
                 alt="愛猫との幸せな日常"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/60 md:via-[#FAF8F5]/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/60 md:via-[#FAF8F5]/10 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-b from-[#FAF8F5]/20 via-transparent to-[#FAF8F5]/90" />
+
+            {/* Phone Overlays (Visual Proof) */}
+            <div className="hidden lg:block absolute top-[15%] right-[10%] z-20 space-x-[-100px] pointer-events-none">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, x: 50 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.8, duration: 1 }}
+                    className="relative inline-block rotate-[-6deg] drop-shadow-2xl"
+                >
+                    <PhoneMockup scale={0.8} className="bg-[#1a1a1c]">
+                        <ImageWithPlaceholder src="https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=500" alt="記録画面例" icon={Camera} />
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                            <div className="w-full h-10 bg-[#E8B4A0] rounded-xl flex items-center justify-center text-white font-bold text-xs">
+                                思い出を保存
+                            </div>
+                        </div>
+                    </PhoneMockup>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, x: 100 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 1.1, duration: 1 }}
+                    className="relative inline-block z-10 drop-shadow-2xl mt-24"
+                >
+                    <PhoneMockup scale={0.85} className="bg-[#1a1a1c]">
+                        <ImageWithPlaceholder src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&q=80&w=500" alt="図鑑・アルバム画面例" icon={Layers} />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+                                <CatIcon className="w-8 h-8 text-white" />
+                            </div>
+                        </div>
+                    </PhoneMockup>
+                </motion.div>
+            </div>
         </div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-start text-left">
+        {/* Content Area with White Veil */}
+        <div className="relative z-30 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-start text-left">
             <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="max-w-2xl"
+                className="max-w-2xl bg-[#FAF8F5]/40 md:bg-[#FAF8F5]/0 backdrop-blur-sm md:backdrop-blur-none p-6 md:p-0 rounded-[2rem] md:rounded-none"
             >
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E8B4A0]/10 text-[#E8B4A0] rounded-full text-[9px] md:text-[10px] font-black tracking-widest uppercase mb-6 md:mb-8 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E8B4A0]/10 text-[#E8B4A0] rounded-full text-[9px] md:text-[10px] font-black tracking-widest uppercase mb-6 shadow-sm border border-[#E8B4A0]/10">
                     <Sparkles className="w-3 h-3" />
                     猫専用ライフログ・モバイルアプリ
                 </div>
 
-                <h1 className="text-[clamp(2.5rem,8vw,4.5rem)] font-bold text-[#4E342E] leading-[1.1] mb-6 md:mb-8 font-serif">
+                <h1 className="text-[clamp(2.5rem,8.5vw,4.8rem)] font-bold text-[#4E342E] leading-[1.05] mb-8 font-serif">
                     一日一枚の記録が、<br />
                     一生の宝物になる。
                 </h1>
 
-                <p className="text-lg md:text-2xl text-[#4E342E]/70 mb-10 md:mb-12 font-medium">
-                    撮るだけでAIが自動整理。<br className="md:hidden" />
-                    あなたは愛でるだけでいい。
+                {/* 3 Point Benefits */}
+                <div className="space-y-4 mb-10 border-l-2 border-[#E8B4A0]/30 pl-6 py-2">
+                    {[
+                        "1日1枚、迷わず残せる手間いらずの体験",
+                        "日付と猫ごとに、AIが自動でお部屋を整理",
+                        "あとで見返すたび、日々の愛おしさが作品に"
+                    ].map((text, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 + i * 0.1 }}
+                            className="flex items-center gap-3 text-[#4E342E] font-serif font-medium"
+                        >
+                            <div className="w-5 h-5 bg-[#E8B4A0]/10 rounded-full flex items-center justify-center">
+                                <Check className="w-3 h-3 text-[#E8B4A0]" />
+                            </div>
+                            <span className="text-base md:text-lg leading-tight">{text}</span>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <p className="text-lg md:text-xl text-[#4E342E]/70 mb-10 font-bold italic">
+                    「撮るだけで、あとから探せる“猫のアルバム”になる」
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 w-full sm:w-auto">
-                    <Link href="/" className="w-full sm:w-auto px-10 py-4.5 md:px-12 md:py-5 bg-[#E8B4A0] text-white rounded-full text-lg md:text-xl font-bold shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3 active:scale-95">
-                        無料ではじめる
-                        <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
-                    </Link>
-
-                    <div className="flex flex-wrap justify-center gap-4 text-[10px] md:text-xs text-[#4E342E]/40 font-bold">
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />1ヶ月無料</span>
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />App Store / Google Play</span>
+                <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
+                    <div className="flex flex-col items-center w-full sm:w-auto gap-3">
+                        <Link href="/" className="w-full sm:w-auto px-12 py-5 bg-[#E8B4A0] text-white rounded-full text-xl font-bold shadow-[0_20px_60px_rgba(232,180,160,0.4)] hover:scale-105 transition-all flex items-center justify-center gap-3 active:scale-95">
+                            無料ではじめる
+                            <ArrowRight className="w-6 h-6" />
+                        </Link>
+                        <div className="flex items-center gap-2 text-[10px] text-[#4E342E]/30 font-bold">
+                            <Lock className="w-3 h-3" /> 写真は安全に保存されます（解約はいつでも1タップ）
+                        </div>
                     </div>
+
+                    <Link href="#concept" className="w-full sm:w-auto px-10 py-5 bg-white text-[#4E342E]/60 border border-[#4E342E]/10 rounded-full text-lg font-bold hover:bg-[#4E342E]/5 transition-all flex items-center justify-center gap-2">
+                        <Play className="w-4 h-4" /> 完成例を見る
+                    </Link>
+                </div>
+
+                {/* Store Badges */}
+                <div className="flex items-center gap-4 mt-12 opacity-80 scale-90 md:scale-100 origin-left">
+                    <StoreBadge type="apple" />
+                    <StoreBadge type="google" />
                 </div>
             </motion.div>
         </div>
 
+        {/* Scroll Indicator (Subtle) */}
         <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 1 }}
-            className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 text-[#4E342E]/30 animate-bounce cursor-pointer flex flex-col items-center gap-2"
+            animate={{ opacity: 0.2 }}
+            transition={{ delay: 2, duration: 1 }}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[#4E342E] animate-bounce cursor-pointer flex flex-col items-center gap-1"
         >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Scroll</span>
-            <ChevronDown className="w-6 h-6 md:w-8 md:h-8" />
+            <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
         </motion.div>
     </section>
 );
@@ -317,7 +402,7 @@ const PricingSection = () => (
                 </div>
 
                 {/* Premium Plan */}
-                <div className="relative p-8 md:p-10 bg-[#4E342E] text-white rounded-[2.5rem] md:rounded-[48px] shadow-3xl flex flex-col md:scale-105 z-10 overflow-hidden">
+                <div className="relative p-8 md:p-10 bg-[#4E342E] text-white rounded-[2.5rem] md:rounded-[48px] shadow-3xl flex flex-col md:scale-105 z-10 overflow-hidden border-2 border-[#E8B4A0]/20">
                     <div className="absolute top-0 right-0 px-6 py-2 bg-[#E8B4A0] text-white text-[9px] font-black uppercase tracking-widest rounded-bl-2xl">
                         Popular
                     </div>
@@ -367,10 +452,15 @@ const FinalCTA = () => (
             <h2 className="text-3xl md:text-7xl font-bold font-serif leading-tight text-[#4E342E]">
                 にゃるほど、<br />この子がいてよかった。
             </h2>
-            <Link href="/" className="inline-flex items-center gap-3 px-12 py-5 md:px-16 md:py-6 bg-[#4E342E] text-white rounded-full text-lg md:text-2xl font-bold shadow-2xl hover:scale-105 transition-all w-full sm:w-auto overflow-hidden">
-                無料でつくってみる
-                <ArrowRight className="w-6 h-6" />
-            </Link>
+            <div className="flex flex-col items-center gap-5">
+                <Link href="/" className="inline-flex items-center gap-3 px-12 py-5 md:px-16 md:py-6 bg-[#4E342E] text-white rounded-full text-lg md:text-2xl font-bold shadow-2xl hover:scale-105 transition-all w-full sm:w-auto overflow-hidden">
+                    無料でつくってみる
+                    <ArrowRight className="w-6 h-6" />
+                </Link>
+                <div className="flex items-center gap-2 text-[10px] md:text-xs text-[#4E342E]/30 font-bold">
+                    <Lock className="w-3.5 h-3.5" /> 写真は安全に保存されます（解約はいつでも1タップ）
+                </div>
+            </div>
             <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-[10px] md:text-sm font-medium text-[#4E342E]/40 mt-8 font-serif">
                 <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />初回1ヶ月無料</span>
                 <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />解約金なし</span>
@@ -393,7 +483,7 @@ export default function LandingPage() {
                 <Hero />
 
                 {/* Mobile Device Recognition Banner */}
-                <section className="bg-[#4E342E] py-4 overflow-hidden">
+                <section className="bg-[#4E342E] py-4 overflow-hidden border-y border-white/5">
                     <div className="flex flex-nowrap gap-8 animate-marquee whitespace-nowrap">
                         {[...Array(10)].map((_, i) => (
                             <div key={i} className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-widest">
@@ -416,6 +506,7 @@ export default function LandingPage() {
                     </div>
                 </section>
 
+                <PainSection />
                 <FeaturesTour />
                 <RoadmapSection />
                 <PricingSection />
@@ -424,7 +515,7 @@ export default function LandingPage() {
 
             <footer className="py-12 px-8 text-center bg-white border-t border-[#4E342E]/5">
                 <p className="text-[10px] text-[#4E342E]/30 uppercase tracking-[0.2em] font-black">
-                    © 2026 NyaruHD Team. Optimized for Mobile Devices.
+                    © 2026 NyaruHD Team. Optimized for CVR & Mobile Devices.
                 </p>
             </footer>
 
