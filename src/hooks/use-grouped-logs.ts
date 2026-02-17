@@ -49,7 +49,7 @@ export function useGroupedLogs(activeTab: 'events' | 'requests' | 'input', selec
 
         // Filter items
         const filteredItems = items.filter(item => {
-            if (selectedCatId && item.catId !== selectedCatId) return false;
+            if (selectedCatId && item.catId !== selectedCatId && !item.cats.some(c => c.id === selectedCatId)) return false;
             if (activeFilter === 'all') return true;
             if (activeFilter === 'photo') return item.photos.length > 0;
             if (activeFilter === 'chat') return ['worried', 'chat', 'concerned', 'troubled'].includes(item.type as string);

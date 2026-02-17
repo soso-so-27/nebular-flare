@@ -154,7 +154,7 @@ export type SignalLog = {
 
 export type IncidentStatus = 'watching' | 'hospital' | 'resolved';
 export type IncidentSeverity = 'low' | 'medium' | 'high';
-export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other';
+export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other' | 'hospital' | 'medicine' | 'care' | 'condition';
 
 // Symptom details for medical report
 export type SymptomDetails = {
@@ -322,7 +322,19 @@ export type VitalSummary = {
   stool: boolean;
   urine: boolean;
   vomit_count: number;
-  last_meal?: string;
+  last_meal?: string; // Legacy or simple text
+  last_meal_at?: string; // HH:mm
+  // P0 Enhancements
+  temperature_c?: number;
+  last_urination_at?: string; // HH:mm
+  last_defecation_at?: string; // HH:mm
+  vomit_content?: 'hairball' | 'food' | 'transparent' | 'yellow' | 'blood' | 'foreign' | 'unknown';
+  food_intake_ratio?: 0 | 25 | 50 | 75 | 100;
+  // P1 Enhancements
+  water_intake_level?: 'low' | 'normal' | 'high' | 'unknown';
+  respiratory_flags?: string[]; // 'cough', 'rapid', 'mouth_breathing'
+  urination_flags?: string[]; // 'pain', 'hematuria', 'frequent', 'scanty', 'none'
+  stool_type?: 'normal' | 'soft' | 'diarrhea' | 'bloody' | 'constipation' | 'tarry';
 };
 
 export type ReportConfigData = {

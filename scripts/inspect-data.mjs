@@ -1,0 +1,32 @@
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '../.env.local') });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function inspectData() {
+    console.log('Inspecting recent cat_images...');
+    const { data, error } = await supabase
+        .from('cat_images')
+        .select('id, cat_id, cat_ids, storage_path, created_at, deleted_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+    if (error) {
+        console.error('Error:', error.message);
+        return;
+    }
+
+    console.table(data);
+}
+
+inspectData();

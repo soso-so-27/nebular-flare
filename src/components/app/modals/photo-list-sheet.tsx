@@ -185,18 +185,8 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
         }
     }, [isOpen, user, recentPhotos, supabase]);
 
-    // Helper function to get public URL with proper bucket detection
-    const getPublicUrl = (path: string, options?: { width: number, quality: number }) => {
-        const supabase = createClient();
-        const bucket = path.startsWith('cat-photos/') ? 'cat-images' : 'avatars';
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path, {
-            transform: options ? {
-                width: options.width,
-                quality: options.quality,
-            } : undefined
-        });
-        return data.publicUrl;
-    };
+    // Help get public URL with proper bucket detection
+    const { getFullImageUrl } = require("@/lib/utils");
 
     const formatTime = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -367,7 +357,7 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                         onClose={() => setSelectedPhoto(null)}
                         image={selectedPhoto ? {
                             id: selectedPhoto.id,
-                            url: getPublicUrl(selectedPhoto.storagePath),
+                            url: getFullImageUrl(selectedPhoto.storagePath),
                             catName: (selectedPhoto as any).catName,
                             catAvatar: (selectedPhoto as any).catAvatar,
                             createdAt: selectedPhoto.createdAt,

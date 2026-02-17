@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useCareContext, useCatContext, useInventoryContext, useSettingsContext, useCoreContext } from "@/store/app-store";
 import { Check, Heart, Cat, ShoppingCart, Zap, Droplet, Scissors, UtensilsCrossed, Pill, Bath, Wind, Stethoscope, Search, AlertCircle, Camera } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getFullImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
 import { getIcon } from "@/lib/icon-utils";
@@ -107,12 +107,6 @@ export function CheckSection() {
         }
     }, [activeCatId, cats]);
 
-    // Helper to get public URL
-    const getPublicUrl = (path: string) => {
-        const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data.publicUrl;
-    };
 
     // Meal slot utilities
     const getCurrentMealSlot = (hour: number): 'morning' | 'noon' | 'evening' | 'night' => {

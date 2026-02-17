@@ -32,9 +32,10 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
     const { cats: supabaseCats, loading: catsLoading, refetch: refetchCats } = useSupabaseCats(isDemo ? null : householdId);
     const supabase = createClient() as any;
 
-    const analyzeCatImage = useCallback(async (imageId: string, imageUrl: string, catsForContext?: any[]) => {
+    const analyzeCatImage = useCallback(async (imageId: string, imageUrl: string, catsForContext?: Cat[]) => {
         if (isDemo) return { data: { success: true, mock: true }, error: null };
 
+        const finalCatContext = catsForContext || cats;
         console.log("[AI Context] Starting analysis (Anon Key Auth):", imageId);
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -47,44 +48,68 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
 
         try {
             // Prepare cat context for AI to improve accuracy
-            const catContext = catsForContext?.map(c => ({
-                id: c.id,
-                name: c.name,
-                notes: c.notes,
-                avatarUrl: c.avatar && c.avatar !== '🐈' ? getFullImageUrl(c.avatar) : null
-            }));
+            // MVP: Pick Avatar + up to 2 Favorite/Recent images
+            const catContextData = finalCatContext?.map(c => {
+                const refs: string[] = [];
+                if (c.avatar && c.avatar !== '🐈') refs.push(getFullImageUrl(c.avatar));
 
-            // ユーザーセッションの代わりにAnon KeyをBearerトークンとして使用
-            const response = await fetch(`${supabaseUrl}/functions/v1/analyze-cat-image`, {
+                // Add up to 2 more reference images from favorites or recent
+                // Robustness: Filter out problematic legacy paths (c3e4) from references
+                const candidates = c.images?.filter(img =>
+                    img.storagePath &&
+                    img.storagePath !== c.avatar &&
+                    !img.storagePath.includes('c3e4')
+                ) || [];
+                const favorites = candidates.filter(img => img.isFavorite);
+                const others = candidates.filter(img => !img.isFavorite);
+
+                // Prioritize favorites, then recent
+                const pool = [...favorites, ...others].slice(0, 2);
+                pool.forEach(p => refs.push(getFullImageUrl(p.storagePath)));
+
+                return {
+                    id: c.id,
+                    name: c.name,
+                    notes: c.notes,
+                    referenceImages: refs.filter(url => url && !url.startsWith('blob:') && !url.startsWith('data:')).slice(0, 3) // Max 3 valid images
+                };
+            });
+
+            // Switch to Next.js API Route to avoid CORS/Edge Function issues
+            const response = await fetch('/api/analyze-cat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'apikey': supabaseAnonKey,
-                    'Authorization': `Bearer ${supabaseAnonKey}`
                 },
-                body: JSON.stringify({ imageId, imageUrl, catContext })
+                body: JSON.stringify({ imageId, imageUrl, catContext: catContextData })
             });
 
             if (!response.ok) {
                 const errorBody = await response.text();
+                let serverError: any = { message: `分析エラー (${response.status})` };
+                try {
+                    const parsed = JSON.parse(errorBody);
+                    if (parsed.error) serverError.message = `${parsed.error} (${response.status})`;
+                    serverError.details = parsed.details || errorBody;
+                } catch (e) {
+                    serverError.details = errorBody;
+                }
                 console.error(`[AI Context] Edge Function Error (${response.status}):`, errorBody);
-                return {
-                    error: {
-                        message: `分析エラー (${response.status})`,
-                        details: errorBody,
-                        status: response.status
-                    }
-                };
+                return { error: serverError };
             }
 
             const data = await response.json();
             console.log("[AI Context] Success:", data);
+
+            // Refetch to get the new tags/analysis
+            refetchCats();
+
             return { data };
         } catch (e: any) {
             console.error("[AI Context] Fetch error:", e);
             return { error: { message: e.message } };
         }
-    }, [isDemo]);
+    }, [isDemo, refetchCats]);
 
     const demoCats: Cat[] = useMemo(() => [
         { id: "c1", name: "麦", age: "2才", sex: "オス", avatar: "/demo-cat-1.png", last_vaccine_date: "2024-05-10", vaccine_type: "3種混合" },
@@ -111,7 +136,8 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
                     createdAt: img.createdAt || img.created_at,
                     isFavorite: img.isFavorite || img.is_favorite,
                     memo: img.memo,
-                    tags: img.tags
+                    tags: img.tags,
+                    aiAnalysis: img.aiAnalysis || img.ai_analysis
                 })),
                 weightHistory: rawWeightHistory.map((wh: any) => ({
                     id: wh.id,

@@ -3,7 +3,7 @@
 // NOTE: This file is generated at build time. Do not edit directly.
 
 // Cache versioning - Build hash will be injected
-const CACHE_VERSION = '105061bb';
+const CACHE_VERSION = 'fdf40a66';
 const STATIC_CACHE = `catup-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `catup-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `catup-api-${CACHE_VERSION}`;

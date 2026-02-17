@@ -92,14 +92,20 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
         setLoading(true);
         try {
-            // Submit for each selected cat
+            // Submit a single incident for all selected cats
             const catIds = Array.from(selectedCatIds);
-            for (const id of catIds) {
-                const { error } = await addIncident(id, type, note, photos);
-                if (error) throw error;
-                // Award footprint for incident (2pts)
-                awardForIncident(id);
-            }
+            const { error } = await addIncident(
+                catIds[0], // primary catId
+                type,
+                note,
+                photos,
+                undefined, undefined, undefined, undefined, undefined,
+                catIds     // all cat IDs
+            );
+            if (error) throw error;
+
+            // Award footprints for each cat
+            catIds.forEach(id => awardForIncident(id));
 
             toast.success(`${selectedCatIds.size}件の相談を記録しました`);
             onClose();

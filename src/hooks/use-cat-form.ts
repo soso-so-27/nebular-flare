@@ -8,6 +8,8 @@ import {
 } from "@/store/app-store";
 import { toast } from "sonner";
 import { Cat } from "@/types";
+import { uploadCatImage } from "@/lib/storage";
+import { getFullImageUrl } from "@/lib/utils";
 
 export function useCatForm() {
     const supabase = createClient() as any;
@@ -112,13 +114,12 @@ export function useCatForm() {
         if (selectedFiles.length === 0) return { firstPublicUrl: null };
         const results = [];
         for (const file of selectedFiles) {
-            const ext = file.name.split('.').pop();
-            const fileName = `${catId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-            const { error } = await supabase.storage.from("avatars").upload(fileName, file);
-            if (!error) {
-                const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
-                results.push({ storagePath: fileName, publicUrl: data.publicUrl });
-                await supabase.from("cat_images" as any).insert({ cat_id: catId, storage_path: fileName });
+            const { storagePath, publicUrl, error } = await uploadCatImage(catId, file);
+            if (!error && storagePath) {
+                results.push({ storagePath, publicUrl });
+                await supabase.from("cat_images" as any).insert({ cat_id: catId, storage_path: storagePath });
+            } else {
+                console.error("Upload error:", error);
             }
         }
         return { firstPublicUrl: results[0]?.publicUrl || null };
@@ -126,12 +127,9 @@ export function useCatForm() {
 
     const uploadBgMedia = async (catId: string) => {
         if (!bgFile) return null;
-        const ext = bgFile.name.split('.').pop();
-        const fileName = `${catId}/bg_${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from("avatars").upload(fileName, bgFile);
-        if (error) throw error;
-        const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
-        return data.publicUrl;
+        const { publicUrl, error } = await uploadCatImage(catId, bgFile);
+        if (error) throw new Error(error);
+        return publicUrl;
     };
 
     const handleSubmit = async (onDone: () => void) => {
@@ -236,7 +234,7 @@ export function useCatForm() {
         setBackgroundMode(cat.background_mode || 'random');
         setBackgroundMedia(cat.background_media || null);
         setBgFile(null);
-        setBgPreview(cat.background_media || null);
+        setBgPreview(cat.background_media ? getFullImageUrl(cat.background_media) : null);
         setNeuteredStatus((cat.neutered_status as any) || 'unknown');
         setLivingEnvironment(cat.living_environment || 'indoor');
         setFleaTickDate(cat.flea_tick_date ? cat.flea_tick_date.split('T')[0] : "");

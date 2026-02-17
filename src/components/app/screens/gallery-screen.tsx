@@ -84,11 +84,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const limit = 30;
 
-    const getPublicUrl = (path: string) => {
-        const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data.publicUrl;
-    };
+    const { getFullImageUrl } = require("@/lib/utils");
 
     // Load images
     const loadImages = async (isInitial = false) => {
@@ -117,21 +113,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
             let finalUrl = img.url;
 
             if (!img.is_url) {
-                // Heuristic: cat-images bucket uses 'cat-photos/' prefix. 
-                // Legacy images in 'avatars' bucket use '{catId}/' structure.
-                const bucket = path.startsWith('cat-photos/') ? 'cat-images' : 'avatars';
-
-                const { data: urlData } = supabase.storage
-                    .from(bucket)
-                    .getPublicUrl(path, {
-                        transform: {
-                            width: 300,
-                            height: 300,
-                            resize: 'cover',
-                            quality: 80
-                        }
-                    });
-                finalUrl = urlData.publicUrl;
+                finalUrl = getFullImageUrl(path);
             }
 
             return {
@@ -232,7 +214,7 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                     const typedData = data as any;
                     uploaded.push({
                         id: typedData.id,
-                        url: getPublicUrl(typedData.storagePath)
+                        url: getFullImageUrl(typedData.storagePath)
                     });
                 }
             }

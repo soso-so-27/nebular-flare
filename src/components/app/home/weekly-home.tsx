@@ -42,6 +42,7 @@ import { useHouseholdMembers } from "@/hooks/supabase/use-household";
 import { WeeklyPageClient } from "../shared/weekly-page-client";
 import { ReportConfigModal } from "../modals/report-config-modal";
 import { MedicalReportView } from "../shared/medical-report-view";
+import { useAuth } from "@/providers/auth-provider";
 import { ReportConfigData, Incident } from "@/types";
 import { LayoutIslandNeo } from "../immersive/layout-island-neo";
 // HomeBackground はコンテキストプロップスが必要なため、WeeklyHomeでは使用しない
@@ -106,6 +107,7 @@ export function WeeklyHome({
     const { incidents } = useIncidentContext();
     const { careLogs, careTaskDefs, addCareLog } = useCareContext();
     const { careItems } = useCareData();
+    const { user: currentUser } = useAuth();
 
     // Support for Album & Report views
     const [showWeeklyAlbum, setShowWeeklyAlbum] = useState(false);
@@ -119,29 +121,77 @@ export function WeeklyHome({
         const items: NotificationItem[] = [];
         const threshold = new Date(Date.now() - 48 * 3600 * 1000); // 48 hours ago
 
-        // 1. Care Logs
+        // 1. Care Logs (Grouped by User + Cat + Minute)
+        const careGroups: Record<string, {
+            user: any,
+            userName: string,
+            catId: string,
+            tasks: string[],
+            timestamp: Date,
+            notes?: string,
+            ids: string[]
+        }> = {};
+
         careLogs?.forEach(log => {
-            const user = members?.find((m: any) => m.id === log.done_by);
-            const userName = user?.display_name || "家族";
-            const taskDef = careTaskDefs?.find((d: any) => d.id === log.type.split(':')[0]);
-            const taskTitle = taskDef?.title || log.type;
             const timestamp = new Date(log.done_at);
             if (timestamp < threshold) return;
 
+            const user = members?.find((m: any) => m.id === log.done_by);
+            let userName = user?.display_name || "家族";
+
+            // Support nickname priority for current user
+            if (currentUser && log.done_by === currentUser.id) {
+                userName = currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || userName;
+            }
+
+            const taskDef = careTaskDefs?.find((d: any) => d.id === log.type.split(':')[0]);
+            const taskTitle = taskDef?.title || log.type;
+
+            // Grouping key: userId + catId + minute
+            const hourMinute = format(timestamp, "yyyy-MM-dd HH:mm");
+            const groupKey = `${log.done_by}_${log.cat_id}_${hourMinute}`;
+
+            if (!careGroups[groupKey]) {
+                careGroups[groupKey] = {
+                    user,
+                    userName,
+                    catId: log.cat_id,
+                    tasks: [],
+                    timestamp,
+                    ids: []
+                };
+            }
+            careGroups[groupKey].tasks.push(taskTitle);
+            careGroups[groupKey].ids.push(log.id);
+            if (log.notes) careGroups[groupKey].notes = log.notes;
+        });
+
+        Object.values(careGroups).forEach(group => {
+            const uniqueTasks = Array.from(new Set(group.tasks));
+            const tasksLabel = uniqueTasks.length > 1
+                ? `${uniqueTasks[0]}ほか${uniqueTasks.length - 1}件`
+                : uniqueTasks[0];
+
             items.push({
-                id: log.id,
+                id: group.ids[0],
                 type: 'care',
-                title: `${userName}が「${taskTitle}」を完了しました`,
-                message: log.notes || "お世話を記録しました 🐾",
-                timestamp,
-                isUnread: timestamp > lastViewedAt
+                title: `${group.userName}が「${tasksLabel}」を完了しました`,
+                message: group.notes || "お世話を記録しました 🐾",
+                timestamp: group.timestamp,
+                isUnread: group.timestamp > lastViewedAt,
+                // Meta for navigation: Jump to the specific day Detail view
+                targetDate: group.timestamp
             });
         });
 
         // 2. Incidents
         incidents?.forEach(inc => {
             const user = members?.find((m: any) => m.id === inc.created_by);
-            const userName = user?.display_name || "家族";
+            let userName = user?.display_name || "家族";
+            if (currentUser && inc.created_by === currentUser.id) {
+                userName = currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || userName;
+            }
+
             const cat = cats?.find((c: any) => c.id === inc.cat_id);
             const catName = cat?.name || "猫ちゃん";
             const timestamp = new Date(inc.created_at);
@@ -152,15 +202,28 @@ export function WeeklyHome({
                 energy: '元気がない', toilet: 'トイレ失敗', other: 'その他'
             };
 
+            // Severity based labeling
+            let label = "";
+            if (inc.status === 'resolved') {
+                label = "解決済み: ";
+            } else {
+                if (['vomit', 'diarrhea', 'injury'].includes(inc.type)) {
+                    label = "要注意: ";
+                } else if (['appetite', 'energy', 'toilet'].includes(inc.type)) {
+                    label = "体調の変化: ";
+                }
+                // 'other' or unknown types get no label (for peace of mind)
+            }
+
             items.push({
                 id: inc.id,
                 type: inc.status === 'resolved' ? 'system' : 'alert',
-                title: inc.status === 'resolved'
-                    ? `解決済み: ${catName}の「${typeLabels[inc.type] || inc.type}」`
-                    : `要注意: ${catName}の「${typeLabels[inc.type] || inc.type}」`,
+                title: `${label}${catName}の「${typeLabels[inc.type] || ((inc.type as any) === 'daily' ? '日常の記録' : inc.type)}」`,
                 message: inc.note || `${userName}が記録しました`,
                 timestamp,
-                isUnread: inc.status !== 'resolved' || timestamp > lastViewedAt
+                isUnread: inc.status !== 'resolved' || timestamp > lastViewedAt,
+                // Meta for navigation: Open the specific incident detail modal
+                incidentId: inc.id
             });
         });
 
@@ -182,7 +245,8 @@ export function WeeklyHome({
                         title: `${cat.name}の新しい写真`,
                         message: img.memo || "可愛い写真が届きました 💕",
                         timestamp,
-                        isUnread: timestamp > lastViewedAt
+                        isUnread: timestamp > lastViewedAt,
+                        targetDate: timestamp
                     });
                 }
 
@@ -246,7 +310,7 @@ export function WeeklyHome({
         }
 
         return items.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 30);
-    }, [careLogs, incidents, cats, members, careTaskDefs]);
+    }, [careLogs, incidents, cats, members, careTaskDefs, currentUser]);
 
     const hasUnread = useMemo(() => realNotifications.some(n => n.isUnread), [realNotifications]);
 
@@ -530,6 +594,7 @@ export function WeeklyHome({
                             day={selectedDay}
                             selectedCatIds={selectedCatIds}
                             onBack={handleBackToGrid}
+                            onOpenIncidentDetail={onOpenIncidentDetail}
                         />
                     </motion.div>
                 ) : (
@@ -578,6 +643,12 @@ export function WeeklyHome({
                 onSelectItem={(item) => {
                     if (item.link === 'zukan' && onNavigate) {
                         onNavigate('zukan');
+                        setIsNotificationSheetOpen(false);
+                    } else if (item.incidentId) {
+                        onOpenIncidentDetail(item.incidentId);
+                        setIsNotificationSheetOpen(false);
+                    } else if (item.targetDate) {
+                        setSelectedDay(item.targetDate);
                         setIsNotificationSheetOpen(false);
                     }
                 }}

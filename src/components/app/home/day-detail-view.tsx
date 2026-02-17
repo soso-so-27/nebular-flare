@@ -23,6 +23,7 @@ import {
     MoreVertical,
     Edit2,
     Plus,
+    ImageIcon,
     type LucideIcon
 } from "lucide-react";
 import { format } from "date-fns";
@@ -92,6 +93,7 @@ interface DayDetailViewProps {
     onOpenHistory?: () => void;
     onOpenCamera?: () => void;
     onOpenNewRecord?: (day: Date) => void;
+    onOpenIncidentDetail?: (id: string) => void;
 }
 
 export function DayDetailView({
@@ -100,7 +102,8 @@ export function DayDetailView({
     onBack,
     onOpenHistory,
     onOpenCamera,
-    onOpenNewRecord
+    onOpenNewRecord,
+    onOpenIncidentDetail
 }: DayDetailViewProps) {
     const { cats } = useCatContext();
     const { careLogs, observations, careTaskDefs } = useCareContext();
@@ -224,7 +227,8 @@ export function DayDetailView({
         }
     };
 
-    const handleDelete = async (item: any) => {
+    const handleDelete = async (item: any, e: React.MouseEvent) => {
+        e.stopPropagation(); // Don't trigger navigation
         if (!confirm("本当に削除しますか？")) return;
         try {
             if (item.type === 'incident') await deleteIncident(item.id);
@@ -239,13 +243,11 @@ export function DayDetailView({
     };
 
     // Active (pending) tasks for the day
-    // careItems already excludes completed tasks (via useCareData logic)
     const pendingTasks = useMemo(() => {
         return careItems || [];
     }, [careItems]);
 
     const handleToggleTask = async (task: any) => {
-        // If it's a completed task (has log ID), delete it (Undo)
         if (requestTab === 'completed') {
             if (task.id) {
                 await (requestDeleteLog as any)(task.id);
@@ -253,8 +255,6 @@ export function DayDetailView({
             return;
         }
 
-        // If it's a pending task, add it (Do)
-        // task is from careItems
         try {
             await addCareLog(
                 task.actionId || task.id,
@@ -266,50 +266,42 @@ export function DayDetailView({
     };
 
     return (
-        <div className="h-full flex flex-col overflow-hidden bg-[#0A0A0B]">
+        <div className="h-full flex flex-col overflow-hidden bg-[#FDF8F1]">
             {/* Header */}
             <header
-                className="flex items-center gap-3 px-4 pb-2 shrink-0 border-b border-white/5 bg-[#0A0A0B] relative z-20"
+                className="flex items-center gap-3 px-4 pb-2 shrink-0 border-b border-[#4E342E]/5 bg-[#FDF8F1] relative z-20"
                 style={{ paddingTop: 'calc(env(safe-area-inset-top, 20px) + 12px)' }}
             >
                 <button
                     onClick={onBack}
-                    className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+                    className="p-2 -ml-2 rounded-full hover:bg-[#4E342E]/5 transition-colors"
                 >
-                    <ChevronLeft className="w-5 h-5 text-white/70" />
+                    <ChevronLeft className="w-5 h-5 text-[#4E342E]/70" />
                 </button>
-                <h1 className="text-base font-semibold text-white">{dayLabel}</h1>
+                <h1 className="text-base font-bold text-[#4E342E]">{dayLabel}</h1>
                 <div className="ml-auto flex items-center gap-1">
                     <button
                         onClick={() => onOpenNewRecord?.(day)}
-                        className="p-2 rounded-full bg-white/10 text-white/90 hover:bg-white/20 transition-colors"
+                        className="p-2 rounded-full bg-[#4E342E]/5 text-[#4E342E]/70 hover:bg-[#4E342E]/10 transition-colors"
                         title="記録を追加"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
-                    {onOpenCamera && (
-                        <button
-                            onClick={onOpenCamera}
-                            className="p-2 rounded-full bg-white/10 text-white/90 hover:bg-white/20 transition-colors"
-                        >
-                            <Camera className="w-5 h-5" />
-                        </button>
-                    )}
                 </div>
             </header>
 
-            {/* Main content area: split 50/50 after header */}
+            {/* Main content area */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* TOP HALF: Requests Area */}
-                <div className="h-1/2 flex flex-col overflow-hidden border-b border-white/10">
+                <div className="h-1/2 flex flex-col overflow-hidden border-b border-[#4E342E]/5">
                     {/* Sub-Tabs for Requests */}
                     <div className="px-4 py-3 shrink-0">
-                        <div className="bg-white/5 p-1 rounded-xl flex items-center relative overflow-hidden backdrop-blur-sm border border-white/5">
+                        <div className="bg-[#4E342E]/5 p-1 rounded-xl flex items-center relative overflow-hidden border border-[#4E342E]/5">
                             <button
                                 onClick={() => setRequestTab('pending')}
                                 className={cn(
                                     "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
-                                    requestTab === 'pending' ? "text-white" : "text-white/40"
+                                    requestTab === 'pending' ? "text-[#4E342E]" : "text-[#4E342E]/40"
                                 )}
                             >
                                 おねがい
@@ -321,7 +313,7 @@ export function DayDetailView({
                                 onClick={() => setRequestTab('completed')}
                                 className={cn(
                                     "flex-1 py-1.5 text-[10px] font-black tracking-wider transition-all duration-300 relative z-10",
-                                    requestTab === 'completed' ? "text-white" : "text-white/40"
+                                    requestTab === 'completed' ? "text-[#4E342E]" : "text-[#4E342E]/40"
                                 )}
                             >
                                 おねがいの記録
@@ -331,13 +323,18 @@ export function DayDetailView({
                             </button>
 
                             <motion.div
-                                className="absolute inset-y-1 bg-white/10 rounded-lg shadow-sm border border-white/10"
+                                className="absolute inset-y-1 bg-white rounded-lg shadow-sm border border-[#4E342E] shadow-sm"
                                 initial={false}
                                 animate={{
                                     left: requestTab === 'pending' ? '4px' : '50%',
                                     right: requestTab === 'pending' ? '50%' : '4px',
                                 }}
                                 transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+                                style={{
+                                    backgroundColor: 'white',
+                                    border: 'none',
+                                    boxShadow: '0 2px 8px rgba(78,52,46,0.1)'
+                                }}
                             />
                         </div>
                     </div>
@@ -355,27 +352,27 @@ export function DayDetailView({
                                 >
                                     {pendingTasks.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-10 gap-2">
-                                            <Sparkles className="w-5 h-5 text-white/20" />
-                                            <p className="text-xs text-white/30 italic">すべてのおねがいをききました</p>
+                                            <Sparkles className="w-5 h-5 text-[#4E342E]/10" />
+                                            <p className="text-xs text-[#4E342E]/30 italic">すべてのおねがいをききました</p>
                                         </div>
                                     ) : (
                                         pendingTasks.map((task: any) => {
                                             const IconComponent = getIconComponent(task.icon);
                                             return (
-                                                <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.08] border border-white/5 shadow-sm">
-                                                    <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                                                <div key={task.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[#4E342E]/5 shadow-sm">
+                                                    <div className="w-9 h-9 rounded-full bg-[#4E342E]/5 flex items-center justify-center">
                                                         {IconComponent ? (
-                                                            <IconComponent className="w-4 h-4 text-white/70" />
+                                                            <IconComponent className="w-4 h-4 text-[#4E342E]/70" />
                                                         ) : (
                                                             <span className="text-sm">{task.emoji || '📋'}</span>
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-semibold text-white/90 truncate">{task.label || task.name}</p>
+                                                        <p className="text-sm font-bold text-[#4E342E] truncate">{task.label || task.name}</p>
                                                     </div>
                                                     <button
                                                         onClick={() => handleToggleTask(task)}
-                                                        className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                                                        className="w-8 h-8 rounded-full flex items-center justify-center bg-[#4E342E]/5 text-[#4E342E]/40 border border-[#4E342E]/5 active:scale-95 transition-all"
                                                     >
                                                         <Check className="w-4 h-4" />
                                                     </button>
@@ -400,13 +397,13 @@ export function DayDetailView({
                 </div>
 
                 {/* BOTTOM HALF: Life Events Area */}
-                <div className="h-1/2 flex flex-col overflow-hidden bg-white/[0.01]">
+                <div className="h-1/2 flex flex-col overflow-hidden bg-black/[0.01]">
                     <div className="px-5 py-4 shrink-0 flex items-center justify-between">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 focus:text-white/50 transition-colors">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4E342E]/30">
                             できごと
                         </h2>
                         {lifeEvents.length > 0 && (
-                            <span className="text-[10px] text-white/20 font-bold bg-white/5 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] text-[#4E342E]/40 font-bold bg-[#4E342E]/5 px-2 py-0.5 rounded-full">
                                 {lifeEvents.length}
                             </span>
                         )}
@@ -416,8 +413,8 @@ export function DayDetailView({
                         <div className="space-y-3">
                             {lifeEvents.length === 0 ? (
                                 <div className="py-12 flex flex-col items-center gap-2">
-                                    <Wind className="w-5 h-5 text-white/10" />
-                                    <p className="text-xs text-white/20 italic">静かな一日です</p>
+                                    <Wind className="w-5 h-5 text-[#4E342E]/10" />
+                                    <p className="text-xs text-[#4E342E]/20 italic">静かな一日です</p>
                                 </div>
                             ) : (
                                 lifeEvents.map((event: any, idx: number) => (
@@ -426,23 +423,28 @@ export function DayDetailView({
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-white/[0.04] rounded-2xl border border-white/5 overflow-hidden"
+                                        className="bg-white rounded-2xl border border-[#4E342E]/5 shadow-sm overflow-hidden"
+                                        onClick={() => {
+                                            if (event.type === 'incident' && onOpenIncidentDetail) {
+                                                onOpenIncidentDetail(event.id);
+                                            }
+                                        }}
                                     >
                                         {event.type === 'incident' && (
-                                            <div className="p-4 relative group">
+                                            <div className="p-4 relative group active:bg-[#4E342E]/5 transition-colors cursor-pointer">
                                                 <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-                                                    <span className="text-[10px] text-white/20 font-mono mr-1">
+                                                    <span className="text-[10px] text-[#4E342E]/20 font-mono mr-1">
                                                         {format(event.timestamp, 'HH:mm')}
                                                     </span>
                                                     <button
-                                                        onClick={() => handleDelete(event)}
-                                                        className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
+                                                        onClick={(e) => handleDelete(event, e)}
+                                                        className="p-1.5 rounded-full hover:bg-rose-500/10 text-[#4E342E]/20 hover:text-rose-500 transition-colors"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleEdit(event)}
-                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                                        onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
+                                                        className="p-1.5 rounded-full hover:bg-[#4E342E]/5 text-[#4E342E]/20 hover:text-[#4E342E] transition-colors"
                                                     >
                                                         <Edit2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -451,7 +453,7 @@ export function DayDetailView({
                                                 <div className="flex items-center justify-between mb-2 pr-20">
                                                     <div className={cn(
                                                         "flex items-center gap-2",
-                                                        (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-400" : "text-amber-400"
+                                                        (event.incident_type === 'daily' || event.incident_type === 'other') ? "text-sky-500" : "text-amber-600"
                                                     )}>
                                                         {(event.incident_type === 'daily' || event.incident_type === 'other') ? (
                                                             <MessageCircle className="w-3.5 h-3.5" />
@@ -463,13 +465,13 @@ export function DayDetailView({
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-white/90 leading-relaxed">
+                                                <p className="text-sm text-[#4E342E]/90 leading-relaxed font-medium">
                                                     {event.note || event.memo || event.description || '内容なし'}
                                                 </p>
                                                 {event.photos && event.photos.length > 0 && (
                                                     <div className="mt-3 grid grid-cols-2 gap-2">
                                                         {event.photos.map((path: string, i: number) => (
-                                                            <img key={i} src={getFullImageUrl(path)} className="w-full aspect-square object-cover rounded-xl border border-white/5" alt="" />
+                                                            <img key={i} src={getFullImageUrl(path)} className="w-full aspect-square object-cover rounded-xl border border-[#4E342E]/5" alt="" />
                                                         ))}
                                                     </div>
                                                 )}
@@ -479,51 +481,54 @@ export function DayDetailView({
                                         {event.type === 'observation' && (
                                             <div className="p-4 relative group">
                                                 <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-                                                    <span className="text-[10px] text-white/20 font-mono mr-1">
+                                                    <span className="text-[10px] text-[#4E342E]/20 font-mono mr-1">
                                                         {format(event.timestamp, 'HH:mm')}
                                                     </span>
                                                     <button
-                                                        onClick={() => handleDelete(event)}
-                                                        className="p-1.5 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
+                                                        onClick={(e) => handleDelete(event, e)}
+                                                        className="p-1.5 rounded-full hover:bg-rose-500/10 text-[#4E342E]/20 hover:text-rose-500 transition-colors"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(event)}
-                                                        className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-2 pr-20">
-                                                    <div className="flex items-center gap-2 text-sky-400">
+                                                    <div className="flex items-center gap-2 text-sky-500">
                                                         <Activity className="w-3.5 h-3.5" />
                                                         <span className="text-[9px] font-black tracking-widest uppercase">health</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-white/90 font-medium">{event.value}</p>
+                                                <p className="text-sm text-[#4E342E]/90 font-bold">{event.value}</p>
                                                 {(event.notes || event.note) && (
-                                                    <p className="text-xs text-white/50 mt-1 italic leading-relaxed">{event.notes || event.note}</p>
+                                                    <p className="text-xs text-[#4E342E]/50 mt-1 italic leading-relaxed">{event.notes || event.note}</p>
                                                 )}
                                             </div>
                                         )}
 
                                         {event.type === 'photo' && (
                                             <div className="relative aspect-[1.4] group">
-                                                <img src={getFullImageUrl(event.storage_path || event.url)} alt="" className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
+                                                {(() => {
+                                                    const imageUrl = getFullImageUrl(event.storage_path || event.url);
+                                                    if (!imageUrl) return (
+                                                        <div className="w-full h-full bg-[#4E342E]/5 flex flex-col items-center justify-center gap-2">
+                                                            <ImageIcon className="w-6 h-6 text-[#4E342E]/20" />
+                                                            <span className="text-[10px] text-[#4E342E]/20">画像がありません</span>
+                                                        </div>
+                                                    );
+                                                    return <img src={imageUrl} alt="" className="w-full h-full object-cover" />;
+                                                })()}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-[#4E342E]/40 via-transparent to-transparent flex flex-col justify-end p-4">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex-1 min-w-0 pr-4">
-                                                            <p className="text-xs text-white/90 font-medium truncate">{event.caption}</p>
+                                                            <p className="text-xs text-white font-bold truncate">{event.caption}</p>
                                                             {(event.memo || event.notes) && (
-                                                                <p className="text-[10px] text-white/60 truncate mt-0.5">{event.memo || event.notes}</p>
+                                                                <p className="text-[10px] text-white/80 truncate mt-0.5">{event.memo || event.notes}</p>
                                                             )}
                                                         </div>
                                                         <div className="flex items-center gap-2 shrink-0">
-                                                            <span className="text-[10px] text-white/40 font-mono">{format(event.timestamp, 'HH:mm')}</span>
+                                                            <span className="text-[10px] text-white/60 font-mono">{format(event.timestamp, 'HH:mm')}</span>
                                                             <button
-                                                                onClick={() => handleDelete(event)}
+                                                                onClick={(e) => handleDelete(event, e)}
                                                                 className="p-1 rounded-full hover:bg-rose-500/40 text-white/50 hover:text-rose-400 transition-colors"
                                                             >
                                                                 <Trash2 className="w-3 h-3" />
@@ -543,29 +548,29 @@ export function DayDetailView({
 
             {/* Edit Memo Modal */}
             <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
-                <DialogContent className="sm:max-w-[425px] bg-[#121214] border-white/10 text-white">
+                <DialogContent className="sm:max-w-[425px] bg-white border-[#4E342E]/10 text-[#4E342E]">
                     <DialogHeader>
-                        <DialogTitle>メモを編集</DialogTitle>
+                        <DialogTitle className="text-[#4E342E] font-bold">メモを編集</DialogTitle>
                     </DialogHeader>
                     <div className="py-4">
                         <Textarea
                             value={editNote}
                             onChange={(e) => setEditNote(e.target.value)}
                             placeholder="メモを入力..."
-                            className="min-h-[120px] bg-white/5 border-white/10 focus:border-brand-peach/50 focus:ring-brand-peach/20 text-white"
+                            className="min-h-[120px] bg-[#4E342E]/5 border-[#4E342E]/10 focus:border-[#4E342E]/30 text-[#4E342E]"
                         />
                     </div>
                     <DialogFooter className="gap-2">
                         <Button
                             variant="ghost"
                             onClick={() => setEditingItem(null)}
-                            className="text-white/60 hover:text-white"
+                            className="text-[#4E342E]/40 hover:text-[#4E342E]"
                         >
                             キャンセル
                         </Button>
                         <Button
                             onClick={handleSaveEdit}
-                            className="bg-brand-peach hover:bg-brand-peach/90 text-white"
+                            className="bg-[#4E342E] hover:bg-[#4E342E]/90 text-white font-bold"
                         >
                             保存する
                         </Button>

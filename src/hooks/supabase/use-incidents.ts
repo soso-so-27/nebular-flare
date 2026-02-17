@@ -40,22 +40,29 @@ export function useIncidents(householdId: string | null) {
     });
 
     const addMutation = useMutation({
-        mutationFn: async ({ catId, type, note, photos, health_category, health_value, onset, symptom_details, batch_id }: any) => {
-            const photoPaths: string[] = [];
-            for (const file of photos) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-                const filePath = `incidents/${fileName}`;
-                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
-                if (uploadError) throw uploadError;
-                photoPaths.push(filePath);
+        mutationFn: async ({ catId, catIds, type, note, photos, photoPaths: existingPhotoPaths, health_category, health_value, onset, symptom_details, batch_id }: any) => {
+            const photoPaths: string[] = existingPhotoPaths || [];
+
+            // If photos (Files) are provided, upload them only if they aren't already represented by photoPaths
+            // (Compatibility: older UI versions might only provide 'photos')
+            if (photos && photos.length > 0 && photoPaths.length === 0) {
+                for (const file of photos) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const filePath = `incidents/${fileName}`;
+                    // FIXED: Use 'cat-images' bucket for medical/life logs
+                    const { error: uploadError } = await supabase.storage.from('cat-images').upload(filePath, file);
+                    if (uploadError) throw uploadError;
+                    photoPaths.push(filePath);
+                }
             }
 
             const { data, error } = await supabase
                 .from('incidents')
                 .insert({
                     household_id: householdId,
-                    cat_id: catId,
+                    cat_id: catId || (catIds && catIds.length > 0 ? catIds[0] : null), // 代表猫ID（互換性のため残す）
+                    cat_ids: catIds || (catId ? [catId] : []), // 全ての猫ID
                     type,
                     note,
                     status: 'log',
@@ -75,6 +82,7 @@ export function useIncidents(householdId: string | null) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey });
+            queryClient.invalidateQueries({ queryKey: ['cats'] }); // Refresh gallery
         },
     });
 
@@ -85,7 +93,8 @@ export function useIncidents(householdId: string | null) {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `incidents/${fileName}`;
-                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+                // FIXED: Use 'cat-images' bucket
+                const { error: uploadError } = await supabase.storage.from('cat-images').upload(filePath, file);
                 if (uploadError) throw uploadError;
                 photoPaths.push(filePath);
             }
@@ -293,8 +302,8 @@ export function useIncidents(householdId: string | null) {
         incidents,
         loading,
         refetch: () => queryClient.invalidateQueries({ queryKey }),
-        addIncident: useCallback((catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) =>
-            addMutation.mutateAsync({ catId, type, note, photos, health_category, health_value, onset, symptom_details, batch_id }), [addMutation]),
+        addIncident: useCallback((catId: string, type: string, note: string, photos: File[] = [], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string, catIds?: string[], photoPaths?: string[]) =>
+            addMutation.mutateAsync({ catId, catIds, type, note, photos, photoPaths, health_category, health_value, onset, symptom_details, batch_id }), [addMutation]),
         addIncidentUpdate: useCallback((incidentId: string, note: string, photos: File[] = [], statusChange?: string) =>
             addUpdateMutation.mutateAsync({ incidentId, note, photos, statusChange }), [addUpdateMutation]),
         resolveIncident: useCallback((incidentId: string) =>

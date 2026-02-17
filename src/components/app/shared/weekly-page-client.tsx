@@ -34,14 +34,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
     const exportRef = useRef<HTMLDivElement>(null);
 
     // ── Helper: get public URL ──
-    const getPublicUrl = (path: string) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        const supabase = createClient();
-        const bucket = path.startsWith('cat-photos/') ? 'cat-images' : 'avatars';
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        return data.publicUrl;
-    };
+    const { getFullImageUrl } = require("@/lib/utils");
 
     // ── Collect weekly photos ──
     const weeklyPhotos = useMemo(() => {
@@ -52,7 +45,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
         incidents.forEach((inc: Incident) => {
             if (new Date(inc.created_at) >= sevenDaysAgo && inc.photos) {
                 inc.photos.forEach((path: string) => {
-                    photos.push({ url: getPublicUrl(path), date: inc.created_at });
+                    photos.push({ url: getFullImageUrl(path), date: inc.created_at });
                 });
             }
         });
@@ -61,7 +54,7 @@ export function WeeklyPageClient({ onClose }: WeeklyPageClientProps) {
             cat.images?.forEach((img: any) => {
                 const imgDate = new Date(img.createdAt || img.created_at);
                 if (imgDate >= sevenDaysAgo) {
-                    photos.push({ url: getPublicUrl(img.storagePath), date: imgDate.toISOString() });
+                    photos.push({ url: getFullImageUrl(img.storagePath), date: imgDate.toISOString() });
                 }
             });
         });

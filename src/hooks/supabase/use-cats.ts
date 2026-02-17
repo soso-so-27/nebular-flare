@@ -42,7 +42,9 @@ export function useCats(householdId: string | null) {
                     storagePath: img.storage_path || img.storagePath,
                     createdAt: img.created_at || img.createdAt,
                     isFavorite: img.is_favorite || img.isFavorite,
-                    memo: img.memo
+                    memo: img.memo,
+                    tags: img.tags,
+                    aiAnalysis: img.ai_analysis
                 }))
             }));
         }
@@ -63,7 +65,7 @@ export function useCats(householdId: string | null) {
             const catIds = catsData.map((c: any) => c.id);
             const [imagesResult, weightsResult] = await Promise.all([
                 supabase.from('cat_images')
-                    .select('id, storage_path, cat_id, created_at, is_favorite, memo')
+                    .select('id, storage_path, cat_id, created_at, is_favorite, memo, tags, ai_analysis')
                     .in('cat_id', catIds),
                 supabase.from('cat_weight_history')
                     .select('id, cat_id, weight, recorded_at, notes')
@@ -89,7 +91,9 @@ export function useCats(householdId: string | null) {
                     storagePath: img.storage_path,
                     createdAt: img.created_at,
                     isFavorite: img.is_favorite,
-                    memo: img.memo
+                    memo: img.memo,
+                    tags: img.tags,
+                    aiAnalysis: img.ai_analysis
                 }))
             }));
         }

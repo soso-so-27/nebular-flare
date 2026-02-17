@@ -251,6 +251,13 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     onClick={() => pushView('inventory')}
                 />
 
+                <MenuItem
+                    icon={BookOpen}
+                    title="みつける・図鑑"
+                    subtext="AIがアルバムを整理・提案"
+                    onClick={() => { onNavigate('zukan'); onClose(); }}
+                />
+
                 {/* Footer Quick Links */}
                 <div className="pt-6 grid grid-cols-2 gap-4">
                     <button

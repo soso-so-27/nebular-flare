@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Cat } from "@/types";
-import { createClient } from "@/lib/supabase";
+import { getFullImageUrl } from "@/lib/utils";
 
 interface HouseholdMediaItem {
     catId: string;
@@ -12,12 +12,6 @@ interface HouseholdMediaItem {
 }
 
 export function useHouseholdMedia(cats: Cat[]) {
-    // Helper function to get public URL
-    const getPublicUrl = (path: string) => {
-        const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data.publicUrl;
-    };
 
     const mediaPool: HouseholdMediaItem[] = useMemo(() => {
         if (!cats || cats.length === 0) return [];
@@ -54,7 +48,7 @@ export function useHouseholdMedia(cats: Cat[]) {
                 const randomImg = cat.images[Math.floor(Math.random() * cat.images.length)];
                 return {
                     catId: cat.id,
-                    url: getPublicUrl(randomImg.storagePath),
+                    url: getFullImageUrl(randomImg.storagePath),
                     isVideo: false,
                     type: 'random' as const
                 };

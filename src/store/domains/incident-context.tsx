@@ -8,7 +8,7 @@ import { storeLogger } from '@/lib/logger';
 
 interface IncidentContextType {
     incidents: Incident[];
-    addIncident: (catId: string, type: string, note: string, photos?: File[], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string) => Promise<{ error?: any; data?: any }>;
+    addIncident: (catId: string, type: string, note: string, photos?: File[], health_category?: string, health_value?: string, onset?: string, symptom_details?: any, batch_id?: string, catIds?: string[], photoPaths?: string[]) => Promise<{ error?: any; data?: any }>;
     addIncidentUpdate: (incidentId: string, note: string, photos?: File[], statusChange?: string) => Promise<{ error?: any }>;
     resolveIncident: (incidentId: string) => Promise<{ error?: any }>;
     deleteIncident: (incidentId: string) => Promise<{ error?: any }>;

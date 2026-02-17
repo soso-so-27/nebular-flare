@@ -24,9 +24,11 @@ interface WeightChartProps {
     isDemo?: boolean;
     variant?: 'default' | 'glass';
     hideControls?: boolean;
+    hideHeader?: boolean;
+    className?: string;
 }
 
-export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo, variant = 'default', hideControls }: WeightChartProps) {
+export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, isDemo, variant = 'default', hideControls, hideHeader, className }: WeightChartProps) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newWeight, setNewWeight] = useState(currentWeight?.toString() || "");
     const [notes, setNotes] = useState("");
@@ -101,46 +103,48 @@ export function WeightChart({ catId, currentWeight, weightHistory, onAddWeight, 
     const displayData = isDemo && chartData.length === 0 ? demoData : chartData;
 
     return (
-        <div className="space-y-3">
+        <div className={cn("space-y-3", className)}>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <span className={cn("text-sm font-medium", isGlass ? "text-white/90" : "text-slate-700 dark:text-slate-200")}>体重推移</span>
-                    {trend && (
-                        <span className={cn(
-                            "flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full",
-                            isGlass
-                                ? "bg-white/20 text-white backdrop-blur-sm"
-                                : trend.direction === 'up'
-                                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                                    : trend.direction === 'down'
-                                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                        )}>
-                            {trend.direction === 'up' && <TrendingUp className="h-3 w-3" />}
-                            {trend.direction === 'down' && <TrendingDown className="h-3 w-3" />}
-                            {trend.direction === 'stable' && <Minus className="h-3 w-3" />}
-                            {trend.amount}kg
-                        </span>
+            {!hideHeader && (
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className={cn("text-sm font-medium", isGlass ? "text-white/90" : "text-slate-700 dark:text-slate-200")}>体重推移</span>
+                        {trend && (
+                            <span className={cn(
+                                "flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full",
+                                isGlass
+                                    ? "bg-white/20 text-white backdrop-blur-sm"
+                                    : trend.direction === 'up'
+                                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                        : trend.direction === 'down'
+                                            ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                            )}>
+                                {trend.direction === 'up' && <TrendingUp className="h-3 w-3" />}
+                                {trend.direction === 'down' && <TrendingDown className="h-3 w-3" />}
+                                {trend.direction === 'stable' && <Minus className="h-3 w-3" />}
+                                {trend.amount}kg
+                            </span>
+                        )}
+                    </div>
+                    {!hideControls && (
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className={cn(
+                                "flex items-center gap-1 text-xs transition-colors",
+                                isGlass ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                            )}
+                        >
+                            <Plus className="h-3 w-3" />
+                            記録
+                        </button>
                     )}
                 </div>
-                {!hideControls && (
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className={cn(
-                            "flex items-center gap-1 text-xs transition-colors",
-                            isGlass ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                        )}
-                    >
-                        <Plus className="h-3 w-3" />
-                        記録
-                    </button>
-                )}
-            </div>
+            )}
 
             {/* Chart */}
             {displayData.length > 0 ? (
-                <div className="h-40 w-full">
+                <div className="w-full h-full min-h-0 flex-1">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={displayData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />

@@ -19,17 +19,23 @@ export function processRawIncidents(incidents: any[], cats: Cat[], householdUser
             resolvedUserName = currentUserDisplayName;
         }
 
+        // Resolve all cats involved
+        const catsInvolved = inc.cat_ids && Array.isArray(inc.cat_ids)
+            ? cats.filter(c => (inc.cat_ids as string[]).includes(c.id))
+            : (cat ? [cat] : []);
+
         // Filter out avatar images from the gallery photos
+        const primaryCat = catsInvolved[0] || cat;
         const filteredPhotos = (inc.photos || []).filter((p: string) => {
-            return p !== cat?.avatar && !cat?.avatar?.includes(p);
+            return p !== primaryCat?.avatar && !primaryCat?.avatar?.includes(p);
         });
 
         const itemBase: TimelineItem = {
             id: inc.id,
             type: inc.type,
             catId: inc.cat_id,
-            catName: cat?.name || '不明',
-            cats: cat ? [{ id: cat.id, name: cat.name, avatar: cat.avatar }] : [],
+            catName: catsInvolved.map(c => c.name).join(', '),
+            cats: catsInvolved.map(c => ({ id: c.id, name: c.name, avatar: c.avatar })),
             note: inc.note || '',
             photos: filteredPhotos,
             createdAt: inc.created_at,

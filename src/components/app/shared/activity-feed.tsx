@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useCareContext, useCatContext, useIncidentContext, useSettingsContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, getFullImageUrl } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
@@ -249,12 +249,6 @@ export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: {
         setActiveCatIdLocal(activeCatId);
     }, [activeCatId]);
 
-    // Helper to get public URL
-    const getPublicUrl = (path: string) => {
-        const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data.publicUrl;
-    };
 
 
 

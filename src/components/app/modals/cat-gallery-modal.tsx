@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useCatContext } from "@/store/app-store";
 import { X, Plus, Trash2, Image as ImageIcon, Loader2, CheckCircle2, ChevronLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getFullImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase";
 import { AnimatePresence, motion } from "framer-motion";
@@ -28,12 +28,6 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
     const activeCat = cats.find((c: Cat) => c.id === catId);
     const images = activeCat?.images || [];
 
-    // Helper to get public URL
-    const getPublicUrl = (path: string) => {
-        const supabase = createClient();
-        const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-        return data.publicUrl;
-    };
 
     // Group images by Month/Year
     const groupedImages = useMemo(() => {
@@ -194,7 +188,7 @@ export function CatGalleryModal({ isOpen, onClose, catId, catName }: CatGalleryM
                                                         }}
                                                     >
                                                         <img
-                                                            src={getPublicUrl(img.storagePath)}
+                                                            src={getFullImageUrl(img.storagePath)}
                                                             alt=""
                                                             loading="lazy"
                                                             className={cn(

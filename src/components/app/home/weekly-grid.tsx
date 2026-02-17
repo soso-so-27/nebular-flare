@@ -45,12 +45,14 @@ export function WeeklyGrid({
     const { bentoH, contentWidth, unitW, unitH, xOffset, bentoTop } = layoutData;
 
     const todayIndex = useMemo(() => {
-        const idx = weekDays.findIndex(day => isToday(day));
-        return idx >= 0 ? idx : 0;
+        return weekDays.findIndex(day => isToday(day));
     }, [weekDays]);
 
-    const todayDate = weekDays[todayIndex];
-    const otherDays = useMemo(() => weekDays.filter((_, i) => i !== todayIndex), [weekDays, todayIndex]);
+    const heroIndex = todayIndex >= 0 ? todayIndex : 0;
+    const heroDate = weekDays[heroIndex];
+    const otherDays = useMemo(() => {
+        return weekDays.filter((_, i) => i !== heroIndex);
+    }, [weekDays, heroIndex]);
 
     /**
      * 【不変整数マトリクス】
@@ -86,11 +88,11 @@ export function WeeklyGrid({
                 }}
             >
                 <DayCell
-                    day={todayDate}
-                    isToday={true}
+                    day={heroDate}
+                    isToday={heroIndex === todayIndex}
                     isLarge={true}
                     selectedCatIds={selectedCatIds}
-                    onClick={() => onDaySelect(todayDate)}
+                    onClick={() => onDaySelect(heroDate)}
                     onQuickPost={(day: Date) => onQuickPost(day)}
                     cornerRadius={{ topLeft: OUTER_RADIUS - HAIRLINE, topRight: 0, bottomLeft: 0, bottomRight: 0 }}
                 />

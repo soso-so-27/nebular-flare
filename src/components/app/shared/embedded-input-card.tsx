@@ -177,37 +177,37 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
                 finalNote = finalNote ? `${finalNote} ${healthText}` : healthText;
             }
 
-            for (const catId of catIds) {
-                // symptom_details を構築
-                const symptom_details: any = {};
-                if (healthCategory === 'vomit') {
-                    symptom_details.vomit = vomitDetails;
-                } else if (healthCategory === 'toilet') {
-                    symptom_details.stool = stoolDetails;
-                }
-                if (emergencySymptom.lethargy || emergencySymptom.prayerPose || emergencySymptom.rapidBreathing) {
-                    symptom_details.emergency = emergencySymptom;
-                }
-                if (ingestionSuspicion.active) {
-                    symptom_details.ingestion = ingestionSuspicion;
-                }
-
-                // addIncident handles photo upload internally
-                const { error } = await addIncident(
-                    catId,
-                    type,
-                    finalNote,
-                    photos,
-                    healthCategory || undefined,
-                    healthValue || undefined,
-                    onsetAt,
-                    symptom_details,
-                    batch_id
-                );
-                if (error) throw error;
-
-                awardForNyannlog?.(catId);
+            // symptom_details を構築
+            const symptom_details: any = {};
+            if (healthCategory === 'vomit') {
+                symptom_details.vomit = vomitDetails;
+            } else if (healthCategory === 'toilet') {
+                symptom_details.stool = stoolDetails;
             }
+            if (emergencySymptom.lethargy || emergencySymptom.prayerPose || emergencySymptom.rapidBreathing) {
+                symptom_details.emergency = emergencySymptom;
+            }
+            if (ingestionSuspicion.active) {
+                symptom_details.ingestion = ingestionSuspicion;
+            }
+
+            // Save single incident for all cats to prevent duplication
+            const { error } = await addIncident(
+                catIds[0], // primary catId
+                type,
+                finalNote,
+                photos,
+                healthCategory || undefined,
+                healthValue || undefined,
+                onsetAt,
+                symptom_details,
+                batch_id,
+                catIds     // all cat IDs
+            );
+            if (error) throw error;
+
+            // Award footprints for each cat
+            catIds.forEach(id => awardForNyannlog?.(id));
 
             toast.success(isConsult ? "相談を投稿しました" : "記録しました");
 
