@@ -17,6 +17,7 @@ export type TimelineUpdate = {
     status_change?: IncidentStatus;
     created_at: string;
     user_name?: string;
+    user_avatar?: string;
 };
 
 export type TimelineCatShort = {
@@ -36,6 +37,7 @@ export type TimelineItem = {
     createdAt: string;
     createdBy?: string;
     userName?: string;
+    userAvatar?: string;
     updates: TimelineUpdate[];
     reactions: TimelineReaction[];
     is_bookmarked: boolean;

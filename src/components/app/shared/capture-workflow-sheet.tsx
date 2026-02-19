@@ -100,7 +100,6 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
     const addLog = (msg: string) => {
         const timestamp = new Date().toLocaleTimeString();
         setDebugLogs(prev => [`[${timestamp}] ${msg}`, ...prev].slice(0, 50));
-        console.log(`[CaptureSheet Debug] ${msg}`);
     };
 
     // Initialize with photos if provided
@@ -367,7 +366,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+                className="absolute inset-0 bg-[#4E342E]/10 backdrop-blur-sm"
                 onClick={onClose}
             />
 

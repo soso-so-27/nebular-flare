@@ -20,7 +20,8 @@ export function useIncidents(householdId: string | null) {
                 .from('incidents')
                 .select(`
                     *,
-                    updates:incident_updates(*),
+                    creator:users!incidents_created_by_fkey(display_name, avatar_url),
+                    updates:incident_updates(*, updater:users!incident_updates_user_id_fkey(display_name, avatar_url)),
                     reactions:incident_reactions(*)
                 `)
                 .eq('household_id', householdId)
@@ -31,9 +32,16 @@ export function useIncidents(householdId: string | null) {
 
             return (data as any[])?.map(inc => ({
                 ...inc,
+                // Flatten creator info
+                creator_name: inc.creator?.display_name,
+                creator_avatar: inc.creator?.avatar_url,
                 updates: (inc.updates as any[])?.sort((a: any, b: any) =>
                     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                )
+                ).map((u: any) => ({
+                    ...u,
+                    user_name: u.updater?.display_name,
+                    user_avatar: u.updater?.avatar_url,
+                }))
             })) || [];
         },
         enabled: !!householdId,
@@ -80,9 +88,15 @@ export function useIncidents(householdId: string | null) {
             if (error) throw error;
             return data;
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey });
             queryClient.invalidateQueries({ queryKey: ['cats'] }); // Refresh gallery
+            // Fire-and-forget: notify family members
+            if (data?.household_id) {
+                supabase.functions.invoke('push-notification', {
+                    body: { type: 'INSERT', table: 'incidents', record: { household_id: data.household_id, created_by: data.created_by } }
+                }).catch(() => { /* silent */ });
+            }
         },
     });
 
@@ -122,8 +136,15 @@ export function useIncidents(householdId: string | null) {
                 await supabase.from('incidents').update(updateData).eq('id', incidentId);
             }
         },
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey });
+            // Fire-and-forget: notify family about update
+            const incident = incidents.find((inc: any) => inc.id === variables.incidentId);
+            if (incident?.household_id) {
+                supabase.functions.invoke('push-notification', {
+                    body: { type: 'INSERT', table: 'incidents', record: { household_id: incident.household_id, created_by: incident.created_by } }
+                }).catch(() => { /* silent */ });
+            }
         },
     });
 

@@ -60,6 +60,42 @@ const GUTTER = 1;
 const PAGE_BG = '#FDF8F1'; // Natural Cream
 // const ORIGINAL_PAGE_BG = '#0A0A0B';
 
+// Daily Prompt Pool
+const DAILY_PROMPTS = [
+    { emoji: '☀️', title: '朝の一枚', desc: '起きたての猫ちゃんを撮ってみよう' },
+    { emoji: '🛋️', title: 'リラックスしてる姿', desc: 'くつろぎタイムをキャッチ' },
+    { emoji: '🍽️', title: 'ごはんの瞬間', desc: '一生懸命食べる姿を記録' },
+    { emoji: '😺', title: '今日のベスト表情', desc: '一番かわいい顔をおさめよう' },
+    { emoji: '📍', title: 'お気に入りの場所', desc: '無意識に行く定位置を検証' },
+    { emoji: '🌙', title: '夜のまったり', desc: 'おやすみ前の静かな時間' },
+    { emoji: '👀', title: '何かを見つめる目', desc: '集中している瞄をキャッチ' },
+    { emoji: '🐾', title: '肉球チラリ', desc: 'かわいい肉球を撮れたらラッキー' },
+    { emoji: '💤', title: '寝顔コレクション', desc: 'すやすや寝息を納めよう' },
+    { emoji: '🪟', title: '窓辺パトロール中', desc: '外を眠める後ろ姿をパシャリ' },
+    { emoji: '🎾', title: '遊んでるところ', desc: '元気に遊ぶ姿を記録' },
+    { emoji: '🐈', title: 'しっぽの形', desc: '今日のしっぽはどんな形？' },
+    { emoji: '🧶', title: 'もふもふアップ', desc: '毛並みの美しさを記録' },
+    { emoji: '📦', title: '入れるかな？', desc: '箱や袋と猫の関係' },
+    { emoji: '☕', title: '飼い主との距離感', desc: '今どのぐらい近い？' },
+    { emoji: '🌞', title: '日向ぼっこ', desc: '陽光を浴びる姿をキャッチ' },
+    { emoji: '💨', title: '小走りシーン', desc: '走り回る瞬間をおさめよう' },
+    { emoji: '🧹', title: 'お手入れ中', desc: 'グルーミング中の真剣な顔' },
+    { emoji: '🪩', title: '掌を見せて', desc: 'りんとしたポーズを探そう' },
+    { emoji: '🍃', title: '季節を感じて', desc: '季節と猫ちゃんの一枚' },
+];
+
+// Weekly Mission Poses
+const POSE_MISSIONS = [
+    { id: '香箱座り', emoji: '🍞', label: '「香箱座り」を見つけよう！', desc: '前足を体の下に折りたたんで座るポーズ。リラックスの証拠です。' },
+    { id: 'へそ天', emoji: '🐾', label: '「へそ天」を見つけよう！', desc: '仰向けでお腹を見せていたら信頼の証。' },
+    { id: 'スフィンクス', emoji: '🏛️', label: '「スフィンクス」を見つけよう！', desc: '前足を前に伸ばして伏せるポーズ。' },
+    { id: 'まんまる', emoji: '⚪', label: '「まんまる」を見つけよう！', desc: 'まんまるになっていたらすかさずパシャリ。' },
+    { id: 'にょろーん', emoji: '🐍', label: '「にょろーん」を見つけよう！', desc: '長く伸びているポーズ。暑い日によく見るかも。' },
+    { id: 'ちょこん座り', emoji: '🐈', label: '「ちょこん座り」を見つけよう！', desc: '背筋を伸ばして上品に座る姿。' },
+    { id: '箱イン', emoji: '📦', label: '「箱イン」を見つけよう！', desc: '箱や袋に入っていたらチャンス！' },
+    { id: 'ふみふみ', emoji: '🫧', label: '「ふみふみ」を見つけよう！', desc: '前足を交互に動かすニーディング。' },
+];
+
 interface WeeklyHomeProps {
     onOpenSidebar: () => void;
     onOpenNewEvent: () => void;
@@ -73,7 +109,7 @@ interface WeeklyHomeProps {
     onOpenGallery: () => void;
     onOpenIncident: () => void;
     onOpenIncidentDetail: (id: string) => void;
-    onOpenNyannlogSheet: (tab?: 'events' | 'requests') => void;
+    onOpenNyannlogSheet: (tab?: 'events' | 'requests' | 'input', date?: Date) => void;
 }
 
 export function WeeklyHome({
@@ -381,18 +417,58 @@ export function WeeklyHome({
             color: 'text-slate-400'
         };
 
-        // 3. Dynamic Ordering: 
-        // If photo is taken, prioritize tasks. If not, prioritize the photo prompt.
+        // 5. Weekly Mission Card
+        const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+        const missionIndex = weekNumber % POSE_MISSIONS.length;
+        const currentMission = POSE_MISSIONS[missionIndex];
+
+        // Check if mission is completed (any this-week photo has this pose)
+        const weekStart = currentWeekStart;
+        const thisWeekIncidents = (incidents || []).filter(inc =>
+            inc.photos && inc.photos.length > 0 &&
+            new Date(inc.created_at) >= weekStart &&
+            belongsToSelectedCats(inc.cat_id)
+        );
+        const missionCompleted = thisWeekIncidents.some(inc =>
+            (inc as any).ai_analysis?.pose === currentMission.id
+        );
+
+        const missionCard: FeedItem = {
+            id: 'weekly-mission',
+            type: 'mission',
+            title: currentMission.label,
+            missionEmoji: currentMission.emoji,
+            missionDesc: currentMission.desc,
+            missionCompleted,
+            onClick: handleTriggerCapture,
+        };
+
+        // 6. Daily Prompt Card (replaces fortune)
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
+        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
+        const todayPrompt = DAILY_PROMPTS[promptIndex];
+
+        const promptCard: FeedItem = {
+            id: 'daily-prompt',
+            type: 'prompt',
+            title: todayPrompt.title,
+            content: todayPrompt.desc,
+            missionEmoji: todayPrompt.emoji,
+            onClick: handleTriggerCapture,
+        };
+
+        // Insert mission card after photo card (position 1 or 2)
         if (topToday) {
             items.push(requestsCard);
+            items.push(missionCard);
             items.push(photoCard);
         } else {
             items.push(photoCard);
+            items.push(missionCard);
             items.push(requestsCard);
         }
 
-        // 4. Clinic Report Card
-        const weekStart = currentWeekStart;
+        // 7. Clinic Report Card
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         const healthIncidents = (incidents || []).filter(inc => {
             const d = new Date(inc.created_at);
@@ -417,25 +493,8 @@ export function WeeklyHome({
             }
         });
 
-        // 5. Fortune / Tips
-        items.push({
-            id: 'fortune-today',
-            type: 'fortune',
-            title: '今日の占い',
-            content: '愛猫との絆が深まる予感。',
-            subContent: '目を見てゆっくり瞬きする',
-            icon: Sparkles,
-            color: 'text-slate-400'
-        });
-
-        items.push({
-            id: 'cat-tip-1',
-            type: 'tip',
-            title: '猫の豆知識',
-            content: '猫のひげは空気の流れを感じ取り、暗闇でも障害物を避けるセンサーの役割をしています。',
-            icon: Lightbulb,
-            color: 'text-slate-400'
-        });
+        // 8. Daily Prompt (replacing fortune)
+        items.push(promptCard);
 
         return items;
     }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems]);

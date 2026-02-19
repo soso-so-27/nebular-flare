@@ -107,7 +107,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             // Award footprints for each cat
             catIds.forEach(id => awardForIncident(id));
 
-            toast.success(`${selectedCatIds.size}件の相談を記録しました`);
+            toast.success("相談を記録しました");
             onClose();
             // Reset form
             setNote('');
@@ -132,7 +132,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[50002] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[10000] flex items-end justify-center bg-[#4E342E]/10 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -141,27 +141,32 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className={`
-                            bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
-                            ${isIsland
-                                ? 'rounded-t-[32px] max-h-[90vh]'
-                                : 'rounded-[32px] mb-24 max-h-[75vh]'}
-                        `}
+                        className="bg-[#fefefe] rounded-t-[40px] flex flex-col w-full max-w-md max-h-[90vh] overflow-hidden border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)]"
                     >
-                        {/* Specular Highlight */}
-                        <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 ${isIsland ? 'rounded-t-[32px]' : 'rounded-[32px]'}`} />
+                        {/* Handle */}
+                        <div className="w-full flex justify-center pt-4 pb-2">
+                            <div className="w-10 h-1.5 rounded-full bg-black/5" />
+                        </div>
 
-                        <div className="px-6 pt-6 pb-2 border-b border-white/5">
-                            <h2 className="text-xl font-bold text-white">家族に相談</h2>
-                            <div className="text-slate-400 text-xs">
-                                気になる体調や様子を記録します
+                        <div className="px-8 pb-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-[22px] font-black text-[#1c1c1e] tracking-tight">家族に相談</h2>
+                                <div className="text-[#1c1c1e]/40 text-xs font-medium mt-0.5">
+                                    気になる体調や様子を記録します
+                                </div>
                             </div>
+                            <button
+                                onClick={onClose}
+                                className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center active:bg-black/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-[#1c1c1e]/40" />
+                            </button>
                         </div>
 
                         <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             {/* Cat Selection - Horizontal Scroll with Bounce */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-brand-peach text-xs font-bold pl-1">だれのようす？</Label>
+                                <Label className="text-[#1c1c1e]/50 text-xs font-bold pl-1">だれのようす？</Label>
                                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar pl-1 flex-wrap">
                                     {cats.map(cat => (
                                         <button
@@ -179,7 +184,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                                 px-4 py-2 rounded-full text-sm font-bold transition-all duration-200
                                                 ${selectedCatIds.has(cat.id)
                                                     ? 'bg-brand-peach text-white shadow-[0_0_15px_rgba(var(--brand-peach-rgb),0.4)] scale-105'
-                                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'}
+                                                    : 'bg-black/[0.03] text-[#1c1c1e]/40 hover:bg-black/[0.06] hover:text-[#1c1c1e]/60'}
                                             `}
                                         >
                                             {cat.name}
@@ -190,7 +195,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
 
                             {/* Incident Type - Compact Icon Grid */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-brand-peach text-xs font-bold pl-1">どうしたの？</Label>
+                                <Label className="text-[#1c1c1e]/50 text-xs font-bold pl-1">どうしたの？</Label>
                                 <div className="grid grid-cols-4 gap-2">
                                     {INCIDENT_TYPES.map(t => {
                                         const isActive = type === t.id;
@@ -200,13 +205,13 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                                 onClick={() => setType(t.id)}
                                                 className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all duration-200 ${isActive
                                                     ? 'bg-brand-peach/20 border-brand-peach shadow-[0_0_12px_rgba(var(--brand-peach-rgb),0.2)]'
-                                                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-400'
+                                                    : 'bg-black/[0.02] border-[#f0f0f0] hover:bg-black/[0.04] text-[#1c1c1e]/40'
                                                     }`}
                                             >
                                                 <div className={`p-1.5 rounded-full mb-1 ${isActive ? 'bg-brand-peach text-white' : 'bg-transparent'}`}>
-                                                    <t.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                                                    <t.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-[#1c1c1e]/30'}`} />
                                                 </div>
-                                                <span className={`text-[9px] font-bold leading-tight ${isActive ? 'text-brand-peach' : 'text-slate-500'}`}>
+                                                <span className={`text-[9px] font-bold leading-tight ${isActive ? 'text-brand-peach' : 'text-[#1c1c1e]/40'}`}>
                                                     {t.label}
                                                 </span>
                                             </button>
@@ -218,21 +223,21 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                             {/* Note & Photos */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="note" className="text-brand-peach text-xs font-bold pl-1">詳細メモ</Label>
+                                    <Label htmlFor="note" className="text-[#1c1c1e]/50 text-xs font-bold pl-1">詳細メモ</Label>
                                     <Textarea
                                         id="note"
                                         placeholder="詳しい状況を入力..."
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
-                                        className="min-h-[80px] bg-black/20 border-white/10 focus:bg-black/40 focus:ring-brand-peach rounded-2xl resize-none shadow-inner text-white placeholder:text-slate-600"
+                                        className="min-h-[80px] bg-black/[0.02] border-[#f0f0f0] focus:bg-black/[0.04] focus:ring-brand-peach rounded-2xl resize-none text-[#1c1c1e] placeholder:text-[#1c1c1e]/20"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-brand-peach text-xs font-bold pl-1">写真</Label>
+                                    <Label className="text-[#1c1c1e]/50 text-xs font-bold pl-1">写真</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {previewUrls.map((url, i) => (
-                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/20 shadow-sm group">
+                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-black/5 shadow-sm group">
                                                 <img src={url} alt="Preview" className="w-full h-full object-cover" />
                                                 <button
                                                     onClick={() => removePhoto(i)}
@@ -244,7 +249,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                                         ))}
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-brand-peach/40 rounded-xl hover:bg-brand-peach/10 text-brand-peach transition-colors bg-white/5"
+                                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-brand-peach/40 rounded-xl hover:bg-brand-peach/10 text-brand-peach transition-colors bg-black/[0.02]"
                                         >
                                             <Camera size={20} />
                                             <span className="text-[9px] mt-0.5 font-bold">追加</span>
@@ -262,13 +267,13 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
                             </div>
                         </div>
 
-                        <div className="p-6 pt-2 shrink-0 border-t border-white/5">
+                        <div className="p-6 pt-2 shrink-0 border-t border-black/5">
                             <div className="flex gap-3">
                                 <Button
                                     variant="ghost"
                                     onClick={onClose}
                                     disabled={loading}
-                                    className="flex-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white"
+                                    className="flex-1 rounded-full hover:bg-black/5 text-[#1c1c1e]/40 hover:text-[#1c1c1e]/60"
                                 >
                                     キャンセル
                                 </Button>

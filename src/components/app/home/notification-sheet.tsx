@@ -37,7 +37,7 @@ export function NotificationSheet({ isOpen, onClose, notifications, onSelectItem
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-[#4E342E]/10 backdrop-blur-sm z-[100]"
+                        className="fixed inset-0 bg-[#4E342E]/10 backdrop-blur-sm z-[10000]"
                     />
 
                     {/* Sheet */}
@@ -46,7 +46,7 @@ export function NotificationSheet({ isOpen, onClose, notifications, onSelectItem
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 30, stiffness: 250 }}
-                        className="fixed bottom-0 inset-x-0 bg-[#fefefe] rounded-t-[40px] z-[101] flex flex-col max-h-[90vh] border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)] overflow-hidden"
+                        className="fixed bottom-0 inset-x-0 bg-[#fefefe] rounded-t-[40px] z-[10001] flex flex-col max-h-[90vh] border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)] overflow-hidden"
                     >
                         {/* Handle */}
                         <div className="w-full flex justify-center pt-4 pb-2">

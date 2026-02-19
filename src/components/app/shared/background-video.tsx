@@ -36,10 +36,8 @@ export const BackgroundVideo = ({
                 try {
                     await videoRef.current.play();
                 } catch (e: any) {
-                    // AbortError is normal when component unmounts - don't log it as an error
-                    if (e.name !== 'AbortError') {
-                        console.log("[Video] Play interrupted or failed:", e.message);
-                    }
+                    // AbortError is normal when component unmounts - silently ignore
+                    // Other play() failures are expected browser behavior (e.g., user hasn't interacted yet)
                 }
             }
         };

@@ -109,7 +109,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-toast flex items-end justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[10000] flex items-end justify-center bg-[#4E342E]/10 backdrop-blur-sm"
                     onClick={handleClose}
                 >
                     <motion.div
@@ -118,27 +118,32 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className={`
-                            bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-md overflow-hidden transition-all duration-300
-                            ${isIsland
-                                ? 'rounded-t-[32px] max-h-[90vh]'
-                                : 'rounded-[32px] mb-24 max-h-[75vh]'}
-                        `}
+                        className="bg-[#fefefe] rounded-t-[40px] flex flex-col w-full max-w-md max-h-[90vh] overflow-hidden border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)]"
                     >
-                        {/* Specular Highlight */}
-                        <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 ${isIsland ? 'rounded-t-[32px]' : 'rounded-[32px]'}`} />
+                        {/* Handle */}
+                        <div className="w-full flex justify-center pt-4 pb-2">
+                            <div className="w-10 h-1.5 rounded-full bg-black/5" />
+                        </div>
 
-                        <div className="px-6 pt-6 pb-2 border-b border-white/5">
-                            <h2 className="text-xl font-bold text-white">とどける</h2>
-                            <div className="text-slate-400 text-xs">
-                                今のようすを家族へとどけましょう
+                        <div className="px-8 pb-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-[22px] font-black text-[#1c1c1e] tracking-tight">とどける</h2>
+                                <div className="text-[#1c1c1e]/40 text-xs font-medium mt-0.5">
+                                    今のようすを家族へとどけましょう
+                                </div>
                             </div>
+                            <button
+                                onClick={handleClose}
+                                className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center active:bg-black/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-[#1c1c1e]/40" />
+                            </button>
                         </div>
 
                         <div className="flex flex-col gap-6 px-6 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             {/* Cat Selection - Horizontal Scroll */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-brand-peach text-xs font-bold pl-1">だれのようす？</Label>
+                                <Label className="text-[#1c1c1e]/50 text-xs font-bold pl-1">だれのようす？</Label>
                                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar pl-1 flex-wrap">
                                     {cats.map(cat => (
                                         <button
@@ -156,7 +161,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                                                 px-4 py-2 rounded-full text-sm font-bold transition-all duration-200
                                                 ${selectedCatIds.has(cat.id)
                                                     ? 'bg-brand-peach text-white shadow-lg shadow-brand-peach/40 scale-105'
-                                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'}
+                                                    : 'bg-black/[0.03] text-[#1c1c1e]/40 hover:bg-black/[0.06] hover:text-[#1c1c1e]/60'}
                                             `}
                                         >
                                             {cat.name}
@@ -167,12 +172,12 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
                             {/* Photo Selection Area */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-brand-peach text-xs font-bold pl-1">写真</Label>
+                                <Label className="text-[#1c1c1e]/50 text-xs font-bold pl-1">写真</Label>
 
                                 <div className="flex gap-3 overflow-x-auto py-2 no-scrollbar min-h-[140px]">
                                     {previewUrls.map((url, idx) => (
                                         <div key={idx} className="relative flex-shrink-0 animate-in zoom-in-50 duration-300">
-                                            <div className="w-28 h-28 rounded-2xl overflow-hidden shadow-md ring-1 ring-white/10">
+                                            <div className="w-28 h-28 rounded-2xl overflow-hidden shadow-md ring-1 ring-black/5">
                                                 <img src={url} alt="" className="w-full h-full object-cover" />
                                             </div>
                                             <button
@@ -194,7 +199,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="w-28 h-28 rounded-2xl border-2 border-dashed border-brand-peach/30 flex flex-col items-center justify-center gap-2 hover:border-brand-peach hover:bg-brand-peach/5 transition-all group flex-shrink-0 bg-white/5"
+                                        className="w-28 h-28 rounded-2xl border-2 border-dashed border-brand-peach/30 flex flex-col items-center justify-center gap-2 hover:border-brand-peach hover:bg-brand-peach/5 transition-all group flex-shrink-0 bg-black/[0.02]"
                                     >
                                         <div className="p-2 rounded-full bg-brand-peach/10 group-hover:bg-brand-peach/20 transition-colors">
                                             <Camera className="w-6 h-6 text-brand-peach" />
@@ -215,23 +220,23 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
 
                             {/* Memo */}
                             <div className="space-y-2">
-                                <Label htmlFor="memo" className="text-brand-peach text-xs font-bold pl-1">メモ</Label>
+                                <Label htmlFor="memo" className="text-[#1c1c1e]/50 text-xs font-bold pl-1">メモ</Label>
                                 <Textarea
                                     id="memo"
                                     placeholder="ひとことメモ..."
                                     value={memo}
                                     onChange={(e) => setMemo(e.target.value)}
-                                    className="min-h-[80px] bg-black/20 border-white/10 focus:bg-black/40 focus:ring-brand-peach rounded-2xl resize-none shadow-inner text-white placeholder:text-slate-600"
+                                    className="min-h-[80px] bg-black/[0.02] border-[#f0f0f0] focus:bg-black/[0.04] focus:ring-brand-peach rounded-2xl resize-none text-[#1c1c1e] placeholder:text-[#1c1c1e]/20"
                                 />
                             </div>
                         </div>
 
-                        <div className="p-6 pt-2 shrink-0 border-t border-white/5">
+                        <div className="p-6 pt-2 shrink-0 border-t border-black/5">
                             <div className="flex gap-3">
                                 <Button
                                     onClick={handleClose}
                                     variant="ghost"
-                                    className="flex-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white"
+                                    className="flex-1 rounded-full hover:bg-black/5 text-[#1c1c1e]/40 hover:text-[#1c1c1e]/60"
                                     disabled={loading}
                                 >
                                     キャンセル

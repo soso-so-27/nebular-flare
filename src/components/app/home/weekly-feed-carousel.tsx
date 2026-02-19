@@ -5,7 +5,7 @@ import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, P
 
 export interface FeedItem {
     id: string;
-    type: 'photo' | 'care' | 'memory' | 'fortune' | 'tip' | 'insight' | 'album' | 'report';
+    type: 'photo' | 'care' | 'memory' | 'fortune' | 'tip' | 'insight' | 'album' | 'report' | 'mission' | 'prompt';
     title: string;
     content?: string;
     subContent?: string;
@@ -17,6 +17,9 @@ export interface FeedItem {
     progress?: { current: number; total: number }; // Vol. 25
     listItems?: { label: string; time: string; icon: any; onClick?: () => void }[];
     onClick?: () => void;
+    missionEmoji?: string;
+    missionDesc?: string;
+    missionCompleted?: boolean;
 }
 
 interface WeeklyFeedCarouselProps {
@@ -211,11 +214,71 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
         </div>
     );
 
+    const renderMissionCard = (item: FeedItem) => (
+        <div className="h-full flex flex-col p-4 relative overflow-hidden">
+            {/* Subtle gradient accent */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#FF9500]/10 to-transparent rounded-bl-full" />
+            <div className="flex items-center gap-2 mb-2 relative z-10">
+                <div className="w-7 h-7 rounded-lg bg-[#FF9500]/15 flex items-center justify-center">
+                    <span className="text-sm">{item.missionEmoji || '🔍'}</span>
+                </div>
+                <div>
+                    <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今週のミッション</h3>
+                    <h4 className="text-[12px] font-black text-[#4E342E] leading-tight">{item.title}</h4>
+                </div>
+            </div>
+            <p className="text-[9.5px] text-[#4E342E]/50 font-medium leading-tight mb-auto relative z-10">
+                {item.missionDesc || item.content}
+            </p>
+            <div className="flex items-center justify-between mt-2 relative z-10">
+                {item.missionCompleted ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#34C759]/10 rounded-full border border-[#34C759]/20">
+                        <span className="text-[9px]">✅</span>
+                        <span className="text-[9px] font-black text-[#34C759]">達成！</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-full border border-[#FF9500]/15">
+                        <Camera className="w-2.5 h-2.5 text-[#FF9500]" />
+                        <span className="text-[9px] font-black text-[#FF9500]">撮ってクリア</span>
+                    </div>
+                )}
+                <div className="flex gap-[3px]">
+                    <div className={`w-2 h-2 rounded-full ${item.missionCompleted ? 'bg-[#34C759]' : 'bg-[#4E342E]/10'}`} />
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderPromptCard = (item: FeedItem) => (
+        <div className="h-full flex flex-col p-4 relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 text-[72px] leading-none opacity-[0.06] pointer-events-none select-none">
+                {item.missionEmoji || '📸'}
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{item.missionEmoji || '📸'}</span>
+                <div>
+                    <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今日のひとこと</h3>
+                </div>
+            </div>
+            <h4 className="text-[13px] font-black text-[#4E342E] leading-tight mb-1">{item.title}</h4>
+            <p className="text-[9.5px] text-[#4E342E]/50 font-medium leading-tight mb-auto">
+                {item.content}
+            </p>
+            <div className="mt-2">
+                <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-full text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
+                    撮ってみよう →
+                </div>
+            </div>
+        </div>
+    );
+
     const renderContent = (item: FeedItem) => {
         let content;
         if (item.type === 'album') content = renderAlbumCard(item);
         else if (item.type === 'report') content = renderReportCard(item);
         else if (item.type === 'care') content = renderCareCard(item);
+        else if (item.type === 'mission') content = renderMissionCard(item);
+        else if (item.type === 'prompt') content = renderPromptCard(item);
         else if (item.type === 'photo' || item.type === 'memory') content = renderPhotoCard(item);
         else {
             content = (

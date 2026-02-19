@@ -82,17 +82,7 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
 
     const selectedDayData = monthData[format(selectedDate, 'yyyy-MM-dd')];
 
-    // Sync Auth Name to DB if mismatched (Fix for "nakanishisoya" issue)
-    React.useEffect(() => {
-        if (currentUser?.user_metadata?.full_name && profile && profile.displayName !== currentUser.user_metadata.full_name) {
-            console.log("Syncing user name to DB:", currentUser.user_metadata.full_name);
-            // We can't update DB directly from here easily without a dedicated update function exposed in app-store or hook.
-            // But we can fallback to the visual override for now, which is safe.
-            // Actually, let's rely on the visual override we added, it works if currentUser is present.
-            // The issue might be that currentUser IS present but mismatching?
-            // I will keep the visual override.
-        }
-    }, [currentUser, profile]);
+    // Name Override: visual override applied inline in dayRecords below (DB sync handled elsewhere)
 
     // Combine logs for list
     const dayRecords: ActivityItem[] = useMemo(() => {

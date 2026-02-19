@@ -556,7 +556,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[10000] bg-black/20 backdrop-blur-sm cursor-pointer"
+                        className="fixed inset-0 z-[10000] bg-[#4E342E]/10 backdrop-blur-sm cursor-pointer"
                     />
 
                     {/* Bottom Sheet Container */}

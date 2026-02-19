@@ -67,9 +67,9 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
     };
 
     const sheetVariants = {
-        hidden: { y: "110%", opacity: 0, scale: 0.95 },
-        visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring" as const, damping: 25, stiffness: 300 } },
-        exit: { y: "110%", opacity: 0, scale: 0.95, transition: { type: "spring" as const, damping: 25, stiffness: 300 } }
+        hidden: { y: "100%" },
+        visible: { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 250 } },
+        exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 250 } }
     };
 
     return (
@@ -82,7 +82,7 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={onClose}
-                            className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm"
+                            className="fixed inset-0 z-[10000] bg-[#4E342E]/10 backdrop-blur-sm"
                         />
 
                         <motion.div
@@ -90,53 +90,40 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className={`fixed inset-x-0 z-[10001] pointer-events-auto flex justify-center
-                            ${isIsland ? 'bottom-0' : 'bottom-24 px-4 py-8'}`}
-                            drag="y"
-                            dragConstraints={{ top: 0, bottom: 0 }}
-                            dragElastic={0.2}
-                            onDragEnd={(_, info) => {
-                                if (info.offset.y > 100) onClose();
-                            }}
+                            className="fixed bottom-0 inset-x-0 z-[10001] pointer-events-auto"
                         >
-                            <div className={`
-                            bg-[#1E1E23]/90 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-lg transition-all duration-300
-                            ${isIsland
-                                    ? 'rounded-t-[32px] h-[85vh] max-h-[800px] border-b-0'
-                                    : 'rounded-[32px] h-[75vh] max-h-[700px] border-b'}
-                        `}>
-                                <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 ${isIsland ? 'rounded-t-[32px]' : 'rounded-[32px]'}`} />
-
-                                <div className="w-full flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing" onClick={onClose}>
-                                    <div className="w-12 h-1.5 rounded-full bg-white/20" />
+                            <div className="bg-[#fefefe] rounded-t-[40px] flex flex-col w-full max-h-[90vh] border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)] overflow-hidden">
+                                {/* Handle */}
+                                <div className="w-full flex justify-center pt-4 pb-2">
+                                    <div className="w-10 h-1.5 rounded-full bg-black/5" />
                                 </div>
 
-                                <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                                <div className="flex items-center justify-between px-8 py-6 border-b border-black/5">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-brand-peach/20 ring-1 ring-brand-peach/30 shadow-inner">
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-brand-peach/15 ring-1 ring-brand-peach/20">
                                             <ArrowLeftRight className="w-5 h-5 text-brand-peach" />
                                         </div>
                                         <div>
-                                            <h2 className="text-lg font-bold text-white">足あと交換所</h2>
-                                            <p className="text-sm font-medium text-slate-400">🐾 {stats.householdTotal} pt</p>
+                                            <h2 className="text-[22px] font-black text-[#1c1c1e]">足あと交換所</h2>
+                                            <p className="text-sm font-medium text-[#1c1c1e]/40">🐾 {stats.householdTotal} pt</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                        className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center active:bg-black/10 transition-colors"
                                     >
-                                        <X className="w-5 h-5 text-slate-400" />
+                                        <X className="w-5 h-5 text-[#1c1c1e]/40" />
                                     </button>
                                 </div>
 
-                                <div className="flex border-b border-white/5 overflow-x-auto no-scrollbar">
+                                <div className="flex border-b border-black/5 overflow-x-auto no-scrollbar">
                                     {TABS.map((tab) => (
                                         <button
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === tab.id
                                                 ? 'text-brand-peach'
-                                                : 'text-slate-500 hover:text-slate-300'
+                                                : 'text-[#1c1c1e]/30 hover:text-[#1c1c1e]/50'
                                                 }`}
                                         >
                                             {tab.icon}
@@ -154,14 +141,14 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                     ))}
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 [&::-webkit-scrollbar]:hidden">
+                                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
                                     {activeTab === 'layout' ? (
-                                        <div className="flex flex-col items-center justify-center h-64 text-slate-500 gap-4">
-                                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                                        <div className="flex flex-col items-center justify-center h-64 text-[#1c1c1e]/30 gap-4">
+                                            <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center">
                                                 <Lock className="w-8 h-8 opacity-20" />
                                             </div>
                                             <div className="text-center">
-                                                <p className="font-bold text-slate-400">きせかえ機能は準備中です</p>
+                                                <p className="font-bold text-[#1c1c1e]/40">きせかえ機能は準備中です</p>
                                                 <p className="text-xs opacity-50 mt-1">近日公開予定！お楽しみに</p>
                                             </div>
                                         </div>

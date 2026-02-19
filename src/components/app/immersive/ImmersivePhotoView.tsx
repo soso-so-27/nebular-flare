@@ -94,8 +94,8 @@ export function ImmersivePhotoView({
                     text: `${image.catName}のようす🐾`,
                     url: image.url,
                 });
-            } catch (err) {
-                console.log('Share failed:', err);
+            } catch {
+                // User cancelled share or share unavailable — expected
             }
         } else {
             navigator.clipboard.writeText(image.url);

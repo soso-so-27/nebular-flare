@@ -1,5 +1,4 @@
 "use client";
-// Force Rebuild: 2026-02-01 22:45
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
@@ -55,7 +54,7 @@ const NyannlogSheet = dynamic(() => import("@/components/app/modals/nyannlog-she
 
 function AppContent() {
   const [tab, setTab] = useState("home");
-  const [useWeeklyHome, setUseWeeklyHome] = useState(true); // Toggle for new weekly calendar home (testing)
+  const [useWeeklyHome, setUseWeeklyHome] = useState(true);
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
 
@@ -107,21 +106,16 @@ function AppContent() {
 
   const [showSplashOverlay, setShowSplashOverlay] = useState(true);
 
-  // Perfect Load Logic: Wait for data + 0.8s safety buffer
+  // Splash Screen Logic: Dismiss when data is ready (+ 0.8s buffer)
   useEffect(() => {
-    // Temporarily relaxed for testing WeeklyHome
     if (!catsLoading) {
-      const timer = setTimeout(() => {
-        setShowSplashOverlay(false);
-      }, 800);
+      const timer = setTimeout(() => setShowSplashOverlay(false), 800);
       return () => clearTimeout(timer);
     }
-    // Fallback: dismiss after 3 seconds regardless of loading state
-    const fallbackTimer = setTimeout(() => {
-      setShowSplashOverlay(false);
-    }, 3000);
+    // Fallback security timer
+    const fallbackTimer = setTimeout(() => setShowSplashOverlay(false), 3000);
     return () => clearTimeout(fallbackTimer);
-  }, [catsLoading, cats]);
+  }, [catsLoading]);
 
   const catchup = React.useMemo(() => getCatchUpItems({
     tasks,
@@ -317,7 +311,7 @@ function AppContent() {
                       onOpenGallery={() => setTab("gallery")}
                       onOpenIncident={() => setShowIncidentListSheet(true)}
                       onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={(tab, date) => handleOpenNyannlog(tab as any || 'events', date)}
+                      onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
                       selectedDate={calendarDate}
                       onDateChange={setCalendarDate}
                     />
@@ -334,7 +328,7 @@ function AppContent() {
                       onOpenGallery={() => setTab("gallery")}
                       onOpenIncident={() => setShowIncidentListSheet(true)}
                       onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={(tab, date) => handleOpenNyannlog(tab as any || 'events', date)}
+                      onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
                       isNyannlogOpen={showNyannlogSheet}
                       onToggleView={() => setUseWeeklyHome(true)}
                     />

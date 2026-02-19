@@ -142,13 +142,13 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
                 </span>
             </div>
 
-            {/* Notes (Absolute or Overlay? No, if notes exist, maybe break row? 
-               User asked for "All one line". 
-               If notes exist, they probably have to be below. 
-               Let's keep notes below if present, but the main info is one line. 
-            */}
+            {/* Notes Section - Renders below if present */}
             {item.notes && (
-                <div className="w-full mt-2 basis-full hidden" /> /* Hidden structure hack or just wrap? */
+                <div className="w-full mt-1.5 px-1 basis-full group-hover:bg-white/5 rounded-lg transition-colors">
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                        {item.notes}
+                    </p>
+                </div>
             )}
         </motion.div>
     );

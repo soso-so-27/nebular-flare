@@ -157,9 +157,14 @@ export const NyannlogItem = React.memo(({
                     </div>
                 )}
                 {!!item.note && (
-                    <div className="text-[13px] leading-relaxed">
-                        <span className="font-bold text-white mr-2">{item.userName || item.catName}</span>
-                        <span className="text-white/80 font-medium">{item.note}</span>
+                    <div className="text-[13px] leading-relaxed flex items-start gap-1.5">
+                        {item.userAvatar ? (
+                            <img src={getFullImageUrl(item.userAvatar)} alt="" className="w-4 h-4 rounded-full object-cover border border-white/10 mt-0.5 shrink-0" />
+                        ) : null}
+                        <div>
+                            <span className="font-bold text-white mr-2">{item.userName || item.catName}</span>
+                            <span className="text-white/80 font-medium">{item.note}</span>
+                        </div>
                     </div>
                 )}
             </div>

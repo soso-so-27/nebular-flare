@@ -16,12 +16,14 @@ import {
     Wand2,
     AlertTriangle,
     History,
+    Search,
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
 import { useCatContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { PhotoDetailView } from "../immersive/photo-detail-view";
 import { WeeklyPageClient } from "../shared/weekly-page-client";
+import { RewindDigestCard } from "./rewind-digest";
 import { subDays, startOfWeek } from "date-fns";
 
 /* eslint-disable @next/next/no-img-element */
@@ -46,6 +48,7 @@ interface AIAnalysis {
     userConfirmed?: boolean;
     confirmedAt?: string;
     zukanShelf?: string;
+    pose?: string;
     identificationReason?: string;
     catConfidence?: number;
 }
@@ -97,6 +100,18 @@ function daysAgo(dateStr: string): number {
     return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+// Pose definitions for the Pose Collection feature
+const POSE_DEFS = [
+    { id: '香箱座り', emoji: '🍞', label: '香箱座り', desc: '前足を折りたたんで座る' },
+    { id: 'へそ天', emoji: '🐾', label: 'へそ天', desc: 'お腹を見せてリラックス' },
+    { id: 'スフィンクス', emoji: '🏛️', label: 'スフィンクス', desc: '前足を前に伸ばして伏せる' },
+    { id: 'まんまる', emoji: '⚪', label: 'まんまる', desc: '丸まっている' },
+    { id: 'にょろーん', emoji: '🐍', label: 'にょろーん', desc: '長く伸びている' },
+    { id: 'ちょこん座り', emoji: '🐈', label: 'ちょこん座り', desc: '背筋を伸ばして座る' },
+    { id: '箱イン', emoji: '📦', label: '箱イン', desc: '箱や袋に入っている' },
+    { id: 'ふみふみ', emoji: '🫧', label: 'ふみふみ', desc: '前足を交互に動かす' },
+];
+
 // ─────────────────────────────────
 // Props
 // ─────────────────────────────────
@@ -118,6 +133,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     const [loading, setLoading] = useState(true);
     const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null);
     const [selectedDetailImage, setSelectedDetailImage] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Verification State
     const [isVerificationOpen, setIsVerificationOpen] = useState(false);
@@ -161,6 +177,37 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     }, [loadPhotos]);
 
     // ─────────────────────────────────
+    // Free-text Search Filter
+    // ─────────────────────────────────
+    const filteredPhotos = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return allPhotos;
+        return allPhotos.filter(photo => {
+            // memo
+            if (photo.memo?.toLowerCase().includes(q)) return true;
+            // catName
+            if (photo.catName?.toLowerCase().includes(q)) return true;
+            // tags
+            if (photo.tags?.some((t: any) => {
+                const name = typeof t === 'string' ? t : t.name;
+                return name?.toLowerCase().includes(q);
+            })) return true;
+            // AI labels
+            const labels = photo.aiAnalysis?.labels;
+            if (labels) {
+                if (labels.moment?.toLowerCase().includes(q)) return true;
+                if (labels.scene?.toLowerCase().includes(q)) return true;
+                if (labels.shot?.toLowerCase().includes(q)) return true;
+            }
+            // AI uiTags
+            if (photo.aiAnalysis?.uiTags?.some((tag: string) => tag.toLowerCase().includes(q))) return true;
+            // zukanShelf
+            if (photo.aiAnalysis?.zukanShelf?.toLowerCase().includes(q)) return true;
+            return false;
+        });
+    }, [allPhotos, searchQuery]);
+
+    // ─────────────────────────────────
     // Helper: Categorize Photos (Fixed Shelves)
     // ─────────────────────────────────
     const encyclopediaShelves = useMemo(() => {
@@ -178,7 +225,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             'その他': []
         };
 
-        allPhotos.forEach(photo => {
+        filteredPhotos.forEach(photo => {
             const ai = photo.aiAnalysis;
             const labels = ai?.labels;
 
@@ -217,7 +264,25 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 name,
                 photos: photos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             }));
-    }, [allPhotos]);
+    }, [filteredPhotos]);
+
+    // ─────────────────────────────────
+    // Pose Collection
+    // ─────────────────────────────────
+    const poseCollection = useMemo(() => {
+        const poseMap: Record<string, ShelfPhoto[]> = {};
+        POSE_DEFS.forEach(p => { poseMap[p.id] = []; });
+
+        filteredPhotos.forEach(photo => {
+            const pose = photo.aiAnalysis?.pose;
+            if (pose && poseMap[pose]) {
+                poseMap[pose].push(photo);
+            }
+        });
+
+        const collected = POSE_DEFS.filter(p => poseMap[p.id].length > 0).length;
+        return { poseMap, collected, total: POSE_DEFS.length };
+    }, [filteredPhotos]);
 
     // ─────────────────────────────────
     // Discover Logic
@@ -227,17 +292,16 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         const today = new Date();
         const startOfToday = new Date(today.setHours(0, 0, 0, 0));
 
-        const todaysPhotos = allPhotos.filter(p => new Date(p.createdAt) >= startOfToday);
+        const todaysPhotos = filteredPhotos.filter(p => new Date(p.createdAt) >= startOfToday);
         const dailyPick = todaysPhotos.sort((a, b) => (b.aiAnalysis?.forYouScores?.dailyPick || 0) - (a.aiAnalysis?.forYouScores?.dailyPick || 0))[0];
 
         // 2. Weekly Highlight (Fallback to 'Recent' if empty)
         const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-        let weeklyPhotos = allPhotos.filter(p => new Date(p.createdAt) >= weekStart);
+        let weeklyPhotos = filteredPhotos.filter(p => new Date(p.createdAt) >= weekStart);
 
         const isFallback = weeklyPhotos.length === 0;
         if (isFallback) {
-            // If no photos this week, get latest highly scored photos
-            weeklyPhotos = [...allPhotos];
+            weeklyPhotos = [...filteredPhotos];
         }
 
         const weeklyHighlight = weeklyPhotos
@@ -250,7 +314,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         if (dailyPick && dailyPick.aiAnalysis?.labels) {
             const { scene, moment } = dailyPick.aiAnalysis.labels;
             if (scene || moment) {
-                const candidates = allPhotos.filter(p =>
+                const candidates = filteredPhotos.filter(p =>
                     p.id !== dailyPick.id &&
                     new Date(p.createdAt) < startOfToday &&
                     (p.aiAnalysis?.labels?.scene === scene || p.aiAnalysis?.labels?.moment === moment)
@@ -261,10 +325,63 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             }
         }
 
-        return { dailyPick, weeklyHighlight, similarDay, isFallback };
-    }, [allPhotos]);
+        // 4. This Time Past Years (同日の過去写真)
+        const nowDate = new Date();
+        const thisMonth = nowDate.getMonth();
+        const thisDay = nowDate.getDate();
+        const pastYearPhotos = filteredPhotos
+            .filter(p => {
+                const d = new Date(p.createdAt);
+                return d.getMonth() === thisMonth && d.getDate() === thisDay && daysAgo(p.createdAt) >= 30;
+            })
+            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+        return { dailyPick, weeklyHighlight, similarDay, isFallback, pastYearPhotos };
+    }, [filteredPhotos]);
 
     // ─────────────────────────────────
+    // Monthly Digest
+    // ─────────────────────────────────
+    const monthlyDigest = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const monthPhotos = allPhotos.filter(p => {
+            const d = new Date(p.createdAt);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+
+        if (monthPhotos.length === 0) return null;
+
+        // Top shelf
+        const shelfCounts: Record<string, number> = {};
+        monthPhotos.forEach(p => {
+            const shelf = p.aiAnalysis?.zukanShelf;
+            if (shelf && shelf !== 'その他') {
+                shelfCounts[shelf] = (shelfCounts[shelf] || 0) + 1;
+            }
+        });
+        const topShelf = Object.entries(shelfCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+        // Top pose
+        const poseCounts: Record<string, number> = {};
+        monthPhotos.forEach(p => {
+            const pose = p.aiAnalysis?.pose;
+            if (pose && pose !== 'その他') {
+                poseCounts[pose] = (poseCounts[pose] || 0) + 1;
+            }
+        });
+        const topPose = Object.entries(poseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+        // Best photo by score
+        const bestPhoto = [...monthPhotos].sort((a, b) =>
+            (b.aiAnalysis?.forYouScores?.weeklyHighlight || 0) - (a.aiAnalysis?.forYouScores?.weeklyHighlight || 0)
+        )[0] || null;
+
+        const monthName = `${currentMonth + 1}月`;
+
+        return { totalPhotos: monthPhotos.length, topShelf, topPose, bestPhoto, monthName };
+    }, [allPhotos]);
     // UI Helpers
     // ─────────────────────────────────
     const openDetail = (photo: ShelfPhoto) =>
@@ -498,6 +615,33 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="sticky top-[100px] z-30 px-5 py-2 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8e8e93]" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="メモ・タグで検索"
+                        className="w-full h-9 pl-9 pr-8 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-xl text-[14px] text-[#1c1c1e] dark:text-white placeholder:text-[#8e8e93] outline-none focus:ring-2 focus:ring-[#007AFF]/40 transition-all"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#8e8e93]/30 flex items-center justify-center"
+                        >
+                            <X className="w-3 h-3 text-[#8e8e93]" />
+                        </button>
+                    )}
+                </div>
+                {searchQuery && (
+                    <p className="text-[11px] text-[#8e8e93] mt-1.5 pl-1">
+                        {filteredPhotos.length}件の写真が見つかりました
+                    </p>
+                )}
+            </div>
+
             {/* Verification Banner (Optional, sticky below header) */}
             {verificationQueue.length > 0 && (
                 <div
@@ -541,35 +685,16 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         {/* ─── DISCOVER TAB ─── */}
                         {activeTab === 'discover' && (
                             <div className="px-5 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                {/* 1. Today's Pick */}
-                                {discoverItems.dailyPick ? (
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">今日の1枚</h3>
-                                        </div>
-                                        <div
-                                            className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-lg cursor-pointer active:scale-[0.98] transition-all"
-                                            onClick={() => openDetail(discoverItems.dailyPick!)}
-                                        >
-                                            <img src={discoverItems.dailyPick.url} className="w-full h-full object-cover" alt="" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                            <div className="absolute bottom-4 left-4 right-4">
-                                                <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-[11px] font-bold mb-1">
-                                                    {discoverItems.dailyPick.catName}
-                                                </div>
-                                                {discoverItems.dailyPick.aiAnalysis?.uiTags && (
-                                                    <p className="text-white text-[13px] font-medium opacity-90">
-                                                        #{discoverItems.dailyPick.aiAnalysis.uiTags[0]}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-10 bg-[#f2f2f7] rounded-2xl">
-                                        <p className="text-[#8e8e93] text-sm">今日の写真はまだありません</p>
-                                    </div>
-                                )}
+                                {/* 1. Rewind Digest (Hero) */}
+                                <RewindDigestCard
+                                    allPhotos={allPhotos.map(p => ({
+                                        id: p.id,
+                                        url: p.url,
+                                        catName: p.catName,
+                                        createdAt: p.createdAt,
+                                        memo: p.memo,
+                                    }))}
+                                />
 
                                 {/* 2. Weekly Highlight */}
                                 {discoverItems.weeklyHighlight.length > 0 && (
@@ -619,12 +744,176 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* 4. This Time Past Years */}
+                                {discoverItems.pastYearPhotos.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <History className="w-4.5 h-4.5 text-[#AF52DE]" />
+                                            <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">
+                                                {(() => {
+                                                    const oldest = new Date(discoverItems.pastYearPhotos[0].createdAt);
+                                                    const years = new Date().getFullYear() - oldest.getFullYear();
+                                                    return years >= 1 ? `${years}年前の今日` : '以前の今日';
+                                                })()}
+                                            </h3>
+                                        </div>
+                                        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                                            {discoverItems.pastYearPhotos.map(photo => {
+                                                const d = new Date(photo.createdAt);
+                                                const yearsAgo = new Date().getFullYear() - d.getFullYear();
+                                                const label = yearsAgo >= 1 ? `${yearsAgo}年前` : `${daysAgo(photo.createdAt)}日前`;
+                                                return (
+                                                    <div
+                                                        key={photo.id}
+                                                        className="relative shrink-0 w-28 cursor-pointer group"
+                                                        onClick={() => openDetail(photo)}
+                                                    >
+                                                        <div className="aspect-square rounded-xl overflow-hidden ring-1 ring-black/5">
+                                                            <img src={photo.url} className="w-full h-full object-cover group-active:scale-95 transition-transform" alt="" />
+                                                        </div>
+                                                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-black/50 backdrop-blur-md rounded-full">
+                                                            <span className="text-[10px] font-bold text-white">{label}</span>
+                                                        </div>
+                                                        <p className="text-[11px] text-[#8e8e93] mt-1.5 truncate font-medium">
+                                                            {photo.catName}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 5. Monthly Digest */}
+                                {monthlyDigest && (
+                                    <div className="mt-4">
+                                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5856D6] via-[#AF52DE] to-[#FF2D55] p-[1px]">
+                                            <div className="rounded-[15px] bg-[#1c1c1e]/90 backdrop-blur-xl p-5">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h3 className="text-[17px] font-bold text-white">
+                                                        {monthlyDigest.monthName}のまとめ
+                                                    </h3>
+                                                    <span className="text-[11px] text-white/50 font-medium">
+                                                        {new Date().getFullYear()}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-3 gap-3 mb-4">
+                                                    <div className="text-center">
+                                                        <p className="text-2xl font-black text-white tabular-nums">
+                                                            {monthlyDigest.totalPhotos}
+                                                        </p>
+                                                        <p className="text-[10px] text-white/60 font-medium mt-0.5">総写真</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-lg font-bold text-white">
+                                                            {monthlyDigest.topShelf || '―'}
+                                                        </p>
+                                                        <p className="text-[10px] text-white/60 font-medium mt-0.5">最多シーン</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-lg font-bold text-white">
+                                                            {monthlyDigest.topPose || '―'}
+                                                        </p>
+                                                        <p className="text-[10px] text-white/60 font-medium mt-0.5">人気ポーズ</p>
+                                                    </div>
+                                                </div>
+
+                                                {monthlyDigest.bestPhoto && (
+                                                    <div
+                                                        className="relative rounded-xl overflow-hidden h-36 cursor-pointer active:opacity-80 transition-opacity"
+                                                        onClick={() => openDetail(monthlyDigest.bestPhoto!)}
+                                                    >
+                                                        <img
+                                                            src={monthlyDigest.bestPhoto.url}
+                                                            className="w-full h-full object-cover"
+                                                            alt=""
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                                                        <div className="absolute bottom-2.5 left-3">
+                                                            <p className="text-[11px] font-bold text-white/90">✨ ベストショット</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* ─── ENCYCLOPEDIA TAB ─── */}
                         {activeTab === 'encyclopedia' && (
                             <div className="px-5 space-y-2 animate-in fade-in slide-in-from-right-2 duration-300">
+                                {/* Pose Collection Grid */}
+                                <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Award className="w-4.5 h-4.5 text-[#FF9500]" />
+                                            <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">ポーズ図鑑</h3>
+                                        </div>
+                                        <span className="text-[13px] font-bold text-[#8e8e93] tabular-nums">
+                                            {poseCollection.collected}/{poseCollection.total}
+                                        </span>
+                                    </div>
+                                    {/* Progress Bar */}
+                                    <div className="h-1.5 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-gradient-to-r from-[#FF9500] to-[#FF2D55] rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(poseCollection.collected / poseCollection.total) * 100}%` }}
+                                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                                        />
+                                    </div>
+                                    {/* Pose Grid */}
+                                    <div className="grid grid-cols-4 gap-2.5">
+                                        {POSE_DEFS.map(pose => {
+                                            const photos = poseCollection.poseMap[pose.id] || [];
+                                            const isUnlocked = photos.length > 0;
+                                            const representative = photos[0];
+                                            return (
+                                                <motion.div
+                                                    key={pose.id}
+                                                    whileTap={isUnlocked ? { scale: 0.95 } : undefined}
+                                                    className={cn(
+                                                        "relative flex flex-col items-center cursor-pointer rounded-xl p-2 transition-all",
+                                                        isUnlocked
+                                                            ? "bg-white dark:bg-[#2c2c2e] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                                            : "bg-[#f2f2f7]/60 dark:bg-[#2c2c2e]/40"
+                                                    )}
+                                                    onClick={() => {
+                                                        if (isUnlocked) setSelectedShelf({ name: `${pose.emoji} ${pose.label}`, photos });
+                                                    }}
+                                                >
+                                                    <div className={cn(
+                                                        "w-12 h-12 rounded-full flex items-center justify-center mb-1.5 overflow-hidden",
+                                                        isUnlocked ? "" : "bg-[#e5e5ea]/60 dark:bg-white/5"
+                                                    )}>
+                                                        {isUnlocked && representative ? (
+                                                            <img src={representative.url} className="w-full h-full object-cover rounded-full" alt="" />
+                                                        ) : (
+                                                            <span className="text-xl opacity-30">{pose.emoji}</span>
+                                                        )}
+                                                    </div>
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold text-center leading-tight",
+                                                        isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#c7c7cc] dark:text-[#636366]"
+                                                    )}>
+                                                        {pose.label}
+                                                    </span>
+                                                    {isUnlocked ? (
+                                                        <span className="text-[9px] text-[#8e8e93] font-medium mt-0.5">{photos.length}枚</span>
+                                                    ) : (
+                                                        <span className="text-[9px] text-[#c7c7cc] dark:text-[#48484a] mt-0.5">🔒</span>
+                                                    )}
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Scene Shelves */}
                                 {encyclopediaShelves.length > 0 ? (
                                     <div className="space-y-4">
                                         {encyclopediaShelves

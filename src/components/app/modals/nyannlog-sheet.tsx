@@ -199,9 +199,9 @@ export const NyannlogSheet = React.memo(function NyannlogSheet(props: NyannlogSh
                         usePortal ? "fixed inset-0 z-[12000] flex items-end justify-center transition-all duration-500" : "absolute inset-x-0 bottom-0 z-[1] h-full flex items-end justify-center pointer-events-auto", // z-1 & pointer-events-auto
                         usePortal ? (
                             activeTab === 'requests'
-                                ? "bg-black/60 backdrop-blur-md"
+                                ? "bg-[#4E342E]/10 backdrop-blur-sm"
                                 : activeTab === 'input'
-                                    ? "bg-black/40 backdrop-blur-md"
+                                    ? "bg-[#4E342E]/10 backdrop-blur-sm"
                                     : "bg-black/60 backdrop-blur-md"
                         ) : ""
                     )}

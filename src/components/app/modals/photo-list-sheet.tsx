@@ -198,9 +198,9 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
     };
 
     const sheetVariants = {
-        hidden: { y: "110%", opacity: 0, scale: 0.95 },
-        visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring" as const, damping: 25, stiffness: 300 } },
-        exit: { y: "110%", opacity: 0, scale: 0.95, transition: { type: "spring" as const, damping: 25, stiffness: 300 } }
+        hidden: { y: "100%" },
+        visible: { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 250 } },
+        exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 250 } }
     };
 
     return (
@@ -213,7 +213,7 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
-                        className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm"
+                        className="fixed inset-0 z-[10000] bg-[#4E342E]/10 backdrop-blur-sm"
                     />
 
                     {/* Sheet / Modal */}
@@ -222,74 +222,52 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className={`fixed inset-x-0 z-[10001] pointer-events-auto flex justify-center
-                            ${isIsland ? 'bottom-0' : 'bottom-24 px-4'}`}
-                        drag="y"
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={0.2}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.y > 100) handleClose();
-                        }}
+                        className="fixed bottom-0 inset-x-0 z-[10001] pointer-events-auto"
                     >
-                        <motion.div
-                            animate={{
-                                scale: selectedPhoto ? 0.96 : 1,
-                                opacity: selectedPhoto ? 0.7 : 1,
-                                filter: selectedPhoto ? 'blur(4px)' : 'blur(0px)',
-                                y: selectedPhoto ? -10 : 0
-                            }}
-                            transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                            className={`
-                                bg-[#1E1E23]/85 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-lg transition-all duration-300 relative overflow-hidden
-                                ${isIsland
-                                    ? 'rounded-t-[32px] h-[75vh] max-h-[650px]'
-                                    : 'rounded-[32px] h-[65vh] max-h-[600px]'}
-                            `}
+                        <div
+                            className="bg-[#fefefe] rounded-t-[40px] flex flex-col w-full max-h-[90vh] border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)] overflow-hidden"
                         >
-                            {/* Specular */}
-                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 z-10" />
-
-                            {/* Drag Handle */}
-                            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing z-10" onClick={handleClose}>
-                                <div className="w-12 h-1.5 rounded-full bg-white/20" />
+                            {/* Handle */}
+                            <div className="w-full flex justify-center pt-4 pb-2">
+                                <div className="w-10 h-1.5 rounded-full bg-black/5" />
                             </div>
 
                             {/* Header */}
-                            <div className="px-6 py-3 flex items-center justify-between shrink-0 z-10">
+                            <div className="px-8 py-6 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div>
-                                        <h1 className="text-lg font-bold text-white tracking-tight">とどいた写真</h1>
+                                        <h1 className="text-[22px] font-black text-[#1c1c1e] tracking-tight">とどいた写真</h1>
                                         <p className="text-xs text-brand-peach font-bold animate-pulse">スタンプを届けて反応しよう！</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={handleClose}
-                                    className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                    className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center active:bg-black/10 transition-colors"
                                 >
-                                    <X className="w-4 h-4 text-slate-400" />
+                                    <X className="w-5 h-5 text-[#1c1c1e]/40" />
                                 </button>
                             </div>
 
                             {/* Photo List */}
-                            <div className="flex-1 overflow-y-auto px-4 pb-10 [&::-webkit-scrollbar]:hidden z-10">
+                            <div className="flex-1 overflow-y-auto px-6 py-2 pb-[env(safe-area-inset-bottom,24px)]">
                                 {recentPhotos.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
-                                        <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-white/10">
-                                            <Camera className="w-8 h-8 text-slate-500" />
+                                        <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mb-4">
+                                            <Camera className="w-8 h-8 text-[#1c1c1e]/20" />
                                         </div>
-                                        <p className="text-slate-400 font-medium">まだ写真がありません</p>
-                                        <p className="text-xs text-slate-600 mt-1">猫ちゃんの写真をとどけてね</p>
+                                        <p className="text-[#1c1c1e]/40 font-medium">まだ写真がありません</p>
+                                        <p className="text-xs text-[#1c1c1e]/20 mt-1">猫ちゃんの写真をとどけてね</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4 relative">
                                         {/* Timeline Line */}
-                                        <div className="absolute left-3 top-2 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent" />
+                                        <div className="absolute left-3 top-2 bottom-0 w-px bg-gradient-to-b from-black/10 via-black/5 to-transparent" />
 
                                         {groupedPhotos.map(([groupName, photos], gIdx) => (
                                             <div key={groupName} className="space-y-2">
                                                 <div className="flex items-center gap-3 pl-1.5 py-0.5">
-                                                    <div className="w-3 h-3 rounded-full bg-[#1E1E23] border-[1.5px] border-brand-peach shrink-0 z-20" />
-                                                    <h2 className="text-[10px] font-black text-slate-500 tracking-widest uppercase">
+                                                    <div className="w-3 h-3 rounded-full bg-[#fefefe] border-[1.5px] border-brand-peach shrink-0 z-20" />
+                                                    <h2 className="text-[10px] font-black text-[#1c1c1e]/30 tracking-widest uppercase">
                                                         {groupName}
                                                     </h2>
                                                 </div>
@@ -304,26 +282,26 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                                                                 animate={{ opacity: 1 }}
                                                                 transition={{ delay: (gIdx * 0.05) + (pIdx * 0.03) }}
                                                                 onClick={() => setSelectedPhoto(photo)}
-                                                                className="relative bg-[#1E1E23]/40 hover:bg-[#1E1E23]/60 backdrop-blur-md rounded-[20px] p-3 border border-white/5 flex flex-col gap-1.5 text-left transition-all active:scale-[0.98] group"
+                                                                className="relative bg-black/[0.02] hover:bg-black/[0.04] rounded-[20px] p-3 border border-[#f0f0f0] flex flex-col gap-1.5 text-left transition-all active:scale-[0.98] group"
                                                             >
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-1.5">
-                                                                        <span className="text-xs font-black text-slate-200">{photo.catName}</span>
+                                                                        <span className="text-xs font-black text-[#1c1c1e]">{photo.catName}</span>
                                                                         {isNew && (
                                                                             <span className="w-1 h-1 rounded-full bg-brand-peach shadow-[0_0_8px_rgba(var(--brand-peach-rgb),1)]" />
                                                                         )}
                                                                     </div>
-                                                                    <div className="text-[10px] font-bold text-slate-500 tabular-nums">
+                                                                    <div className="text-[10px] font-bold text-[#1c1c1e]/30 tabular-nums">
                                                                         {formatTime(photo.createdAt)}
                                                                     </div>
                                                                 </div>
 
                                                                 {photo.memo ? (
-                                                                    <p className="text-xs text-slate-300 font-medium leading-normal line-clamp-2">
+                                                                    <p className="text-xs text-[#1c1c1e]/50 font-medium leading-normal line-clamp-2">
                                                                         {photo.memo}
                                                                     </p>
                                                                 ) : (
-                                                                    <p className="text-[10px] text-slate-600 italic">写真が届きました</p>
+                                                                    <p className="text-[10px] text-[#1c1c1e]/20 italic">写真が届きました</p>
                                                                 )}
 
                                                                 {/* Reactions Bar */}
@@ -334,7 +312,7 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                                                                                 <span key={i} className="text-[10px]">{emoji}</span>
                                                                             ))}
                                                                         </div>
-                                                                        <span className="text-[9px] font-black text-slate-600">
+                                                                        <span className="text-[9px] font-black text-[#1c1c1e]/30">
                                                                             {reactions[photo.id].length}
                                                                         </span>
                                                                     </div>
@@ -348,7 +326,7 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </motion.div>
 
                     {/* Photo Detail View */}

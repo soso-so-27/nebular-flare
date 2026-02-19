@@ -196,7 +196,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-[2px]"
+                        className="fixed inset-0 bg-[#4E342E]/10 backdrop-blur-sm"
                         onClick={onClose}
                     />
                     <motion.div

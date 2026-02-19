@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle as ChatIcon, ChevronRight, MessageCircle, Check, Plus, AlertCircle } from "lucide-react";
+import { X, MessageCircle, Check, Plus } from "lucide-react";
 import { useCatContext, useIncidentContext, useSettingsContext } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 import { IncidentDetailModal } from "./incident-detail-modal";
@@ -14,6 +14,12 @@ interface IncidentListSheetProps {
 }
 
 const TYPE_LABELS: Record<string, string> = {
+    'worried': '相談',
+    'chat': '相談',
+    'daily': '記録',
+    'good': '記録',
+    'concerned': '相談',
+    'troubled': '相談',
     'vomit': '嘔吐',
     'diarrhea': '下痢',
     'injury': '怪我',
@@ -24,9 +30,9 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-    'active': { bg: 'bg-brand-peach/20', text: 'text-brand-peach', label: '経過観察中' },
-    'monitoring': { bg: 'bg-brand-peach/20', text: 'text-brand-peach', label: '注意中' },
-    'resolved': { bg: 'bg-white/10', text: 'text-slate-400', label: '解決済み' }
+    'active': { bg: 'bg-brand-peach/15', text: 'text-brand-peach', label: '経過観察中' },
+    'monitoring': { bg: 'bg-brand-peach/15', text: 'text-brand-peach', label: '注意中' },
+    'resolved': { bg: 'bg-black/5', text: 'text-[#1c1c1e]/40', label: '解決済み' }
 };
 
 export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
@@ -35,7 +41,6 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
     const { incidents } = useIncidentContext();
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [showNewIncidentModal, setShowNewIncidentModal] = useState(false);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const isIsland = settings.layoutType === 'v2-island';
 
@@ -65,9 +70,9 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
     const getCat = (catId: string) => cats.find(c => c.id === catId);
 
     const sheetVariants = {
-        hidden: { y: "110%", opacity: 0, scale: 0.95 },
-        visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring" as const, damping: 25, stiffness: 300 } },
-        exit: { y: "110%", opacity: 0, scale: 0.95, transition: { type: "spring" as const, damping: 25, stiffness: 300 } }
+        hidden: { y: "100%" },
+        visible: { y: 0, transition: { type: "spring" as const, damping: 30, stiffness: 250 } },
+        exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 250 } }
     };
 
     const IncidentItem = ({ incident }: { incident: any }) => {
@@ -81,7 +86,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
             <motion.button
                 onClick={() => setSelectedIncidentId(incident.id)}
                 className={`
-                    w-full bg-[#1E1E23]/40 hover:bg-[#1E1E23]/60 backdrop-blur-md rounded-[24px] p-4 border border-white/5 
+                    w-full bg-black/[0.02] hover:bg-black/[0.04] rounded-[24px] p-4 border border-[#f0f0f0] 
                     flex flex-col gap-3 text-left transition-all group relative overflow-hidden
                     ${isResolved ? 'opacity-70' : ''}
                 `}
@@ -94,7 +99,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
 
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-800 overflow-hidden border border-white/5 shadow-sm relative">
+                        <div className="w-8 h-8 rounded-xl bg-[#f0f0f0] overflow-hidden border border-black/5 shadow-sm relative">
                             {cat?.avatar ? (
                                 <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                             ) : (
@@ -102,18 +107,18 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                             )}
                         </div>
                         <div>
-                            <p className="text-xs font-black text-slate-200">{cat?.name || '猫ちゃん'}</p>
-                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{formatDate(incident.created_at)}</p>
+                            <p className="text-xs font-black text-[#1c1c1e]">{cat?.name || '猫ちゃん'}</p>
+                            <p className="text-[9px] text-[#1c1c1e]/30 font-bold uppercase tracking-wider">{formatDate(incident.created_at)}</p>
                         </div>
                     </div>
 
-                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${statusStyle.bg} ${statusStyle.text} border border-white/5`}>
+                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${statusStyle.bg} ${statusStyle.text} border border-black/5`}>
                         {statusStyle.label}
                     </div>
                 </div>
 
                 <div className="flex items-center justify-between mt-1">
-                    <h3 className="text-sm font-black text-slate-200 tracking-tight">
+                    <h3 className="text-sm font-black text-[#1c1c1e] tracking-tight">
                         {typeLabel}
                     </h3>
                     <div className="flex items-center gap-1.5">
@@ -123,7 +128,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                                 {updateCount}
                             </div>
                         )}
-                        <div className="text-[9px] font-black text-slate-600 group-hover:text-slate-400 transition-colors">
+                        <div className="text-[9px] font-black text-[#1c1c1e]/30 group-hover:text-[#1c1c1e]/50 transition-colors">
                             詳細を見る →
                         </div>
                     </div>
@@ -142,7 +147,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-overlay bg-black/40 backdrop-blur-sm"
+                        className="fixed inset-0 z-overlay bg-[#4E342E]/10 backdrop-blur-sm"
                     />
 
                     {/* Sheet / Modal */}
@@ -151,68 +156,47 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className={`fixed inset-x-0 z-modal pointer-events-auto flex justify-center
-                            ${isIsland ? 'bottom-0' : 'bottom-24 px-4'}`}
-                        drag="y"
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={0.2}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.y > 100) onClose();
-                        }}
+                        className="fixed bottom-0 inset-x-0 z-modal pointer-events-auto"
                     >
-                        <div className={`
-                            bg-[#1E1E23]/85 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col w-full max-w-lg transition-all duration-300
-                            ${isIsland
-                                ? 'rounded-t-[32px] h-[75vh] max-h-[650px] border-b-0'
-                                : 'rounded-[32px] h-[65vh] max-h-[600px] border-b'}
-                        `}>
-                            {/* Specular */}
-                            <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 ${isIsland ? 'rounded-t-[32px]' : 'rounded-[32px]'}`} />
-
-                            {/* Drag Handle */}
-                            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing" onClick={onClose}>
-                                <div className="w-12 h-1.5 rounded-full bg-white/20" />
+                        <div className="bg-[#fefefe] rounded-t-[40px] flex flex-col w-full max-h-[90vh] border-t border-black/5 shadow-[0_-8px_40px_rgba(78,52,46,0.1)] overflow-hidden">
+                            {/* Handle */}
+                            <div className="w-full flex justify-center pt-4 pb-2">
+                                <div className="w-10 h-1.5 rounded-full bg-black/5" />
                             </div>
 
                             {/* Header */}
-                            <div className="px-6 py-3 flex items-center justify-between shrink-0">
+                            <div className="px-8 py-6 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div>
-                                        <h1 className="text-lg font-bold text-white tracking-tight">そうだん</h1>
+                                        <h1 className="text-[22px] font-black text-[#1c1c1e] tracking-tight">そうだん</h1>
                                         <p className="text-xs text-brand-peach font-bold animate-pulse">様子をチェックして解決しよう</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={onClose}
-                                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                        onClick={() => setShowNewIncidentModal(true)}
+                                        className="w-9 h-9 rounded-full bg-brand-peach/15 flex items-center justify-center hover:bg-brand-peach/25 transition-colors"
                                     >
-                                        <X className="w-4 h-4 text-slate-400" />
+                                        <Plus className="w-4 h-4 text-brand-peach" />
+                                    </button>
+                                    <button
+                                        onClick={onClose}
+                                        className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center active:bg-black/10 transition-colors"
+                                    >
+                                        <X className="w-5 h-5 text-[#1c1c1e]/40" />
                                     </button>
                                 </div>
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 overflow-y-auto px-4 pb-6 [&::-webkit-scrollbar]:hidden">
+                            <div className="flex-1 overflow-y-auto px-6 pb-[env(safe-area-inset-bottom,24px)]">
                                 {/* Active Incidents */}
                                 {activeIncidents.length > 0 && (
                                     <div className="mb-6">
                                         <div className="flex items-center gap-2 mb-3 px-2">
                                             <div className="w-2 h-2 rounded-full bg-brand-peach animate-pulse" />
-                                            <span className="text-sm font-bold text-slate-300">経過観察中</span>
+                                            <span className="text-sm font-bold text-[#1c1c1e]/60">経過観察中</span>
                                         </div>
-                                        <button
-                                            onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                            className={cn(
-                                                "p-2 rounded-full transition-colors",
-                                                isFilterOpen
-                                                    ? "bg-brand-sage text-white"
-                                                    : "bg-white text-slate-400 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            {/* Placeholder for filter button content */}
-                                            <ChevronRight className={cn("w-4 h-4 transition-transform", isFilterOpen && "rotate-90")} />
-                                        </button>
                                         <div className="grid gap-3">
                                             {activeIncidents.map(inc => (
                                                 <IncidentItem key={inc.id} incident={inc} />
@@ -225,8 +209,8 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                                 {resolvedIncidents.length > 0 && (
                                     <div>
                                         <div className="flex items-center gap-2 mb-3 px-2">
-                                            <Check className="w-4 h-4 text-slate-400" />
-                                            <span className="text-sm font-bold text-slate-500">解決済み</span>
+                                            <Check className="w-4 h-4 text-[#1c1c1e]/30" />
+                                            <span className="text-sm font-bold text-[#1c1c1e]/30">解決済み</span>
                                         </div>
                                         <div className="grid gap-3 opacity-60 hover:opacity-100 transition-opacity">
                                             {resolvedIncidents.map(inc => (
@@ -242,11 +226,8 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                                         <div className="w-16 h-16 rounded-full bg-brand-peach/10 flex items-center justify-center mb-4 ring-1 ring-brand-peach/20">
                                             <Check className="w-8 h-8 text-brand-peach" />
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-brand-lavender/10 flex items-center justify-center shrink-0">
-                                            <AlertCircle className="w-4 h-4 text-brand-lavender" />
-                                        </div>
-                                        <p className="text-slate-300 font-bold">相談はありません</p>
-                                        <p className="text-xs text-slate-500 mt-1">猫ちゃんは元気いっぱい！</p>
+                                        <p className="text-[#1c1c1e]/40 font-bold">相談はありません</p>
+                                        <p className="text-xs text-[#1c1c1e]/20 mt-1">猫ちゃんは元気いっぱい！</p>
                                     </div>
                                 )}
                             </div>
