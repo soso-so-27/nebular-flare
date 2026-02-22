@@ -105,7 +105,7 @@ export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: {
                 // For now, if filter is 'care', we skip general logs/chats
                 // But we include health incidents
 
-                const displayTitle = isNyannlog ? typeLabel : `⚠️ ${typeLabel}`;
+                const displayTitle = typeLabel;
                 const iconName = isNyannlog
                     ? (inc.type === 'chat' ? 'message-circle' : 'pen-line')
                     : 'alert-circle';
@@ -140,7 +140,7 @@ export function ActivityFeed({ embedded = false, limit = 10, filter = 'all' }: {
                 }[inc.type as string] || inc.type;
 
                 const userInfo = getUserInfo(inc.created_by);
-                const displayTitle = `⚠️ ${typeLabel}`;
+                const displayTitle = typeLabel;
 
                 items.push({
                     id: `inc-${inc.id}`,

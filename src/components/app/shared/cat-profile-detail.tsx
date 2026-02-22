@@ -18,7 +18,8 @@ import {
     Trash2,
     Syringe,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    Cat
 } from "lucide-react";
 import { format, differenceInYears, differenceInMonths, addYears } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -159,8 +160,8 @@ export function CatProfileDetail({ isOpen, onClose, catId, onOpenGallery }: CatP
                         {hasImageAvatar ? (
                             <img src={cat.avatar} className="w-full h-full object-cover scale-110 blur-3xl" alt="" />
                         ) : (
-                            <div className="w-full h-full bg-slate-800 flex items-center justify-center text-[40vh] blur-3xl grayscale opacity-30">
-                                {cat.avatar || "🐈"}
+                            <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-100 opacity-20 blur-2xl">
+                                <Cat className="w-32 h-32" />
                             </div>
                         )}
                     </div>
@@ -215,8 +216,12 @@ export function CatProfileDetail({ isOpen, onClose, catId, onOpenGallery }: CatP
                                     {hasImageAvatar ? (
                                         <img src={cat.avatar} className="w-full h-full object-cover" alt={cat.name} />
                                     ) : (
-                                        <div className="w-full h-full bg-white/5 flex items-center justify-center text-6xl">
-                                            {cat.avatar || "🐈"}
+                                        <div className="w-full h-full bg-white/5 flex items-center justify-center text-[#1c1c1e]/20">
+                                            {cat.avatar && cat.avatar !== '🐈' ? (
+                                                <span className="text-6xl">{cat.avatar}</span>
+                                            ) : (
+                                                <Cat className="w-16 h-16" />
+                                            )}
                                         </div>
                                     )}
                                 </motion.div>

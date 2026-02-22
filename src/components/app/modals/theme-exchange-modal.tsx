@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout, Sun, Moon, TreePine, Flower2, Smartphone, Layers, FileText, ArrowLeftRight, LayoutGrid, ChevronDown } from "lucide-react";
+import { X, Check, Lock, Sparkles, Palette, Gift, ShoppingBag, Heart, Layout, Sun, Moon, TreePine, Flower2, Smartphone, Layers, FileText, ArrowLeftRight, LayoutGrid, ChevronDown, PawPrint } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useFootprintContext } from "@/providers/footprint-provider";
 import { useIncidentContext } from "@/store/app-store";
@@ -105,7 +105,10 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                         </div>
                                         <div>
                                             <h2 className="text-[22px] font-black text-[#1c1c1e]">足あと交換所</h2>
-                                            <p className="text-sm font-medium text-[#1c1c1e]/40">🐾 {stats.householdTotal} pt</p>
+                                            <p className="text-sm font-medium text-[#1c1c1e]/40 flex items-center gap-1">
+                                                <PawPrint className="w-3.5 h-3.5" />
+                                                {stats.householdTotal} pt
+                                            </p>
                                         </div>
                                     </div>
                                     <button
@@ -192,7 +195,6 @@ export function ThemeExchangeModal({ isOpen, onClose }: ThemeExchangeModalProps)
                                         cat={cats.find((c: any) => c.id === selectedCatId)!}
                                         config={reportData}
                                         incidents={incidents || []}
-                                        medicationLogs={medicationLogs?.filter((l: any) => l.cat_id === selectedCatId)}
                                     />
                                 </div>
                             </div>

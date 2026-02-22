@@ -34,17 +34,8 @@ export const APP_ICONS = {
 };
 
 const LEGACY_EMOJI_MAP: Record<string, string> = {
-    '🍚': 'food',
-    '💧': 'water',
-    '🧹': 'toilet',
-    '✨': 'brush',
-    '🐕': 'dog', // just in case
     '🐈': 'cat',
     '🐱': 'cat',
-    '🏥': 'health',
-    '💊': 'med',
-    '💉': 'shot',
-    '❤️': 'heart',
 };
 
 export function getIcon(id: string) {
@@ -59,17 +50,8 @@ export function getIcon(id: string) {
         return iconDef.Icon;
     }
 
-    // Legacy support: if it's an emoji or unknown string, return a fallback that renders it
-    // But since the UI expects a Component, we return a wrapped component
-    // If the ID looks like it contains non-ASCII (emoji), render it as text
-    if (/[^\u0000-\u007F]+/.test(id)) {
-        // Return a component that renders the emoji
-        return (props: React.SVGProps<SVGSVGElement>) => (
-            <span className={cn("text-xl leading-none not-italic mx-auto flex items-center justify-center align-middle", props.className)} style={{ width: '1em', height: '1em' }}>
-                {id}
-            </span>
-        );
-    }
+    // For anything else, return default
+    return APP_ICONS.default.Icon;
 
     return APP_ICONS.default.Icon;
 }

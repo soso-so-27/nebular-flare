@@ -182,7 +182,7 @@ export function CatObservationList() {
             if (result?.error) {
                 throw new Error(result.error.message);
             }
-            toast.success(`${label}を記録しました 📷`);
+            toast.success(`${label}を記録しました`);
         } catch (err: any) {
             console.error(err);
             // Revert optimistic update
@@ -346,7 +346,7 @@ export function CatObservationList() {
                                                     ) : (
                                                         <Camera className="w-4 h-4" />
                                                     )}
-                                                    📷 撮影する
+                                                    撮影する
                                                 </button>
                                             ) : (
                                                 <>

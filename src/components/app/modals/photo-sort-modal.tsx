@@ -13,7 +13,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Loader2,
-    Sparkles
+    Sparkles,
+    Cat as CatIcon
 } from "lucide-react";
 import { Cat } from "@/types";
 
@@ -206,7 +207,13 @@ export function PhotoSortModal({ isOpen, onClose, photos, onAssign }: PhotoSortM
                                                     {hasAvatar ? (
                                                         <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <span className="text-2xl">{cat.avatar || "🐈"}</span>
+                                                        <div className="w-full h-full flex items-center justify-center text-white/20">
+                                                            {cat.avatar && cat.avatar !== '🐈' ? (
+                                                                <span className="text-2xl">{cat.avatar}</span>
+                                                            ) : (
+                                                                <CatIcon className="w-8 h-8" />
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <span className="text-white text-xs font-medium">{cat.name}</span>

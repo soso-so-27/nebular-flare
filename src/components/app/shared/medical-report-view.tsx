@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { toPng } from "html-to-image";
-import { Download, AlertTriangle } from "lucide-react";
+import { Download, AlertTriangle, Cat as CatIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Cat, Incident, ReportConfigData, TodayStatusLevel } from "@/types";
 import { WeightChart } from "./weight-chart";
@@ -204,7 +204,9 @@ export function MedicalReportView({ cat, config, incidents, onExport }: MedicalR
                                                         className="w-full h-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-3xl">🐈</div>
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                        <CatIcon className="w-10 h-10" />
+                                                    </div>
                                                 )}
                                             </div>
                                             {/* Basic Info */}

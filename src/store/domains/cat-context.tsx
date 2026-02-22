@@ -51,7 +51,7 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
             // MVP: Pick Avatar + up to 2 Favorite/Recent images
             const catContextData = finalCatContext?.map(c => {
                 const refs: string[] = [];
-                if (c.avatar && c.avatar !== '🐈') refs.push(getFullImageUrl(c.avatar));
+                if (c.avatar && c.avatar !== '🐈' && c.avatar !== 'cat-fallback') refs.push(getFullImageUrl(c.avatar));
 
                 // Add up to 2 more reference images from favorites or recent
                 // Robustness: Filter out problematic legacy paths (c3e4) from references
@@ -75,31 +75,24 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
                 };
             });
 
-            // Switch to Next.js API Route to avoid CORS/Edge Function issues
+            // Call local Next.js API Proxy to avoid CORS issues and local secret dependency
             const response = await fetch('/api/analyze-cat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'apikey': supabaseAnonKey,
                 },
                 body: JSON.stringify({ imageId, imageUrl, catContext: catContextData })
             });
 
             if (!response.ok) {
                 const errorBody = await response.text();
-                let serverError: any = { message: `分析エラー (${response.status})` };
-                try {
-                    const parsed = JSON.parse(errorBody);
-                    if (parsed.error) serverError.message = `${parsed.error} (${response.status})`;
-                    serverError.details = parsed.details || errorBody;
-                } catch (e) {
-                    serverError.details = errorBody;
-                }
-                console.error(`[AI Context] Edge Function Error (${response.status}):`, errorBody);
-                return { error: serverError };
+                console.error(`[AI Context] Proxy Error:`, errorBody);
+                return { error: { message: `解析エラー: ${response.status}` } };
             }
 
             const data = await response.json();
-            console.log("[AI Context] Success:", data);
+            console.log("[AI Context] Success via Proxy:", data);
 
             // Refetch to get the new tags/analysis
             refetchCats();
@@ -126,7 +119,7 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
                 name: c.name,
                 age: c.birthday ? `${Math.floor((Date.now() - new Date(c.birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000))}才` : '年齢不明',
                 sex: c.sex || 'オス',
-                avatar: c.avatar || '🐈',
+                avatar: c.avatar || 'cat-fallback',
                 birthday: c.birthday || undefined,
                 images: rawImages.map((img: any) => ({
                     id: img.id,

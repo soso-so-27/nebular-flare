@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { format } from "date-fns";
-import { MessageCircle, Camera, AlertCircle, Bookmark, Trash2 } from "lucide-react";
+import { MessageCircle, Camera, AlertCircle, Bookmark, Trash2, PawPrint } from "lucide-react";
 import { getFullImageUrl, cn } from '@/lib/utils';
 import { ReactionBar } from './reaction-bar';
 import { TimelineItem, TimelineUpdate } from '@/types/timeline-types';
@@ -52,7 +52,7 @@ export const NyannlogItem = React.memo(({
                                 {cat.avatar ? (
                                     <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover" alt="" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px]">🐾</div>
+                                    <div className="w-full h-full flex items-center justify-center"><PawPrint className="w-3 h-3 text-slate-400" /></div>
                                 )}
                             </div>
                         ))}

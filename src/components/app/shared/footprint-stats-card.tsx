@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { PawPrint } from 'lucide-react';
 
 // =====================================================
 // FootprintStatsCard - Display footprint statistics
@@ -52,7 +53,7 @@ export function FootprintStatsCard({
         >
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🐾</span>
+                <PawPrint className="w-7 h-7 text-brand-sage" />
                 <h3 className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>
                     猫たちからの足あと
                 </h3>

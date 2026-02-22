@@ -215,7 +215,7 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
             records.push({
                 id: inc.id,
                 type: 'incident',
-                title: `⚠️ ${typeLabel}`,
+                title: typeLabel,
                 catName: cat?.name,
                 timestamp: inc.created_at,
                 userId: inc.created_by,

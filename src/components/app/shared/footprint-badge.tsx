@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PawPrint } from 'lucide-react';
 import { useFootprintContext } from '@/providers/footprint-provider';
 
 interface FootprintBadgeProps {
@@ -59,7 +60,7 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm"
                     >
-                        🐾
+                        <PawPrint className="w-3.5 h-3.5 text-brand-sage" />
                     </motion.span>
                 ))}
                 <motion.div
@@ -75,7 +76,7 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
     if (loading) {
         return (
             <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md ${className}`}>
-                <span className="text-base">🐾</span>
+                <PawPrint className="w-5 h-5 text-brand-sage" />
             </div>
         );
     }
@@ -90,7 +91,7 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
                 whileTap={{ scale: 0.95 }}
             >
                 <div className="relative">
-                    <span className="text-2xl">🐾</span>
+                    <PawPrint className="w-7 h-7 text-brand-sage" />
                     <PawParticles active={showPulse} />
                 </div>
                 <div className="flex flex-col">
@@ -121,7 +122,7 @@ export function FootprintBadge({ className = '', variant = 'compact', onClick }:
         >
             {/* Paw emoji */}
             <div className="relative">
-                <span className="text-base drop-shadow-sm">🐾</span>
+                <PawPrint className="w-5 h-5 text-brand-sage drop-shadow-sm" />
                 <PawParticles active={showPulse} />
             </div>
 

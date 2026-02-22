@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, AlertTriangle, Check, Cat, ChevronDown, ChevronUp } from "lucide-react";
+import { X, AlertTriangle, Check, Cat as CatIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase";
@@ -183,7 +183,9 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
                                         {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
                                             <img src={cat.avatar} alt={cat.name} className="w-4 h-4 rounded-full object-cover" />
                                         ) : (
-                                            <span className="text-sm">{cat.avatar || "🐈"}</span>
+                                            <div className="w-4 h-4 flex items-center justify-center text-[#1c1c1e]/20">
+                                                <CatIcon className="w-3.5 h-3.5" />
+                                            </div>
                                         )}
                                         {cat.name}
                                     </button>
@@ -242,11 +244,11 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
                                                             <div className="flex items-center gap-2">
                                                                 {/* Cat Avatar (only if showing all cats) */}
                                                                 {!selectedCatId && (
-                                                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                                                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden text-[#1c1c1e]/20">
                                                                         {(catAvatar?.startsWith('http') || catAvatar?.startsWith('/')) ? (
                                                                             <img src={catAvatar} alt="" className="w-full h-full object-cover" />
                                                                         ) : (
-                                                                            <span className="text-xs">{catAvatar || "🐈"}</span>
+                                                                            <CatIcon className="w-3.5 h-3.5" />
                                                                         )}
                                                                     </div>
                                                                 )}

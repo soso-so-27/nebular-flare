@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { Cat, Home, Users, Plus, ArrowRight, Loader2 } from "lucide-react";
+import { Cat as CatIcon, Home, Users, Plus, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { onboardingLogger } from "@/lib/logger";
 
@@ -17,12 +17,12 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     const [step, setStep] = useState<'welcome' | 'household' | 'cats'>('welcome');
     const [householdName, setHouseholdName] = useState("");
     const [cats, setCats] = useState<{ name: string; avatar: string }[]>([
-        { name: "", avatar: "🐈" }
+        { name: "", avatar: "" }
     ]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const supabase = createClient() as any;
 
-    const catAvatars = ["🐈", "🐈‍⬛", "🐱", "😺", "😸", "🙀"];
+    const catAvatars = ["cat-default", "cat-black", "cat-orange", "cat-gray"];
 
     async function handleCreateHousehold() {
         if (!householdName.trim() || !user) {
@@ -108,7 +108,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
 
     function addCat() {
-        setCats([...cats, { name: "", avatar: "🐈" }]);
+        setCats([...cats, { name: "", avatar: "" }]);
     }
 
     function updateCat(index: number, field: 'name' | 'avatar', value: string) {
@@ -129,7 +129,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <div className="text-center space-y-6 max-w-sm">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-sage to-emerald-600 flex items-center justify-center shadow-lg">
-                            <Cat className="h-10 w-10 text-white" />
+                            <CatIcon className="h-10 w-10 text-white" />
                         </div>
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900">ようこそ！</h1>
@@ -180,7 +180,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-6 space-y-6">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-brand-sage/10 flex items-center justify-center">
-                            <Cat className="h-5 w-5 text-emerald-700" />
+                            <CatIcon className="h-5 w-5 text-emerald-700" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">猫を登録</h2>
@@ -192,15 +192,9 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                         {cats.map((cat, index) => (
                             <div key={index} className="flex items-center gap-2">
                                 <div className="relative">
-                                    <select
-                                        value={cat.avatar}
-                                        onChange={(e) => updateCat(index, 'avatar', e.target.value)}
-                                        className="appearance-none w-12 h-12 rounded-xl bg-slate-50 text-center text-xl cursor-pointer"
-                                    >
-                                        {catAvatars.map(emoji => (
-                                            <option key={emoji} value={emoji}>{emoji}</option>
-                                        ))}
-                                    </select>
+                                    <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                        <CatIcon className="w-6 h-6" />
+                                    </div>
                                 </div>
                                 <input
                                     type="text"

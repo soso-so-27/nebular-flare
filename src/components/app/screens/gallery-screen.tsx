@@ -308,7 +308,9 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                                 {cat.avatar ? (
                                     <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-xl">🐈</div>
+                                    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
+                                        <CatIcon className="w-6 h-6" />
+                                    </div>
                                 )}
                             </div>
                             <span className={cn("text-[11px] font-bold truncate w-14 text-center", filterCatId === cat.id ? "text-brand-peach" : "text-slate-500")}>
@@ -469,17 +471,19 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
             </div>
 
             {/* Floating Action Button */}
-            {!isSelectMode && (
-                <div className="fixed bottom-6 right-6">
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading || cats.length === 0}
-                        className="w-14 h-14 rounded-2xl bg-brand-peach text-white shadow-xl shadow-brand-peach/40 flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
-                    >
-                        {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Plus className="h-7 w-7" />}
-                    </button>
-                </div>
-            )}
+            {
+                !isSelectMode && (
+                    <div className="fixed bottom-6 right-6">
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading || cats.length === 0}
+                            className="w-14 h-14 rounded-2xl bg-brand-peach text-white shadow-xl shadow-brand-peach/40 flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+                        >
+                            {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Plus className="h-7 w-7" />}
+                        </button>
+                    </div>
+                )
+            }
 
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleFileSelect} />
 
@@ -525,6 +529,6 @@ export function GalleryScreen({ onClose, initialCatId }: GalleryScreenProps) {
                     }
                 }}
             />
-        </div>
+        </div >
     );
 }

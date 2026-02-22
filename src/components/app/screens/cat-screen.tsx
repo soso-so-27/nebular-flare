@@ -91,8 +91,8 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                             className="w-full h-full object-cover"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-sage/30">
-                            <span className="text-9xl">{selectedCat.avatar || "🐈"}</span>
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-sage/30 text-white/20">
+                            <CatIcon className="w-32 h-32" />
                         </div>
                     )}
                     {/* Dark Overlay for readability */}
@@ -132,7 +132,9 @@ export function CatScreen({ externalSwipeMode = false, onSwipeModeChange, onOpen
                                 {(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
                                     <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-xs">{cat.avatar || "🐈"}</div>
+                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-white/20">
+                                        <CatIcon className="w-5 h-5" />
+                                    </div>
                                 )}
                             </button>
                         ))}

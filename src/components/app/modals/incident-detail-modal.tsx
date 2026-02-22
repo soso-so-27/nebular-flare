@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Camera, X, Clock, Star, Send, ChevronDown } from "lucide-react";
+import { Loader2, Camera, X, Clock, Star, Send, ChevronDown, Cat } from "lucide-react";
 import { ReactionBar } from '../shared/reaction-bar';
 import { cn, getFullImageUrl } from "@/lib/utils";
 import { useSettingsContext } from "@/store/app-store";
@@ -84,7 +84,9 @@ export function IncidentDetailModal({ isOpen, onClose, incidentId }: IncidentDet
                                         {cat?.avatar ? (
                                             <img src={getFullImageUrl(cat.avatar)} alt={cat?.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-lg">🐈</div>
+                                            <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                                <Cat className="w-5 h-5" />
+                                            </div>
                                         )}
                                     </div>
                                     <div>

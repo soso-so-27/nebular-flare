@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History } from "lucide-react";
+import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History, Eye } from "lucide-react";
 
 export interface FeedItem {
     id: string;
@@ -17,7 +17,7 @@ export interface FeedItem {
     progress?: { current: number; total: number }; // Vol. 25
     listItems?: { label: string; time: string; icon: any; onClick?: () => void }[];
     onClick?: () => void;
-    missionEmoji?: string;
+    missionIcon?: React.ReactNode;
     missionDesc?: string;
     missionCompleted?: boolean;
 }
@@ -220,7 +220,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#FF9500]/10 to-transparent rounded-bl-full" />
             <div className="flex items-center gap-2 mb-2 relative z-10">
                 <div className="w-7 h-7 rounded-lg bg-[#FF9500]/15 flex items-center justify-center">
-                    <span className="text-sm">{item.missionEmoji || '🔍'}</span>
+                    {item.missionIcon || <Eye className="w-4 h-4 text-[#FF9500]" />}
                 </div>
                 <div>
                     <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今週のミッション</h3>
@@ -251,11 +251,13 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
     const renderPromptCard = (item: FeedItem) => (
         <div className="h-full flex flex-col p-4 relative overflow-hidden">
-            <div className="absolute -bottom-4 -right-4 text-[72px] leading-none opacity-[0.06] pointer-events-none select-none">
-                {item.missionEmoji || '📸'}
+            <div className="absolute -bottom-4 -right-4 opacity-[0.06] pointer-events-none select-none scale-[4] origin-bottom-right">
+                {item.missionIcon}
             </div>
             <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{item.missionEmoji || '📸'}</span>
+                <div className="text-lg">
+                    {item.missionIcon}
+                </div>
                 <div>
                     <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今日のひとこと</h3>
                 </div>

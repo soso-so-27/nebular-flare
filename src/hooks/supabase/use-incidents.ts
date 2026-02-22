@@ -65,27 +65,66 @@ export function useIncidents(householdId: string | null) {
                 }
             }
 
+            const { data: userData } = await supabase.auth.getUser();
+            const userId = userData.user?.id;
+
+            if (!householdId) {
+                dbLogger.error('[Incidents] Missing householdId');
+                throw new Error("世帯IDが見つかりません。ログイン状態を確認してください。");
+            }
+
+            // Aligned with Nyannlog schema (20260118_nyannlog_migration.sql)
+            const nyannlogTypes = ['daily', 'worried', 'concerned', 'troubled', 'good'];
+            const safeType = nyannlogTypes.includes(type)
+                ? type
+                : (['vomit', 'diarrhea', 'injury', 'hospital'].includes(type) ? 'worried' : 'daily');
+
+            const nyannlogStatuses = ['log', 'tracking', 'resolved'];
+            const safeStatus = nyannlogStatuses.includes(status || 'log')
+                ? (status || 'log')
+                : 'log';
+
+            // Ensure we don't pass empty strings to UUID columns
+            const finalCatId = (catId && catId.length > 0) ? catId : (catIds && catIds.length > 0 ? catIds[0] : null);
+            const finalCatIds = (catIds && catIds.length > 0) ? catIds.filter((id: string) => id && id.length > 0) : (finalCatId ? [finalCatId] : []);
+
+            const insertPayload = {
+                household_id: householdId,
+                cat_id: finalCatId,
+                cat_ids: finalCatIds,
+                type: safeType,
+                note: note || '',
+                status: safeStatus,
+                severity: health_category === 'emergency' ? 'high' : 'medium',
+                photos: photoPaths,
+                created_by: userId,
+                health_category,
+                health_value,
+                onset_at: onset || new Date().toISOString(),
+                symptom_details: symptom_details || {},
+                batch_id: (batch_id && batch_id.length > 0) ? batch_id : null
+            };
+
+            dbLogger.info('[Incidents] Attempting insert:', {
+                type: insertPayload.type,
+                status: insertPayload.status,
+                catCount: insertPayload.cat_ids?.length,
+                hasHousehold: !!insertPayload.household_id
+            });
+
             const { data, error } = await supabase
                 .from('incidents')
-                .insert({
-                    household_id: householdId,
-                    cat_id: catId || (catIds && catIds.length > 0 ? catIds[0] : null), // 代表猫ID（互換性のため残す）
-                    cat_ids: catIds || (catId ? [catId] : []), // 全ての猫ID
-                    type,
-                    note,
-                    status: 'log',
-                    photos: photoPaths,
-                    created_by: (await supabase.auth.getUser()).data.user?.id,
-                    health_category,
-                    health_value,
-                    onset_at: onset,
-                    symptom_details,
-                    batch_id
-                } as any)
+                .insert(insertPayload as any)
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                dbLogger.error('[Incidents] Insert failed:', error);
+                // Provide a more descriptive error for the UI
+                const enhancedError = new Error(`保存に失敗しました: ${error.message} (${error.code})`);
+                (enhancedError as any).details = error;
+                throw enhancedError;
+            }
             return data;
         },
         onSuccess: (data) => {
@@ -94,7 +133,19 @@ export function useIncidents(householdId: string | null) {
             // Fire-and-forget: notify family members
             if (data?.household_id) {
                 supabase.functions.invoke('push-notification', {
-                    body: { type: 'INSERT', table: 'incidents', record: { household_id: data.household_id, created_by: data.created_by } }
+                    body: {
+                        type: 'INSERT',
+                        table: 'incidents',
+                        record: {
+                            household_id: data.household_id,
+                            created_by: data.created_by,
+                            cat_id: data.cat_id,
+                            type: data.type,
+                            severity: data.severity,
+                            note: data.note,
+                            health_category: data.health_category
+                        }
+                    }
                 }).catch(() => { /* silent */ });
             }
         },
@@ -142,7 +193,17 @@ export function useIncidents(householdId: string | null) {
             const incident = incidents.find((inc: any) => inc.id === variables.incidentId);
             if (incident?.household_id) {
                 supabase.functions.invoke('push-notification', {
-                    body: { type: 'INSERT', table: 'incidents', record: { household_id: incident.household_id, created_by: incident.created_by } }
+                    body: {
+                        type: 'INSERT',
+                        table: 'incidents',
+                        record: {
+                            household_id: incident.household_id,
+                            created_by: incident.created_by,
+                            cat_id: incident.cat_id,
+                            type: variables.statusChange === 'resolved' ? 'resolved' : incident.type,
+                            note: variables.note || (variables.statusChange === 'resolved' ? '解決済みにしました' : '状況が更新されました')
+                        }
+                    }
                 }).catch(() => { /* silent */ });
             }
         },

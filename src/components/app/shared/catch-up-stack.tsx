@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { ChevronRight, Archive, MessageCircle, Heart, Camera, Clock, Cat as CatIcon } from 'lucide-react';
 import { CatchUpItem } from "@/lib/utils-catchup";
 
 import { cn } from "@/lib/utils";
@@ -164,7 +165,13 @@ const SwipeableCard = ({ item, cat, onSwipe, onVerticalSwipe, onButtonAction, is
                                 {hasImageAvatar ? (
                                     <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-xl">{cat.avatar || "🐈"}</span>
+                                    <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                        {cat.avatar && cat.avatar !== '🐈' ? (
+                                            <span className="text-xl">{cat.avatar}</span>
+                                        ) : (
+                                            <CatIcon className="w-6 h-6" />
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <div>

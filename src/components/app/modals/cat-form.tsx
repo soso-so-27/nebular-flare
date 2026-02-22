@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Camera, Upload, Scale, Pill, Plus } from "lucide-react";
+import { X, Camera, Upload, Scale, Pill, Plus, Cat } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CatFormProps {
@@ -98,12 +98,18 @@ export const CatForm = ({
                         </div>
                     ))
                 ) : (
-                    form.avatar !== "🐈" && (
+                    form.avatar !== "cat-fallback" && (
                         <div className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                             {form.avatar.startsWith('http') ? (
                                 <img src={form.avatar} alt="current" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="flex items-center justify-center h-full text-3xl">{form.avatar}</div>
+                                <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                    {form.avatar && form.avatar !== 'cat-fallback' ? (
+                                        <span className="text-3xl">{form.avatar}</span>
+                                    ) : (
+                                        <Cat className="w-8 h-8" />
+                                    )}
+                                </div>
                             )}
                         </div>
                     )

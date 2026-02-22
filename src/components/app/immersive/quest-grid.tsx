@@ -174,7 +174,7 @@ export function QuestGrid({ className, style, onTaskComplete }: QuestGridProps) 
                     <Check className="w-8 h-8 opacity-50" />
                 </div>
                 <p className="text-sm font-bold">全てのおねがい完了！</p>
-                <p className="text-xs">猫ちゃんは満足しています✨</p>
+                <p className="text-xs flex items-center gap-1">猫ちゃんは満足しています<Sparkles size={12} className="text-yellow-400" /></p>
             </div>
         );
     }

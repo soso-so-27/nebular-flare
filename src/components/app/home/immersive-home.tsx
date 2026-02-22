@@ -308,13 +308,13 @@ export function ImmersiveHome({
 
 
 
-            {/* Navigation Layer - New Layout 2026 */}
+            {/* UI Toggle & Overlay View (Pure UI Layer) */}
             <motion.div
                 className="fixed inset-0 z-[100] pointer-events-none"
                 animate={{ opacity: isNyannlogOpen ? 0 : 1, pointerEvents: isNyannlogOpen ? 'none' : 'auto' }}
                 transition={{ duration: 0.3 }}
             >
-                {/* 1. Top Right: Menu & Weekly Toggle */}
+                {/* 1. Top Area: Minimal Controls */}
                 <div
                     className="absolute right-4 pointer-events-auto flex items-center gap-2"
                     style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
@@ -336,77 +336,15 @@ export function ImmersiveHome({
                         whileTap={{ scale: 0.92 }}
                         onClick={() => {
                             triggerFeedback('light');
-                            onNavigate?.('zukan');
-                        }}
-                        className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"
-                        title="図鑑を開く"
-                    >
-                        <Library className="w-6 h-6 text-white" strokeWidth={1.5} />
-                    </motion.button>
-                    <motion.button
-                        whileTap={{ scale: 0.92 }}
-                        onClick={() => {
-                            triggerFeedback('light');
                             onOpenSidebar?.('care');
                         }}
                         className="h-12 w-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg active:bg-black/40 transition-colors"
                     >
-                        <LayoutGrid className="w-6 h-6 text-white" strokeWidth={1.5} />
+                        <Menu className="w-6 h-6 text-white" strokeWidth={1.5} />
                     </motion.button>
                 </div>
 
-                {/* Bottom Area */}
-                <div className="absolute inset-x-0 bottom-0 px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] flex items-end justify-between pointer-events-auto">
-
-                    {/* 2. Bottom Left: Onegai & Ashiato */}
-                    <div className="flex items-center gap-3">
-                        {/* Onegai (Requests) */}
-                        <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => {
-                                triggerFeedback('medium');
-                                onOpenNyannlogSheet('requests');
-                            }}
-                            className="group relative h-16 w-16 rounded-full bg-[#E8B4A0] shadow-[0_8px_32px_rgba(232,180,160,0.4)] flex items-center justify-center overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <Cat className="w-8 h-8 text-white drop-shadow-sm" strokeWidth={2} />
-                            <div className="absolute bottom-2 text-[8px] font-bold text-white leading-none tracking-tighter shadow-black/10 drop-shadow-sm">おねがい</div>
-                        </motion.button>
-
-                        {/* Ashiato (Footprints/Exchange) */}
-                        <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => {
-                                triggerFeedback('light');
-                                onOpenExchange();
-                            }}
-                            className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center gap-0.5 shadow-lg active:bg-white/20 transition-colors"
-                        >
-                            <PawPrint className="w-4 h-4 text-white/90" strokeWidth={2} />
-                            {/* Optional: Show stats if needed, but keeping it clean for 'Icon' request 
-                                <span className="text-[9px] font-mono font-bold text-white/80">{stats?.householdTotal ?? 0}</span>
-                            */}
-                        </motion.button>
-                    </div>
-
-                    {/* 3. Bottom Right: Dekigoto (History) */}
-                    <div>
-                        <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => {
-                                triggerFeedback('medium');
-                                onOpenNyannlogSheet('events');
-                            }}
-                            className="h-14 w-14 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg flex flex-col items-center justify-center gap-0.5 active:bg-white/25 transition-colors group"
-                        >
-                            <Library className="w-6 h-6 text-white group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                            <span className="text-[8px] font-bold text-white/80 leading-none">できごと</span>
-                        </motion.button>
-                        {/* Note: User asked for 'Box to put memories in'. Archive/Package/Box. Archive looks classiest. */}
-                    </div>
-
-                </div>
+                {/* Legend or Cat Badge could go here if needed */}
             </motion.div>
 
             {/* Note: Story mode cat switching is handled by swipe gestures */}

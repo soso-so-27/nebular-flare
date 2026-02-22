@@ -227,9 +227,9 @@ export const StoryCoverView = ({
                 ♡
             </div>
 
-            <div style={{ position: "absolute", left: 955, top: 1160, fontSize: 38, transform: "rotate(15deg)", zIndex: 30, opacity: 0.4 }}>
-                🐾
-            </div>
+            <svg style={{ position: "absolute", left: 955, top: 1160, width: 38, height: 38, transform: "rotate(15deg)", zIndex: 30, opacity: 0.4 }} viewBox="0 0 24 24" fill="none" stroke="#6B584D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="4" r="2" /><circle cx="4.5" cy="9" r="2" /><circle cx="17.5" cy="9" r="2" /><path d="M7 16.5c0-2.5 2-4.5 4-4.5s4 2 4 4.5c0 2.5-4 4-4 4s-4-1.5-4-4" />
+            </svg>
 
             <svg
                 style={{

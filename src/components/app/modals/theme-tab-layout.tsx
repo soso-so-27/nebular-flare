@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, Smartphone, Layers } from "lucide-react";
+import { Check, Sparkles, Smartphone, Layers, PawPrint } from "lucide-react";
 import { toast } from "sonner";
 import { LayoutType } from "@/types";
 
@@ -34,7 +34,7 @@ export const ThemeTabLayout = ({
             <div className="space-y-3">
                 <div className="text-xs font-bold text-brand-peach mb-1 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
-                    レイアウト変更（🐾 1 pt）
+                    レイアウト変更（<PawPrint className="w-3.5 h-3.5" /> 1 pt）
                 </div>
                 {LAYOUT_OPTIONS.map((layout) => {
                     const isCurrent = settings.layoutType === layout.id;
@@ -87,7 +87,7 @@ export const ThemeTabLayout = ({
                                         </motion.div>
                                     ) : (
                                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isConfirming ? 'bg-orange-400 text-white animate-pulse' : 'text-[#1c1c1e]/40 bg-black/5'}`}>
-                                            🐾 1 pt
+                                            <PawPrint className="w-3 h-3" /> 1 pt
                                         </span>
                                     )}
                                 </div>
@@ -153,7 +153,7 @@ export const ThemeTabLayout = ({
                                         </div>
                                     ) : (
                                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isConfirmingMode ? 'bg-orange-400 text-white animate-pulse' : 'text-[#1c1c1e]/40 bg-black/5'}`}>
-                                            🐾 1 pt
+                                            <PawPrint className="w-3 h-3" /> 1 pt
                                         </span>
                                     )}
                                 </div>

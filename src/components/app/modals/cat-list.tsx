@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Cat as CatIcon } from "lucide-react";
 import { Cat } from "@/types";
 
 interface CatListProps {
@@ -26,7 +26,13 @@ export const CatList = ({ cats, isDemo, onEdit, onDelete, onAdd }: CatListProps)
                                 {cat.avatar?.startsWith('http') ? (
                                     <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-2xl">{cat.avatar || "🐈"}</span>
+                                    <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                        {cat.avatar && cat.avatar !== 'cat-fallback' ? (
+                                            <span className="text-2xl">{cat.avatar}</span>
+                                        ) : (
+                                            <CatIcon className="w-6 h-6" />
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <div>

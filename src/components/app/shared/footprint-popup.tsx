@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PawPrint } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 // =====================================================
@@ -96,9 +97,7 @@ export function FootprintPopup({ points, isVisible, onComplete }: FootprintPopup
                                 ease: "backOut"
                             }}
                         >
-                            <span className="text-8xl drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)] block">
-                                🐾
-                            </span>
+                            <PawPrint className="w-24 h-24 text-brand-sage drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)]" />
                         </motion.div>
 
                         {/* Points Badge - Elegant Duo-tone Pill */}
@@ -261,7 +260,7 @@ export function FootprintToast({ points, isVisible, onComplete }: FootprintToast
                             animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
                             transition={{ duration: 0.4 }}
                         >
-                            🐾
+                            <PawPrint className="w-7 h-7 text-white" />
                         </motion.span>
                         <span className="font-black text-lg text-white tabular-nums">
                             {isPositive ? '+' : '-'}{absPoints}

@@ -52,6 +52,12 @@ export type CatImage = {
   height?: number;
   memo?: string;
   tags?: PhotoTag[];
+  aiAnalysis?: {
+    pose?: string;
+    description?: string;
+    tags?: string[];
+    metadata?: Record<string, any>;
+  };
 };
 
 export type TaskGroup = 'CARE' | 'HEALTH' | 'INVENTORY';
@@ -152,9 +158,9 @@ export type SignalLog = {
   acknowledged_at?: string | null;
 };
 
-export type IncidentStatus = 'watching' | 'hospital' | 'resolved';
+export type IncidentStatus = 'watching' | 'hospital' | 'resolved' | 'log' | 'tracking';
 export type IncidentSeverity = 'low' | 'medium' | 'high';
-export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other' | 'hospital' | 'medicine' | 'care' | 'condition';
+export type IncidentType = 'vomit' | 'diarrhea' | 'injury' | 'no_energy' | 'sneeze' | 'other' | 'hospital' | 'medicine' | 'care' | 'condition' | 'daily' | 'worried' | 'concerned' | 'troubled' | 'good';
 
 // Symptom details for medical report
 export type SymptomDetails = {
@@ -202,6 +208,8 @@ export type Incident = {
   is_bookmarked?: boolean;
   reactions?: any[];
   updates?: IncidentUpdate[]; // Joined for UI
+  health_category?: string;
+  health_value?: string;
   // Medical Report Enhancement
   onset_at?: string; // When symptoms started
   last_normal_at?: string; // Last time cat was normal
@@ -358,7 +366,43 @@ export type AlbumLayoutType = 'hero3' | 'grid4' | 'filmstrip';
 export type WeeklyAlbumSettings = {
   cat_id: string;
   week_label: string; // e.g., "2026-W04"
-  layout_type: AlbumLayoutType;
-  created_at: string;
-  updated_at: string;
+  layouts: Record<string, AlbumLayoutType>;
+  selected_photo_ids: string[];
+};
+
+// Sitter Report Data (Transfer Sheet)
+export type SitterReportData = {
+  cat_id: string;
+  generated_at: string;
+  // Care Section
+  meals: {
+    type: string;
+    amount: string;
+    frequency: string;
+    notes: string;
+  };
+  snacks: {
+    allowed: boolean;
+    types: string[];
+    limit: string;
+  };
+  toilet: {
+    habit_note: string;
+    cleaning_instructions: string;
+  };
+  // Personality & Habits (leveraging Zukan)
+  highlight_habits: string[]; // e.g., ["窓辺で日向ぼっこが好き", "しっぽで返事をする"]
+  personality_note: string;
+  favorite_spots: string[];
+  favorite_toys: string[];
+  scary_things: string[]; // e.g., ["掃除機の音", "知らない人"]
+  // Health & Safety
+  health_concerns: string;
+  prohibited_items: string[]; // e.g., ["人間の食べ物", "紐のおもちゃ"]
+  emergency_contacts: {
+    vet_name: string;
+    vet_phone: string;
+    owner_emergency_phone: string;
+  };
+  special_instructions: string;
 };

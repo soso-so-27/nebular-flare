@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Heart } from "lucide-react";
+import { Heart, Cat as CatIcon } from "lucide-react";
 
 interface CelebrationOverlayProps {
     isActive: boolean;
@@ -193,8 +193,8 @@ export function CelebrationOverlay({
                                                 <img src={catAvatar} alt={catName} className="w-full h-full object-cover" />
                                             </div>
                                         ) : (
-                                            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-4xl backdrop-blur-xl border-4 border-white/30">
-                                                😺
+                                            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-white/40 backdrop-blur-xl border-4 border-white/30">
+                                                <CatIcon className="w-10 h-10" />
                                             </div>
                                         )}
                                         <motion.div

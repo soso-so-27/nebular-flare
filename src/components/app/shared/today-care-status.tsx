@@ -1,8 +1,18 @@
 "use client";
-
 import React, { useMemo } from "react";
 import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useMedicationContext } from "@/store/app-store";
-import { Check, Clock, User } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Check,
+    Clock,
+    User,
+    Heart,
+    MessageSquare,
+    Calendar,
+    ChevronRight,
+    AlertCircle,
+    Cat as CatIcon
+} from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 interface CareItem {
@@ -46,7 +56,13 @@ export function TodayCareStatus() {
             {/* Header */}
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg">{activeCat?.avatar || '🐈'}</span>
+                    <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                        {activeCat?.avatar && activeCat.avatar !== '🐈' ? (
+                            <span className="text-lg">{activeCat.avatar}</span>
+                        ) : (
+                            <CatIcon className="w-5 h-5" />
+                        )}
+                    </div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                         今日のお世話
                     </h3>

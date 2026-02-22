@@ -211,36 +211,52 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 }
 
                 const analysis = data.ai_analysis || {};
+                const metadata = analysis.metadata || {};
                 addLog(`AI Analysis received: ${analysis.zukanShelf || 'no shelf'}`);
 
-                // 3. Set suggestions
-                if (analysis.catId) {
-                    addLog(`AI suggested catId: ${analysis.catId}`);
-                    setSuggestedCatIds(new Set([analysis.catId]));
+                // 3. Set suggestions (Multiple Cats support)
+                const suggestedIds = new Set<string>();
+                if (analysis.catIds && Array.isArray(analysis.catIds)) {
+                    analysis.catIds.forEach((id: string) => suggestedIds.add(id));
+                } else if (analysis.catId) {
+                    suggestedIds.add(analysis.catId);
+                }
+
+                if (suggestedIds.size > 0) {
+                    addLog(`AI suggested catIds: ${Array.from(suggestedIds).join(', ')}`);
+                    setSuggestedCatIds(suggestedIds);
                 } else if (activeCatId) {
                     addLog(`Falling back to active catId: ${activeCatId}`);
                     setSuggestedCatIds(new Set([activeCatId]));
                 }
 
-                // AI Response Mapping
+                // AI Response Mapping (Expanded Axes A-K)
                 const newTags: string[] = [];
                 const newAiTags = new Set<string>();
 
-                if (analysis.uiTags && Array.isArray(analysis.uiTags)) {
-                    analysis.uiTags.forEach((t: string) => {
-                        if (t && t !== '不明' && t !== 'unknown' && !newTags.includes(t)) {
-                            newTags.push(t);
-                            newAiTags.add(t);
-                        }
+                // Helper to add metadata values as tags
+                const addMetadataTag = (val: string | null | undefined) => {
+                    if (val && val !== '不明' && val !== 'unknown' && !newTags.includes(val)) {
+                        newTags.push(val);
+                        newAiTags.add(val);
+                    }
+                };
+
+                // Add all metadata axes as tags
+                if (metadata) {
+                    Object.values(metadata).forEach((val: any) => {
+                        if (typeof val === 'string') addMetadataTag(val);
                     });
+                }
+
+                // Legacy/UI tags support
+                if (analysis.uiTags && Array.isArray(analysis.uiTags)) {
+                    analysis.uiTags.forEach((t: string) => addMetadataTag(t));
                 }
 
                 if (analysis.labels?.moment && analysis.labels.moment !== 'unknown') {
                     const momentLabel = AI_TAG_MAP[analysis.labels.moment] || analysis.labels.moment;
-                    if (momentLabel && momentLabel !== '不明' && momentLabel !== 'unknown' && !newTags.includes(momentLabel)) {
-                        newTags.push(momentLabel);
-                        newAiTags.add(momentLabel);
-                    }
+                    addMetadataTag(momentLabel);
                 }
 
                 setAllTags(newTags);
@@ -294,13 +310,26 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
             return;
         }
 
+        if (isUploading) {
+            toast.error("写真のアップロードが終わるまでお待ちください");
+            return;
+        }
+
         if (isSavingRef.current) return;
         isSavingRef.current = true;
         setStep('saving');
         addLog(`Saving Incident... cats=${Array.from(suggestedCatIds).join(',')}`);
 
         try {
-            const catIds = Array.from(suggestedCatIds);
+            // Filter to ensure we only send IDs that exist in our cat list (valid UUIDs)
+            const catIds = Array.from(suggestedCatIds).filter(id => cats.some(c => c.id === id));
+
+            if (catIds.length === 0) {
+                toast.error("有効なねこを選択してください");
+                isSavingRef.current = false;
+                setStep('ai');
+                return;
+            }
             const type = isConsult ? 'worried' : 'daily';
 
             // 1. Final Persistence: Create a single unified Incident
@@ -697,7 +726,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-8 pb-10 bg-white/60 backdrop-blur-xl shrink-0 safe-area-pb border-t border-black/[0.02]">
+                <div className="p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] bg-white/60 backdrop-blur-xl shrink-0 border-t border-black/[0.02]">
                     {step === 'annotate' && (
                         <button
                             onClick={startAnalysis}
@@ -720,7 +749,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                             </button>
                             <button
                                 onClick={handleSave}
-                                disabled={step === 'saving'}
+                                disabled={step === 'saving' || isUploading}
                                 className={cn(
                                     "flex-1 h-16 rounded-[32px] bg-black dark:bg-white text-white dark:text-black font-black text-lg shadow-2xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3",
                                     step === 'saving' && "opacity-80 pointer-events-none"

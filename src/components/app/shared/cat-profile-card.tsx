@@ -33,7 +33,13 @@ export function CatProfileCard() {
                                 >{(cat.avatar?.startsWith('http') || cat.avatar?.startsWith('/')) ? (
                                     <img src={cat.avatar} alt={cat.name} className="w-5 h-5 rounded-full object-cover" />
                                 ) : (
-                                    <span className="text-base">{cat.avatar || "🐈"}</span>
+                                    <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                        {cat.avatar && cat.avatar !== '🐈' ? (
+                                            <span className="text-base">{cat.avatar}</span>
+                                        ) : (
+                                            <Cat className="w-4 h-4" />
+                                        )}
+                                    </div>
                                 )}
                                     {cat.name}
                                 </button>
@@ -49,13 +55,17 @@ export function CatProfileCard() {
                 >
                     <div className="flex items-start gap-4">
                         {/* Cat Avatar */}
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-100 to-amber-100 dark:from-rose-900/30 dark:to-amber-900/30 flex items-center justify-center text-3xl shadow-inner overflow-hidden">
-                            {(activeCat.avatar?.startsWith('http') || activeCat.avatar?.startsWith('/')) ? (
-                                <img src={activeCat.avatar} alt={activeCat.name} className="w-full h-full object-cover" />
-                            ) : (
-                                activeCat.avatar || "🐈"
-                            )}
-                        </div>
+                        {(activeCat.avatar?.startsWith('http') || activeCat.avatar?.startsWith('/')) ? (
+                            <img src={activeCat.avatar} alt={activeCat.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20 bg-white/5">
+                                {activeCat.avatar && activeCat.avatar !== '🐈' ? (
+                                    <span className="text-3xl">{activeCat.avatar}</span>
+                                ) : (
+                                    <Cat className="w-8 h-8" />
+                                )}
+                            </div>
+                        )}
 
                         {/* Cat Info */}
                         <div className="flex-1 min-w-0">

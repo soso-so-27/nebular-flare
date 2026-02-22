@@ -82,7 +82,7 @@ export function DekigotoScreen({
             <div className="shrink-0 pt-[env(safe-area-inset-top,2.5rem)]" />
 
             {/* Main Content Area: Purely Horizontal 100vh Flow */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
                 <NyannlogEventsTab
                     groupedLogs={groupedLogs}
                     currentUserId={currentUserId}
@@ -94,85 +94,6 @@ export function DekigotoScreen({
                     dailyPhotos={dailyPhotos}
                 />
             </div>
-
-            {/* Command Dock: Integrated Control Center */}
-            <div className="fixed inset-x-0 bottom-0 z-[13000] pointer-events-none px-6 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
-                <div className="max-w-md mx-auto flex items-end justify-between gap-6">
-                    {/* Primary Action Unit (Left) */}
-                    <div className="flex items-center gap-3">
-                        {/* Plus Action */}
-                        <motion.button
-                            initial={false}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                triggerFeedback('medium');
-                                if (isNyannlogOpen && activeNyannlogTab === 'input') {
-                                    onCloseNyannlog?.();
-                                } else {
-                                    onOpenNyannlogSheet('input');
-                                }
-                            }}
-                            className={cn(
-                                "pointer-events-auto w-16 h-16 rounded-full bg-brand-peach text-white flex items-center justify-center border border-white/20 relative group overflow-hidden transition-all duration-300",
-                                isNyannlogOpen && activeNyannlogTab === 'input' && "rotate-0"
-                            )}
-                        >
-                            <AnimatePresence mode="wait" initial={false}>
-                                {isNyannlogOpen && activeNyannlogTab === 'input' ? (
-                                    <motion.div
-                                        key="close"
-                                        initial={{ rotate: -90, opacity: 0 }}
-                                        animate={{ rotate: 0, opacity: 1 }}
-                                        exit={{ rotate: 90, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <X className="w-8 h-8" />
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        key="plus"
-                                        initial={{ rotate: 90, opacity: 0 }}
-                                        animate={{ rotate: 0, opacity: 1 }}
-                                        exit={{ rotate: -90, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-500" />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                            <div className="absolute inset-0 rounded-[24px] bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
-                        </motion.button>
-
-                        {/* Footprint (Exchange) - Matches Home style */}
-                        <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => {
-                                triggerFeedback('light');
-                                onOpenExchange();
-                            }}
-                            className="pointer-events-auto h-12 w-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center gap-0.5 shadow-lg active:bg-white/20 transition-colors"
-                        >
-                            <PawPrint className="w-4 h-4 text-white/90" strokeWidth={2} />
-                            {/* Optional: stats can be shown if requested, but Home hides it by default */}
-                        </motion.button>
-                    </div>
-
-                    {/* Navigation Unit (Right) */}
-                    <div className="pointer-events-auto bg-[#1E1E22]/90 backdrop-blur-2xl border border-white/10 rounded-full p-1.5 shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex items-center gap-1">
-                        <HomeViewToggle
-                            currentView="dekigoto"
-                            onViewChange={(v: 'home' | 'dekigoto') => {
-                                triggerFeedback('light');
-                                onNavigate(v);
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-
         </div>
     );
 }

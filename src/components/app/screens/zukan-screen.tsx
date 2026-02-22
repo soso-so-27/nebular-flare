@@ -3,20 +3,12 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    X,
-    ChevronLeft,
-    Loader2,
-    ChevronRight,
-    Sparkles,
-    Calendar,
-    Clock,
-    Camera,
-    Award,
-    ImageIcon,
-    Wand2,
-    AlertTriangle,
-    History,
-    Search,
+    X, ChevronLeft, Loader2, ChevronRight, Sparkles, Calendar, Clock, Camera, Award,
+    ImageIcon, Wand2, AlertTriangle, History, Search, PawPrint, Cat, Package, Circle,
+    Activity, Box, Utensils, Moon, Zap, Target, Wind, Smile, Frown, Meh, Ghost, Cloud,
+    Sun, Stethoscope, Thermometer, Droplets, Bandage, Flame, Scissors, ShieldAlert,
+    UserPlus, HeartPulse, Home, Sofa, Map, MapPin, Footprints, Camera as CameraIcon2,
+    CalendarDays, Gift, Cake, Baby, TrendingUp, ShoppingBag, Brush, Heart, AlertCircle
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
 import { useCatContext, useCoreContext } from "@/store/app-store";
@@ -49,6 +41,7 @@ interface AIAnalysis {
     confirmedAt?: string;
     zukanShelf?: string;
     pose?: string;
+    metadata?: Record<string, string>; // A-K Metadata
     identificationReason?: string;
     catConfidence?: number;
 }
@@ -99,17 +92,198 @@ function daysAgo(dateStr: string): number {
     const now = new Date();
     return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
 }
+// Types for Zukan Collection
+interface ZukanItemDef {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+}
 
-// Pose definitions for the Pose Collection feature
-const POSE_DEFS = [
-    { id: '香箱座り', emoji: '🍞', label: '香箱座り', desc: '前足を折りたたんで座る' },
-    { id: 'へそ天', emoji: '🐾', label: 'へそ天', desc: 'お腹を見せてリラックス' },
-    { id: 'スフィンクス', emoji: '🏛️', label: 'スフィンクス', desc: '前足を前に伸ばして伏せる' },
-    { id: 'まんまる', emoji: '⚪', label: 'まんまる', desc: '丸まっている' },
-    { id: 'にょろーん', emoji: '🐍', label: 'にょろーん', desc: '長く伸びている' },
-    { id: 'ちょこん座り', emoji: '🐈', label: 'ちょこん座り', desc: '背筋を伸ばして座る' },
-    { id: '箱イン', emoji: '📦', label: '箱イン', desc: '箱や袋に入っている' },
-    { id: 'ふみふみ', emoji: '🫧', label: 'ふみふみ', desc: '前足を交互に動かす' },
+interface ZukanAxisDef {
+    id: string;
+    title: string;
+    metaKey: string; // Key in ai_analysis.metadata or 'pose'
+    items: ZukanItemDef[];
+    color: string;
+}
+
+const ZUKAN_AXES: ZukanAxisDef[] = [
+    {
+        id: 'pose',
+        title: 'ポーズ図鑑',
+        metaKey: 'pose',
+        color: '#FF9500',
+        items: [
+            { id: '香箱座り', label: '香箱座り', icon: <Package className="w-4 h-4" /> },
+            { id: 'へそ天', label: 'へそ天', icon: <PawPrint className="w-4 h-4" /> },
+            { id: 'スフィンクス', label: 'スフィンクス', icon: <Cat className="w-4 h-4" /> },
+            { id: 'まんまる', label: 'まんまる', icon: <Circle className="w-4 h-4" /> },
+            { id: 'にょろーん', label: 'にょろーん', icon: <Activity className="w-4 h-4" /> },
+            { id: 'ちょこん座り', label: 'ちょこん座り', icon: <Cat className="w-4 h-4" /> },
+            { id: '箱イン', label: '箱イン', icon: <Box className="w-4 h-4" /> },
+            { id: 'ふみふみ', label: 'ふみふみ', icon: <Sparkles className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'activity',
+        title: '日常図鑑',
+        metaKey: 'activity',
+        color: '#34C759',
+        items: [
+            { id: '食べる', label: '食べる', icon: <Utensils className="w-4 h-4" /> },
+            { id: '飲む', label: '飲む', icon: <Droplets className="w-4 h-4" /> },
+            { id: 'トイレ', label: 'トイレ', icon: <Wind className="w-4 h-4" /> },
+            { id: '毛づくろい', label: '毛づくろい', icon: <Heart className="w-4 h-4" /> },
+            { id: '寝る', label: '寝る', icon: <Moon className="w-4 h-4" /> },
+            { id: '遊ぶ', label: '遊ぶ', icon: <Zap className="w-4 h-4" /> },
+            { id: '甘える', label: '甘える', icon: <Smile className="w-4 h-4" /> },
+            { id: '探索', label: '探索', icon: <Search className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'emotion',
+        title: 'きもち図鑑',
+        metaKey: 'emotion',
+        color: '#AF52DE',
+        items: [
+            { id: 'ごきげん', label: 'ごきげん', icon: <Sun className="w-4 h-4" /> },
+            { id: '不満', label: '不満', icon: <Frown className="w-4 h-4" /> },
+            { id: '眠い', label: '眠い', icon: <Moon className="w-4 h-4" /> },
+            { id: 'びっくり', label: 'びっくり', icon: <AlertCircle className="w-4 h-4" /> },
+            { id: 'ドヤ顔', label: 'ドヤ顔', icon: <Award className="w-4 h-4" /> },
+            { id: '真顔', label: '真顔', icon: <Meh className="w-4 h-4" /> },
+            { id: 'あまえ顔', label: 'あまえ顔', icon: <Heart className="w-4 h-4" /> },
+            { id: '集中', label: '集中', icon: <Target className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'location',
+        title: 'お気に入り場所図鑑',
+        metaKey: 'location',
+        color: '#5856D6',
+        items: [
+            { id: '窓辺', label: '窓辺', icon: <Sun className="w-4 h-4" /> },
+            { id: 'ベッド', label: 'ベッド', icon: <Moon className="w-4 h-4" /> },
+            { id: 'ソファ', label: 'ソファ', icon: <Sofa className="w-4 h-4" /> },
+            { id: '棚の上', label: '棚の上', icon: <MapPin className="w-4 h-4" /> },
+            { id: '玄関', label: '玄関', icon: <Home className="w-4 h-4" /> },
+            { id: '階段', label: '階段', icon: <TrendingUp className="w-4 h-4" /> },
+            { id: 'こたつ', label: 'こたつ', icon: <Flame className="w-4 h-4" /> },
+            { id: 'キャットタワー', label: 'キャットタワー', icon: <TrendingUp className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'physicalPart',
+        title: '部位フェチ図鑑',
+        metaKey: 'physicalPart',
+        color: '#FF2D55',
+        items: [
+            { id: '肉球', label: '肉球', icon: <PawPrint className="w-4 h-4" /> },
+            { id: 'おしり', label: 'おしり', icon: <Footprints className="w-4 h-4" /> },
+            { id: 'しっぽ', label: 'しっぽ', icon: <Activity className="w-4 h-4" /> },
+            { id: 'お腹', label: 'お腹', icon: <Heart className="w-4 h-4" /> },
+            { id: 'ヒゲ', label: 'ヒゲ', icon: <Sparkles className="w-4 h-4" /> },
+            { id: '耳', label: '耳', icon: <Activity className="w-4 h-4" /> },
+            { id: '顔アップ', label: '顔アップ', icon: <CameraIcon2 className="w-4 h-4" /> },
+            { id: '背中', label: '背中', icon: <Activity className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'health',
+        title: 'みまもり図鑑',
+        metaKey: 'healthSymptoms',
+        color: '#FF3B30',
+        items: [
+            { id: '吐いた', label: '吐いた', icon: <ShieldAlert className="w-4 h-4" /> },
+            { id: '下痢', label: '下痢', icon: <Droplets className="w-4 h-4" /> },
+            { id: '目ヤニ', label: '目ヤニ', icon: <AlertCircle className="w-4 h-4" /> },
+            { id: 'くしゃみ', label: 'くしゃみ', icon: <Wind className="w-4 h-4" /> },
+            { id: 'かゆみ', label: 'かゆみ', icon: <AlertCircle className="w-4 h-4" /> },
+            { id: '食欲低下', label: '食欲低下', icon: <Utensils className="w-4 h-4" /> },
+            { id: '元気ない', label: '元気ない', icon: <Activity className="w-4 h-4" /> },
+            { id: '震え', label: '震え', icon: <ShieldAlert className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'event',
+        title: 'ハプニング図鑑',
+        metaKey: 'event',
+        color: '#FF453A',
+        items: [
+            { id: 'いたずら', label: 'いたずら', icon: <Flame className="w-4 h-4" /> },
+            { id: '破壊', label: '破壊', icon: <Scissors className="w-4 h-4" /> },
+            { id: '脱走未遂', label: '脱走未遂', icon: <AlertCircle className="w-4 h-4" /> },
+            { id: 'ケンカ', label: 'ケンカ', icon: <Scissors className="w-4 h-4" /> },
+            { id: '水こぼし', label: '水こぼし', icon: <Droplets className="w-4 h-4" /> },
+            { id: '登りすぎ', label: '登りすぎ', icon: <TrendingUp className="w-4 h-4" /> },
+            { id: '侵入禁止', label: '侵入禁止', icon: <ShieldAlert className="w-4 h-4" /> },
+            { id: 'おもちゃ没収', label: 'おもちゃ没収', icon: <ShoppingBag className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'relationship',
+        title: 'なかよし図鑑',
+        metaKey: 'relationship',
+        color: '#FF375F',
+        items: [
+            { id: 'ぴったり', label: 'ぴったり', icon: <Heart className="w-4 h-4" /> },
+            { id: '毛づくろい中', label: '毛づくろい中', icon: <HeartPulse className="w-4 h-4" /> },
+            { id: '近い', label: '近い', icon: <UserPlus className="w-4 h-4" /> },
+            { id: '微妙な距離', label: '微妙な距離', icon: <Search className="w-4 h-4" /> },
+            { id: 'ケンカ前', label: 'ケンカ前', icon: <AlertCircle className="w-4 h-4" /> },
+            { id: '仲直り', label: '仲直り', icon: <Heart className="w-4 h-4" /> },
+            { id: '一緒に食事', label: '一緒に食事', icon: <Utensils className="w-4 h-4" /> },
+            { id: '追いかけっこ', label: '追いかけっこ', icon: <Zap className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'seasonEvent',
+        title: '季節といべんと図鑑',
+        metaKey: 'seasonEvent',
+        color: '#FFD60A',
+        items: [
+            { id: '換毛期', label: '換毛期', icon: <Brush className="w-4 h-4" /> },
+            { id: '暑さ対策', label: '暑さ対策', icon: <Sun className="w-4 h-4" /> },
+            { id: '冬支度', label: '冬支度', icon: <Cloud className="w-4 h-4" /> },
+            { id: '誕生日', label: '誕生日', icon: <Cake className="w-4 h-4" /> },
+            { id: 'クリスマス', label: 'クリスマス', icon: <Gift className="w-4 h-4" /> },
+            { id: 'お正月', label: 'お正月', icon: <CalendarDays className="w-4 h-4" /> },
+            { id: 'うちの子記念日', label: 'うちの子記念日', icon: <Heart className="w-4 h-4" /> },
+            { id: '記念写真', label: '記念写真', icon: <CameraIcon2 className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'growth',
+        title: '成長のきろく図鑑',
+        metaKey: 'growth',
+        color: '#64D2FF',
+        items: [
+            { id: '子猫', label: '子猫', icon: <Baby className="w-4 h-4" /> },
+            { id: '成猫', label: '成猫', icon: <Cat className="w-4 h-4" /> },
+            { id: '老猫', label: '老猫', icon: <Moon className="w-4 h-4" /> },
+            { id: '冬毛', label: '冬毛', icon: <Cloud className="w-4 h-4" /> },
+            { id: '夏毛', label: '夏毛', icon: <Sun className="w-4 h-4" /> },
+            { id: '体格の変化', label: '体格の変化', icon: <TrendingUp className="w-4 h-4" /> },
+            { id: '毛並みの変化', label: '毛並みの変化', icon: <Sparkles className="w-4 h-4" /> },
+            { id: '成長記録', label: '成長記録', icon: <History className="w-4 h-4" /> },
+        ]
+    },
+    {
+        id: 'items',
+        title: 'お気に入りアイテム図鑑',
+        metaKey: 'items',
+        color: '#0A84FF',
+        items: [
+            { id: 'おもちゃ', label: 'おもちゃ', icon: <Zap className="w-4 h-4" /> },
+            { id: '爪とぎ', label: '爪とぎ', icon: <Scissors className="w-4 h-4" /> },
+            { id: 'べッド', label: 'べッド', icon: <Moon className="w-4 h-4" /> },
+            { id: '食器', label: '食器', icon: <Utensils className="w-4 h-4" /> },
+            { id: 'おやつ', label: 'おやつ', icon: <Gift className="w-4 h-4" /> },
+            { id: '首輪', label: '首輪', icon: <ShieldAlert className="w-4 h-4" /> },
+            { id: 'キャリーケース', label: 'キャリーケース', icon: <ShoppingBag className="w-4 h-4" /> },
+            { id: 'ブラシ', label: 'ブラシ', icon: <Brush className="w-4 h-4" /> },
+        ]
+    }
 ];
 
 // ─────────────────────────────────
@@ -203,6 +377,11 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             if (photo.aiAnalysis?.uiTags?.some((tag: string) => tag.toLowerCase().includes(q))) return true;
             // zukanShelf
             if (photo.aiAnalysis?.zukanShelf?.toLowerCase().includes(q)) return true;
+            // metadata (A-K)
+            const metadata = photo.aiAnalysis?.metadata;
+            if (metadata) {
+                if (Object.values(metadata).some(val => val?.toLowerCase().includes(q))) return true;
+            }
             return false;
         });
     }, [allPhotos, searchQuery]);
@@ -233,9 +412,13 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             if (ai?.zukanShelf && shelves[ai.zukanShelf]) {
                 shelves[ai.zukanShelf].push(photo);
             }
+            // 1.5 Special: Fix legacy naming (ねんね -> 眠り)
+            else if (ai?.zukanShelf === 'ねんね') {
+                shelves['眠り'].push(photo);
+            }
             // 2. Fallback: By Labels (mapping from English keys)
             else if (labels) {
-                if (labels.moment === 'sleep' || labels.moment === 'rest') shelves['眠り'].push(photo);
+                if (labels.moment === 'sleep' || labels.moment === 'rest' || labels.moment === 'ねんね') shelves['眠り'].push(photo);
                 else if (labels.moment === 'meal') shelves['ごはん'].push(photo);
                 else if (labels.moment === 'play' || labels.moment === 'explore') shelves['遊び'].push(photo);
                 else if (labels.moment === 'cuddle' || labels.moment === 'grooming') shelves['甘えん坊'].push(photo);
@@ -267,21 +450,37 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     }, [filteredPhotos]);
 
     // ─────────────────────────────────
-    // Pose Collection
+    // Zukan Collections (Multi-Axis)
     // ─────────────────────────────────
-    const poseCollection = useMemo(() => {
-        const poseMap: Record<string, ShelfPhoto[]> = {};
-        POSE_DEFS.forEach(p => { poseMap[p.id] = []; });
+    const zukanCollections = useMemo(() => {
+        return ZUKAN_AXES.map(axis => {
+            const itemMap: Record<string, ShelfPhoto[]> = {};
+            axis.items.forEach(item => { itemMap[item.id] = []; });
 
-        filteredPhotos.forEach(photo => {
-            const pose = photo.aiAnalysis?.pose;
-            if (pose && poseMap[pose]) {
-                poseMap[pose].push(photo);
-            }
+            filteredPhotos.forEach(photo => {
+                const ai = photo.aiAnalysis;
+                if (!ai) return;
+
+                let val: string | undefined;
+                if (axis.metaKey === 'pose') {
+                    val = ai.pose;
+                } else if (ai.metadata) {
+                    val = ai.metadata[axis.metaKey];
+                }
+
+                if (val && itemMap[val]) {
+                    itemMap[val].push(photo);
+                }
+            });
+
+            const collectedCount = axis.items.filter(item => itemMap[item.id].length > 0).length;
+            return {
+                ...axis,
+                itemMap,
+                collectedCount,
+                totalCount: axis.items.length
+            };
         });
-
-        const collected = POSE_DEFS.filter(p => poseMap[p.id].length > 0).length;
-        return { poseMap, collected, total: POSE_DEFS.length };
     }, [filteredPhotos]);
 
     // ─────────────────────────────────
@@ -412,17 +611,17 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     // ─────────────────────────────────
     // Batch AI tagging (Existing Logic)
     // ─────────────────────────────────
-    // Update Untagged Count to identify photos without AI Analysis
+    // Update Untagged Count to identify photos without AI Analysis OR missing Pose info
     const untaggedCount = useMemo(() => {
         return allPhotos.filter(
-            (p) => !p.aiAnalysis
+            (p) => !p.aiAnalysis || (p.aiAnalysis && !p.aiAnalysis.pose)
         ).length;
     }, [allPhotos]);
 
     const runBatchTagging = useCallback(async () => {
-        // Filter for photos that haven't been analyzed by AI yet
+        // Filter for photos that haven't been analyzed by AI OR missing pose (new requirement)
         const untagged = allPhotos.filter(
-            (p) => !p.aiAnalysis
+            (p) => !p.aiAnalysis || (p.aiAnalysis && !p.aiAnalysis.pose)
         );
         if (untagged.length === 0) return;
 
@@ -506,7 +705,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     // Render: Main Screen
     // ─────────────────────────────────
     return (
-        <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col pb-32">
             {/* Header */}
             <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
                 <div className="flex items-center justify-between px-5 h-14">
@@ -603,10 +802,12 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             )}
                         >
                             <div className="w-5 h-5 rounded-full overflow-hidden bg-[#f2f2f7] dark:bg-[#3a3a3c] shrink-0">
-                                {cat.avatar && cat.avatar !== '🐈' ? (
+                                {cat.avatar && cat.avatar !== 'cat-fallback' ? (
                                     <img src={cat.avatar} className="w-full h-full object-cover" alt="" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px]">🐈</div>
+                                    <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                        <Cat className="w-4 h-4" />
+                                    </div>
                                 )}
                             </div>
                             {cat.name}
@@ -846,105 +1047,115 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         {/* ─── ENCYCLOPEDIA TAB ─── */}
                         {activeTab === 'encyclopedia' && (
                             <div className="px-5 space-y-2 animate-in fade-in slide-in-from-right-2 duration-300">
-                                {/* Pose Collection Grid */}
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <Award className="w-4.5 h-4.5 text-[#FF9500]" />
-                                            <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">ポーズ図鑑</h3>
-                                        </div>
-                                        <span className="text-[13px] font-bold text-[#8e8e93] tabular-nums">
-                                            {poseCollection.collected}/{poseCollection.total}
-                                        </span>
-                                    </div>
-                                    {/* Progress Bar */}
-                                    <div className="h-1.5 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
-                                        <motion.div
-                                            className="h-full bg-gradient-to-r from-[#FF9500] to-[#FF2D55] rounded-full"
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(poseCollection.collected / poseCollection.total) * 100}%` }}
-                                            transition={{ duration: 0.8, ease: 'easeOut' }}
-                                        />
-                                    </div>
-                                    {/* Pose Grid */}
-                                    <div className="grid grid-cols-4 gap-2.5">
-                                        {POSE_DEFS.map(pose => {
-                                            const photos = poseCollection.poseMap[pose.id] || [];
-                                            const isUnlocked = photos.length > 0;
-                                            const representative = photos[0];
-                                            return (
-                                                <motion.div
-                                                    key={pose.id}
-                                                    whileTap={isUnlocked ? { scale: 0.95 } : undefined}
-                                                    className={cn(
-                                                        "relative flex flex-col items-center cursor-pointer rounded-xl p-2 transition-all",
-                                                        isUnlocked
-                                                            ? "bg-white dark:bg-[#2c2c2e] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                                                            : "bg-[#f2f2f7]/60 dark:bg-[#2c2c2e]/40"
-                                                    )}
-                                                    onClick={() => {
-                                                        if (isUnlocked) setSelectedShelf({ name: `${pose.emoji} ${pose.label}`, photos });
-                                                    }}
-                                                >
-                                                    <div className={cn(
-                                                        "w-12 h-12 rounded-full flex items-center justify-center mb-1.5 overflow-hidden",
-                                                        isUnlocked ? "" : "bg-[#e5e5ea]/60 dark:bg-white/5"
-                                                    )}>
-                                                        {isUnlocked && representative ? (
-                                                            <img src={representative.url} className="w-full h-full object-cover rounded-full" alt="" />
-                                                        ) : (
-                                                            <span className="text-xl opacity-30">{pose.emoji}</span>
-                                                        )}
+                                {/* ─── ENCYCLOPEDIA TAB ─── */}
+                                {activeTab === 'encyclopedia' && (
+                                    <div className="px-5 space-y-6 animate-in fade-in slide-in-from-right-2 duration-300">
+                                        {zukanCollections.map(axis => (
+                                            <div key={axis.id} className="mb-8">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <Award className="w-4.5 h-4.5" style={{ color: axis.color }} />
+                                                        <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">{axis.title}</h3>
                                                     </div>
-                                                    <span className={cn(
-                                                        "text-[10px] font-bold text-center leading-tight",
-                                                        isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#c7c7cc] dark:text-[#636366]"
-                                                    )}>
-                                                        {pose.label}
+                                                    <span className="text-[13px] font-bold text-[#8e8e93] tabular-nums">
+                                                        {axis.collectedCount}/{axis.totalCount}
                                                     </span>
-                                                    {isUnlocked ? (
-                                                        <span className="text-[9px] text-[#8e8e93] font-medium mt-0.5">{photos.length}枚</span>
-                                                    ) : (
-                                                        <span className="text-[9px] text-[#c7c7cc] dark:text-[#48484a] mt-0.5">🔒</span>
-                                                    )}
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                                </div>
+                                                {/* Progress Bar */}
+                                                <div className="h-1.5 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
+                                                    <motion.div
+                                                        className="h-full rounded-full"
+                                                        style={{ backgroundColor: axis.color }}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${(axis.collectedCount / axis.totalCount) * 100}%` }}
+                                                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                                                    />
+                                                </div>
+                                                {/* Grid */}
+                                                <div className="grid grid-cols-4 gap-2.5">
+                                                    {axis.items.map(item => {
+                                                        const photos = axis.itemMap[item.id] || [];
+                                                        const isUnlocked = photos.length > 0;
+                                                        const representative = photos[0];
+                                                        return (
+                                                            <motion.div
+                                                                key={item.id}
+                                                                whileTap={isUnlocked ? { scale: 0.95 } : undefined}
+                                                                className={cn(
+                                                                    "relative flex flex-col items-center cursor-pointer rounded-xl p-2 transition-all",
+                                                                    isUnlocked
+                                                                        ? "bg-white dark:bg-[#2c2c2e] shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                                                        : "bg-[#f2f2f7]/60 dark:bg-[#2c2c2e]/40"
+                                                                )}
+                                                                onClick={() => {
+                                                                    if (isUnlocked) setSelectedShelf({ name: item.label, photos });
+                                                                }}
+                                                            >
+                                                                <div className={cn(
+                                                                    "w-12 h-12 rounded-full flex items-center justify-center mb-1.5 overflow-hidden",
+                                                                    isUnlocked ? "" : "bg-[#e5e5ea]/60 dark:bg-white/5"
+                                                                )}>
+                                                                    {isUnlocked && representative ? (
+                                                                        <img src={representative.url} className="w-full h-full object-cover rounded-full" alt="" />
+                                                                    ) : (
+                                                                        <div className="opacity-30">{item.icon}</div>
+                                                                    )}
+                                                                </div>
+                                                                <span className={cn(
+                                                                    "text-[10px] font-bold text-center leading-tight",
+                                                                    isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#c7c7cc] dark:text-[#636366]"
+                                                                )}>
+                                                                    {item.label}
+                                                                </span>
+                                                                {isUnlocked ? (
+                                                                    <span className="text-[9px] text-[#8e8e93] font-medium mt-0.5">{photos.length}枚</span>
+                                                                ) : (
+                                                                    <span className="text-[9px] text-[#c7c7cc] dark:text-[#48484a] mt-0.5">🔒</span>
+                                                                )}
+                                                            </motion.div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
 
-                                {/* Scene Shelves */}
-                                {encyclopediaShelves.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {encyclopediaShelves
-                                            .filter(s => showEmptyShelves || s.photos.length > 0)
-                                            .map((shelf, shelfIdx) => (
-                                                <ShelfRow
-                                                    key={shelf.name}
-                                                    shelf={shelf}
-                                                    index={shelfIdx}
-                                                    onTap={() => setSelectedShelf(shelf)}
-                                                    onPhotoTap={openDetail}
-                                                />
-                                            ))
-                                        }
+                                        {/* Scene Shelves */}
+                                        <div className="pt-4 border-t border-[#e5e5ea]/60 dark:border-white/10">
+                                            <h3 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white mb-4">シーン別の棚</h3>
+                                            {encyclopediaShelves.length > 0 ? (
+                                                <div className="space-y-4">
+                                                    {encyclopediaShelves
+                                                        .filter(s => showEmptyShelves || s.photos.length > 0)
+                                                        .map((shelf, shelfIdx) => (
+                                                            <ShelfRow
+                                                                key={shelf.name}
+                                                                shelf={shelf}
+                                                                index={shelfIdx}
+                                                                onTap={() => setSelectedShelf(shelf)}
+                                                                onPhotoTap={openDetail}
+                                                            />
+                                                        ))
+                                                    }
 
-                                        {/* Show Empty Shelves Toggle */}
-                                        <div className="pt-8 pb-12 flex justify-center">
-                                            <button
-                                                onClick={() => setShowEmptyShelves(!showEmptyShelves)}
-                                                className="px-5 py-2.5 bg-[#8e8e93]/10 dark:bg-white/5 rounded-full text-[13px] font-bold text-[#8e8e93] active:scale-95 transition-all"
-                                            >
-                                                {showEmptyShelves ? "空の棚を隠す" : `空の棚も表示する (${encyclopediaShelves.filter(s => s.photos.length === 0).length})`}
-                                            </button>
+                                                    {/* Show Empty Shelves Toggle */}
+                                                    <div className="pt-4 pb-12 flex justify-center">
+                                                        <button
+                                                            onClick={() => setShowEmptyShelves(!showEmptyShelves)}
+                                                            className="px-5 py-2.5 bg-[#8e8e93]/10 dark:bg-white/5 rounded-full text-[13px] font-bold text-[#8e8e93] active:scale-95 transition-all"
+                                                        >
+                                                            {showEmptyShelves ? "空の棚を隠す" : `空の棚も表示する (${encyclopediaShelves.filter(s => s.photos.length === 0).length})`}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-20 text-[#8e8e93]">
+                                                    <p>まだコレクションがありません</p>
+                                                    <button onClick={runBatchTagging} className="mt-4 text-[#007AFF] text-sm font-bold">
+                                                        AIで写真を整理する
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-20 text-[#8e8e93]">
-                                        <p>まだコレクションがありません</p>
-                                        <button onClick={runBatchTagging} className="mt-4 text-[#007AFF] text-sm font-bold">
-                                            AIで写真を整理する
-                                        </button>
                                     </div>
                                 )}
                             </div>

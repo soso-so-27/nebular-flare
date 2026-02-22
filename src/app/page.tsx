@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,23 +15,30 @@ import {
   useCareContext,
   useInventoryContext,
   useSettingsContext,
-  useCoreContext
+  useCoreContext,
+  useIncidentContext
 } from "@/store/app-store";
 import { getCatchUpItems } from "@/lib/utils-catchup";
+import { format } from "date-fns";
 import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/screens/splash-screen";
 import { SidebarMenu } from "@/components/app/shared/sidebar-menu";
 import { ImmersiveHome } from "@/components/app/home/immersive-home";
 import { WeeklyHome } from "@/components/app/home/weekly-home";
 import { DekigotoScreen } from "@/components/app/screens/dekigoto-screen";
+import { ToolsScreen } from "@/components/app/screens/tools-screen";
+import { ZukanScreen } from "@/components/app/screens/zukan-screen";
+import { CaptureWorkflowSheet } from "@/components/app/shared/capture-workflow-sheet";
 import { FootprintProvider } from "@/providers/footprint-provider";
 import { BackdropSurface } from "@/components/ui/backdrop-surface";
+import { BottomNavigationBar } from "@/components/app/shared/bottom-navigation-bar";
+import { NotificationSheet, NotificationItem } from "@/components/app/home/notification-sheet";
 
 
 // Lazy load heavy components
 const CatScreen = dynamic(() => import("@/components/app/screens/cat-screen").then(m => ({ default: m.CatScreen })), { ssr: false });
 const GalleryScreen = dynamic(() => import("@/components/app/screens/gallery-screen").then(m => ({ default: m.GalleryScreen })), { ssr: false });
-const ZukanScreen = dynamic(() => import("@/components/app/screens/zukan-screen").then(m => ({ default: m.ZukanScreen })), { ssr: false });
+// ZukanScreen is already imported statically above
 
 const LoginScreen = dynamic(() => import("@/components/app/screens/login-screen").then(m => ({ default: m.LoginScreen })), { ssr: false });
 const OnboardingScreen = dynamic(() => import("@/components/app/screens/onboarding-screen").then(m => ({ default: m.OnboardingScreen })), { ssr: false });
@@ -61,15 +68,22 @@ function AppContent() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
-  const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | null>(null);
+  const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | 'activity' | 'settings' | null>(null);
   const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
+
+  // Global Camera states
+  const [isCaptureWorkflowOpen, setIsCaptureWorkflowOpen] = useState(false);
+  const [initialPhotos, setInitialPhotos] = useState<File[]>([]);
+  const hiddenFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Get data and functions for quick actions
   const { cats, catsLoading, activeCatId, isHeroImageLoaded } = useCatContext();
   const { tasks, noticeLogs, careTaskDefs, careLogs, noticeDefs, addCareLog, addObservation } = useCareContext();
   const { inventory, setInventory } = useInventoryContext();
-  const { settings, lastSeenAt } = useSettingsContext();
-  const { isDemo } = useCoreContext();
+  const { settings, lastSeenAt, updateSettings } = useSettingsContext();
+  const { isDemo, householdUsers } = useCoreContext();
+  const { incidents } = useIncidentContext();
+  const { user: currentUser } = useAuth();
 
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
@@ -85,6 +99,8 @@ function AppContent() {
   const [inputExpansion, setInputExpansion] = useState<'none' | 'tags' | 'health'>('none');
   const [inputHeight, setInputHeight] = useState(300); // Default placeholder
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isNotificationSheetOpen, setIsNotificationSheetOpen] = useState(false);
+  const [lastViewedAt, setLastViewedAt] = useState<Date>(() => new Date(Date.now() - 3600000));
 
   const handleOpenNyannlog = React.useCallback((tab: 'events' | 'requests' | 'input' = 'events', date?: Date) => {
     if (date) {
@@ -117,7 +133,11 @@ function AppContent() {
     return () => clearTimeout(fallbackTimer);
   }, [catsLoading]);
 
-  const catchup = React.useMemo(() => getCatchUpItems({
+  const allNoticeLogs = useMemo(() => {
+    return Object.values(noticeLogs).flatMap(catLog => Object.values(catLog));
+  }, [noticeLogs]);
+
+  const catchUpData = useMemo(() => getCatchUpItems({
     tasks,
     noticeLogs,
     inventory,
@@ -130,8 +150,99 @@ function AppContent() {
     dayStartHour: settings.dayStartHour,
   }), [tasks, noticeLogs, inventory, lastSeenAt, settings, cats, careTaskDefs, careLogs, noticeDefs]);
 
-  const careCount = catchup.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
-  const catCount = catchup.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
+  // Aggregated real-data notifications
+  const realNotifications = useMemo(() => {
+    const items: NotificationItem[] = [];
+    // 1. Care Logs
+    const careGroups: Record<string, any> = {};
+    careLogs?.forEach(log => {
+      const timestamp = new Date(log.done_at);
+      const user = householdUsers?.find((m: any) => m.id === log.done_by);
+      let userName = user?.display_name || "家族";
+      if (currentUser && log.done_by === currentUser.id) {
+        userName = currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || userName;
+      }
+      const taskDef = careTaskDefs?.find((d: any) => d.id === log.type.split(':')[0]);
+      const taskTitle = taskDef?.title || log.type;
+      const hourMinute = format(timestamp, "yyyy-MM-dd HH:mm");
+      const groupKey = `${log.done_by}_${log.cat_id}_${hourMinute}`;
+
+      if (!careGroups[groupKey]) {
+        careGroups[groupKey] = {
+          userName,
+          catId: log.cat_id,
+          tasks: [],
+          timestamp,
+          ids: []
+        };
+      }
+      careGroups[groupKey].tasks.push(taskTitle);
+      careGroups[groupKey].ids.push(log.id);
+    });
+
+    Object.values(careGroups).forEach(group => {
+      const uniqueTasks = Array.from(new Set(group.tasks)) as string[];
+      const tasksLabel = uniqueTasks.length > 1 ? `${uniqueTasks[0]}ほか${uniqueTasks.length - 1}件` : uniqueTasks[0];
+      items.push({
+        id: group.ids[0],
+        type: 'care',
+        title: `✅ ${tasksLabel}${group.catId ? `（${cats?.find(c => c.id === group.catId)?.name}）` : ''}`,
+        message: `${group.userName}が完了しました。`,
+        timestamp: group.timestamp,
+        isUnread: group.timestamp > lastViewedAt,
+        targetDate: group.timestamp
+      });
+    });
+
+    // 2. Incidents
+    incidents?.forEach(inc => {
+      const timestamp = new Date(inc.created_at);
+      const user = householdUsers?.find((m: any) => m.id === inc.created_by);
+      let userName = user?.display_name || "家族";
+      if (currentUser && inc.created_by === currentUser.id) {
+        userName = currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || userName;
+      }
+      const cat = cats?.find((c: any) => c.id === inc.cat_id);
+      const catName = cat?.name || "猫ちゃん";
+      items.push({
+        id: inc.id,
+        type: (['worried', 'troubled'].includes(inc.type) ? 'alert' : 'care'),
+        title: `⚠️ ${catName}の記録`,
+        message: `${userName}が記録しました。${inc.note ? `\n"${inc.note}"` : ''}`,
+        timestamp,
+        isUnread: timestamp > lastViewedAt,
+        incidentId: inc.id
+      });
+    });
+
+    // 3. New Photos & Tags
+    cats?.forEach(cat => {
+      cat.images?.forEach((img: any) => {
+        const timestamp = new Date(img.createdAt);
+        items.push({
+          id: img.id,
+          type: 'photo',
+          title: `${cat.name}の新しい写真`,
+          message: img.memo || "可愛い写真が届きました 💕",
+          timestamp,
+          isUnread: timestamp > lastViewedAt,
+          targetDate: timestamp
+        });
+      });
+    });
+
+    return items.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 30);
+  }, [careLogs, incidents, cats, householdUsers, careTaskDefs, currentUser, lastViewedAt]);
+
+  const hasUnreadNotifications = useMemo(() => realNotifications.some(n => n.isUnread), [realNotifications]);
+
+
+
+
+
+
+  const careCount = catchUpData.allItems.filter(item => item.type === 'task' || item.type === 'inventory').length;
+  const catCount = catchUpData.allItems.filter(item => item.type === 'notice' || item.type === 'unrecorded').length;
   const totalCount = careCount + catCount;
 
   const handleSelectItem = React.useCallback((id: string, type: string, photos?: string[]) => {
@@ -455,7 +566,126 @@ function AppContent() {
                   />
                 </motion.div>
               )}
+
+              {/* New Tab Screens (Placeholders/Integrations) */}
+              {tab === "tools" && (
+                <motion.div
+                  key="tools-screen"
+                  className="fixed inset-0 z-[10002] bg-[#FAF9F7]"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <ToolsScreen
+                    onOpenReport={() => {
+                      // WeeklyHome has report logic, but for Tools tab we might need a dedicated way.
+                      // For now, let's set a state that WeeklyHome or a separate modal can pick up.
+                      // Actually, let's just trigger the WeeklyHome report if possible, or a global modal.
+                      setTab("home"); // Jump back to home to show report if needed, or implement here.
+                    }}
+                    onOpenTrends={() => {
+                      setOpenSection('activity');
+                    }}
+                    onOpenInventory={() => {
+                      setOpenSection('inventory');
+                    }}
+                    onOpenSitter={() => {
+                      // Same for sitter report
+                      setTab("home");
+                    }}
+                    onOpenSettings={() => {
+                      setOpenSection('settings');
+                    }}
+                  />
+                </motion.div>
+              )}
+
+
+
+
+
+              {/* Camera Tab Action */}
+              {tab === "camera" && (
+                <motion.div
+                  key="camera-action"
+                  className="fixed inset-0 z-[10006] bg-black flex flex-col items-center justify-center"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                >
+                  <div className="absolute top-6 right-6">
+                    <button onClick={() => setTab("home")} className="p-2 bg-white/20 rounded-full text-white">
+                      <X className="w-8 h-8" />
+                    </button>
+                  </div>
+                  <Cat className="w-24 h-24 text-brand-peach mb-8 animate-pulse" />
+                  <h2 className="text-white text-xl font-bold mb-4">写真を撮って図鑑に登録</h2>
+                  <div className="flex gap-6">
+                    <button
+                      onClick={() => {
+                        setShowPhotoModal(true);
+                        setTab("home");
+                      }}
+                      className="px-8 py-4 bg-brand-peach text-white rounded-full font-bold shadow-lg"
+                    >
+                      カメラを起動
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPhotoListSheet(true);
+                        setTab("home");
+                      }}
+                      className="px-8 py-4 bg-white/10 text-white border border-white/20 rounded-full font-bold"
+                    >
+                      ギャラリーから選ぶ
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
+
+            {/* Global Navigation Bar */}
+            <BottomNavigationBar
+              activeTab={tab}
+              onTabChange={(newTab) => {
+                if (newTab === "camera") {
+                  hiddenFileInputRef.current?.click();
+                } else if (newTab === "notifications") {
+                  setIsNotificationSheetOpen(true);
+                  setLastViewedAt(new Date());
+                  // Also update persist settings
+                  updateSettings({ lastSeenPhotoAt: new Date().toISOString() });
+                } else {
+                  setTab(newTab);
+                }
+              }}
+              hasNewNotifications={hasUnreadNotifications}
+            />
+
+            <CaptureWorkflowSheet
+              isOpen={isCaptureWorkflowOpen}
+              initialPhotos={initialPhotos}
+              onClose={() => {
+                setIsCaptureWorkflowOpen(false);
+                setInitialPhotos([]);
+              }}
+            />
+
+            <input
+              type="file"
+              ref={hiddenFileInputRef}
+              className="hidden"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setInitialPhotos(Array.from(e.target.files));
+                  setIsCaptureWorkflowOpen(true);
+                  // Reset input so the same file can be selected again
+                  e.target.value = '';
+                }
+              }}
+            />
 
             {/* Shared Modals - Unified across screens */}
             {selectedIncidentId && (
@@ -520,6 +750,28 @@ function AppContent() {
                 />
               </React.Suspense>
             )}
+            {/* Notification Sheet */}
+            <NotificationSheet
+              isOpen={isNotificationSheetOpen}
+              onClose={() => setIsNotificationSheetOpen(false)}
+              notifications={realNotifications}
+              onSelectItem={(item) => {
+                if (item.incidentId) {
+                  setSelectedIncidentId(item.incidentId);
+                  setIsNotificationSheetOpen(false);
+                } else if (item.link === 'zukan') {
+                  setTab('zukan');
+                  setIsNotificationSheetOpen(false);
+                } else if (item.link === 'tools') {
+                  setTab('tools');
+                  setIsNotificationSheetOpen(false);
+                } else if (item.targetDate) {
+                  setCalendarDate(item.targetDate);
+                  setTab("home");
+                  setIsNotificationSheetOpen(false);
+                }
+              }}
+            />
           </>
         }
       />

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, Check, Plus } from "lucide-react";
+import { X, MessageCircle, Check, Plus, Cat } from "lucide-react";
 import { useCatContext, useIncidentContext, useSettingsContext } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 import { IncidentDetailModal } from "./incident-detail-modal";
@@ -103,7 +103,9 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                             {cat?.avatar ? (
                                 <img src={cat.avatar} alt={cat.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-base">🐈</div>
+                                <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                    <Cat className="w-4 h-4" />
+                                </div>
                             )}
                         </div>
                         <div>
@@ -111,10 +113,10 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                             <p className="text-[9px] text-[#1c1c1e]/30 font-bold uppercase tracking-wider">{formatDate(incident.created_at)}</p>
                         </div>
                     </div>
+                </div>
 
-                    <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${statusStyle.bg} ${statusStyle.text} border border-black/5`}>
-                        {statusStyle.label}
-                    </div>
+                <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${statusStyle.bg} ${statusStyle.text} border border-black/5`}>
+                    {statusStyle.label}
                 </div>
 
                 <div className="flex items-center justify-between mt-1">
@@ -133,7 +135,7 @@ export function IncidentListSheet({ isOpen, onClose }: IncidentListSheetProps) {
                         </div>
                     </div>
                 </div>
-            </motion.button>
+            </motion.button >
         );
     };
 

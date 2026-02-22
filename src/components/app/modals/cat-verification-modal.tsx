@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, HelpCircle, AlertTriangle, ChevronRight } from "lucide-react";
+import { X, Check, HelpCircle, AlertTriangle, ChevronRight, Cat as CatIcon } from "lucide-react";
 import { Cat } from "@/types";
 import { useCatContext } from "@/store/app-store";
 import { cn, getFullImageUrl } from "@/lib/utils";
@@ -132,7 +132,9 @@ export function CatVerificationModal({ isOpen, onClose, items, onComplete }: Cat
                                             {cat.avatar && !cat.avatar.startsWith('🐈') ? (
                                                 <img src={getFullImageUrl(cat.avatar)} className="w-full h-full object-cover" alt="" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-[10px]">🐈</div>
+                                                <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                                    <CatIcon className="w-4 h-4" />
+                                                </div>
                                             )}
                                         </div>
                                         <div className="text-left overflow-hidden">

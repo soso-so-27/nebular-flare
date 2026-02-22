@@ -128,13 +128,59 @@ serve(async (req) => {
                 const actor = users?.find(u => u.id === actorId);
 
                 if (payload.table === 'incidents') {
-                    title = "⚠️ 緊急記録"; body = `${actor?.display_name || '家族'}が異変を記録しました。`;
+                    // Fetch cat name for better context
+                    let catName = "猫ちゃん";
+                    const catId = record?.cat_id || record?.catId;
+                    if (catId) {
+                        const { data: cat } = await supabase.from('cats').select('name').eq('id', catId).single();
+                        if (cat?.name) catName = cat.name;
+                    }
+
+                    const typeLabels: Record<string, string> = {
+                        vomit: '嘔吐', diarrhea: '下痢', injury: '怪我', appetite: '食欲不振',
+                        energy: '元気がない', toilet: 'トイレ失敗', other: 'その他',
+                        worried: '気になる症状', concerned: '心配な様子', troubled: '困ったこと',
+                        good: 'いいこと', daily: '日常の記録'
+                    };
+
+                    const typeLabel = typeLabels[record?.type] || typeLabels[record?.health_category] || "記録";
+                    title = `⚠️ ${catName}の記録`;
+                    body = `${actor?.display_name || '家族'}が「${typeLabel}」を記録しました。`;
+                    if (record?.note) body += `\n"${record.note}"`;
+
                     targetIds = users?.filter(u => u.id !== actorId && u.notification_preferences?.health_alert !== false).map(u => u.id) || [];
                 } else if (payload.table === 'cat_images') {
-                    title = "📸 写真投稿"; body = `${actor?.display_name || '家族'}が写真を投稿しました。`;
+                    let catName = "猫ちゃん";
+                    const catId = record?.cat_id || record?.catId;
+                    if (catId) {
+                        const { data: cat } = await supabase.from('cats').select('name').eq('id', catId).single();
+                        if (cat?.name) catName = cat.name;
+                    }
+
+                    title = `📸 ${catName}の写真`;
+                    body = `${actor?.display_name || '家族'}が新しい写真を投稿しました。`;
+                    if (record?.memo) body += `\n"${record.memo}"`;
+
                     targetIds = users?.filter(u => u.id !== actorId && u.notification_preferences?.photo_alert !== false).map(u => u.id) || [];
                 } else if (payload.table === 'care_logs') {
-                    title = "✅ お世話完了"; body = `${actor?.display_name || '家族'}がお世話を完了しました。`;
+                    let catName = "";
+                    const catId = record?.cat_id || record?.catId;
+                    if (catId) {
+                        const { data: cat } = await supabase.from('cats').select('name').eq('id', catId).single();
+                        if (cat?.name) catName = `（${cat.name}）`;
+                    }
+
+                    const careType = (record?.type || '').split(':')[0];
+                    const careLabels: Record<string, string> = {
+                        food: 'ごはん', water: 'お水', toilet: 'トイレそうじ', litter: 'トイレそうじ',
+                        brush: 'ブラッシング', play: '遊び', medicine: 'お薬'
+                    };
+                    const careLabel = careLabels[careType] || "お世話";
+
+                    title = `✅ ${careLabel}${catName}`;
+                    body = `${actor?.display_name || '家族'}が完了しました。`;
+                    if (record?.notes) body += `\n"${record.notes}"`;
+
                     targetIds = users?.filter(u => u.id !== actorId && u.notification_preferences?.care_reminder !== false).map(u => u.id) || [];
                 }
             }

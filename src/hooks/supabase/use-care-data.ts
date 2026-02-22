@@ -68,6 +68,24 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
             }).select().single();
 
             if (error) throw error;
+
+            // Fire-and-forget: notify family members
+            if (householdId) {
+                supabase.functions.invoke('push-notification', {
+                    body: {
+                        type: 'INSERT',
+                        table: 'care_logs',
+                        record: {
+                            household_id: householdId,
+                            cat_id: catId || null,
+                            type: type,
+                            notes: note || null,
+                            done_by: user.user?.id || null
+                        }
+                    }
+                }).catch(() => { /* silent */ });
+            }
+
             return data;
         },
         onSuccess: () => {

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft, AlertTriangle, Utensils, Activity, Droplets, Heart } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, AlertTriangle, Utensils, Activity, Droplets, Heart, Cat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -166,9 +166,9 @@ export function ReportConfigModal({ isOpen, onClose, onComplete, cats }: ReportC
                                                         {cat.avatar?.startsWith('http') ? (
                                                             <img src={cat.avatar} alt="" className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <span className="flex items-center justify-center h-full text-2xl">
-                                                                {cat.avatar || '🐈'}
-                                                            </span>
+                                                            <div className="w-full h-full flex items-center justify-center text-[#1c1c1e]/20">
+                                                                <Cat className="w-8 h-8" />
+                                                            </div>
                                                         )}
                                                     </div>
                                                     <span className={`font-black text-xs tracking-tight ${selectedCatId === cat.id ? 'text-white dark:text-black' : 'text-slate-500 dark:text-slate-400'}`}>

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Camera, ChevronRight, Heart, MessageCircle, Calendar } from "lucide-react";
+import { X, Camera, ChevronRight, Heart, MessageCircle, Calendar, Cat } from "lucide-react";
 import { useCatContext, useSettingsContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
@@ -113,7 +113,7 @@ export function PhotoListSheet({ isOpen, onClose }: PhotoListSheetProps) {
                             ...img,
                             catId: cat.id,
                             catName: cat.name,
-                            catAvatar: cat.avatar || '🐈'
+                            catAvatar: cat.avatar || '🐈' // Keep emoji as marker, handle in UI
                         });
                     }
                 });

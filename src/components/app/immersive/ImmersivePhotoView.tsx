@@ -91,7 +91,7 @@ export function ImmersivePhotoView({
             try {
                 await navigator.share({
                     title: 'にゃるほど',
-                    text: `${image.catName}のようす🐾`,
+                    text: `${image.catName}のようす`,
                     url: image.url,
                 });
             } catch {
