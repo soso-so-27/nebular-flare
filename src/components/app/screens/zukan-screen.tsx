@@ -291,16 +291,17 @@ const ZUKAN_AXES: ZukanAxisDef[] = [
 // ─────────────────────────────────
 interface ZukanScreenProps {
     onClose?: () => void;
+    initialTab?: 'discover' | 'encyclopedia';
 }
 
 // ─────────────────────────────────
 // Main Component
 // ─────────────────────────────────
-export function ZukanScreen({ onClose }: ZukanScreenProps) {
+export function ZukanScreen({ onClose, initialTab = 'discover' }: ZukanScreenProps) {
     const { cats, analyzeCatImage } = useCatContext();
     const { householdId } = useCoreContext();
 
-    const [activeTab, setActiveTab] = useState<'discover' | 'encyclopedia'>('discover');
+    const [activeTab, setActiveTab] = useState<'discover' | 'encyclopedia'>(initialTab);
     const [filterCatId, setFilterCatId] = useState<string | null>(null);
     const [showEmptyShelves, setShowEmptyShelves] = useState(false);
     const [allPhotos, setAllPhotos] = useState<ShelfPhoto[]>([]);
@@ -709,12 +710,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             {/* Header */}
             <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
                 <div className="flex items-center justify-between px-5 h-14">
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 -ml-1.5 rounded-full active:bg-black/5 dark:active:bg-white/10 transition-colors"
-                    >
-                        <X className="h-5 w-5 text-[#8e8e93]" />
-                    </button>
+                    {/* Spacer to replace old close button and keep center alignment */}
+                    <div className="w-8 -ml-1.5" />
 
                     {/* Segmented Control for Tabs */}
                     <div className="flex p-0.5 bg-[#767680]/15 rounded-lg w-[180px]">

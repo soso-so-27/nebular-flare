@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { Home as HomeIcon, Heart, Cat, Image, Activity, Calendar, MoreHorizontal, X } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import {
+  CheckCircle2, Pill, ActivitySquare, AlertTriangle, Stethoscope, FileText, Camera
+} from "lucide-react";
+import {
   AppProvider,
   useCatContext,
   useCareContext,
@@ -55,6 +58,12 @@ const PhotoListSheet = dynamic(() => import("@/components/app/modals/photo-list-
 const IncidentListSheet = dynamic(() => import("@/components/app/modals/incident-list-sheet").then(m => ({ default: m.IncidentListSheet })), { ssr: false });
 const NyannlogSheet = dynamic(() => import("@/components/app/modals/nyannlog-sheet").then(m => ({ default: m.NyannlogSheet })), { ssr: false });
 
+// New Modals for ToolsScreen
+const ReportConfigModal = dynamic(() => import("@/components/app/modals/report-config-modal").then(m => ({ default: m.ReportConfigModal })), { ssr: false });
+const SitterReportConfigModal = dynamic(() => import("@/components/app/modals/sitter-report-config-modal").then(m => ({ default: m.SitterReportConfigModal })), { ssr: false });
+const InventorySettingsModal = dynamic(() => import("@/components/app/modals/inventory-settings-modal").then(m => ({ default: m.InventorySettingsModal })), { ssr: false });
+const ObservationHistoryModal = dynamic(() => import("@/components/app/modals/observation-history-modal").then(m => ({ default: m.ObservationHistoryModal })), { ssr: false });
+
 
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -68,7 +77,8 @@ function AppContent() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
-  const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | 'activity' | 'settings' | null>(null);
+  const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | 'activity' | 'settings' | 'report' | 'sitter' | 'trends' | 'exchange' | null>(null);
+  const [zukanInitialTab, setZukanInitialTab] = useState<'discover' | 'encyclopedia'>('encyclopedia');
   const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
 
   // Global Camera states
@@ -186,11 +196,12 @@ function AppContent() {
       items.push({
         id: group.ids[0],
         type: 'care',
-        title: `✅ ${tasksLabel}${group.catId ? `（${cats?.find(c => c.id === group.catId)?.name}）` : ''}`,
+        title: `${tasksLabel}${group.catId ? `（${cats?.find(c => c.id === group.catId)?.name}）` : ''}`,
         message: `${group.userName}が完了しました。`,
         timestamp: group.timestamp,
         isUnread: group.timestamp > lastViewedAt,
-        targetDate: group.timestamp
+        targetDate: group.timestamp,
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-600" />
       });
     });
 
@@ -204,14 +215,21 @@ function AppContent() {
       }
       const cat = cats?.find((c: any) => c.id === inc.cat_id);
       const catName = cat?.name || "猫ちゃん";
+
+      let iconNode = <FileText className="w-5 h-5 text-slate-500" />;
+      if (['worried', 'troubled'].includes(inc.type)) iconNode = <AlertTriangle className="w-5 h-5 text-amber-500" />;
+      else if (inc.type === 'hospital') iconNode = <Stethoscope className="w-5 h-5 text-rose-500" />;
+      else if (inc.type === 'medicine') iconNode = <Pill className="w-5 h-5 text-blue-500" />;
+
       items.push({
         id: inc.id,
         type: (['worried', 'troubled'].includes(inc.type) ? 'alert' : 'care'),
-        title: `⚠️ ${catName}の記録`,
+        title: `${catName}の記録`,
         message: `${userName}が記録しました。${inc.note ? `\n"${inc.note}"` : ''}`,
         timestamp,
         isUnread: timestamp > lastViewedAt,
-        incidentId: inc.id
+        incidentId: inc.id,
+        icon: iconNode
       });
     });
 
@@ -226,7 +244,8 @@ function AppContent() {
           message: img.memo || "可愛い写真が届きました 💕",
           timestamp,
           isUnread: timestamp > lastViewedAt,
-          targetDate: timestamp
+          targetDate: timestamp,
+          icon: <Camera className="w-5 h-5 text-brand-sea" />
         });
       });
     });
@@ -556,13 +575,14 @@ function AppContent() {
                 <motion.div
                   key="zukan-screen"
                   className="fixed inset-0 z-[10002] bg-white/60 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto"
-                  initial={{ opacity: 0, y: "100%" }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: "100%" }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3, ease: "circOut" }}
                 >
                   <ZukanScreen
                     onClose={() => setTab("home")}
+                    initialTab={zukanInitialTab}
                   />
                 </motion.div>
               )}
@@ -578,23 +598,28 @@ function AppContent() {
                 >
                   <ToolsScreen
                     onOpenReport={() => {
-                      // WeeklyHome has report logic, but for Tools tab we might need a dedicated way.
-                      // For now, let's set a state that WeeklyHome or a separate modal can pick up.
-                      // Actually, let's just trigger the WeeklyHome report if possible, or a global modal.
-                      setTab("home"); // Jump back to home to show report if needed, or implement here.
+                      setTab("home");
+                      setOpenSection('report');
                     }}
                     onOpenTrends={() => {
-                      setOpenSection('activity');
+                      setTab("home");
+                      setOpenSection('trends');
                     }}
                     onOpenInventory={() => {
+                      setTab("home");
                       setOpenSection('inventory');
                     }}
                     onOpenSitter={() => {
-                      // Same for sitter report
                       setTab("home");
+                      setOpenSection('sitter');
                     }}
-                    onOpenSettings={() => {
-                      setOpenSection('settings');
+                    onOpenZukanDiscover={() => {
+                      setZukanInitialTab('discover');
+                      setTab('zukan');
+                    }}
+                    onOpenThemeExchange={() => {
+                      setTab("home");
+                      setOpenSection('exchange');
                     }}
                   />
                 </motion.div>
@@ -651,10 +676,13 @@ function AppContent() {
                 if (newTab === "camera") {
                   hiddenFileInputRef.current?.click();
                 } else if (newTab === "notifications") {
-                  setIsNotificationSheetOpen(true);
+                  setTab(newTab);
                   setLastViewedAt(new Date());
                   // Also update persist settings
                   updateSettings({ lastSeenPhotoAt: new Date().toISOString() });
+                } else if (newTab === "zukan") {
+                  setZukanInitialTab('encyclopedia');
+                  setTab(newTab);
                 } else {
                   setTab(newTab);
                 }
@@ -752,26 +780,60 @@ function AppContent() {
             )}
             {/* Notification Sheet */}
             <NotificationSheet
-              isOpen={isNotificationSheetOpen}
-              onClose={() => setIsNotificationSheetOpen(false)}
+              isOpen={tab === "notifications"}
+              onClose={() => setTab("home")}
               notifications={realNotifications}
               onSelectItem={(item) => {
                 if (item.incidentId) {
                   setSelectedIncidentId(item.incidentId);
-                  setIsNotificationSheetOpen(false);
+                  setTab("home");
                 } else if (item.link === 'zukan') {
                   setTab('zukan');
-                  setIsNotificationSheetOpen(false);
                 } else if (item.link === 'tools') {
                   setTab('tools');
-                  setIsNotificationSheetOpen(false);
                 } else if (item.targetDate) {
                   setCalendarDate(item.targetDate);
                   setTab("home");
-                  setIsNotificationSheetOpen(false);
                 }
               }}
             />
+
+            {/* Tools Feature Modals */}
+            <React.Suspense fallback={null}>
+              <ReportConfigModal
+                isOpen={openSection === 'report'}
+                onClose={() => setOpenSection(null)}
+                cats={cats}
+                onComplete={(data) => {
+                  console.log("Report Complete", data);
+                  setOpenSection(null);
+                  toast.success("レポートを設定しました（準備中）");
+                }}
+              />
+              <SitterReportConfigModal
+                isOpen={openSection === 'sitter'}
+                onClose={() => setOpenSection(null)}
+                cats={cats}
+                onComplete={(data) => {
+                  console.log("Sitter Report Complete", data);
+                  setOpenSection(null);
+                  toast.success("引継ぎシートを設定しました（準備中）");
+                }}
+              />
+              <InventorySettingsModal
+                isOpen={openSection === 'inventory'}
+                onClose={() => setOpenSection(null)}
+              />
+              <ObservationHistoryModal
+                isOpen={openSection === 'trends'}
+                onClose={() => setOpenSection(null)}
+              />
+
+              <ThemeExchangeModal
+                isOpen={openSection === 'exchange'}
+                onClose={() => setOpenSection(null)}
+              />
+            </React.Suspense>
           </>
         }
       />

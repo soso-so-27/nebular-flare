@@ -9,8 +9,11 @@ import {
     History,
     Settings,
     ChevronRight,
-    Cat
+    Cat,
+    Sparkles,
+    ArrowLeftRight
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { triggerFeedback } from "@/lib/haptics";
 
 interface ToolsScreenProps {
@@ -18,100 +21,140 @@ interface ToolsScreenProps {
     onOpenTrends: () => void;
     onOpenInventory: () => void;
     onOpenSitter: () => void;
-    onOpenSettings: () => void;
+    onOpenZukanDiscover: () => void;
+    onOpenThemeExchange: () => void;
 }
 
-export const ToolsScreen: React.FC<ToolsScreenProps> = ({
+export function ToolsScreen({
     onOpenReport,
     onOpenTrends,
     onOpenInventory,
     onOpenSitter,
-    onOpenSettings
-}) => {
-    const tools = [
+    onOpenZukanDiscover,
+    onOpenThemeExchange
+}: ToolsScreenProps) {
+    const sections = [
         {
-            title: "レポート作成",
-            desc: "獣医さんへの説明用レポートを作成",
-            icon: FileText,
-            onClick: onOpenReport,
-            color: "bg-blue-50 text-blue-600"
+            title: "📋 記録をまとめる・出力する",
+            tools: [
+                {
+                    title: "レポート作成",
+                    desc: "獣医さんへの説明用レポートを作成",
+                    icon: FileText,
+                    onClick: onOpenReport,
+                },
+                {
+                    title: "引継ぎシート",
+                    desc: "シッターさんへの指示書を作成",
+                    icon: History,
+                    onClick: onOpenSitter,
+                }
+            ]
         },
         {
-            title: "健康推移",
-            desc: "体重や体調のトレンドを確認",
-            icon: TrendingUp,
-            onClick: onOpenTrends,
-            color: "bg-green-50 text-green-600"
+            title: "📊 振り返る・お楽しみ",
+            tools: [
+                {
+                    title: "みつける",
+                    desc: "AIが選んだ今日の猫ちゃんをチェック",
+                    icon: Sparkles,
+                    onClick: onOpenZukanDiscover,
+                    highlight: true
+                },
+                {
+                    title: "足あと交換所",
+                    desc: "貯まったポイントでテーマや寄付に交換",
+                    icon: ArrowLeftRight,
+                    onClick: onOpenThemeExchange,
+                },
+                {
+                    title: "健康推移",
+                    desc: "体重や体調のトレンドを確認",
+                    icon: TrendingUp,
+                    onClick: onOpenTrends,
+                }
+            ]
         },
         {
-            title: "在庫管理",
-            desc: "フードや消耗品の残量を管理",
-            icon: Package,
-            onClick: onOpenInventory,
-            color: "bg-amber-50 text-amber-600"
-        },
-        {
-            title: "引継ぎシート",
-            desc: "シッターさんへの指示書を作成",
-            icon: History,
-            onClick: onOpenSitter,
-            color: "bg-purple-50 text-purple-600"
-        },
-        {
-            title: "設定",
-            desc: "アプリや通知の設定を変更",
-            icon: Settings,
-            onClick: onOpenSettings,
-            color: "bg-slate-50 text-slate-600"
+            title: "📦 管理する",
+            tools: [
+                {
+                    title: "在庫管理",
+                    desc: "フードや消耗品の残量を管理",
+                    icon: Package,
+                    onClick: onOpenInventory,
+                }
+            ]
         }
     ];
 
     return (
-        <div className="h-full bg-white/30 dark:bg-slate-900/30 backdrop-blur-xl overflow-y-auto px-6 pt-16 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
+        <div className="h-full bg-[#FAF9F7] dark:bg-[#1c1c1e] overflow-y-auto px-6 pt-16 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
             <div className="max-w-md mx-auto">
-                <header className="mb-8">
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">ツール</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">毎日のお世話をサポートする機能</p>
+                <header className="mb-10 text-center">
+                    <h1 className="text-[22px] font-bold text-[#4E342E] dark:text-[#E8E6E1] tracking-wider">ツール</h1>
+                    <p className="text-[13px] text-[#A69C94] dark:text-[#8E8B85] mt-2 font-medium tracking-wide">毎日のお世話をより楽しく、便利に</p>
                 </header>
 
-                <div className="grid gap-4">
-                    {tools.map((tool, idx) => {
-                        const Icon = tool.icon;
-                        return (
-                            <motion.button
-                                key={tool.title}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                                onClick={() => {
-                                    triggerFeedback('light');
-                                    tool.onClick();
-                                }}
-                                className="w-full flex items-center gap-4 p-5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-[24px] border border-white/20 shadow-sm active:scale-[0.98] transition-all text-left"
-                            >
-                                <div className={`w-12 h-12 rounded-2xl ${tool.color} flex items-center justify-center`}>
-                                    <Icon className="w-6 h-6" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-slate-900 dark:text-white">{tool.title}</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{tool.desc}</p>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600" />
-                            </motion.button>
-                        );
-                    })}
+                <div className="space-y-10">
+                    {sections.map((section) => (
+                        <div key={section.title}>
+                            <h2 className="text-[13px] font-bold text-[#A69C94] dark:text-[#8E8B85] mb-4 ml-2 tracking-wider opacity-80 uppercase italic">{section.title}</h2>
+                            <div className="grid gap-[12px]">
+                                {section.tools.map((tool, idx) => {
+                                    const Icon = tool.icon;
+                                    return (
+                                        <motion.button
+                                            key={tool.title}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05, duration: 0.4, ease: "easeOut" }}
+                                            onClick={() => {
+                                                triggerFeedback('light');
+                                                tool.onClick();
+                                            }}
+                                            className={cn(
+                                                "w-full flex items-center gap-5 px-6 py-[18px] rounded-[28px] border active:scale-[0.98] transition-all text-left group",
+                                                tool.highlight
+                                                    ? "bg-white dark:bg-[#2A2928] border-brand-peach/20 shadow-[0_4px_20px_rgba(255,149,0,0.06)]"
+                                                    : "bg-white dark:bg-[#2A2928] border-[#F2EFEA] dark:border-white/5 shadow-[0_2px_12px_rgba(78,52,46,0.02)]"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
+                                                tool.highlight
+                                                    ? "bg-brand-peach/10 text-brand-peach"
+                                                    : "bg-[#FAF9F7] dark:bg-white/5 text-[#8C827A] dark:text-[#C4C0B6]"
+                                            )}>
+                                                <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1]">{tool.title}</h3>
+                                                    {tool.highlight && (
+                                                        <span className="text-[9px] font-black bg-brand-peach text-white px-1.5 py-0.5 rounded-full tracking-tighter uppercase">AI Pick</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[12px] text-[#B0A8A0] dark:text-[#8E8B85] font-medium leading-relaxed truncate">{tool.desc}</p>
+                                            </div>
+                                            <ChevronRight className="w-[18px] h-[18px] text-[#D4CFC9] dark:text-[#6E6B65] shrink-0 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.5} />
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="mt-8 p-6 bg-brand-peach/5 rounded-[32px] border border-brand-peach/10 backdrop-blur-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-brand-peach/10 flex items-center justify-center">
-                        <Cat className="w-6 h-6 text-brand-peach" />
-                    </div>
-                    <div>
-                        <div className="text-xs font-bold text-brand-peach/60 uppercase tracking-tight">Quick Status</div>
-                        <div className="text-sm font-bold text-slate-700">すべての猫ちゃんが元気です</div>
+                <div className="mt-16 flex flex-col items-center justify-center gap-3 opacity-80 pb-8">
+                    <Cat className="w-6 h-6 text-[#D4CFC9] dark:text-[#6E6B65]" strokeWidth={1.2} />
+                    <div className="text-center">
+                        <div className="text-[10px] font-medium text-[#B0A8A0] dark:text-[#8E8B85] tracking-[0.15em] mb-1">QUICK STATUS</div>
+                        <div className="text-[13px] font-medium text-[#8C827A] dark:text-[#B5B2A9]">すべての猫ちゃんが元気です</div>
                     </div>
                 </div>
             </div>
         </div>
     );
 };
+
