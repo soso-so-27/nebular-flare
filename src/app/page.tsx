@@ -78,7 +78,7 @@ function AppContent() {
   const [showSidebar, setShowSidebar] = useState(false);
 
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | 'activity' | 'settings' | 'report' | 'sitter' | 'trends' | 'exchange' | null>(null);
-  const [zukanInitialTab, setZukanInitialTab] = useState<'discover' | 'encyclopedia'>('encyclopedia');
+
   const [galleryCatId, setGalleryCatId] = useState<string | null>(null);
 
   // Global Camera states
@@ -509,7 +509,7 @@ function AppContent() {
               {showSplashOverlay && (
                 <motion.div
                   key="smart-splash"
-                  className="fixed inset-0 z-[10005] flex items-center justify-center bg-[#FAF9F7]"
+                  className="fixed inset-0 z-[10010] flex items-center justify-center bg-[#FAF9F7]"
                   exit={{
                     opacity: 0,
                     scale: 1.1,
@@ -582,7 +582,6 @@ function AppContent() {
                 >
                   <ZukanScreen
                     onClose={() => setTab("home")}
-                    initialTab={zukanInitialTab}
                   />
                 </motion.div>
               )}
@@ -612,14 +611,6 @@ function AppContent() {
                     onOpenSitter={() => {
                       setTab("home");
                       setOpenSection('sitter');
-                    }}
-                    onOpenZukanDiscover={() => {
-                      setZukanInitialTab('discover');
-                      setTab('zukan');
-                    }}
-                    onOpenThemeExchange={() => {
-                      setTab("home");
-                      setOpenSection('exchange');
                     }}
                   />
                 </motion.div>
@@ -670,25 +661,26 @@ function AppContent() {
             </AnimatePresence>
 
             {/* Global Navigation Bar */}
-            <BottomNavigationBar
-              activeTab={tab}
-              onTabChange={(newTab) => {
-                if (newTab === "camera") {
-                  hiddenFileInputRef.current?.click();
-                } else if (newTab === "notifications") {
-                  setTab(newTab);
-                  setLastViewedAt(new Date());
-                  // Also update persist settings
-                  updateSettings({ lastSeenPhotoAt: new Date().toISOString() });
-                } else if (newTab === "zukan") {
-                  setZukanInitialTab('encyclopedia');
-                  setTab(newTab);
-                } else {
-                  setTab(newTab);
-                }
-              }}
-              hasNewNotifications={hasUnreadNotifications}
-            />
+            {!showSplashOverlay && (
+              <BottomNavigationBar
+                activeTab={tab}
+                onTabChange={(newTab) => {
+                  if (newTab === "camera") {
+                    hiddenFileInputRef.current?.click();
+                  } else if (newTab === "notifications") {
+                    setTab(newTab);
+                    setLastViewedAt(new Date());
+                    // Also update persist settings
+                    updateSettings({ lastSeenPhotoAt: new Date().toISOString() });
+                  } else if (newTab === "zukan") {
+                    setTab(newTab);
+                  } else {
+                    setTab(newTab);
+                  }
+                }}
+                hasNewNotifications={hasUnreadNotifications}
+              />
+            )}
 
             <CaptureWorkflowSheet
               isOpen={isCaptureWorkflowOpen}
