@@ -445,13 +445,13 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         return (
             <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col">
                 <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
-                    <div className="flex items-center justify-between px-5 h-14">
-                        <button onClick={() => setSelectedShelf(null)} className="flex items-center gap-0.5 text-[#007AFF] font-semibold text-[15px]">
+                    <header className="flex items-center justify-between px-5 h-14" role="navigation" aria-label="詳細ヘッダー">
+                        <button onClick={() => setSelectedShelf(null)} className="flex items-center gap-0.5 text-[#007AFF] font-semibold text-[15px]" aria-label="図鑑トップに戻る">
                             <ChevronLeft className="w-5 h-5" />戻る
                         </button>
-                        <h2 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">{selectedShelf.name}</h2>
-                        <span className="text-[13px] text-[#8e8e93] font-medium">{selectedShelf.photos.length}枚</span>
-                    </div>
+                        <h2 className="text-[18px] font-bold text-[#1c1c1e] dark:text-white">{selectedShelf.name}</h2>
+                        <span className="text-[14px] text-[#706E69] dark:text-[#A6A29A] font-medium">{selectedShelf.photos.length}枚</span>
+                    </header>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     <div className="grid grid-cols-3 gap-[2px] pb-24">
@@ -469,34 +469,34 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
 
     return (
         <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col pb-32">
-            <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
+            <header className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]" role="banner">
                 <div className="flex items-center justify-between px-5 h-14">
                     <div className="w-8" />
-                    <h1 className="text-[17px] font-bold text-[#1c1c1e] dark:text-white">アルバム図鑑</h1>
+                    <h1 className="text-[18px] font-bold text-[#1c1c1e] dark:text-white">アルバム図鑑</h1>
                     <div className="flex items-center justify-end w-20">
                         {verificationQueue.length > 0 ? (
-                            <button onClick={() => setIsVerificationOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm animate-pulse">
+                            <button onClick={() => setIsVerificationOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm animate-pulse" aria-label={`${verificationQueue.length}件の確認待ち記録があります`}>
                                 <span className="font-bold text-xs">{verificationQueue.length}</span>
                             </button>
                         ) : batchTagging ? (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#8e8e93]/10 text-[#8e8e93] text-[11px] font-medium animate-pulse">
-                                <Loader2 className="w-3 h-3 animate-spin" />
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#8e8e93]/10 text-[#706E69] dark:text-[#A6A29A] text-[12px] font-medium animate-pulse">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 <span>{batchProgress.current}/{batchProgress.total}</span>
                             </div>
                         ) : untaggedCount > 0 ? (
-                            <button onClick={runBatchTagging} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-[12px] font-semibold">
-                                <Wand2 className="w-3.5 h-3.5" /><span className="text-[10px] ml-0.5">{untaggedCount}</span>
+                            <button onClick={runBatchTagging} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-[13px] font-semibold" aria-label={`${untaggedCount}件をAIで自動タグ付け`}>
+                                <Wand2 className="w-4 h-4" /><span className="text-[12px] ml-0.5">{untaggedCount}</span>
                             </button>
                         ) : <div className="w-8" />}
                     </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="sticky top-[56px] z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 flex-shrink-0">
+            <nav className="sticky top-[56px] z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 flex-shrink-0" aria-label="猫別フィルタ">
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide px-5 py-3">
-                    <button onClick={() => setFilterCatId(null)} className={cn("flex items-center gap-1.5 px-4 h-9 rounded-full border shrink-0 font-bold text-[13px]", filterCatId === null ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#8e8e93]")}>すべて</button>
+                    <button onClick={() => setFilterCatId(null)} className={cn("flex items-center gap-1.5 px-4 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === null ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#706E69] dark:text-[#A6A29A]")}>すべて</button>
                     {cats.map(cat => (
-                        <button key={cat.id} onClick={() => setFilterCatId(cat.id)} className={cn("flex items-center gap-1.5 px-3 h-9 rounded-full border shrink-0 font-bold text-[13px]", filterCatId === cat.id ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#8e8e93]")}>
+                        <button key={cat.id} onClick={() => setFilterCatId(cat.id)} className={cn("flex items-center gap-1.5 px-3 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === cat.id ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#706E69] dark:text-[#A6A29A]")}>
                             <div className="w-5 h-5 rounded-full overflow-hidden bg-[#f2f2f7] shrink-0">
                                 {cat.avatar && cat.avatar !== 'cat-fallback' ? <img src={cat.avatar} className="w-full h-full object-cover" alt="" /> : <Cat className="w-4 h-4 m-auto" />}
                             </div>
@@ -504,13 +504,13 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         </button>
                     ))}
                 </div>
-            </div>
+            </nav>
 
             <div className="sticky top-[112px] z-30 px-5 py-2 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8e8e93]" />
-                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="メモ・タグで検索" className="w-full h-9 pl-9 pr-8 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-xl text-[14px] outline-none" />
-                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#8e8e93]/30 flex items-center justify-center"><X className="w-3 h-3 text-[#8e8e93]" /></button>}
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#706E69] dark:text-[#A6A29A]" />
+                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="メモ・タグで検索" className="w-full h-10 pl-9 pr-8 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-xl text-[15px] outline-none" aria-label="図鑑を検索" />
+                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#8e8e93]/30 flex items-center justify-center" aria-label="検索内容をクリア"><X className="w-4 h-4 text-[#706E69] dark:text-[#A6A29A]" /></button>}
                 </div>
             </div>
 
@@ -528,9 +528,9 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                     <div className="flex items-center justify-between mb-3 px-1">
                                         <div className="flex items-center gap-2">
                                             <Award className="w-5 h-5" style={{ color: axis.color }} />
-                                            <h3 className="text-[17px] font-bold">{axis.title}</h3>
+                                            <h3 className="text-[18px] font-bold">{axis.title}</h3>
                                         </div>
-                                        <span className="text-[13px] font-bold text-[#8e8e93] tabular-nums">
+                                        <span className="text-[14px] font-bold text-[#706E69] dark:text-[#A6A29A] tabular-nums" aria-label={`達成度: ${axis.collectedCount} / ${axis.totalCount}`}>
                                             {axis.collectedCount}/{axis.totalCount}
                                         </span>
                                     </div>
@@ -569,10 +569,10 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                             : <div className="scale-110 opacity-30">{item.icon}</div>}
                                                     </div>
                                                     <span className={cn(
-                                                        "text-[10px] font-bold text-center leading-tight truncate w-full",
-                                                        isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#c7c7cc]"
+                                                        "text-[11px] font-bold text-center leading-tight truncate w-full",
+                                                        isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#706E69] dark:text-[#A6A29A]"
                                                     )}>{item.label}</span>
-                                                    <span className="text-[9px] text-[#8e8e93] mt-0.5 font-medium">
+                                                    <span className="text-[11px] text-[#706E69] dark:text-[#A6A29A] mt-0.5 font-medium">
                                                         {isUnlocked ? `${photos.length}枚` : "🔒"}
                                                     </span>
                                                 </motion.div>
@@ -583,8 +583,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             ))}
 
                             {/* ─── SCENE SHELVES ─── */}
-                            <div className="pt-6 border-t border-[#e5e5ea] dark:border-white/10">
-                                <h3 className="text-[18px] font-bold mb-5 ml-1">シーン別の棚</h3>
+                            <div className="pt-6 border-t border-[#e5e5ea] dark:border-white/10" role="region" aria-label="シーン別の棚">
+                                <h3 className="text-[20px] font-bold mb-5 ml-1">シーン別の棚</h3>
                                 <div className="space-y-4">
                                     {encyclopediaShelves
                                         .filter(s => showEmptyShelves || s.photos.length > 0)

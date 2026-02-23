@@ -33,9 +33,11 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     };
 
     return (
-        <div
+        <nav
             className="fixed bottom-0 left-0 right-0 z-[10005] px-6 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] pt-3"
             style={glassStyle}
+            role="navigation"
+            aria-label="メインナビゲーション"
         >
             <div className="max-w-md mx-auto flex items-center justify-between relative h-12">
                 {tabs.map((tab) => {
@@ -48,6 +50,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    aria-label="カメラを起動して記録する"
                                     onClick={() => {
                                         triggerFeedback('medium');
                                         onTabChange(tab.id);
@@ -63,25 +66,33 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                     return (
                         <button
                             key={tab.id}
+                            aria-current={isActive ? "page" : undefined}
+                            aria-label={tab.label}
                             onClick={() => {
                                 triggerFeedback('light');
                                 onTabChange(tab.id);
                             }}
-                            className={`flex flex-col items-center justify-center gap-1 flex-1 transition-colors relative ${isActive ? 'text-slate-900' : 'text-slate-400'}`}
+                            className={`flex flex-col items-center justify-center gap-1 flex-1 transition-all relative ${isActive ? 'text-[#4E342E]' : 'text-[#8E8B85]'}`}
                         >
                             <div className="relative">
-                                <Icon className={`w-6 h-6`} strokeWidth={isActive ? 2 : 1.5} />
+                                <Icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110' : 'scale-100'}`} strokeWidth={isActive ? 2.5 : 1.5} />
                                 {tab.id === "notifications" && hasNewNotifications && (
                                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full" />
                                 )}
+                                {isActive && (
+                                    <motion.span
+                                        layoutId="tab-indicator"
+                                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand-peach rounded-full"
+                                    />
+                                )}
                             </div>
-                            <span className={`text-[10px] font-bold ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+                            <span className={`text-[11px] font-bold transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}>
                                 {tab.label}
                             </span>
                         </button>
                     );
                 })}
             </div>
-        </div>
+        </nav>
     );
 };

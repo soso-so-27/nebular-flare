@@ -612,6 +612,9 @@ function AppContent() {
                       setTab("home");
                       setOpenSection('sitter');
                     }}
+                    onOpenCareManagement={() => {
+                      handleOpenNyannlog('events');
+                    }}
                   />
                 </motion.div>
               )}
@@ -628,13 +631,20 @@ function AppContent() {
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.1 }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="写真の追加・撮影"
                 >
                   <div className="absolute top-6 right-6">
-                    <button onClick={() => setTab("home")} className="p-2 bg-white/20 rounded-full text-white">
+                    <button
+                      onClick={() => setTab("home")}
+                      className="p-2 bg-white/20 rounded-full text-white"
+                      aria-label="閉じる"
+                    >
                       <X className="w-8 h-8" />
                     </button>
                   </div>
-                  <Cat className="w-24 h-24 text-brand-peach mb-8 animate-pulse" />
+                  <Cat className="w-24 h-24 text-brand-peach mb-8 animate-pulse" aria-hidden="true" />
                   <h2 className="text-white text-xl font-bold mb-4">写真を撮って図鑑に登録</h2>
                   <div className="flex gap-6">
                     <button
@@ -643,6 +653,7 @@ function AppContent() {
                         setTab("home");
                       }}
                       className="px-8 py-4 bg-brand-peach text-white rounded-full font-bold shadow-lg"
+                      aria-label="カメラを起動して撮影する"
                     >
                       カメラを起動
                     </button>
@@ -652,6 +663,7 @@ function AppContent() {
                         setTab("home");
                       }}
                       className="px-8 py-4 bg-white/10 text-white border border-white/20 rounded-full font-bold"
+                      aria-label="フォトライブラリ・ギャラリーから選ぶ"
                     >
                       ギャラリーから選ぶ
                     </button>

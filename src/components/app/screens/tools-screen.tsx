@@ -13,6 +13,8 @@ import {
     Calendar,
     Clock,
     Camera,
+    Wrench,
+    BookOpen,
     Image as ImageIcon,
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
@@ -54,6 +56,7 @@ interface ToolsScreenProps {
     onOpenTrends: () => void;
     onOpenInventory: () => void;
     onOpenSitter: () => void;
+    onOpenCareManagement: () => void;
 }
 
 export function ToolsScreen({
@@ -61,6 +64,7 @@ export function ToolsScreen({
     onOpenTrends,
     onOpenInventory,
     onOpenSitter,
+    onOpenCareManagement,
 }: ToolsScreenProps) {
     const { cats } = useCatContext();
     const { householdId } = useCoreContext();
@@ -143,15 +147,16 @@ export function ToolsScreen({
 
     const toolSections = [
         {
-            title: "書き出し",
+            title: "レポート",
             tools: [
-                { title: "レポート", desc: "獣医さんへの説明用", icon: FileText, onClick: onOpenReport },
+                { title: "受診用レポート", desc: "獣医さんへの説明用", icon: FileText, onClick: onOpenReport },
                 { title: "引継ぎシート", desc: "シッターさんへの指示", icon: History, onClick: onOpenSitter },
             ]
         },
         {
             title: "分析・管理",
             tools: [
+                { title: "お世話管理", desc: "日々のルーチンをチェック", icon: Clock, onClick: onOpenCareManagement },
                 { title: "健康推移", desc: "体重や体調の変化", icon: TrendingUp, onClick: onOpenTrends },
                 { title: "在庫管理", desc: "フードや消耗品の残量", icon: Package, onClick: onOpenInventory },
             ]
@@ -159,18 +164,14 @@ export function ToolsScreen({
     ];
 
     return (
-        <div className="h-full bg-[#FDF8F1] dark:bg-[#121214] overflow-y-auto px-5 pt-16 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
+        <div className="h-full bg-[#FDF8F1] dark:bg-[#121214] overflow-y-auto px-4 pt-14 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
             <div className="max-w-md mx-auto">
-                <header className="mb-10 text-center">
-                    <h1 className="text-[20px] font-bold text-[#4E342E] dark:text-[#E8E6E1] tracking-wider">ツール</h1>
-                    <p className="text-[12px] text-[#A69C94] dark:text-[#8E8B85] mt-1.5 font-medium tracking-wide italic">Daily Care & Memories</p>
-                </header>
 
                 {/* ── みつける Section ── */}
-                <div className="mb-12">
-                    <div className="flex items-center gap-2 mb-5 ml-1">
-                        <Sparkles className="w-4 h-4 text-brand-peach" />
-                        <h2 className="text-[14px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">みつける</h2>
+                <div className="mb-10 bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-4 border border-[#F2EFEA] dark:border-white/5">
+                    <div className="flex items-center gap-2 mb-4 ml-1">
+                        <Sparkles className="w-3.5 h-3.5 text-brand-peach" />
+                        <h2 className="text-[13px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">みつける</h2>
                     </div>
 
                     {!loading && discoverItems ? (
@@ -179,19 +180,19 @@ export function ToolsScreen({
                             {discoverItems.dailyPick && (
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
-                                    className="relative aspect-[4/5] rounded-[32px] overflow-hidden shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 bg-white dark:bg-[#1c1c1e]"
+                                    className="relative aspect-[4/5] rounded-[24px] overflow-hidden shadow-sm border border-[#F2EFEA] dark:border-white/5 bg-white dark:bg-[#1c1c1e]"
                                 >
                                     <img
                                         src={discoverItems.dailyPick.url}
                                         className="w-full h-full object-cover"
                                         alt=""
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6">
-                                        <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full w-fit mb-3 flex items-center gap-1.5 border border-white/20">
-                                            <Sparkles className="w-3 h-3 text-white" />
-                                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">Daily Pick</span>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-5">
+                                        <div className="px-2.5 py-0.5 bg-white/20 backdrop-blur-md rounded-full w-fit mb-2.5 flex items-center gap-1.5 border border-white/20">
+                                            <Sparkles className="w-2.5 h-2.5 text-white" />
+                                            <span className="text-[10px] font-bold text-white tracking-widest">今日のとっておき</span>
                                         </div>
-                                        <h3 className="text-white font-bold text-[18px] leading-tight mb-1">
+                                        <h3 className="text-white font-bold text-[17px] leading-tight mb-1">
                                             {discoverItems.dailyPick.catName}のきらきらした瞬間
                                         </h3>
                                         <p className="text-white/80 text-[12px] font-medium line-clamp-1">
@@ -202,54 +203,55 @@ export function ToolsScreen({
                             )}
 
                             {/* Weekly Highlights */}
-                            <div className="space-y-3">
+                            <div className="space-y-2.5">
                                 <div className="flex items-center justify-between px-1">
-                                    <span className="text-[12px] font-bold text-[#A69C94] dark:text-[#8E8B85]">今週のハイライト</span>
+                                    <span className="text-[12px] font-bold text-[#8E8B85] dark:text-[#A6A29A]">今週のハイライト</span>
                                     <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />
                                 </div>
-                                <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
-                                    {discoverItems.weeklyHighlight.map((photo, i) => (
-                                        <motion.div
-                                            key={photo.id}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5"
-                                        >
-                                            <img src={photo.url} className="w-full h-full object-cover" alt="" />
-                                        </motion.div>
-                                    ))}
-                                    {discoverItems.weeklyHighlight.length === 0 && (
-                                        <div className="w-full h-28 rounded-2xl border-2 border-dashed border-[#F2EFEA] flex items-center justify-center text-[10px] text-[#A69C94] font-bold">
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+                                    {discoverItems.weeklyHighlight.length > 0 ? (
+                                        discoverItems.weeklyHighlight.map((photo, i) => (
+                                            <motion.div
+                                                key={photo.id}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5"
+                                            >
+                                                <img src={photo.url} className="w-full h-full object-cover" alt="" />
+                                            </motion.div>
+                                        ))
+                                    ) : (
+                                        <div className="w-full h-24 rounded-2xl border-2 border-dashed border-[#F2EFEA] flex items-center justify-center text-[10px] text-[#A69C94] font-bold">
                                             まだ記録がありません
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Two Small Discover Cards */}
+                            {/* Cards Grid */}
                             <div className="grid grid-cols-2 gap-4">
                                 <motion.div
                                     whileTap={{ scale: 0.96 }}
-                                    className="bg-white dark:bg-[#1c1c1e] p-5 rounded-[28px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-3 h-full"
+                                    className="bg-white dark:bg-[#1c1c1e] p-4 rounded-[24px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-2.5"
                                 >
-                                    <div className="w-9 h-9 rounded-xl bg-[#FDF8F1] dark:bg-white/5 flex items-center justify-center text-brand-peach">
-                                        <Clock className="w-5 h-5" />
+                                    <div className="w-8 h-8 rounded-lg bg-brand-peach/10 flex items-center justify-center text-brand-peach">
+                                        <BookOpen className="w-4 h-4" />
                                     </div>
                                     <div>
                                         <h4 className="text-[13px] font-bold text-[#4E342E] dark:text-white">{discoverItems.monthName}のあゆみ</h4>
-                                        <p className="text-[10px] text-[#A69C94] mt-0.5 font-medium">{discoverItems.totalPhotos}枚の記録</p>
+                                        <p className="text-[9px] text-[#8E8B85] dark:text-[#A6A29A] mt-0.5 font-medium">{discoverItems.totalPhotos}枚の記録</p>
                                     </div>
                                 </motion.div>
 
                                 <motion.div
                                     whileTap={{ scale: 0.96 }}
-                                    className="bg-white dark:bg-[#1c1c1e] p-5 rounded-[28px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-3 h-full"
+                                    className="bg-white dark:bg-[#1c1c1e] p-4 rounded-[24px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-2.5"
                                 >
-                                    <div className="w-9 h-9 rounded-xl bg-[#FDF8F1] dark:bg-white/5 flex items-center justify-center text-[#A69C94]">
-                                        <History className="w-5 h-5" />
+                                    <div className="w-8 h-8 rounded-lg bg-[#FDF8F1] dark:bg-white/5 flex items-center justify-center text-[#8E8B85]">
+                                        <History className="w-4 h-4" />
                                     </div>
                                     <div>
                                         <h4 className="text-[13px] font-bold text-[#4E342E] dark:text-white">去年の今ごろ</h4>
-                                        <p className="text-[10px] text-[#A69C94] mt-0.5 font-medium">
+                                        <p className="text-[9px] text-[#8E8B85] dark:text-[#A6A29A] mt-0.5 font-medium">
                                             {discoverItems.pastYearPhotos.length > 0 ? "思い出をふりかえる" : "記録がありません"}
                                         </p>
                                     </div>
@@ -257,53 +259,59 @@ export function ToolsScreen({
                             </div>
                         </div>
                     ) : (
-                        <div className="h-64 flex flex-col items-center justify-center gap-3 bg-white/50 dark:bg-white/5 rounded-[32px] border border-dashed border-[#F2EFEA] dark:border-white/10">
-                            <Cat className="w-8 h-8 text-[#D4CFC9] animate-pulse" />
-                            <span className="text-[11px] font-bold text-[#A69C94] tracking-wide">AIが記録を整理中です...</span>
+                        <div className="h-48 flex flex-col items-center justify-center gap-3 bg-white/40 dark:bg-white/5 rounded-[24px]">
+                            <Cat className="w-6 h-6 text-[#D4CFC9] animate-pulse" />
+                            <span className="text-[10px] font-bold text-[#A69C94] tracking-wide">AIが記録を整理中です...</span>
                         </div>
                     )}
                 </div>
 
                 {/* ── ツール Section ── */}
-                <div className="space-y-12">
+                <div className="space-y-8">
                     {toolSections.map((section) => (
-                        <div key={section.title}>
-                            <h2 className="text-[11px] font-bold text-[#A69C94] dark:text-[#8E8B85] tracking-[0.2em] mb-4 ml-2 uppercase">
+                        <nav key={section.title} aria-label={section.title} className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-4 border border-[#F2EFEA] dark:border-white/5">
+                            <h2 className="text-[11px] font-bold text-[#8E8B85] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
                                 {section.title}
                             </h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 {section.tools.map((tool, idx) => {
                                     const Icon = tool.icon;
+                                    const isFullWidth = section.tools.length % 2 !== 0 && idx === 0;
                                     return (
                                         <motion.button
                                             key={tool.title}
                                             whileTap={{ scale: 0.96 }}
+                                            aria-label={`${tool.title}: ${tool.desc}`}
                                             onClick={() => {
                                                 triggerFeedback('light');
                                                 tool.onClick();
                                             }}
-                                            className="flex flex-col items-start p-5 rounded-[28px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm active:shadow-none transition-all text-left h-full"
+                                            className={cn(
+                                                "flex flex-col items-start p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm active:shadow-none transition-all text-left min-h-[110px]",
+                                                isFullWidth && "col-span-2 flex-row items-center gap-4 min-h-[0] py-4"
+                                            )}
                                         >
-                                            <div className="w-9 h-9 rounded-xl bg-[#FDF8F1] dark:bg-white/10 text-brand-peach flex items-center justify-center mb-4">
-                                                <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                                            <div className={cn(
+                                                "w-8 h-8 rounded-lg bg-[#FDF8F1] dark:bg-white/10 text-brand-peach flex items-center justify-center",
+                                                !isFullWidth && "mb-3"
+                                            )}>
+                                                <Icon className="w-[16px] h-[16px]" strokeWidth={2} />
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-[14px] text-[#4E342E] dark:text-[#E8E6E1] mb-1 leading-tight">{tool.title}</h3>
-                                                <p className="text-[10px] text-[#A69C94] dark:text-[#8E8B85] leading-relaxed line-clamp-2">{tool.desc}</p>
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-[13px] text-[#4E342E] dark:text-[#E8E6E1] mb-0.5 leading-tight">{tool.title}</h3>
+                                                <p className="text-[9px] text-[#A69C94] dark:text-[#8E8B85] leading-relaxed line-clamp-2">{tool.desc}</p>
                                             </div>
+                                            {isFullWidth && <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />}
                                         </motion.button>
                                     );
                                 })}
                             </div>
-                        </div>
+                        </nav>
                     ))}
                 </div>
 
-                <div className="mt-16 flex flex-col items-center justify-center gap-3 opacity-40 pb-10">
+                <div className="mt-12 flex flex-col items-center justify-center gap-3 opacity-30 pb-10">
                     <Cat className="w-5 h-5 text-[#D4CFC9]" strokeWidth={1} />
-                    <div className="text-center font-mono tracking-tighter text-[9px] text-[#A69C94]">
-                        NEBULAR FLARE CORE
-                    </div>
                 </div>
             </div>
         </div>

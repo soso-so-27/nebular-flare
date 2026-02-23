@@ -412,25 +412,27 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 </div>
 
                 {/* Header */}
-                <div className="px-6 py-4 flex items-center justify-between">
+                <header className="px-6 py-4 flex items-center justify-between" role="banner">
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center text-gray-400 active:scale-90 transition-all border border-black/[0.02]"
+                        aria-label="閉じる"
+                        className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center text-[#8E8B85] active:scale-90 transition-all border border-black/[0.02]"
                     >
                         <X className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">
+                    <h2 className="text-xl font-bold text-[#4E342E] dark:text-white tracking-tight">
                         {step === 'annotate' && "内容を入力"}
                         {step === 'ai' && "AI判定"}
                         {step === 'saving' && "保存中..."}
                     </h2>
                     <button
                         onClick={() => setShowDebug(!showDebug)}
+                        aria-label="デバッグ情報を表示"
                         className="w-10 h-10 rounded-full flex items-center justify-center text-gray-200 active:scale-90 transition-all"
                     >
                         <Info className="w-5 h-5" />
                     </button>
-                </div>
+                </header>
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-4 space-y-6">
@@ -438,15 +440,17 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                     {step === 'annotate' && (
                         <>
                             {/* Photo Preview Scroll */}
-                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2" role="list" aria-label="プレビュー写真一覧">
                                 {previewUrls.map((url, i) => (
-                                    <div key={i} className="relative group shrink-0">
+                                    <div key={i} className="relative group shrink-0" role="listitem">
                                         <img
                                             src={url}
+                                            alt={`プレビュー写真 ${i + 1}`}
                                             className="w-32 h-32 object-cover rounded-[28px] shadow-sm ring-1 ring-black/5"
                                         />
                                         <button
                                             onClick={() => removePhoto(i)}
+                                            aria-label={`この写真を削除`}
                                             className="absolute -top-1.5 -right-1.5 w-7 h-7 bg-white rounded-full shadow-lg flex items-center justify-center text-red-500 active:scale-90 transition-all border border-black/5"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -455,25 +459,27 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                 ))}
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="w-32 h-32 rounded-[28px] border-2 border-dashed border-black/[0.06] bg-white/50 hover:bg-white transition-all flex flex-col items-center justify-center gap-2 text-gray-400 shrink-0 group"
+                                    aria-label="写真を追加する"
+                                    className="w-32 h-32 rounded-[28px] border-2 border-dashed border-black/[0.06] bg-white/50 hover:bg-white transition-all flex flex-col items-center justify-center gap-2 text-[#8E8B85] shrink-0 group"
                                 >
                                     <div className="w-10 h-10 rounded-full bg-black/[0.02] group-hover:bg-black/5 transition-colors flex items-center justify-center">
                                         <Camera className="w-5 h-5 group-hover:text-black" />
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest">追加</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest">追加</span>
                                 </button>
                             </div>
 
                             {/* Note Input */}
                             <div className="bg-white rounded-[32px] p-5 shadow-sm border border-black/[0.02] space-y-3">
-                                <label className="flex items-center gap-2 px-1">
-                                    <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">メモ</span>
+                                <label className="flex items-center gap-2 px-1" htmlFor="note-input">
+                                    <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">メモ</span>
                                 </label>
                                 <textarea
+                                    id="note-input"
                                     value={note}
                                     onChange={(e) => setNote(e.target.value)}
                                     placeholder="何があった？"
-                                    className="w-full bg-transparent p-1 text-[18px] font-medium text-gray-800 placeholder:text-gray-300 min-h-[140px] border-none focus:ring-0 resize-none leading-relaxed"
+                                    className="w-full bg-transparent p-1 text-[18px] font-medium text-[#4E342E] dark:text-[#E8E6E1] placeholder:text-[#D4CFC9] min-h-[140px] border-none focus:ring-0 resize-none leading-relaxed"
                                 />
                             </div>
 
@@ -481,11 +487,12 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => setIsConsult(!isConsult)}
+                                    aria-pressed={isConsult}
                                     className={cn(
                                         "flex items-center justify-between p-4 px-5 rounded-[28px] border transition-all duration-300",
                                         isConsult
                                             ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black shadow-sm"
-                                            : "bg-white dark:bg-[#2c2c2e] border-black/[0.02] text-gray-400 shadow-sm"
+                                            : "bg-white dark:bg-[#2c2c2e] border-black/[0.02] text-[#8E8B85] shadow-sm"
                                     )}
                                 >
                                     <div className="flex items-center gap-3">
@@ -500,20 +507,21 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                 </button>
 
                                 <div className="relative h-16 rounded-[28px] bg-white shadow-sm border border-black/[0.02] flex items-center px-5 gap-3 group">
-                                    <div className="w-9 h-9 rounded-full bg-black/[0.02] flex items-center justify-center text-gray-400">
+                                    <div className="w-9 h-9 rounded-full bg-black/[0.02] flex items-center justify-center text-[#8E8B85]">
                                         <Calendar className="w-4 h-4" />
                                     </div>
-                                    <span className="text-sm font-bold text-gray-700">
+                                    <span className="text-sm font-bold text-[#4E342E]">
                                         {onsetAt === format(new Date(), 'yyyy-MM-dd') ? "今日" : onsetAt.slice(5)}
                                     </span>
                                     <input
                                         type="date"
                                         value={onsetAt}
                                         onChange={(e) => setOnsetAt(e.target.value)}
+                                        aria-label="日付を選択"
                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                     />
                                     <div className="ml-auto">
-                                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                                        <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />
                                     </div>
                                 </div>
                             </div>
@@ -541,11 +549,11 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                             <div className="flex items-center justify-between px-1">
                                                 <div className="flex items-center gap-2">
                                                     <Sparkles className="w-4 h-4 text-brand-peach/60" />
-                                                    <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">どの猫ですか？</span>
+                                                    <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">どの猫ですか？</span>
                                                 </div>
                                                 {aiConfidence !== null && (
                                                     <div className={cn(
-                                                        "px-2 py-0.5 rounded-full text-[10px] font-bold bg-black dark:bg-white text-white dark:text-black"
+                                                        "px-2.5 py-1 rounded-full text-[11px] font-bold bg-black dark:bg-white text-white dark:text-black"
                                                     )}>
                                                         AI確信度: {Math.round(aiConfidence * 100)}%
                                                     </div>
@@ -553,9 +561,9 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                             </div>
 
                                             {aiReason && (
-                                                <div className="mx-1 p-3 bg-white dark:bg-[#2c2c2e] border border-black/[0.03] dark:border-white/5 rounded-2xl flex items-start gap-2.5 shadow-sm">
-                                                    <p className="text-[12px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
-                                                        <span className="text-gray-400 dark:text-gray-500 font-bold mr-1">判定理由:</span>
+                                                <div className="mx-1 p-3.5 bg-white dark:bg-[#2c2c2e] border border-black/[0.03] dark:border-white/5 rounded-2xl flex items-start gap-2.5 shadow-sm">
+                                                    <p className="text-[13px] text-[#4E342E] dark:text-[#E8E6E1] font-medium leading-relaxed">
+                                                        <span className="text-[#8E8B85] dark:text-[#A6A29A] font-bold mr-1">判定理由:</span>
                                                         {aiReason}
                                                     </p>
                                                 </div>
@@ -613,11 +621,11 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">図鑑の棚（アルバム）</span>
+                                                        <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">図鑑の棚（アルバム）</span>
                                                     </div>
                                                     {aiSelectedShelf && (
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-black dark:bg-white rounded-full">
-                                                            <span className="text-[10px] text-white dark:text-black font-bold uppercase tracking-wider">AI 推奨</span>
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black dark:bg-white rounded-full">
+                                                            <span className="text-[11px] text-white dark:text-black font-bold uppercase tracking-wider">AI 推奨</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -646,12 +654,12 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                             <div className="space-y-6">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">検索用キーワード・特徴</span>
+                                                        <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">検索用キーワード・特徴</span>
                                                     </div>
                                                     {isAnalyzing && (
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-black/[0.03] rounded-full">
-                                                            <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
-                                                            <span className="text-[10px] text-gray-400 font-bold">推論中...</span>
+                                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/[0.03] rounded-full">
+                                                            <Loader2 className="w-3.5 h-3.5 text-[#8E8B85] animate-spin" />
+                                                            <span className="text-[11px] text-[#8E8B85] font-bold">推論中...</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -706,7 +714,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                                         <Plus className="w-7 h-7" />
                                                     </button>
                                                 </div>
-                                                <p className="text-[10px] text-gray-400 font-bold px-1 tracking-tight">
+                                                <p className="text-[11px] text-[#8E8B85] dark:text-[#A6A29A] font-bold px-1 tracking-tight">
                                                     ※AI判定されたキーワードは自動で強調されます
                                                 </p>
                                             </div>
@@ -726,11 +734,12 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] bg-white/60 backdrop-blur-xl shrink-0 border-t border-black/[0.02]">
+                <footer className="p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] bg-white/60 backdrop-blur-xl shrink-0 border-t border-black/[0.02]" role="contentinfo">
                     {step === 'annotate' && (
                         <button
                             onClick={startAnalysis}
                             disabled={photos.length === 0}
+                            aria-label="AI解析を開始して内容を確認する"
                             className="w-full h-16 rounded-[32px] bg-black dark:bg-white text-white dark:text-black font-black text-lg shadow-2xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
                         >
                             <span>AI判定に進む</span>
@@ -743,13 +752,15 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                             <button
                                 onClick={() => setStep('annotate')}
                                 disabled={step === 'saving'}
-                                className="w-16 h-16 rounded-[28px] bg-black/[0.03] flex items-center justify-center text-gray-400 active:scale-90 transition-all"
+                                aria-label="入力画面に戻る"
+                                className="w-16 h-16 rounded-[28px] bg-black/[0.03] flex items-center justify-center text-[#8E8B85] active:scale-90 transition-all"
                             >
                                 <ChevronLeft className="w-8 h-8" />
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={step === 'saving' || isUploading}
+                                aria-label="この内容で記録を保存する"
                                 className={cn(
                                     "flex-1 h-16 rounded-[32px] bg-black dark:bg-white text-white dark:text-black font-black text-lg shadow-2xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3",
                                     step === 'saving' && "opacity-80 pointer-events-none"
@@ -765,18 +776,18 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                             </button>
                         </div>
                     )}
-                </div>
+                </footer>
 
                 {/* Debug Overlay */}
                 {showDebug && (
                     <div className="absolute inset-x-0 bottom-0 z-[100] bg-white/95 dark:bg-black/95 h-[70%] overflow-y-auto p-6 font-mono text-[11px] rounded-t-[32px] shadow-2xl border-t border-black/10">
                         <div className="flex justify-between items-center mb-4 sticky top-0 bg-inherit py-2 border-b border-black/5">
-                            <h3 className="font-black text-sm uppercase tracking-widest text-gray-400">Debug Logs</h3>
+                            <h3 className="font-black text-sm tracking-widest text-gray-400">デバッグログ</h3>
                             <button
                                 onClick={() => setShowDebug(false)}
                                 className="px-3 py-1 bg-black text-white rounded-full text-[10px] font-bold"
                             >
-                                CLOSE
+                                閉じる
                             </button>
                         </div>
                         <div className="space-y-1.5 pb-20">
