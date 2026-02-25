@@ -8,9 +8,11 @@ import {
     Activity, Box, Utensils, Moon, Zap, Target, Wind, Smile, Frown, Meh, Ghost, Cloud,
     Sun, Stethoscope, Thermometer, Droplets, Bandage, Flame, Scissors, ShieldAlert,
     UserPlus, HeartPulse, Home, Sofa, Map, MapPin, Footprints, Camera as CameraIcon2,
-    CalendarDays, Gift, Cake, Baby, TrendingUp, ShoppingBag, Brush, Heart, AlertCircle
+    CalendarDays, Gift, Cake, Baby, TrendingUp, ShoppingBag, Brush, Heart, AlertCircle,
+    Lock
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
+import { toast } from "sonner";
 import { useCatContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { PhotoDetailView } from "../immersive/photo-detail-view";
@@ -443,20 +445,20 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
 
     if (selectedShelf) {
         return (
-            <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col">
-                <div className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]">
+            <div className="fixed inset-0 z-50 bg-[#FDF8F1] dark:bg-[#121214] flex flex-col">
+                <div className="sticky top-0 z-30 bg-[#FDF8F1]/80 dark:bg-[#121214]/80 backdrop-blur-xl border-b border-[#F2EFEA] dark:border-white/10 pt-[env(safe-area-inset-top)]">
                     <header className="flex items-center justify-between px-5 h-14" role="navigation" aria-label="詳細ヘッダー">
-                        <button onClick={() => setSelectedShelf(null)} className="flex items-center gap-0.5 text-[#007AFF] font-semibold text-[15px]" aria-label="図鑑トップに戻る">
+                        <button onClick={() => setSelectedShelf(null)} className="flex items-center gap-0.5 text-brand-peach font-bold text-[15px]" aria-label="図鑑トップに戻る">
                             <ChevronLeft className="w-5 h-5" />戻る
                         </button>
-                        <h2 className="text-[18px] font-bold text-[#1c1c1e] dark:text-white">{selectedShelf.name}</h2>
-                        <span className="text-[14px] text-[#706E69] dark:text-[#A6A29A] font-medium">{selectedShelf.photos.length}枚</span>
+                        <h2 className="text-[18px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">{selectedShelf.name}</h2>
+                        <span className="text-[14px] text-[#8E8B85] dark:text-[#A6A29A] font-medium">{selectedShelf.photos.length}枚</span>
                     </header>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     <div className="grid grid-cols-3 gap-[2px] pb-24">
                         {selectedShelf.photos.map((photo, idx) => (
-                            <motion.div key={photo.id} onClick={() => openDetail(photo)} className="relative aspect-square bg-[#f2f2f7] dark:bg-[#2c2c2e] cursor-pointer overflow-hidden">
+                            <motion.div key={photo.id} onClick={() => openDetail(photo)} className="relative aspect-square bg-[#F2EFEA] dark:bg-white/5 cursor-pointer overflow-hidden">
                                 <img src={photo.url} alt="" className="w-full h-full object-cover" />
                             </motion.div>
                         ))}
@@ -468,23 +470,23 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-[#fafafa] dark:bg-[#1c1c1e] flex flex-col pb-32">
-            <header className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 pt-[env(safe-area-inset-top)]" role="banner">
+        <div className="fixed inset-0 z-50 bg-[#FDF8F1] dark:bg-[#121214] flex flex-col pb-32">
+            <header className="sticky top-0 z-30 bg-[#FDF8F1]/80 dark:bg-[#121214]/80 backdrop-blur-xl border-b border-[#F2EFEA] dark:border-white/10 pt-[env(safe-area-inset-top)]" role="banner">
                 <div className="flex items-center justify-between px-5 h-14">
                     <div className="w-8" />
-                    <h1 className="text-[18px] font-bold text-[#1c1c1e] dark:text-white">アルバム図鑑</h1>
+                    <h1 className="text-[18px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">アルバム図鑑</h1>
                     <div className="flex items-center justify-end w-20">
                         {verificationQueue.length > 0 ? (
                             <button onClick={() => setIsVerificationOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm animate-pulse" aria-label={`${verificationQueue.length}件の確認待ち記録があります`}>
                                 <span className="font-bold text-xs">{verificationQueue.length}</span>
                             </button>
                         ) : batchTagging ? (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#8e8e93]/10 text-[#706E69] dark:text-[#A6A29A] text-[12px] font-medium animate-pulse">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#787570]/10 text-[#787570] dark:text-[#A6A29A] text-[12px] font-medium animate-pulse">
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 <span>{batchProgress.current}/{batchProgress.total}</span>
                             </div>
                         ) : untaggedCount > 0 ? (
-                            <button onClick={runBatchTagging} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-[13px] font-semibold" aria-label={`${untaggedCount}件をAIで自動タグ付け`}>
+                            <button onClick={runBatchTagging} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-peach/10 text-brand-peach text-[13px] font-bold" aria-label={`${untaggedCount}件をAIで自動タグ付け`}>
                                 <Wand2 className="w-4 h-4" /><span className="text-[12px] ml-0.5">{untaggedCount}</span>
                             </button>
                         ) : <div className="w-8" />}
@@ -492,49 +494,75 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 </div>
             </header>
 
-            <nav className="sticky top-[56px] z-30 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-[#e5e5ea]/60 dark:border-white/10 flex-shrink-0" aria-label="猫別フィルタ">
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide px-5 py-3">
-                    <button onClick={() => setFilterCatId(null)} className={cn("flex items-center gap-1.5 px-4 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === null ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#706E69] dark:text-[#A6A29A]")}>すべて</button>
+            <nav className="sticky top-[56px] z-30 bg-[#FDF8F1]/80 dark:bg-[#121214]/80 backdrop-blur-xl border-b border-[#F2EFEA] dark:border-white/10 flex-shrink-0 px-5 py-3 space-y-2.5" aria-label="猫別フィルタ">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5">
+                    <button onClick={() => setFilterCatId(null)} className={cn("flex items-center gap-1.5 px-4 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === null ? "bg-[#4E342E] dark:bg-[#E8E6E1] text-white dark:text-[#121214] shadow-sm" : "bg-white dark:bg-[#1c1c1e] border-[#F2EFEA] dark:border-white/10 text-[#787570] dark:text-[#A6A29A]")}>すべて</button>
                     {cats.map(cat => (
-                        <button key={cat.id} onClick={() => setFilterCatId(cat.id)} className={cn("flex items-center gap-1.5 px-3 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === cat.id ? "bg-[#1c1c1e] dark:bg-white text-white dark:text-black shadow-sm" : "bg-white dark:bg-[#2c2c2e] border-[#e5e5ea] text-[#706E69] dark:text-[#A6A29A]")}>
-                            <div className="w-5 h-5 rounded-full overflow-hidden bg-[#f2f2f7] shrink-0">
+                        <button key={cat.id} onClick={() => setFilterCatId(cat.id)} className={cn("flex items-center gap-1.5 px-3 h-9 rounded-full border shrink-0 font-bold text-[14px]", filterCatId === cat.id ? "bg-[#4E342E] dark:bg-[#E8E6E1] text-white dark:text-[#121214] shadow-sm" : "bg-white dark:bg-[#1c1c1e] border-[#F2EFEA] dark:border-white/10 text-[#787570] dark:text-[#A6A29A]")}>
+                            <div className="w-5 h-5 rounded-full overflow-hidden bg-[#F2EFEA] dark:bg-white/5 shrink-0">
                                 {cat.avatar && cat.avatar !== 'cat-fallback' ? <img src={cat.avatar} className="w-full h-full object-cover" alt="" /> : <Cat className="w-4 h-4 m-auto" />}
                             </div>
                             {cat.name}
                         </button>
                     ))}
                 </div>
-            </nav>
-
-            <div className="sticky top-[112px] z-30 px-5 py-2 bg-[#fafafa]/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#706E69] dark:text-[#A6A29A]" />
-                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="メモ・タグで検索" className="w-full h-10 pl-9 pr-8 bg-[#e5e5ea]/60 dark:bg-white/10 rounded-xl text-[15px] outline-none" aria-label="図鑑を検索" />
-                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#8e8e93]/30 flex items-center justify-center" aria-label="検索内容をクリア"><X className="w-4 h-4 text-[#706E69] dark:text-[#A6A29A]" /></button>}
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#787570] dark:text-[#A6A29A]" />
+                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="メモ・タグで検索" className="w-full h-10 pl-9 pr-8 bg-[#F2EFEA] dark:bg-white/10 rounded-xl text-[15px] outline-none text-[#4E342E] dark:text-[#E8E6E1] placeholder:text-[#787570]" aria-label="図鑑を検索" />
+                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#787570]/30 flex items-center justify-center" aria-label="検索内容をクリア"><X className="w-4 h-4 text-[#787570] dark:text-[#A6A29A]" /></button>}
                 </div>
-            </div>
+            </nav>
 
             <div className="flex-1 overflow-y-auto">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] gap-3"><Loader2 className="w-6 h-6 animate-spin text-[#c7c7cc]" /><p className="text-[13px] text-[#8e8e93]">読み込み中...</p></div>
+                    <div className="flex flex-col items-center justify-center h-[60vh] gap-3"><Loader2 className="w-6 h-6 animate-spin text-[#D4CFC9]" /><p className="text-[13px] text-[#787570]">読み込み中...</p></div>
                 ) : allPhotos.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] gap-4 px-8"><div className="w-20 h-20 rounded-full bg-[#f2f2f7] flex items-center justify-center"><Camera className="w-8 h-8 text-[#c7c7cc]" /></div><p className="text-[15px] font-bold text-[#8e8e93]">まだ写真がありません</p></div>
+                    <div className="flex flex-col items-center justify-center h-[60vh] gap-4 px-8"><div className="w-20 h-20 rounded-full bg-[#F2EFEA] dark:bg-white/5 flex items-center justify-center"><Camera className="w-8 h-8 text-[#D4CFC9]" /></div><p className="text-[15px] font-bold text-[#787570]">まだ写真がありません</p></div>
                 ) : (
                     <div className="pb-24 pt-4">
                         <div className="px-5 space-y-10">
+                            {/* ─── WEEKLY MISSION ─── */}
+                            {(() => {
+                                const POSE_MISSIONS = [
+                                    { id: '香箱座り', label: '「香箱座り」を見つけよう！', desc: '前足を体の下に折りたたんで座るポーズ。リラックスの証拠です。' },
+                                    { id: 'ごろん', label: '「ごろん」を見つけよう！', desc: 'お腹を見せて転がるポーズ。とっても信頼されている証です。' },
+                                    { id: 'へそ天', label: '「へそ天」を見つけよう！', desc: '仰向けに寝転がる完全リラックスモード。' },
+                                    { id: 'のび', label: '「のび」を見つけよう！', desc: '伸びをする瞬間を激写しよう！' },
+                                    { id: '箱イン', label: '「箱イン」を見つけよう！', desc: '箱や袋に入っていたらチャンス！' },
+                                    { id: 'ふみふみ', label: '「ふみふみ」を見つけよう！', desc: '前足を交互に動かすニーディング。' },
+                                ];
+                                const today = new Date();
+                                const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                const mission = POSE_MISSIONS[weekNumber % POSE_MISSIONS.length];
+                                return (
+                                    <div className="mb-2 p-4 rounded-2xl bg-gradient-to-br from-brand-peach/10 to-amber-50 dark:from-brand-peach/10 dark:to-white/5 border border-brand-peach/20">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-brand-peach/20 flex items-center justify-center shrink-0">
+                                                <Target className="w-5 h-5 text-brand-peach" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[11px] font-bold text-brand-peach tracking-wide uppercase mb-0.5">今週のミッション</p>
+                                                <p className="text-[15px] font-bold text-[#4E342E] dark:text-[#E8E6E1] leading-snug">{mission.label}</p>
+                                                <p className="text-[12px] text-[#787570] dark:text-[#A6A29A] mt-1 leading-relaxed">{mission.desc}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
                             {/* ─── ZUKAN COLLECTIONS ─── */}
                             {zukanCollections.map(axis => (
                                 <div key={axis.id} className="mb-2">
                                     <div className="flex items-center justify-between mb-3 px-1">
                                         <div className="flex items-center gap-2">
                                             <Award className="w-5 h-5" style={{ color: axis.color }} />
-                                            <h3 className="text-[18px] font-bold">{axis.title}</h3>
+                                            <h3 className="text-[18px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">{axis.title}</h3>
                                         </div>
-                                        <span className="text-[14px] font-bold text-[#706E69] dark:text-[#A6A29A] tabular-nums" aria-label={`達成度: ${axis.collectedCount} / ${axis.totalCount}`}>
+                                        <span className="text-[14px] font-bold text-[#787570] dark:text-[#A6A29A] tabular-nums" aria-label={`達成度: ${axis.collectedCount} / ${axis.totalCount}`}>
                                             {axis.collectedCount}/{axis.totalCount}
                                         </span>
                                     </div>
-                                    <div className="h-1.5 bg-[#e5e5ea] dark:bg-white/10 rounded-full mb-4 overflow-hidden mx-1">
+                                    <div className="h-1.5 bg-[#F2EFEA] dark:bg-white/10 rounded-full mb-5 overflow-hidden mx-1">
                                         <motion.div
                                             className="h-full rounded-full"
                                             style={{ backgroundColor: axis.color }}
@@ -543,26 +571,32 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                             transition={{ duration: 0.8, ease: 'easeOut' }}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2.5">
+                                    <div className="grid grid-cols-4 gap-3.5">
                                         {axis.items.map(item => {
                                             const photos = axis.itemMap[item.id] || [];
                                             const isUnlocked = photos.length > 0;
                                             return (
                                                 <motion.div
                                                     key={item.id}
-                                                    whileTap={isUnlocked ? { scale: 0.95 } : undefined}
-                                                    onClick={() => isUnlocked && setSelectedShelf({ name: item.label, photos })}
+                                                    whileTap={isUnlocked ? { scale: 0.95 } : { scale: 0.98 }}
+                                                    onClick={() => {
+                                                        if (isUnlocked) {
+                                                            setSelectedShelf({ name: item.label, photos });
+                                                        } else {
+                                                            toast('まだ発見されていません', { description: `「${item.label}」の写真を撮って図鑑を埋めよう！` });
+                                                        }
+                                                    }}
                                                     className={cn(
-                                                        "relative flex flex-col items-center p-2 rounded-2xl transition-all",
+                                                        "relative flex flex-col items-center p-2.5 rounded-[20px] transition-all",
                                                         isUnlocked
-                                                            ? "bg-white dark:bg-[#2c2c2e] shadow-sm ring-1 ring-black/5"
-                                                            : "bg-[#f2f2f7]/60 dark:bg-white/5"
+                                                            ? "bg-white dark:bg-[#1c1c1e] shadow-sm border border-[#F2EFEA] dark:border-white/5"
+                                                            : "bg-[#F2EFEA]/60 dark:bg-white/5"
                                                     )}
                                                     style={{ opacity: isUnlocked ? 1 : 0.6 }}
                                                 >
                                                     <div className={cn(
                                                         "w-12 h-12 rounded-full flex items-center justify-center mb-1.5 overflow-hidden",
-                                                        !isUnlocked && "bg-[#e5e5ea]/50 dark:bg-white/5"
+                                                        !isUnlocked && "bg-[#F2EFEA]/50 dark:bg-white/5"
                                                     )}>
                                                         {isUnlocked && photos[0]
                                                             ? <img src={photos[0].url} className="w-full h-full object-cover" alt="" />
@@ -570,10 +604,10 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                     </div>
                                                     <span className={cn(
                                                         "text-[11px] font-bold text-center leading-tight truncate w-full",
-                                                        isUnlocked ? "text-[#1c1c1e] dark:text-white" : "text-[#706E69] dark:text-[#A6A29A]"
+                                                        isUnlocked ? "text-[#4E342E] dark:text-[#E8E6E1]" : "text-[#787570] dark:text-[#A6A29A]"
                                                     )}>{item.label}</span>
-                                                    <span className="text-[11px] text-[#706E69] dark:text-[#A6A29A] mt-0.5 font-medium">
-                                                        {isUnlocked ? `${photos.length}枚` : "🔒"}
+                                                    <span className="text-[11px] text-[#787570] dark:text-[#A6A29A] mt-0.5 font-medium">
+                                                        {isUnlocked ? `${photos.length}枚` : <Lock className="w-3 h-3 inline" />}
                                                     </span>
                                                 </motion.div>
                                             );
@@ -583,8 +617,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             ))}
 
                             {/* ─── SCENE SHELVES ─── */}
-                            <div className="pt-6 border-t border-[#e5e5ea] dark:border-white/10" role="region" aria-label="シーン別の棚">
-                                <h3 className="text-[20px] font-bold mb-5 ml-1">シーン別の棚</h3>
+                            <div className="pt-6 border-t border-[#F2EFEA] dark:border-white/10" role="region" aria-label="シーン別の棚">
+                                <h3 className="text-[20px] font-bold mb-5 ml-1 text-[#4E342E] dark:text-[#E8E6E1]">シーン別の棚</h3>
                                 <div className="space-y-4">
                                     {encyclopediaShelves
                                         .filter(s => showEmptyShelves || s.photos.length > 0)
@@ -593,27 +627,27 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                 key={shelf.name}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => setSelectedShelf(shelf)}
-                                                className="flex items-center gap-4 bg-white dark:bg-[#2c2c2e] p-3.5 rounded-2xl shadow-sm ring-1 ring-black/5 cursor-pointer"
+                                                className="flex items-center gap-4 bg-white dark:bg-[#1c1c1e] p-3.5 rounded-[24px] shadow-sm border border-[#F2EFEA] dark:border-white/5 cursor-pointer"
                                             >
-                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#f2f2f7] dark:bg-white/5 flex-shrink-0">
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#F2EFEA] dark:bg-white/5 flex-shrink-0">
                                                     {shelf.photos[0] ? (
                                                         <img src={shelf.photos[0].url} className="w-full h-full object-cover" alt="" />
                                                     ) : (
-                                                        <ImageIcon className="w-6 h-6 m-auto text-[#c7c7cc]" />
+                                                        <ImageIcon className="w-6 h-6 m-auto text-[#D4CFC9]" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="font-bold text-[16px] mb-0.5">{shelf.name}</p>
-                                                    <p className="text-[12px] text-[#8e8e93] font-medium">{shelf.photos.length}点の記録</p>
+                                                    <p className="font-bold text-[16px] mb-0.5 text-[#4E342E] dark:text-[#E8E6E1]">{shelf.name}</p>
+                                                    <p className="text-[12px] text-[#8E8B85] dark:text-[#A6A29A] font-medium">{shelf.photos.length}点の記録</p>
                                                 </div>
-                                                <ChevronRight className="w-5 h-5 text-[#c7c7cc]" />
+                                                <ChevronRight className="w-5 h-5 text-[#D4CFC9]" />
                                             </motion.div>
                                         ))}
 
                                     <div className="pt-4 pb-12 flex justify-center">
                                         <button
                                             onClick={() => setShowEmptyShelves(!showEmptyShelves)}
-                                            className="px-6 py-3 bg-[#8e8e93]/10 dark:bg-white/5 rounded-full text-[13px] font-bold text-[#8e8e93] active:scale-95 transition-all"
+                                            className="px-6 py-3 bg-[#8E8B85]/10 dark:bg-white/5 rounded-full text-[13px] font-bold text-[#8E8B85] active:scale-95 transition-all"
                                         >
                                             {showEmptyShelves ? "空の棚を隠す" : "すべての棚を表示"}
                                         </button>

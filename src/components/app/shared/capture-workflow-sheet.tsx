@@ -407,8 +407,25 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 className="relative bg-[#fafafa] dark:bg-[#1c1c1e] w-full max-w-lg h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-[40px] sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
             >
                 {/* Pull Indicator */}
-                <div className="flex justify-center pt-3 pb-1">
+                <div className="flex flex-col items-center pt-3 pb-1 gap-2">
                     <div className="w-12 h-1.5 bg-gray-200/60 rounded-full" />
+                    {/* Step Indicator */}
+                    <div className="flex items-center gap-2">
+                        {(['annotate', 'ai', 'saving'] as const).map((s, i) => (
+                            <React.Fragment key={s}>
+                                <div className={cn(
+                                    "w-2 h-2 rounded-full transition-all duration-300",
+                                    step === s ? "bg-[#4E342E] dark:bg-white scale-125" :
+                                        (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#4E342E]/40 dark:bg-white/40" :
+                                            "bg-gray-200 dark:bg-white/10"
+                                )} />
+                                {i < 2 && <div className={cn(
+                                    "w-4 h-px transition-colors",
+                                    (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#4E342E]/30 dark:bg-white/30" : "bg-gray-200 dark:bg-white/10"
+                                )} />}
+                            </React.Fragment>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Header */}
@@ -421,9 +438,9 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                         <X className="w-5 h-5" />
                     </button>
                     <h2 className="text-xl font-bold text-[#4E342E] dark:text-white tracking-tight">
-                        {step === 'annotate' && "内容を入力"}
-                        {step === 'ai' && "AI判定"}
-                        {step === 'saving' && "保存中..."}
+                        {step === 'annotate' && '写真を記録しよう'}
+                        {step === 'ai' && 'AIが分析しました'}
+                        {step === 'saving' && '保存中...'}
                     </h2>
                     <button
                         onClick={() => setShowDebug(!showDebug)}
@@ -736,15 +753,25 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 {/* Footer Actions */}
                 <footer className="p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] bg-white/60 backdrop-blur-xl shrink-0 border-t border-black/[0.02]" role="contentinfo">
                     {step === 'annotate' && (
-                        <button
-                            onClick={startAnalysis}
-                            disabled={photos.length === 0}
-                            aria-label="AI解析を開始して内容を確認する"
-                            className="w-full h-16 rounded-[32px] bg-black dark:bg-white text-white dark:text-black font-black text-lg shadow-2xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
-                        >
-                            <span>AI判定に進む</span>
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={startAnalysis}
+                                disabled={photos.length === 0}
+                                aria-label="AI解析を開始して内容を確認する"
+                                className="w-full h-16 rounded-[32px] bg-black dark:bg-white text-white dark:text-black font-black text-lg shadow-2xl shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
+                            >
+                                <span>AI判定に進む</span>
+                                <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={photos.length === 0}
+                                aria-label="AI判定をスキップしてすぐ保存する"
+                                className="w-full h-12 rounded-[24px] text-[#787570] dark:text-[#A6A29A] font-bold text-[14px] active:scale-[0.98] transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                            >
+                                スキップして保存
+                            </button>
+                        </div>
                     )}
 
                     {(step === 'ai' || step === 'saving') && !isAnalyzing && (

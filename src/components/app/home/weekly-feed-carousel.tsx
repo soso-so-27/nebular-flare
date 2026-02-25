@@ -102,15 +102,15 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     );
 
     const renderCareCard = (item: FeedItem) => {
-        const items = item.listItems?.slice(0, 2) || [];
+        const listItems = item.listItems?.slice(0, 2) || [];
         return (
             <div className="h-full flex flex-col px-4 pt-4 pb-3 overflow-hidden">
                 <div className="flex items-center gap-2 mb-2 shrink-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-peach" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/50">{item.title}</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/50 truncate">{item.title}</h3>
                 </div>
                 <div className="flex-1 flex flex-col justify-center gap-1.5 min-h-0 overflow-hidden">
-                    {items.map((log, idx) => (
+                    {listItems.length > 0 ? listItems.map((log, idx) => (
                         <div
                             key={idx}
                             className={`group/item flex items-center justify-between py-1.5 border-b border-[#4E342E]/[0.05] last:border-0 transition-all ${log.onClick ? 'cursor-pointer active:scale-[0.98]' : ''}`}
@@ -135,7 +135,12 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                                 </div>
                             )}
                         </div>
-                    ))}
+                    )) : (
+                        <div className="flex flex-col items-center justify-center text-center py-2">
+                            <span className="text-2xl mb-1">🎉</span>
+                            <p className="text-[12px] font-bold text-[#4E342E]/70">{item.content || '今日はまだお世話がありません'}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );

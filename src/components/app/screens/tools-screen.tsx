@@ -1,21 +1,16 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
     FileText,
     TrendingUp,
     Package,
     History,
-    ChevronRight,
     Cat,
-    Sparkles,
-    Calendar,
     Clock,
-    Camera,
-    Wrench,
-    BookOpen,
-    Image as ImageIcon,
+    Sparkles,
+    ChevronRight,
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
 import { triggerFeedback } from "@/lib/haptics";
@@ -57,6 +52,7 @@ interface ToolsScreenProps {
     onOpenInventory: () => void;
     onOpenSitter: () => void;
     onOpenCareManagement: () => void;
+    onSelectPhoto?: (id: string) => void;
 }
 
 export function ToolsScreen({
@@ -65,12 +61,15 @@ export function ToolsScreen({
     onOpenInventory,
     onOpenSitter,
     onOpenCareManagement,
+    onSelectPhoto,
 }: ToolsScreenProps) {
     const { cats } = useCatContext();
     const { householdId } = useCoreContext();
     const [allPhotos, setAllPhotos] = useState<ShelfPhoto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [shouldLoad, setShouldLoad] = useState(false);
     const supabaseRef = useRef(createClient());
+    const sectionRef = useRef<HTMLDivElement>(null);
 
     // ─────────────────────────────────
     // Fetch Data
@@ -105,9 +104,20 @@ export function ToolsScreen({
         setLoading(false);
     }, [householdId]);
 
+    // P3: Lazy load — only fetch when ふりかえり section is visible
     useEffect(() => {
-        loadPhotos();
-    }, [loadPhotos]);
+        if (!sectionRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) setShouldLoad(true); },
+            { rootMargin: '200px' }
+        );
+        observer.observe(sectionRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (shouldLoad) loadPhotos();
+    }, [shouldLoad, loadPhotos]);
 
     // ─────────────────────────────────
     // Discovery Logic
@@ -140,38 +150,36 @@ export function ToolsScreen({
             })
             .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-        const monthName = `${now.getMonth() + 1}月`;
-
-        return { dailyPick, weeklyHighlight, pastYearPhotos, monthName, totalPhotos: allPhotos.length };
+        return { dailyPick, weeklyHighlight, pastYearPhotos };
     }, [allPhotos]);
 
     const toolSections = [
         {
-            title: "レポート",
+            title: "日々の管理",
             tools: [
-                { title: "受診用レポート", desc: "獣医さんへの説明用", icon: FileText, onClick: onOpenReport },
-                { title: "引継ぎシート", desc: "シッターさんへの指示", icon: History, onClick: onOpenSitter },
+                { title: "お世話管理", desc: "お世話項目の設定・確認", icon: Clock, onClick: onOpenCareManagement },
+                { title: "在庫管理", desc: "フードや消耗品の残量", icon: Package, onClick: onOpenInventory },
             ]
         },
         {
-            title: "分析・管理",
+            title: "レポート・分析",
             tools: [
-                { title: "お世話管理", desc: "日々のルーチンをチェック", icon: Clock, onClick: onOpenCareManagement },
+                { title: "受診用レポート", desc: "獣医さんへの説明用", icon: FileText, onClick: onOpenReport },
+                { title: "引継ぎシート", desc: "シッターさんへの指示", icon: History, onClick: onOpenSitter },
                 { title: "健康推移", desc: "体重や体調の変化", icon: TrendingUp, onClick: onOpenTrends },
-                { title: "在庫管理", desc: "フードや消耗品の残量", icon: Package, onClick: onOpenInventory },
             ]
         }
     ];
 
     return (
-        <div className="h-full bg-[#FDF8F1] dark:bg-[#121214] overflow-y-auto px-4 pt-14 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
+        <div className="h-full bg-[#FDF8F1] dark:bg-[#121214] overflow-y-auto px-5 pt-14 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
             <div className="max-w-md mx-auto">
 
-                {/* ── みつける Section ── */}
-                <div className="mb-10 bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-4 border border-[#F2EFEA] dark:border-white/5">
+                {/* ── ふりかえり Section ── */}
+                <div ref={sectionRef} className="mb-8 bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-5 border border-[#F2EFEA] dark:border-white/5">
                     <div className="flex items-center gap-2 mb-4 ml-1">
-                        <Sparkles className="w-3.5 h-3.5 text-brand-peach" />
-                        <h2 className="text-[13px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">みつける</h2>
+                        <History className="w-4 h-4 text-brand-peach" />
+                        <h2 className="text-[14px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">ふりかえり</h2>
                     </div>
 
                     {!loading && discoverItems ? (
@@ -180,7 +188,8 @@ export function ToolsScreen({
                             {discoverItems.dailyPick && (
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
-                                    className="relative aspect-[4/5] rounded-[24px] overflow-hidden shadow-sm border border-[#F2EFEA] dark:border-white/5 bg-white dark:bg-[#1c1c1e]"
+                                    onClick={() => onSelectPhoto?.(discoverItems.dailyPick.id)}
+                                    className="relative aspect-[4/5] rounded-[24px] overflow-hidden shadow-sm border border-[#F2EFEA] dark:border-white/5 bg-white dark:bg-[#1c1c1e] cursor-pointer"
                                 >
                                     <img
                                         src={discoverItems.dailyPick.url}
@@ -193,10 +202,10 @@ export function ToolsScreen({
                                             <span className="text-[10px] font-bold text-white tracking-widest">今日のとっておき</span>
                                         </div>
                                         <h3 className="text-white font-bold text-[17px] leading-tight mb-1">
-                                            {discoverItems.dailyPick.catName}のきらきらした瞬間
+                                            {discoverItems.dailyPick.catName}の特別な一枚
                                         </h3>
                                         <p className="text-white/80 text-[12px] font-medium line-clamp-1">
-                                            {discoverItems.dailyPick.memo || "特別な一枚が見つかりました"}
+                                            {discoverItems.dailyPick.memo || `${discoverItems.dailyPick.catName}のお気に入りが見つかりました`}
                                         </p>
                                     </div>
                                 </motion.div>
@@ -205,8 +214,7 @@ export function ToolsScreen({
                             {/* Weekly Highlights */}
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between px-1">
-                                    <span className="text-[12px] font-bold text-[#8E8B85] dark:text-[#A6A29A]">今週のハイライト</span>
-                                    <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />
+                                    <span className="text-[12px] font-bold text-[#787570] dark:text-[#A6A29A]">今週のハイライト</span>
                                 </div>
                                 <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
                                     {discoverItems.weeklyHighlight.length > 0 ? (
@@ -214,7 +222,8 @@ export function ToolsScreen({
                                             <motion.div
                                                 key={photo.id}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5"
+                                                onClick={() => onSelectPhoto?.(photo.id)}
+                                                className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 cursor-pointer"
                                             >
                                                 <img src={photo.url} className="w-full h-full object-cover" alt="" />
                                             </motion.div>
@@ -227,41 +236,31 @@ export function ToolsScreen({
                                 </div>
                             </div>
 
-                            {/* Cards Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <motion.div
-                                    whileTap={{ scale: 0.96 }}
-                                    className="bg-white dark:bg-[#1c1c1e] p-4 rounded-[24px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-2.5"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-brand-peach/10 flex items-center justify-center text-brand-peach">
-                                        <BookOpen className="w-4 h-4" />
+                            {discoverItems.pastYearPhotos.length > 0 && (
+                                <div className="mt-2 space-y-2.5">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <History className="w-3.5 h-3.5 text-[#787570]" />
+                                        <span className="text-[12px] font-bold text-[#787570] dark:text-[#A6A29A]">去年の今ごろ</span>
                                     </div>
-                                    <div>
-                                        <h4 className="text-[13px] font-bold text-[#4E342E] dark:text-white">{discoverItems.monthName}のあゆみ</h4>
-                                        <p className="text-[9px] text-[#8E8B85] dark:text-[#A6A29A] mt-0.5 font-medium">{discoverItems.totalPhotos}枚の記録</p>
+                                    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+                                        {discoverItems.pastYearPhotos.slice(0, 6).map((photo) => (
+                                            <motion.div
+                                                key={photo.id}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => onSelectPhoto?.(photo.id)}
+                                                className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 cursor-pointer"
+                                            >
+                                                <img src={photo.url} className="w-full h-full object-cover" alt="" />
+                                            </motion.div>
+                                        ))}
                                     </div>
-                                </motion.div>
-
-                                <motion.div
-                                    whileTap={{ scale: 0.96 }}
-                                    className="bg-white dark:bg-[#1c1c1e] p-4 rounded-[24px] shadow-sm ring-1 ring-[#F2EFEA] dark:ring-white/5 flex flex-col gap-2.5"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-[#FDF8F1] dark:bg-white/5 flex items-center justify-center text-[#8E8B85]">
-                                        <History className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[13px] font-bold text-[#4E342E] dark:text-white">去年の今ごろ</h4>
-                                        <p className="text-[9px] text-[#8E8B85] dark:text-[#A6A29A] mt-0.5 font-medium">
-                                            {discoverItems.pastYearPhotos.length > 0 ? "思い出をふりかえる" : "記録がありません"}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="h-48 flex flex-col items-center justify-center gap-3 bg-white/40 dark:bg-white/5 rounded-[24px]">
                             <Cat className="w-6 h-6 text-[#D4CFC9] animate-pulse" />
-                            <span className="text-[10px] font-bold text-[#A69C94] tracking-wide">AIが記録を整理中です...</span>
+                            <span className="text-[10px] font-bold text-[#787570] tracking-wide">写真を読み込み中です...</span>
                         </div>
                     )}
                 </div>
@@ -269,11 +268,11 @@ export function ToolsScreen({
                 {/* ── ツール Section ── */}
                 <div className="space-y-8">
                     {toolSections.map((section) => (
-                        <nav key={section.title} aria-label={section.title} className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-4 border border-[#F2EFEA] dark:border-white/5">
-                            <h2 className="text-[11px] font-bold text-[#8E8B85] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
+                        <nav key={section.title} aria-label={section.title} className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-5 border border-[#F2EFEA] dark:border-white/5">
+                            <h2 className="text-[11px] font-bold text-[#787570] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
                                 {section.title}
                             </h2>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-3.5">
                                 {section.tools.map((tool, idx) => {
                                     const Icon = tool.icon;
                                     const isFullWidth = section.tools.length % 2 !== 0 && idx === 0;
@@ -295,11 +294,11 @@ export function ToolsScreen({
                                                 "w-8 h-8 rounded-lg bg-[#FDF8F1] dark:bg-white/10 text-brand-peach flex items-center justify-center",
                                                 !isFullWidth && "mb-3"
                                             )}>
-                                                <Icon className="w-[16px] h-[16px]" strokeWidth={2} />
+                                                <Icon className="w-[20px] h-[20px]" strokeWidth={1.8} />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="font-bold text-[13px] text-[#4E342E] dark:text-[#E8E6E1] mb-0.5 leading-tight">{tool.title}</h3>
-                                                <p className="text-[9px] text-[#A69C94] dark:text-[#8E8B85] leading-relaxed line-clamp-2">{tool.desc}</p>
+                                                <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] mb-0.5 leading-tight">{tool.title}</h3>
+                                                <p className="text-[12px] text-[#787570] dark:text-[#787570] leading-relaxed line-clamp-2">{tool.desc}</p>
                                             </div>
                                             {isFullWidth && <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />}
                                         </motion.button>

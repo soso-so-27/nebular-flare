@@ -19,7 +19,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     const tabs = [
         { id: "home", label: "ホーム", icon: Home },
         { id: "tools", label: "ツール", icon: Wrench },
-        { id: "camera", label: "カメラ", icon: Camera, isCenter: true },
+        { id: "camera", label: "きろく", icon: Camera, isCenter: true },
         { id: "zukan", label: "アルバム", icon: BookOpen },
         { id: "notifications", label: "通知", icon: Bell },
     ];
@@ -72,7 +72,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                                 triggerFeedback('light');
                                 onTabChange(tab.id);
                             }}
-                            className={`flex flex-col items-center justify-center gap-1 flex-1 transition-all relative ${isActive ? 'text-[#4E342E]' : 'text-[#8E8B85]'}`}
+                            className={`flex flex-col items-center justify-center gap-1 flex-1 transition-all relative ${isActive ? 'text-[#4E342E]' : 'text-[#787570]'}`}
                         >
                             <div className="relative">
                                 <Icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110' : 'scale-100'}`} strokeWidth={isActive ? 2.5 : 1.5} />
@@ -86,7 +86,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                                     />
                                 )}
                             </div>
-                            <span className={`text-[11px] font-bold transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                            <span className={`text-[12px] font-bold transition-all ${isActive ? 'opacity-100' : 'opacity-80'}`}>
                                 {tab.label}
                             </span>
                         </button>

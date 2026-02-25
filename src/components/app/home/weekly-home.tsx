@@ -118,7 +118,6 @@ interface WeeklyHomeProps {
     onOpenSidebar: () => void;
     onOpenNewEvent: () => void;
     onNavigate?: (id: string) => void;
-    onToggleView?: () => void;
     selectedCatIds: string[];
     // Dock Props
     onOpenCalendar: () => void;
@@ -136,7 +135,6 @@ export function WeeklyHome({
     onOpenSidebar,
     onOpenNewEvent,
     onNavigate,
-    onToggleView,
     selectedCatIds,
     onOpenCalendar,
     onOpenExchange,
@@ -188,7 +186,47 @@ export function WeeklyHome({
             return !!(catId && selectedCatIds.includes(catId));
         };
 
-        // 2. Today's Photo (Latest of the day)
+        // ====== ONBOARDING CARD (only if truly no data yet) ======
+        const hasAnyData = (incidents || []).length > 0 || (careLogs || []).length > 0;
+        if (!hasAnyData) {
+            items.push({
+                id: 'onboarding-guide',
+                type: 'prompt',
+                title: 'はじめの3ステップ',
+                content: '① 写真を撮る → ② お世話を記録 → ③ 図鑑を眺める',
+                missionIcon: <SparklesIcon className="w-5 h-5 text-brand-peach" />,
+                onClick: handleTriggerCapture,
+            });
+        }
+
+        // ====== UNIFIED CARE CARD (merged status + requests) ======
+        const filteredCareItems = (careItems || []).filter(t => belongsToSelectedCats(t.catId));
+        const totalTasks = filteredCareItems.length;
+        const doneTasks = filteredCareItems.filter(t => t.done).length;
+        const undoneTasks = filteredCareItems.filter(t => !t.done).slice(0, 2);
+
+        if (totalTasks > 0) {
+            items.push({
+                id: 'care-unified',
+                type: 'care',
+                title: doneTasks >= totalTasks
+                    ? `今日のお世話 ✨ ${doneTasks}/${totalTasks} 完了`
+                    : `今日のおねがい（${doneTasks}/${totalTasks}）`,
+                listItems: undoneTasks.length > 0 ? undoneTasks.map(t => ({
+                    label: t.label,
+                    time: t.slot === 'morning' ? '午前中' : t.slot === 'evening' ? '夕方以降' : 'いつでも',
+                    icon: Heart,
+                    onClick: () => addCareLog(t.actionId || t.id, t.catId)
+                })) : undefined,
+                content: doneTasks >= totalTasks ? '全部おわったよ！えらい 🎉' : undefined,
+                ctaLabel: undoneTasks.length === 0 ? 'もっと見る' : undefined,
+                onClick: undoneTasks.length === 0 ? onOpenNewEvent : undefined,
+                icon: Heart,
+                color: doneTasks >= totalTasks ? 'text-green-500' : 'text-brand-peach',
+            });
+        }
+
+        // ====== TODAY'S PHOTO CARD ======
         const todaysPhotos = (incidents || [])
             .filter(inc =>
                 inc.photos && inc.photos.length > 0 &&
@@ -200,8 +238,7 @@ export function WeeklyHome({
         const topToday = todaysPhotos[0];
         const topTodayUrl = topToday ? getFullImageUrl(topToday.photos[0]) : undefined;
 
-        // 2. Prepare Cards
-        const photoCard: FeedItem = {
+        items.push({
             id: 'todays-photo',
             type: 'photo',
             title: '今日の1枚',
@@ -211,34 +248,13 @@ export function WeeklyHome({
             onClick: handleTriggerCapture,
             icon: Camera,
             color: 'text-white'
-        };
+        });
 
-        const undoneTasks = (careItems || [])
-            .filter(t => !t.done && belongsToSelectedCats(t.catId))
-            .slice(0, 2);
-
-        const requestsCard: FeedItem = {
-            id: 'today-requests',
-            type: 'care',
-            title: '今日のおねがい',
-            listItems: undoneTasks.length > 0 ? undoneTasks.map(t => ({
-                label: t.label,
-                time: t.slot === 'morning' ? '午前中' : t.slot === 'evening' ? '夕方以降' : 'いつでも',
-                icon: Heart,
-                onClick: () => addCareLog(t.actionId || t.id, t.catId)
-            })) : undefined,
-            ctaLabel: undoneTasks.length > 0 ? undefined : 'もっと見る',
-            onClick: undoneTasks.length > 0 ? undefined : onOpenNewEvent,
-            icon: Heart,
-            color: 'text-slate-400'
-        };
-
-        // 5. Weekly Mission Card
+        // ====== WEEKLY MISSION CARD ======
         const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
         const missionIndex = weekNumber % POSE_MISSIONS.length;
         const currentMission = POSE_MISSIONS[missionIndex];
 
-        // Check if mission is completed (any this-week photo has this pose)
         const weekStart = currentWeekStart;
         const thisWeekIncidents = (incidents || []).filter(inc =>
             inc.photos && inc.photos.length > 0 &&
@@ -249,7 +265,7 @@ export function WeeklyHome({
             (inc as any).ai_analysis?.pose === currentMission.id
         );
 
-        const missionCard: FeedItem = {
+        items.push({
             id: 'weekly-mission',
             type: 'mission',
             title: currentMission.label,
@@ -257,34 +273,9 @@ export function WeeklyHome({
             missionDesc: currentMission.desc,
             missionCompleted,
             onClick: handleTriggerCapture,
-        };
+        });
 
-        // 6. Daily Prompt Card (replaces fortune)
-        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
-        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
-        const todayPrompt = DAILY_PROMPTS[promptIndex];
-
-        const promptCard: FeedItem = {
-            id: 'daily-prompt',
-            type: 'prompt',
-            title: todayPrompt.title,
-            content: todayPrompt.desc,
-            missionIcon: todayPrompt.icon,
-            onClick: handleTriggerCapture,
-        };
-
-        // Insert mission card after photo card (position 1 or 2)
-        if (topToday) {
-            items.push(requestsCard);
-            items.push(missionCard);
-            items.push(photoCard);
-        } else {
-            items.push(photoCard);
-            items.push(missionCard);
-            items.push(requestsCard);
-        }
-
-        // 7. Clinic Report Card
+        // ====== CLINIC REPORT (conditional — only if health incidents this week) ======
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         const healthIncidents = (incidents || []).filter(inc => {
             const d = new Date(inc.created_at);
@@ -292,41 +283,39 @@ export function WeeklyHome({
             return isHealthType && d >= weekStart && d <= weekEnd && belongsToSelectedCats(inc.cat_id);
         });
 
-        items.push({
-            id: 'clinic-report-card',
-            type: 'report',
-            title: '受診用レポート',
-            content: healthIncidents.length > 0
-                ? `今週は${healthIncidents.length}件の気になる症状がありました。`
-                : '今週の体調変化を獣医さんに。',
-            onClick: () => {
-                if (selectedCatIds?.length === 1) {
-                    setSelectedReportCatId(selectedCatIds[0]);
-                } else if (healthIncidents.length > 0) {
-                    setSelectedReportCatId(healthIncidents[0].cat_id);
+        if (healthIncidents.length > 0) {
+            items.push({
+                id: 'clinic-report-card',
+                type: 'report',
+                title: '受診用レポート',
+                content: `今週は${healthIncidents.length}件の気になる症状がありました。`,
+                onClick: () => {
+                    if (selectedCatIds?.length === 1) {
+                        setSelectedReportCatId(selectedCatIds[0]);
+                    } else if (healthIncidents.length > 0) {
+                        setSelectedReportCatId(healthIncidents[0].cat_id);
+                    }
+                    setShowReportConfig(true);
                 }
-                setShowReportConfig(true);
-            }
-        });
+            });
+        }
+
+        // ====== DAILY PROMPT (always last) ======
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
+        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
+        const todayPrompt = DAILY_PROMPTS[promptIndex];
 
         items.push({
-            id: 'sitter-report-card',
-            type: 'report',
-            title: '引継ぎシート',
-            content: 'シッターさんや預け先への詳細な指示をAIが作成します。',
-            onClick: () => {
-                if (selectedCatIds?.length === 1) {
-                    setSelectedSitterCatId(selectedCatIds[0]);
-                }
-                setShowSitterReportConfig(true);
-            }
+            id: 'daily-prompt',
+            type: 'prompt',
+            title: todayPrompt.title,
+            content: todayPrompt.desc,
+            missionIcon: todayPrompt.icon,
+            onClick: handleTriggerCapture,
         });
-
-        // 8. Daily Prompt (replacing fortune)
-        items.push(promptCard);
 
         return items;
-    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, onOpenNewEvent, setShowSitterReportConfig, setSelectedSitterCatId, setShowReportConfig, setSelectedReportCatId]);
+    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId]);
 
 
     // Initial measurement

@@ -26,11 +26,11 @@ import { format } from "date-fns";
 import { haptics } from "@/lib/haptics";
 import { SplashScreen } from "@/components/app/screens/splash-screen";
 import { SidebarMenu } from "@/components/app/shared/sidebar-menu";
-import { ImmersiveHome } from "@/components/app/home/immersive-home";
 import { WeeklyHome } from "@/components/app/home/weekly-home";
 import { DekigotoScreen } from "@/components/app/screens/dekigoto-screen";
 import { ToolsScreen } from "@/components/app/screens/tools-screen";
 import { ZukanScreen } from "@/components/app/screens/zukan-screen";
+import { SettingsScreen } from "@/components/app/screens/settings-screen";
 import { CaptureWorkflowSheet } from "@/components/app/shared/capture-workflow-sheet";
 import { FootprintProvider } from "@/providers/footprint-provider";
 import { BackdropSurface } from "@/components/ui/backdrop-surface";
@@ -70,12 +70,12 @@ const ObservationHistoryModal = dynamic(() => import("@/components/app/modals/ob
 
 function AppContent() {
   const [tab, setTab] = useState("home");
-  const [useWeeklyHome, setUseWeeklyHome] = useState(true);
   const [careSwipeMode, setCareSwipeMode] = useState(false);
   const [catSwipeMode, setCatSwipeMode] = useState(false);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showSettingsScreen, setShowSettingsScreen] = useState(false);
 
   const [openSection, setOpenSection] = useState<'care' | 'cat' | 'inventory' | 'activity' | 'settings' | 'report' | 'sitter' | 'trends' | 'exchange' | null>(null);
 
@@ -193,11 +193,12 @@ function AppContent() {
     Object.values(careGroups).forEach(group => {
       const uniqueTasks = Array.from(new Set(group.tasks)) as string[];
       const tasksLabel = uniqueTasks.length > 1 ? `${uniqueTasks[0]}ほか${uniqueTasks.length - 1}件` : uniqueTasks[0];
+      const catName = group.catId ? cats?.find(c => c.id === group.catId)?.name : null;
       items.push({
         id: group.ids[0],
         type: 'care',
-        title: `${tasksLabel}${group.catId ? `（${cats?.find(c => c.id === group.catId)?.name}）` : ''}`,
-        message: `${group.userName}が完了しました。`,
+        title: catName ? `${catName}のお世話完了` : `お世話完了`,
+        message: `${group.userName}さんが${tasksLabel}をしました。`,
         timestamp: group.timestamp,
         isUnread: group.timestamp > lastViewedAt,
         targetDate: group.timestamp,
@@ -221,11 +222,25 @@ function AppContent() {
       else if (inc.type === 'hospital') iconNode = <Stethoscope className="w-5 h-5 text-rose-500" />;
       else if (inc.type === 'medicine') iconNode = <Pill className="w-5 h-5 text-blue-500" />;
 
+      const typeLabels: Record<string, string> = {
+        'worried': '気になる様子',
+        'troubled': '困りごと',
+        'hospital': '通院記録',
+        'medicine': 'おくすり記録',
+        'vomit': '吐き戻し',
+        'diarrhea': '下痢',
+        'injury': 'けが',
+        'appetite': '食欲の変化',
+        'energy': '元気の変化',
+      };
+      const typeLabel = typeLabels[inc.type] || 'できごと';
+
       items.push({
         id: inc.id,
         type: (['worried', 'troubled'].includes(inc.type) ? 'alert' : 'care'),
-        title: `${catName}の記録`,
-        message: `${userName}が記録しました。${inc.note ? `\n"${inc.note}"` : ''}`,
+        title: `${catName}の${typeLabel}`,
+        message: `${userName}さんが記録しました。${inc.note ? `
+"${inc.note}"` : ''}`,
         timestamp,
         isUnread: timestamp > lastViewedAt,
         incidentId: inc.id,
@@ -237,11 +252,14 @@ function AppContent() {
     cats?.forEach(cat => {
       cat.images?.forEach((img: any) => {
         const timestamp = new Date(img.createdAt);
+        const uploaderName = img.uploaded_by
+          ? (householdUsers?.find((m: any) => m.id === img.uploaded_by)?.display_name || '家族')
+          : 'あなた';
         items.push({
           id: img.id,
           type: 'photo',
           title: `${cat.name}の新しい写真`,
-          message: img.memo || "可愛い写真が届きました 💕",
+          message: `${uploaderName}さんが写真を追加しました。${img.memo ? ` 「${img.memo}」` : ''}`,
           timestamp,
           isUnread: timestamp > lastViewedAt,
           targetDate: timestamp,
@@ -356,6 +374,9 @@ function AppContent() {
       } else if (section === 'inventory') {
         setTab("home");
         setOpenSection('inventory');
+      } else if (section === 'settings') {
+        setShowSidebar(false);
+        setShowSettingsScreen(true);
       }
     }
   };
@@ -374,6 +395,15 @@ function AppContent() {
         onClose={() => setShowSidebar(false)}
         onNavigate={handleSidebarNavigate}
       />
+
+      <AnimatePresence>
+        {showSettingsScreen && (
+          <SettingsScreen
+            isOpen={showSettingsScreen}
+            onClose={() => setShowSettingsScreen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <BackdropSurface
         isRevealed={showNyannlogSheet}
@@ -427,42 +457,22 @@ function AppContent() {
                   }}
                   className="fixed inset-0 z-0"
                 >
-                  {useWeeklyHome ? (
-                    <WeeklyHome
-                      onOpenSidebar={() => setShowSidebar(true)}
-                      onOpenNewEvent={() => handleOpenNyannlog('input')}
-                      onNavigate={(t) => setTab(t)}
-                      onToggleView={() => setUseWeeklyHome(!useWeeklyHome)}
-                      selectedCatIds={[]}
-                      // Lifted Props for Dock
-                      onOpenCalendar={() => setShowCalendar(true)}
-                      onOpenExchange={() => setShowThemeExchange(true)}
-                      onOpenPhoto={() => setShowPhotoListSheet(true)}
-                      onOpenGallery={() => setTab("gallery")}
-                      onOpenIncident={() => setShowIncidentListSheet(true)}
-                      onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
-                      selectedDate={calendarDate}
-                      onDateChange={setCalendarDate}
-                    />
-                  ) : (
-                    <ImmersiveHome
-                      onOpenSidebar={() => setShowSidebar(true)}
-                      onNavigate={(t) => setTab(t)}
-                      onOpenCalendar={() => setShowCalendar(true)}
-                      onCatClick={() => setTab("cat")}
-                      onSelectItem={handleSelectItem}
-                      // Lifted Props
-                      onOpenExchange={() => setShowThemeExchange(true)}
-                      onOpenPhoto={() => setShowPhotoListSheet(true)}
-                      onOpenGallery={() => setTab("gallery")}
-                      onOpenIncident={() => setShowIncidentListSheet(true)}
-                      onOpenIncidentDetail={handleOpenIncidentDetail}
-                      onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
-                      isNyannlogOpen={showNyannlogSheet}
-                      onToggleView={() => setUseWeeklyHome(true)}
-                    />
-                  )}
+                  <WeeklyHome
+                    onOpenSidebar={() => setShowSidebar(true)}
+                    onOpenNewEvent={() => handleOpenNyannlog('input')}
+                    onNavigate={(t) => setTab(t)}
+                    selectedCatIds={[]}
+                    // Lifted Props for Dock
+                    onOpenCalendar={() => setShowCalendar(true)}
+                    onOpenExchange={() => setShowThemeExchange(true)}
+                    onOpenPhoto={() => setShowPhotoListSheet(true)}
+                    onOpenGallery={() => setTab("gallery")}
+                    onOpenIncident={() => setShowIncidentListSheet(true)}
+                    onOpenIncidentDetail={handleOpenIncidentDetail}
+                    onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
+                    selectedDate={calendarDate}
+                    onDateChange={setCalendarDate}
+                  />
                 </motion.div>
               )}
 
@@ -596,25 +606,12 @@ function AppContent() {
                   exit={{ opacity: 0, x: 20 }}
                 >
                   <ToolsScreen
-                    onOpenReport={() => {
-                      setTab("home");
-                      setOpenSection('report');
-                    }}
-                    onOpenTrends={() => {
-                      setTab("home");
-                      setOpenSection('trends');
-                    }}
-                    onOpenInventory={() => {
-                      setTab("home");
-                      setOpenSection('inventory');
-                    }}
-                    onOpenSitter={() => {
-                      setTab("home");
-                      setOpenSection('sitter');
-                    }}
-                    onOpenCareManagement={() => {
-                      handleOpenNyannlog('events');
-                    }}
+                    onOpenReport={() => setOpenSection('report')}
+                    onOpenTrends={() => setOpenSection('trends')}
+                    onOpenInventory={() => setOpenSection('inventory')}
+                    onOpenSitter={() => setOpenSection('sitter')}
+                    onOpenCareManagement={() => setOpenSection('care')}
+                    onSelectPhoto={(id) => setSelectedIncidentId(id)}
                   />
                 </motion.div>
               )}
@@ -622,54 +619,6 @@ function AppContent() {
 
 
 
-
-              {/* Camera Tab Action */}
-              {tab === "camera" && (
-                <motion.div
-                  key="camera-action"
-                  className="fixed inset-0 z-[10006] bg-black flex flex-col items-center justify-center"
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="写真の追加・撮影"
-                >
-                  <div className="absolute top-6 right-6">
-                    <button
-                      onClick={() => setTab("home")}
-                      className="p-2 bg-white/20 rounded-full text-white"
-                      aria-label="閉じる"
-                    >
-                      <X className="w-8 h-8" />
-                    </button>
-                  </div>
-                  <Cat className="w-24 h-24 text-brand-peach mb-8 animate-pulse" aria-hidden="true" />
-                  <h2 className="text-white text-xl font-bold mb-4">写真を撮って図鑑に登録</h2>
-                  <div className="flex gap-6">
-                    <button
-                      onClick={() => {
-                        setShowPhotoModal(true);
-                        setTab("home");
-                      }}
-                      className="px-8 py-4 bg-brand-peach text-white rounded-full font-bold shadow-lg"
-                      aria-label="カメラを起動して撮影する"
-                    >
-                      カメラを起動
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowPhotoListSheet(true);
-                        setTab("home");
-                      }}
-                      className="px-8 py-4 bg-white/10 text-white border border-white/20 rounded-full font-bold"
-                      aria-label="フォトライブラリ・ギャラリーから選ぶ"
-                    >
-                      ギャラリーから選ぶ
-                    </button>
-                  </div>
-                </motion.div>
-              )}
             </AnimatePresence>
 
             {/* Global Navigation Bar */}

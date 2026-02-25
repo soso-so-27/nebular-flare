@@ -75,37 +75,35 @@ export const NyannlogHeaderV2 = ({
                     <X className={cn("w-5 h-5", activeTab === 'requests' ? "text-[#1c1c1e]/40" : "text-[#E6D5CC]")} />
                 </motion.button>
 
-                {/* Center Tabs (Simplified/Unified) */}
+                {/* Center Tabs - Unified 3-tab navigation */}
                 <div className={cn(
-                    "absolute left-1/2 transform -translate-x-1/2 flex items-center p-1 backdrop-blur-md rounded-full shadow-xl z-40 pointer-events-auto",
+                    "absolute left-1/2 transform -translate-x-1/2 flex items-center gap-0.5 p-1 backdrop-blur-md rounded-full shadow-xl z-40 pointer-events-auto",
                     activeTab === 'requests'
                         ? "bg-black/5 border border-black/5"
                         : "bg-[#18181B]/80 border border-white/10"
                 )}>
-                    {activeTab === 'requests' ? (
-                        <>
-                            <button
-                                onClick={() => setRequestsSubTab?.('today')}
-                                className={cn(
-                                    "px-4 py-1.5 rounded-full text-xs font-bold transition-all relative overflow-hidden whitespace-nowrap",
-                                    requestsSubTab === 'today' ? "text-[#3D3A36] bg-brand-peach shadow-sm" : "text-[#1c1c1e]/30 hover:text-[#1c1c1e]/50"
-                                )}
-                            >
-                                おねがい
-                            </button>
-                            <button
-                                onClick={() => setRequestsSubTab?.('history')}
-                                className={cn(
-                                    "px-4 py-1.5 rounded-full text-xs font-bold transition-all relative overflow-hidden whitespace-nowrap",
-                                    requestsSubTab === 'history' ? "text-[#3D3A36] bg-brand-peach shadow-sm" : "text-[#1c1c1e]/30 hover:text-[#1c1c1e]/50"
-                                )}
-                            >
-                                りれき
-                            </button>
-                        </>
-                    ) : (
-                        <div className="px-4 py-1.5 text-xs font-bold text-white/70">できごと</div>
-                    )}
+                    {([
+                        { id: 'events' as const, label: '記録', icon: BookOpen },
+                        { id: 'requests' as const, label: 'おねがい', icon: Heart },
+                    ] as const).map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={cn(
+                                "flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap",
+                                activeTab === tab.id
+                                    ? activeTab === 'requests'
+                                        ? "text-[#3D3A36] bg-brand-peach shadow-sm"
+                                        : "text-white bg-white/20 shadow-sm"
+                                    : activeTab === 'requests'
+                                        ? "text-[#1c1c1e]/30 hover:text-[#1c1c1e]/50"
+                                        : "text-white/30 hover:text-white/50"
+                            )}
+                        >
+                            <tab.icon className="w-3 h-3" />
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Spacer for Right side */}
@@ -147,7 +145,7 @@ export const NyannlogHeaderV2 = ({
                                     { id: 'photo', label: '写真' },
                                     { id: 'chat', label: '相談' },
                                     { id: 'health', label: '健康' },
-                                    { id: 'bookmark', label: '重要' },
+                                    { id: 'bookmark', label: 'ブックマーク' },
                                 ].map((f) => (
                                     <SelectItem key={f.id} value={f.id} className="text-[10px] font-bold text-[#1c1c1e]">
                                         {f.label}

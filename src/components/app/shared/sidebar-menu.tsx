@@ -271,7 +271,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     </button>
 
                     <button
-                        onClick={() => pushView('settings')}
+                        onClick={() => { onNavigate('settings'); onClose(); }}
                         className="flex items-center gap-3 p-4 rounded-3xl bg-white/20 dark:bg-white/5 border border-white/20 hover:bg-white/30 transition-all group"
                     >
                         <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
@@ -566,7 +566,7 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         animate="visible"
                         exit="exit"
                         className="fixed inset-x-0 bottom-0 z-[10001]"
-                        drag={viewStack.length === 1 ? "y" : false}
+                        drag="y"
                         dragConstraints={{ top: 0 }}
                         dragElastic={0.2}
                         onDragEnd={(_, info) => {
@@ -608,9 +608,10 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
 
                                 <button
                                     onClick={onClose}
-                                    className="w-8 h-8 rounded-full bg-white/40 flex items-center justify-center hover:bg-white/60 transition-colors shadow-sm"
+                                    className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center hover:bg-white/60 transition-colors shadow-sm"
+                                    aria-label="メニューを閉じる"
                                 >
-                                    <X className="w-4 h-4 text-slate-500" />
+                                    <X className="w-5 h-5 text-slate-500" />
                                 </button>
                             </div>
 
@@ -660,6 +661,16 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                         {activeView === 'notifications' && <NotificationsView />}
                                     </motion.div>
                                 </AnimatePresence>
+                            </div>
+
+                            {/* Bottom Close Bar for Mobile */}
+                            <div className="px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-2 shrink-0 relative z-10">
+                                <button
+                                    onClick={onClose}
+                                    className="w-full py-3 rounded-2xl bg-[#F2EFEA] dark:bg-white/10 text-[#787570] dark:text-[#A6A29A] text-[14px] font-bold tracking-wide active:scale-[0.98] transition-transform"
+                                >
+                                    閉じる
+                                </button>
                             </div>
                         </div>
                     </motion.div>
