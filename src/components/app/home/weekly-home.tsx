@@ -60,6 +60,7 @@ import { ReportConfigModal } from "../modals/report-config-modal";
 import { MedicalReportView } from "../shared/medical-report-view";
 import { useAuth } from "@/providers/auth-provider";
 import { ReportConfigData, SitterReportData, Incident } from "@/types";
+import { toast } from "sonner";
 import { SitterReportConfigModal } from "../modals/sitter-report-config-modal";
 import { SitterReportView } from "../shared/sitter-report-view";
 import { LayoutIslandNeo } from "../immersive/layout-island-neo";
@@ -70,7 +71,7 @@ import { useMemories } from "@/hooks/use-memories";
 const HEADER_BAR_HEIGHT = 56;
 const BENTO_TOP_GAP = 16;
 const BENTO_BOTTOM_GAP = 16;
-const CAROUSEL_AREA_HEIGHT = 160;
+const CAROUSEL_AREA_HEIGHT = 180;
 const FAB_HEIGHT = 56;
 const FAB_BOTTOM_PADDING = 12;
 const HAIRLINE = 1;
@@ -177,6 +178,8 @@ export function WeeklyHome({
         onOpenPhoto();
     }, [onOpenPhoto]);
 
+    const handleDaySelect = useCallback((day: Date) => setSelectedDay(day), []);
+
     // Generate Smart Feed Items
     const feedItems = useMemo(() => {
         const items: FeedItem[] = [];
@@ -218,7 +221,10 @@ export function WeeklyHome({
                     label: t.label,
                     time: t.slot === 'morning' ? '午前中' : t.slot === 'evening' ? '夕方以降' : 'いつでも',
                     icon: Heart,
-                    onClick: () => addCareLog(t.actionId || t.id, t.catId)
+                    onClick: async () => {
+                        await addCareLog(t.actionId || t.id, t.catId);
+                        toast.success(`✅ ${t.label} 完了！`, { duration: 2000 });
+                    }
                 })) : undefined,
                 content: doneTasks >= totalTasks ? '全部おわったよ！えらい 🎉' : undefined,
                 ctaLabel: undoneTasks.length === 0 ? 'もっと見る' : undefined,
@@ -328,11 +334,13 @@ export function WeeklyHome({
                 imageUrl: memory.imageUrl,
                 memoryLabel: memory.label,
                 catName: memory.catName,
+                dateLabel: format(memory.date, 'yyyy/M/d'),
+                onClick: () => handleDaySelect(memory.date),
             });
         }
 
         return items;
-    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId, memories]);
+    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, handleDaySelect, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId, memories]);
 
 
     // Initial measurement
@@ -403,7 +411,6 @@ export function WeeklyHome({
 
     const handlePrevWeek = useCallback(() => setCurrentWeekStart(prev => subWeeks(prev, 1)), []);
     const handleNextWeek = useCallback(() => setCurrentWeekStart(prev => addWeeks(prev, 1)), []);
-    const handleDaySelect = useCallback((day: Date) => setSelectedDay(day), []);
     const handleBackToGrid = useCallback(() => setSelectedDay(null), []);
 
 
@@ -441,9 +448,12 @@ export function WeeklyHome({
                             <ChevronLeft className="w-5 h-5 text-[#4E342E]/70" />
                         </button>
 
-                        <span className="mx-1 text-[#4E342E]/90 font-bold tracking-wide tabular-nums font-serif">
+                        <button
+                            onClick={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                            className="mx-1 text-[#4E342E]/90 font-bold tracking-wide tabular-nums font-serif hover:text-brand-peach transition-colors cursor-pointer"
+                        >
                             {weekRangeLabel}
-                        </span>
+                        </button>
 
                         <button onClick={handleNextWeek} className="p-1.5 rounded-full hover:bg-[#4E342E]/10">
                             <ChevronRight className="w-5 h-5 text-[#4E342E]/70" />
@@ -483,7 +493,7 @@ export function WeeklyHome({
                             weekDays={weekDays}
                             selectedCatIds={selectedCatIds}
                             onDaySelect={handleDaySelect}
-                            onQuickPost={handleTriggerCapture}
+                            onQuickPost={onOpenNewEvent}
                             layoutData={layoutData}
                         />
 

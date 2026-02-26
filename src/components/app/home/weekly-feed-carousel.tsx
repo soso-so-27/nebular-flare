@@ -243,14 +243,14 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             </p>
             <div className="flex items-center justify-between mt-2 relative z-10">
                 {item.missionCompleted ? (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#34C759]/10 rounded-full border border-[#34C759]/20">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#34C759]/10 rounded-xl border border-[#34C759]/20">
                         <span className="text-[9px]">✅</span>
                         <span className="text-[9px] font-black text-[#34C759]">達成！</span>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-full border border-[#FF9500]/15">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-xl border border-[#FF9500]/15">
                         <Camera className="w-2.5 h-2.5 text-[#FF9500]" />
-                        <span className="text-[9px] font-black text-[#FF9500]">撮ってクリア</span>
+                        <span className="text-[9px] font-black text-[#FF9500]">きろくしてクリア</span>
                     </div>
                 )}
                 <div className="flex gap-[3px]">
@@ -278,8 +278,8 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                 {item.content}
             </p>
             <div className="mt-2">
-                <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-full text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
-                    撮ってみよう →
+                <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-xl text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
+                    きろくしよう →
                 </div>
             </div>
         </div>
@@ -311,9 +311,9 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     <div className="flex items-center gap-[5px] mt-auto mb-1">
                         {DAY_LABELS.map((label, i) => (
                             <div key={i} className="flex flex-col items-center gap-0.5">
-                                <span className={`text-[7px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'
+                                <span className={`text-[8px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'
                                     }`}>{label}</span>
-                                <div className={`w-3 h-3 rounded-full border transition-all ${dots[i]
+                                <div className={`w-4 h-4 rounded-full border transition-all ${dots[i]
                                     ? 'bg-brand-peach border-brand-peach shadow-[0_0_6px_rgba(232,180,160,0.5)]'
                                     : i === todayIdx
                                         ? 'border-brand-peach/50 bg-brand-peach/10'
@@ -340,7 +340,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-brand-peach/[0.04] space-y-1.5">
                             <Camera className="w-5 h-5 text-brand-peach/30" />
-                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">タップして撮影</span>
+                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">タップしてきろく</span>
                         </div>
                     )}
                 </div>
@@ -439,7 +439,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             >
                 <div className="relative flex items-center">
                     <h2 className="text-[10px] font-black text-[#4E342E]/30 uppercase tracking-[0.2em] leading-none m-0 font-sans">
-                        チェックリスト
+                        ダイジェスト
                     </h2>
                 </div>
             </div>
