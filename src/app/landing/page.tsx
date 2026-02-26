@@ -33,7 +33,7 @@ const Navbar = () => (
             <div className="w-8 h-8 md:w-10 md:h-10 bg-[#E8B4A0] rounded-xl md:rounded-2xl flex items-center justify-center shadow-sm">
                 <CatIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <span className="text-lg md:text-xl font-bold text-[#4E342E] tracking-tight font-serif">NyaruHD</span>
+            <span className="text-lg md:text-xl font-bold text-[#4E342E] tracking-tight font-serif">にゃるほど</span>
         </div>
         <div className="flex items-center gap-4">
             <Link href="/" className="text-xs md:text-sm font-bold text-[#4E342E]/60 hover:text-[#4E342E] transition-colors">
@@ -155,16 +155,16 @@ const Hero = () => (
                 </div>
 
                 <h1 className="text-[clamp(2.5rem,8.5vw,4.8rem)] font-bold text-[#4E342E] leading-[1.05] mb-8 font-serif">
-                    一日一枚の記録が、<br />
-                    一生の宝物になる。
+                    静かに、美しく残す。<br />
+                    猫のためのジャーナル。
                 </h1>
 
                 {/* 3 Point Benefits */}
                 <div className="space-y-4 mb-10 border-l-2 border-[#E8B4A0]/30 pl-6 py-2">
                     {[
-                        "1日1枚、迷わず残せる手間いらずの体験",
-                        "日付と猫ごとに、AIが自動でお部屋を整理",
-                        "あとで見返すたび、日々の愛おしさが作品に"
+                        "1日1枚、迷わず残せる「きょうの1枚」",
+                        "お世話や体調を記録する「受診レポート」共有",
+                        "手帳のように一望できる「ホーム・ダイジェスト」"
                     ].map((text, i) => (
                         <motion.div
                             key={i}
@@ -182,7 +182,7 @@ const Hero = () => (
                 </div>
 
                 <p className="text-lg md:text-xl text-[#4E342E]/70 mb-10 font-bold italic">
-                    「撮るだけで、あとから探せる“猫のアルバム”になる」
+                    「撮るだけで、あとから探せるプレミアムな猫手帳」
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
@@ -318,26 +318,26 @@ const FeaturesTour = () => (
                 <FeatureSection
                     tag="Atlas"
                     icon={Layers}
-                    title="AI自動図鑑「Atlas」"
-                    desc="アップロードした写真は、AIが猫の仕草や場所を自動解析。整理に時間をかけず、愛でる時間を増やしましょう。"
-                    features={["AI自動タグ付け", "快適なアルバム検索", "一括整理機能"]}
+                    title="手帳風インデックス「ダイジェスト」"
+                    desc="毎日の「今日のおねがい（タスク）」や「きょうの1枚」を、洗練されたウィジェット形式でホーム画面に集約。美しい手帳を開くような体験を提供します。"
+                    features={["今日のおねがい", "きょうの1枚", "今週のテーマ"]}
                     image="https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=1000"
                 />
                 <FeatureSection
                     tag="Timeline"
                     icon={Users}
                     reverse
-                    title="家族専用「タイムライン」"
-                    desc="LINEやSNSとは違う、猫だけの特別な場所。家族全員の「お世話」と「気づき」が、温かくリアルタイムに流れます。"
-                    features={["お世話通知", "家族コメント", "愛猫専用アルバム"]}
+                    title="家族とゆるやかにつながる場所"
+                    desc="LINEやSNSのタイムラインとは異なり、猫のためだけの静かな空間。お世話の完了状況や「今日のおねがい」を家族全員でスムーズに共有できます。"
+                    features={["お世話通知・完了共有", "家族の「いいね」機能", "洗練されたUIでの対話"]}
                     image="https://images.unsplash.com/photo-1606214174585-fe31582dc6ee?auto=format&fit=crop&q=80&w=1000"
                 />
                 <FeatureSection
                     tag="Rewind"
                     icon={Calendar}
-                    title="思い出の再会「Rewind」"
-                    desc="1年前の今日、あの子は何をしてた？ 過去の写真を「For You」としてお届け。懐かしい瞬間に毎日出会えます。"
-                    features={["週刊思い出アルバム", "過去の今日表示", "通知で届く思い出"]}
+                    title="過去と出逢う「思い出（Rewind）」"
+                    desc="1年前、1ヶ月前の今日、あの子は何をしてた？ 過去の何気ない写真を美しいセピアのカードとして毎日のダイジェストへお届けします。"
+                    features={["1年前の今日を振り返る", "過去カードの自動生成", "日々の記録を宝物にするAI"]}
                     image="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&q=80&w=1000"
                 />
                 <FeatureSection
@@ -345,8 +345,8 @@ const FeaturesTour = () => (
                     icon={Heart}
                     reverse
                     title="確かな安心に「受診レポート」"
-                    desc="診察室で「最近はどうですか？」と聞かれても安心。日々の健康記録を、獣医師へ伝えるための正確なレポートにまとめます。"
-                    features={["受診用PDF出力", "体重トレンド確認", "1分で状況共有"]}
+                    desc="診察室で「最近はどうですか？」と聞かれても安心。日々の「気がかり」や健康状態のメモを、獣医師へそのまま見せられるレポートに整えます。"
+                    features={["ダイジェストから即記録", "気がかり機能", "1分で状況共有"]}
                     image="https://images.unsplash.com/photo-1599443015574-be5fe8a044b8?auto=format&fit=crop&q=80&w=1000"
                 />
             </div>
@@ -421,7 +421,7 @@ const PricingSection = () => (
                         {[
                             "1ヶ月無料トライアル",
                             "高画質写真の無制限保存",
-                            "AI自動図鑑 Atlas",
+                            "ジャーナル・ダイジェスト機能",
                             "家族共有（最大2人）",
                             "受診レポート作成"
                         ].map((item, i) => (
@@ -539,7 +539,7 @@ export default function LandingPage() {
                         </h2>
                         <p className="text-base md:text-lg text-[#4E342E]/50 font-medium leading-loose">
                             スマホに溢れる写真。忙しい日々に埋もれていく「可愛い」の瞬間。<br />
-                            NyaruHDは、そのバラバラな日常を、一生モノの鮮明な物語に整えます。
+                            にゃるほどは、そのバラバラな日常を、一生モノの鮮明な物語に整えます。
                         </p>
                     </div>
                 </section>

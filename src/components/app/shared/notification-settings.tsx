@@ -74,8 +74,8 @@ export function NotificationSettings() {
         cardBg: 'bg-card',
         cardBorder: 'border-border',
         toggleOff: 'bg-slate-200 dark:bg-slate-700',
-        peach: { bg: 'bg-brand-peach/20', text: 'text-brand-peach', highlight: 'bg-brand-peach' },
-        sage: { bg: 'bg-brand-sage/20', text: 'text-brand-sage', highlight: 'bg-brand-sage' },
+        peach: { bg: 'bg-brand-peach/10', text: 'text-brand-peach', highlight: 'bg-brand-peach' },
+        slate: { bg: 'bg-slate-50', text: 'text-slate-500', highlight: 'bg-slate-600' },
     };
 
     const DiagnosticTools = () => (
@@ -142,7 +142,7 @@ export function NotificationSettings() {
                             toast.error(`エラー: ${e.message?.slice(0, 50)}`);
                         }
                     }}
-                    className={`py-2 px-3 ${colors.sage.bg} ${colors.sage.text} rounded-xl text-[10px] font-bold border border-brand-sage/20 hover:bg-brand-sage/10 transition-colors flex items-center justify-center gap-2`}
+                    className={`py-2 px-3 ${colors.peach.bg} ${colors.peach.text} rounded-xl text-[10px] font-bold border border-brand-peach/20 hover:bg-brand-peach/20 transition-colors flex items-center justify-center gap-2`}
                 >
                     <Bell className="w-3 h-3" />
                     <span>通知テスト</span>
@@ -160,9 +160,9 @@ export function NotificationSettings() {
     if (permission === 'granted') {
         return (
             <div className="space-y-4">
-                <div className={`p-4 ${colors.sage.bg} rounded-2xl border border-white/50 flex items-center justify-between`}>
+                <div className={`p-4 ${colors.peach.bg} rounded-2xl border border-brand-peach/10 flex items-center justify-between`}>
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 bg-white rounded-full ${colors.sage.text} shadow-sm`}>
+                        <div className={`p-2 bg-white rounded-full ${colors.peach.text} shadow-sm`}>
                             <Bell className="w-5 h-5" />
                         </div>
                         <div>
@@ -262,7 +262,7 @@ export function NotificationSettings() {
                                 <select
                                     value={preferences.notification_hour ?? 20}
                                     onChange={(e) => updatePreference('notification_hour', parseInt(e.target.value))}
-                                    className={`px-4 py-2 text-sm ${colors.bg} rounded-xl border-none focus:ring-2 focus:ring-brand-sage ${colors.text} cursor-pointer`}
+                                    className={`px-4 py-2 text-sm ${colors.bg} rounded-xl border-none focus:ring-2 focus:ring-brand-peach ${colors.text} cursor-pointer`}
                                 >
                                     <option value={-1}>指定なし</option>
                                     <option value={8}>朝 8:00</option>
@@ -308,7 +308,7 @@ export function NotificationSettings() {
     return (
         <div className={`p-6 ${colors.cardBg} backdrop-blur-md rounded-3xl border ${colors.cardBorder} shadow-sm space-y-4 text-center`}>
             <div className="flex flex-col items-center gap-3 mb-2">
-                <div className={`p-4 ${colors.sage.bg} rounded-full ${colors.sage.text}`}>
+                <div className={`p-4 ${colors.peach.bg} rounded-full ${colors.peach.text}`}>
                     <Bell className="w-8 h-8" />
                 </div>
                 <div>
@@ -319,7 +319,7 @@ export function NotificationSettings() {
             <button
                 onClick={handleEnable}
                 disabled={loading}
-                className={`w-full py-3 ${colors.sage.highlight} text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-sage/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
+                className={`w-full py-3 ${colors.peach.highlight} text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-peach/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
             >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {!swReady && !loading ? '通知を準備中...' : (loading ? '処理中...' : '通知をオンにする')}

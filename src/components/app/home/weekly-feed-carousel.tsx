@@ -354,16 +354,17 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     <img src={item.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: 'sepia(0.3) saturate(0.8)' }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#3E2723]/80 via-[#3E2723]/20 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[#3E2723]/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#3E2723]/70 via-[#3E2723]/10 to-transparent h-[50%]" />
                 </>
             ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[#5D4037] to-[#3E2723]" />
             )}
 
             {/* Content overlay */}
-            <div className="relative z-10 flex flex-col p-4 w-full">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-white/50" />
-                    <h3 className="text-[9px] font-black uppercase tracking-wider text-white/40">{item.memoryLabel || '思い出'}</h3>
+            <div className="relative z-10 flex flex-col p-4 w-full h-full justify-between">
+                <div className="flex items-center gap-1.5 mb-1.5 drop-shadow-md">
+                    <Clock className="w-3.5 h-3.5 text-white/90" />
+                    <h3 className="text-[9px] font-black uppercase tracking-wider text-white/90">{item.memoryLabel || '思い出'}</h3>
                 </div>
 
                 <div className="mt-auto">

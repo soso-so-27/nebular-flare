@@ -1,28 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    X, Bell, Settings, ChevronRight, Check,
-    Heart, Cat, ShoppingCart, Calendar, Activity, Image as ImageIcon,
-    ChevronLeft, Package, Sparkles, ClipboardList, ShoppingBag, Grid, LogOut, User, ArrowUpRight, BookOpen
+    X, Bell, Settings, ChevronRight,
+    Cat, LogOut, User, Edit2, Check, Loader2
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import {
     useCatContext,
     useCareContext,
-    useInventoryContext,
     useSettingsContext,
     useCoreContext
 } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { createClient } from '@/lib/supabase';
 import { Switch } from "@/components/ui/switch";
 import { NotificationSettings } from "./notification-settings";
-import { ActivityFeed } from "./activity-feed";
 import { CatSettingsModal } from "../modals/cat-settings-modal";
 import { CareSettingsModal } from "../modals/care-settings-modal";
-import { NoticeSettingsModal } from "../modals/notice-settings-modal";
-import { InventorySettingsModal } from "../modals/inventory-settings-modal";
 import { FamilyMemberModal } from "../modals/family-member-modal";
 
 interface SidebarMenuProps {
@@ -35,111 +29,26 @@ interface SidebarMenuProps {
 type MenuLevel = 'root' | 'care' | 'observation' | 'inventory' | 'activity' | 'settings' | 'notifications';
 
 export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: SidebarMenuProps) {
-    const { user } = useAuth();
-    const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'ユーザー';
+    const { user, signOut, updateProfile } = useAuth();
+    const userName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'ユーザー';
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    // Navigation Stack
-    const [viewStack, setViewStack] = useState<MenuLevel[]>(['root']);
-    const [direction, setDirection] = useState(0); // 1 for push (right), -1 for pop (left)
-
-    // Initial Deep Link
-    useEffect(() => {
-        if (isOpen) {
-            if (defaultSection) {
-                setViewStack(['root', defaultSection]);
-            } else {
-                setViewStack(['root']);
-            }
-        }
-    }, [isOpen, defaultSection]);
-
-    const activeView = viewStack[viewStack.length - 1];
-
-    const pushView = (view: MenuLevel) => {
-        setDirection(1);
-        setViewStack(prev => [...prev, view]);
-    };
-
-    const popView = () => {
-        if (viewStack.length > 1) {
-            setDirection(-1);
-            setViewStack(prev => prev.slice(0, -1));
-        } else {
-            onClose();
-        }
-    };
+    // Profile Name Edit States
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [newName, setNewName] = useState(userName);
+    const [isSavingName, setIsSavingName] = useState(false);
 
     // State Hooks
     const { activeCatId } = useCatContext();
-    const {
-        careTaskDefs,
-        careLogs,
-        noticeDefs,
-        noticeLogs,
-        addCareLog,
-        addObservation
-    } = useCareContext();
-    const { inventory, setInventory, updateInventoryItem } = useInventoryContext();
     const { settings, aiEnabled, setAiEnabled, setSettings, isPro, setIsPro } = useSettingsContext();
     const { isDemo } = useCoreContext();
 
-    // Modal states - moved to SidebarMenu level to persist across re-renders
+    // Modal states
     const [isCareModalOpen, setIsCareModalOpen] = useState(false);
     const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-    const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
-    const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
     const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
 
     const { dayStartHour } = settings;
-
-    // --- Logic Reuse (Calculations) ---
-    // Calculate "today"
-    const today = useMemo(() => {
-        const now = new Date();
-        const currentHour = now.getHours();
-        if (currentHour < dayStartHour) {
-            now.setDate(now.getDate() - 1);
-        }
-        return now.toISOString().split('T')[0];
-    }, [dayStartHour]);
-
-    const getSlotLabel = (slot: string) => {
-        switch (slot) {
-            case 'morning': return '朝';
-            case 'noon': return '昼';
-            case 'evening': return '夕';
-            case 'night': return '夜';
-            default: return '';
-        }
-    };
-
-    // Care Items Calculation
-    const careItems = useMemo(() => {
-        if (!careTaskDefs) return [];
-        return careTaskDefs
-            .filter(def => def.enabled !== false)
-            .flatMap(def => {
-                const slots = (def.mealSlots && def.mealSlots.length > 0) ? def.mealSlots : [null];
-
-                return slots.map(slot => {
-                    const type = slot ? `${def.id}:${slot}` : def.id;
-                    const label = slot ? `${def.title}（${getSlotLabel(slot)}）` : def.title;
-                    const taskLogs = careLogs.filter(log => log.type === type);
-                    let isDone = false;
-                    if (taskLogs.length > 0) {
-                        const sortedLogs = [...taskLogs].sort((a, b) =>
-                            new Date(b.done_at).getTime() - new Date(a.done_at).getTime()
-                        );
-                        const lastLog = sortedLogs[0];
-                        const adjustedLogDate = new Date(lastLog.done_at);
-                        adjustedLogDate.setHours(adjustedLogDate.getHours() - dayStartHour);
-                        const logDateStr = adjustedLogDate.toISOString().split('T')[0];
-                        isDone = logDateStr === today;
-                    }
-                    return { id: type, label, icon: def.icon, type, done: isDone };
-                });
-            });
-    }, [careTaskDefs, careLogs, today, dayStartHour]);
 
     // Animation Variants
     const sheetVariants = {
@@ -148,254 +57,61 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
         exit: { y: "100%", transition: { type: "spring" as const, damping: 30, stiffness: 300 } }
     };
 
-    const contentVariants = {
-        enter: (dir: number) => ({
-            x: dir > 0 ? "100%" : "-30%",
-            opacity: 0,
-        }),
-        center: {
-            x: 0,
-            opacity: 1,
-            transition: { type: "spring" as const, stiffness: 300, damping: 30 }
-        },
-        exit: (dir: number) => ({
-            x: dir > 0 ? "-30%" : "100%",
-            opacity: 0,
-            transition: { type: "spring" as const, stiffness: 300, damping: 30 }
-        })
+    // Logout Handler
+    const handleLogout = async () => {
+        if (isDemo) {
+            toast.info("デモモードではログアウトできません");
+            return;
+        }
+
+        setIsLoggingOut(true);
+        try {
+            await signOut();
+            toast.success("ログアウトしました");
+            window.location.href = "/";
+        } catch (error) {
+            toast.error("ログアウトに失敗しました");
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
-    // --- Sub-Components for Views ---
+    const handleUpdateName = async () => {
+        if (isDemo) {
+            toast.error("デモモードでは名前を変更できません");
+            setIsEditingName(false);
+            return;
+        }
 
-    // Icon Helper
-    const ActivityIcon = (props: any) => (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
-    )
+        if (!newName.trim()) {
+            toast.error("名前を入力してください");
+            return;
+        }
 
-    const RootView = () => {
-        const { inventory } = useInventoryContext();
+        setIsSavingName(true);
+        try {
+            const { error } = await updateProfile(newName.trim());
+            if (error) throw error;
+            toast.success("名前を更新しました");
+            setIsEditingName(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("更新に失敗しました");
+        } finally {
+            setIsSavingName(false);
+        }
+    };
 
-        const inventoryItems = useMemo(() => {
-            if (!inventory) return [];
-            return inventory
-                .filter((it: any) => it.enabled !== false && it.deleted_at === null)
-                .map((it: any) => {
-                    const rangeMax = it.range_max || 30;
-                    let daysLeft = rangeMax;
-                    if (it.last_bought) {
-                        const lastDate = new Date(it.last_bought);
-                        const todayDate = new Date();
-                        const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
-                        daysLeft = Math.max(0, rangeMax - diffDays);
-                    }
-                    let status: 'ok' | 'warn' | 'danger' = 'ok';
-                    if (daysLeft <= 3) status = 'danger';
-                    else if (daysLeft <= 7) status = 'warn';
-
-                    return { ...it, daysLeft, status };
-                })
-                .sort((a: any, b: any) => a.daysLeft - b.daysLeft);
-        }, [inventory]);
-
-        const urgentCount = inventoryItems.filter((it: any) => it.status !== 'ok').length;
-
-        // Reusable Menu Item Component - More compact and premium
-        const MenuItem = ({ icon: Icon, title, subtext, onClick, urgent }: any) => (
-            <button
-                onClick={onClick}
-                className="w-full relative flex items-center gap-4 p-4 rounded-[24px] 
-                    bg-white/30 dark:bg-slate-900/30 backdrop-blur-2xl
-                    border border-white/60 dark:border-white/10
-                    shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08),inset_0_1px_1px_0_rgba(255,255,255,0.4)]
-                    hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 group overflow-hidden"
-            >
-                {/* Specular highlights */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center relative shrink-0 shadow-sm ring-1 ring-white/20 bg-slate-100 dark:bg-slate-800">
-                    <Icon className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                    {urgent && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse shadow-sm" />
-                    )}
-                </div>
-
-                <div className="flex flex-col items-start text-left">
-                    <span className="font-bold text-slate-800 dark:text-white text-[14px] tracking-tight">{title}</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{subtext}</span>
-                </div>
-
-                <ChevronRight className="ml-auto w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-            </button>
-        );
+    // Reusable Main View Component
+    const MainSettingsView = () => {
 
         return (
-            <div className="space-y-4 pt-2">
-                <MenuItem
-                    icon={ShoppingBag}
-                    title="在庫管理"
-                    subtext="フードや消耗品のストック管理"
-                    urgent={urgentCount > 0}
-                    onClick={() => pushView('inventory')}
-                />
-
-                <MenuItem
-                    icon={BookOpen}
-                    title="みつける・図鑑"
-                    subtext="AIがアルバムを整理・提案"
-                    onClick={() => { onNavigate('zukan'); onClose(); }}
-                />
-
-                {/* Footer Quick Links */}
-                <div className="pt-6 grid grid-cols-2 gap-4">
-                    <button
-                        onClick={() => pushView('notifications')}
-                        className="flex items-center gap-3 p-4 rounded-3xl bg-white/20 dark:bg-white/5 border border-white/20 hover:bg-white/30 transition-all group"
-                    >
-                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
-                            <Bell className="w-4 h-4 text-slate-500" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">通知</span>
-                    </button>
-
-                    <button
-                        onClick={() => { onNavigate('settings'); onClose(); }}
-                        className="flex items-center gap-3 p-4 rounded-3xl bg-white/20 dark:bg-white/5 border border-white/20 hover:bg-white/30 transition-all group"
-                    >
-                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
-                            <Settings className="w-4 h-4 text-slate-500" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">設定</span>
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    const InventoryView = () => {
-        const { inventory, updateInventoryItem } = useInventoryContext();
-
-        // Use type casting to avoid lint errors if type definition is lagging
-        const inventoryItemsFormatted = inventory.map((item: any) => {
-            // Fallback for quantity if missing (though it should be there)
-            const qty = item.quantity ?? 100;
-            const threshold = item.threshold ?? 20;
-            const isLow = qty <= threshold;
-
-            return {
-                id: item.id,
-                label: item.name || item.label, // handle both naming conventions
-                status: isLow ? '残りわずか' : '在庫あり',
-                amount: `${qty}%`,
-                isLow
-            };
-        });
-
-        const handleInventoryRefill = async (id: string, name: string) => {
-            await updateInventoryItem(id, { quantity: 100, last_bought: new Date().toISOString() } as any);
-            toast.success(`${name}を補充しました`);
-        };
-
-        return (
-            <div className="space-y-4 px-1">
-                <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md">
-                    <div className="text-xs font-bold text-slate-400 mb-3 flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4" />
-                        ストック状況
-                    </div>
-                    <div className="space-y-3">
-                        {inventoryItemsFormatted.map(item => (
-                            <div key={item.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${item.isLow ? 'bg-red-400 animate-pulse' : 'bg-brand-sage'}`} />
-                                    <span className="text-sm font-bold text-slate-700">{item.label}</span>
-                                    {!!item.isLow && <span className="text-[10px] text-red-500 font-bold bg-red-100 px-1.5 py-0.5 rounded-md">補充！</span>}
-                                </div>
-                                <button
-                                    onClick={() => handleInventoryRefill(item.id, item.label)}
-                                    className="text-xs font-bold text-brand-sage hover:text-emerald-700 bg-brand-sage/10 px-3 py-1.5 rounded-full hover:bg-brand-sage/20 transition-colors"
-                                >
-                                    完了
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <button
-                    onClick={() => { onNavigate('inventory'); onClose(); }}
-                    className="w-full py-4 text-center text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
-                >
-                    在庫アイテムを編集する
-                </button>
-            </div>
-        );
-    }
-
-    // Level 2: Activity View
-    const ActivityView = () => (
-        <div className="h-full pb-20">
-            <ActivityFeed embedded={true} limit={50} />
-        </div>
-    );
-
-    // Level 2: Notifications View
-    const NotificationsView = () => (
-        <div className="space-y-4 px-1">
-            <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md">
-                <div className="text-xs font-bold text-slate-400 mb-3 flex items-center gap-2">
-                    <Bell className="w-4 h-4" />
-                    通知設定
-                </div>
-                <p className="text-sm text-slate-500 mb-4">お世話の時間を忘れないように、通知を受け取ることができます。</p>
-                <NotificationSettings />
-            </div>
-        </div>
-    );
-
-    const SettingsView = () => {
-        const { settings, setSettings, aiEnabled, setAiEnabled, isPro, setIsPro } = useSettingsContext();
-        const { isDemo } = useCoreContext();
-        const { user, signOut } = useAuth();
-        const [isLoggingOut, setIsLoggingOut] = useState(false);
-        // Modal states moved to SidebarMenu level - use parent state here
-
-        const handleLogout = async () => {
-            if (isDemo) {
-                toast.info("デモモードではログアウトできません");
-                return;
-            }
-
-            setIsLoggingOut(true);
-            try {
-                await signOut();
-                toast.success("ログアウトしました");
-                window.location.href = "/";
-            } catch (error) {
-                toast.error("ログアウトに失敗しました");
-            } finally {
-                setIsLoggingOut(false);
-            }
-        };
-
-        return (
-            <div className="h-full overflow-y-auto pb-32 px-1 space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <div className="px-1 space-y-4">
 
                 {/* Account Section */}
-                <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md">
-                    <div className="text-xs font-bold text-slate-400 mb-3 flex items-center gap-2">
-                        <User className="w-4 h-4" />
+                <div className="p-4 rounded-3xl bg-white/50 border border-white/60 shadow-sm backdrop-blur-md group/account hover:bg-white/70 transition-colors duration-300">
+                    <div className="text-[11px] font-bold text-slate-500 mb-4 flex items-center gap-2 tracking-wider uppercase">
+                        <User className="w-[18px] h-[18px] text-peach-500/80" />
                         アカウント
                     </div>
                     <div className="flex items-center justify-between">
@@ -409,11 +125,52 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                     </div>
                                 )}
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold text-slate-700">
-                                    {isDemo ? "デモユーザー" : (user?.user_metadata?.display_name || "名無しさん")}
-                                </span>
-                                <span className="text-[10px] text-slate-400">
+                            <div className="flex flex-col flex-1 min-w-0">
+                                {isEditingName ? (
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={newName}
+                                            onChange={(e) => setNewName(e.target.value)}
+                                            autoFocus
+                                            disabled={isSavingName}
+                                            className="text-sm font-bold text-slate-700 bg-white/50 border border-slate-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-peach-400/50"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleUpdateName();
+                                                if (e.key === 'Escape') setIsEditingName(false);
+                                            }}
+                                        />
+                                        <button
+                                            onClick={handleUpdateName}
+                                            disabled={isSavingName}
+                                            className="p-1 hover:bg-peach-50 text-peach-500 rounded-md transition-colors"
+                                        >
+                                            {isSavingName ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <Check className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                        {!isSavingName && (
+                                            <button
+                                                onClick={() => setIsEditingName(false)}
+                                                className="p-1 hover:bg-slate-50 text-slate-400 rounded-md transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 cursor-pointer group/name" onClick={() => !isDemo && setIsEditingName(true)}>
+                                        <span className="text-sm font-bold text-slate-700 truncate group-hover/name:text-slate-900 transition-colors">
+                                            {isDemo ? "デモユーザー" : (user?.user_metadata?.display_name || "名無しさん")}
+                                        </span>
+                                        {!isDemo && (
+                                            <Edit2 className="w-4 h-4 text-peach-500/60 group-hover/name:text-peach-500 transition-colors" />
+                                        )}
+                                    </div>
+                                )}
+                                <span className="text-[10px] text-slate-400 truncate">
                                     {isDemo ? "保存されません" : user?.email}
                                 </span>
                             </div>
@@ -430,105 +187,52 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                     </div>
                 </div>
 
-                {/* App Settings */}
-                <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md space-y-4">
-                    <div className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        アプリ設定
+                {/* App Settings / Notifications */}
+                <div className="p-4 rounded-3xl bg-white/50 border border-white/60 shadow-sm backdrop-blur-md space-y-4">
+                    <div className="text-[11px] font-bold text-slate-500 mb-2 flex items-center gap-2 tracking-wider uppercase">
+                        <Bell className="w-[18px] h-[18px] text-peach-500/80" />
+                        通知設定
                     </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-slate-700">AIアシスト</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 whitespace-nowrap">
-                                準備中
-                            </span>
-                        </div>
-                        <span className="text-[10px] text-slate-500">要約やタグ提案を有効にする</span>
-                        <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                    <div className="bg-slate-50/40 rounded-2xl p-2 border border-slate-100/50">
+                        <NotificationSettings />
                     </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700">一日の始まり</span>
-                            <span className="text-[10px] text-slate-500">日付が変わる時間を設定</span>
-                        </div>
-                        <select
-                            value={settings.dayStartHour}
-                            onChange={(e) => setSettings((s: any) => ({ ...s, dayStartHour: parseInt(e.target.value) }))}
-                            className="text-xs border rounded p-1 bg-white/50"
-                        >
-                            {[...Array(24)].map((_, i) => (
-                                <option key={i} value={i}>{i}:00</option>
-                            ))}
-                        </select>
-                    </div>
-
                 </div>
 
                 {/* Data Management Links */}
-                <div className="p-4 rounded-2xl bg-white/40 border border-white/40 shadow-sm backdrop-blur-md space-y-1">
-                    <div className="text-xs font-bold text-slate-400 mb-2 flex items-center gap-2">
-                        <Cat className="w-4 h-4" />
+                <div className="p-4 rounded-3xl bg-white/50 border border-white/60 shadow-sm backdrop-blur-md space-y-1">
+                    <div className="text-[11px] font-bold text-slate-500 mb-3 flex items-center gap-2 tracking-wider uppercase">
+                        <Cat className="w-[18px] h-[18px] text-peach-500/80" />
                         データ管理
                     </div>
 
                     <button
                         onClick={() => setIsCatModalOpen(true)}
-                        className="w-full flex items-center justify-between py-3 text-left group"
+                        className="w-full flex items-center justify-between py-3 px-2 rounded-xl text-left group hover:bg-slate-50/50 transition-colors"
                     >
                         <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">猫の登録・編集</span>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-peach-400 group-hover:translate-x-0.5 transition-all" />
                     </button>
                     <div className="h-px bg-slate-200/50" />
 
                     <button
                         onClick={() => setIsCareModalOpen(true)}
-                        className="w-full flex items-center justify-between py-3 text-left group"
+                        className="w-full flex items-center justify-between py-3 px-2 rounded-xl text-left group hover:bg-slate-50/50 transition-colors"
                     >
                         <div className="flex flex-col">
                             <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">ONEGAIの設定</span>
-                            <span className="text-[10px] text-slate-500">ご飯、トイレ、定期タスク</span>
+                            <span className="text-[10px] text-slate-500 group-hover:text-slate-600">ご飯、トイレ、定期タスク</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-peach-400 group-hover:translate-x-0.5 transition-all" />
                     </button>
-                    <div className="h-px bg-slate-200/50" />
-
-                    {/* 記録項目の設定 (Hidden for now)
-                    <button
-                        onClick={() => setIsNoticeModalOpen(true)}
-                        className="w-full flex items-center justify-between py-3 text-left group"
-                    >
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">記録項目の設定</span>
-                            <span className="text-[10px] text-slate-500">体調、様子見のチェック項目</span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
-                    </button>
-                    <div className="h-px bg-slate-200/50" />
-                    */}
-
-                    <button
-                        onClick={() => setIsInventoryModalOpen(true)}
-                        className="w-full flex items-center justify-between py-3 text-left group"
-                    >
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">在庫・記録項目の管理</span>
-                            <span className="text-[10px] text-slate-500">消耗品の管理・通知</span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
-                    </button>
-                    <div className="h-px bg-slate-200/50" />
-
                     <button
                         onClick={() => setIsFamilyModalOpen(true)}
-                        className="w-full flex items-center justify-between py-3 text-left group"
+                        className="w-full flex items-center justify-between py-3 px-2 rounded-xl text-left group hover:bg-slate-50/50 transition-colors"
                     >
                         <div className="flex flex-col">
                             <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">家族メンバーの管理</span>
-                            <span className="text-[10px] text-slate-500">家族の招待・編集</span>
+                            <span className="text-[10px] text-slate-500 group-hover:text-slate-600">家族の招待・編集</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-peach-400 group-hover:translate-x-0.5 transition-all" />
                     </button>
                 </div>
 
@@ -539,10 +243,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                 {/* Modals */}
                 <CatSettingsModal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} />
                 <CareSettingsModal isOpen={isCareModalOpen} onClose={() => setIsCareModalOpen(false)} />
-                <NoticeSettingsModal isOpen={isNoticeModalOpen} onClose={() => setIsNoticeModalOpen(false)} />
-                <InventorySettingsModal isOpen={isInventoryModalOpen} onClose={() => setIsInventoryModalOpen(false)} />
                 <FamilyMemberModal isOpen={isFamilyModalOpen} onClose={() => setIsFamilyModalOpen(false)} />
-            </div>
+            </div >
         );
     };
 
@@ -559,52 +261,26 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                         className="fixed inset-0 z-[10000] bg-[#4E342E]/10 backdrop-blur-sm cursor-pointer"
                     />
 
-                    {/* Bottom Sheet Container */}
                     <motion.div
                         variants={sheetVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="fixed inset-x-0 bottom-0 z-[10001]"
-                        drag="y"
-                        dragConstraints={{ top: 0 }}
-                        dragElastic={0.2}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.y > 100) onClose();
-                        }}
+                        className="fixed inset-0 z-[100000]"
                     >
-                        <div className="bg-background/60 backdrop-blur-3xl rounded-t-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-t border-white/60 h-auto max-h-[92vh] flex flex-col w-full max-w-lg mx-auto relative group">
+                        <div className="bg-background overflow-hidden shadow-2xl flex flex-col w-full h-screen relative group">
                             {/* Specular Elements */}
-                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-90 z-20" />
-                            <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.5)] pointer-events-none rounded-t-[32px] z-20" />
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent z-20" />
+                            <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.1)] pointer-events-none z-20" />
 
                             {/* Gradient Overlay for extra glass depth */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
-
-                            {/* Drag Handle */}
-                            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 relative z-10" onClick={viewStack.length > 1 ? popView : onClose}>
-                                <div className="w-12 h-1.5 rounded-full bg-slate-400/30" />
-                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
 
                             {/* Navigation Header */}
                             <div className="px-6 py-2 flex items-center justify-between shrink-0 h-14 relative z-10">
-                                <div className="flex items-center gap-2">
-                                    {activeView !== 'root' && (
-                                        <button
-                                            onClick={popView}
-                                            className="p-1 -ml-2 rounded-full hover:bg-white/40 transition-colors"
-                                        >
-                                            <ChevronLeft className="w-6 h-6 text-slate-600" />
-                                        </button>
-                                    )}
-                                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-                                        {activeView === 'root' ? 'Menu' :
-                                            activeView === 'settings' ? '設定' :
-                                                activeView === 'inventory' ? '在庫管理' :
-                                                    activeView === 'activity' ? 'お世話履歴' :
-                                                        activeView === 'notifications' ? '通知' : 'Menu'}
-                                    </h1>
-                                </div>
+                                <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+                                    アカウント・設定
+                                </h1>
 
                                 <button
                                     onClick={onClose}
@@ -615,62 +291,8 @@ export function SidebarMenu({ isOpen, onClose, onNavigate, defaultSection }: Sid
                                 </button>
                             </div>
 
-                            {/* User Profile Summary (Root only) */}
-                            {activeView === 'root' && user && (
-                                <div className="px-6 pb-2 relative z-10">
-                                    <div className="flex items-center gap-3 py-2">
-                                        <motion.div
-                                            animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
-                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                            className="h-12 w-12 rounded-full bg-white/50 border border-white/60 shadow-inner flex items-center justify-center overflow-hidden"
-                                        >
-                                            {user.user_metadata?.avatar_url ? (
-                                                <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <User className="h-6 w-6 text-slate-400" />
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                        <div>
-                                            <div className="font-bold text-slate-800 leading-tight">
-                                                {user.user_metadata?.display_name || 'My Cat User'}
-                                            </div>
-                                            <div className="text-xs text-slate-500">My Home</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Content Area - Changed from flex-1 to auto to support h-auto parent */}
-                            <div className="relative z-10">
-                                <AnimatePresence initial={false} custom={direction}>
-                                    <motion.div
-                                        key={activeView}
-                                        custom={direction}
-                                        variants={contentVariants}
-                                        initial="enter"
-                                        animate="center"
-                                        exit="exit"
-                                        className="w-full px-6 pt-2 pb-10"
-                                    >
-                                        {activeView === 'root' && <RootView />}
-                                        {activeView === 'inventory' && <InventoryView />}
-                                        {activeView === 'settings' && <SettingsView />}
-                                        {activeView === 'activity' && <ActivityView />}
-                                        {activeView === 'notifications' && <NotificationsView />}
-                                    </motion.div>
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Bottom Close Bar for Mobile */}
-                            <div className="px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-2 shrink-0 relative z-10">
-                                <button
-                                    onClick={onClose}
-                                    className="w-full py-3 rounded-2xl bg-[#F2EFEA] dark:bg-white/10 text-[#787570] dark:text-[#A6A29A] text-[14px] font-bold tracking-wide active:scale-[0.98] transition-transform"
-                                >
-                                    閉じる
-                                </button>
+                            <div className="relative z-10 w-full px-6 pt-0 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                                <MainSettingsView />
                             </div>
                         </div>
                     </motion.div>
