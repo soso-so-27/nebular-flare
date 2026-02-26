@@ -64,10 +64,12 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     const renderPhotoCard = (item: FeedItem) => (
         <div className="h-full flex overflow-hidden group/photo relative">
             {/* Left Column: Context & Action */}
-            <div className="w-[42%] flex flex-col p-3.5 pr-2 z-10 bg-gradient-to-r from-white/20 to-transparent">
+            <div className="w-[42%] flex flex-col p-4 pr-3 z-10 bg-gradient-to-r from-white/20 to-transparent">
                 <div className="flex items-center gap-1.5 mb-1.5 shrink-0">
-                    <div className="w-1 h-1 rounded-full bg-brand-peach" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/60 truncate">
+                    <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                        <div className="w-1 h-1 rounded-full bg-brand-peach" />
+                    </div>
+                    <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40 truncate">
                         {item.title}
                     </h3>
                 </div>
@@ -110,10 +112,10 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     const renderCareCard = (item: FeedItem) => {
         const listItems = item.listItems?.slice(0, 2) || [];
         return (
-            <div className="h-full flex flex-col px-4 pt-4 pb-3 overflow-hidden">
-                <div className="flex items-center gap-2 mb-2 shrink-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-peach" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.05em] text-[#4E342E]/50 truncate">{item.title}</h3>
+            <div className="h-full flex flex-col p-4 overflow-hidden">
+                <div className="flex items-center gap-1.5 mb-1.5 shrink-0">
+                    <Heart className="w-3.5 h-3.5 text-brand-peach" />
+                    <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40 truncate">{item.title}</h3>
                 </div>
                 <div className="flex-1 flex flex-col justify-center gap-1.5 min-h-0 overflow-hidden">
                     {listItems.length > 0 ? listItems.map((log, idx) => (
@@ -142,9 +144,8 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                             )}
                         </div>
                     )) : (
-                        <div className="flex flex-col items-center justify-center text-center py-2">
-                            <Heart className="w-6 h-6 text-brand-peach mb-1 opacity-80" />
-                            <p className="text-[12px] font-bold text-[#4E342E]/70">{item.content || '今日はまだお世話がありません'}</p>
+                        <div className="flex flex-col items-start justify-center text-left py-2">
+                            <p className="text-[9.5px] font-bold text-[#4E342E]/60 leading-relaxed">{item.content || '今日はまだお世話がありません'}</p>
                         </div>
                     )}
                 </div>
@@ -200,17 +201,17 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
     const renderReportCard = (item: FeedItem) => (
         <div className="h-full flex flex-col p-4 bg-gradient-to-br from-[#FEFDFB] to-[#F5E6D3] relative overflow-hidden group/report">
-            <div className="flex items-center gap-2 mb-2 relative z-10">
-                <div className="w-7 h-7 rounded-lg bg-brand-peach/20 flex items-center justify-center">
-                    <FileText className="w-3.5 h-3.5 text-brand-peach" />
-                </div>
-                <div>
-                    <h3 className="text-xs font-black text-[#4E342E]">受診用レポート</h3>
-                </div>
+            <div className="flex items-center gap-1.5 mb-1.5 relative z-10">
+                <Stethoscope className="w-3.5 h-3.5 text-brand-peach" />
+                <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40 truncate">受診用レポート</h3>
             </div>
 
-            <p className="text-[10px] text-[#4E342E]/60 font-medium leading-tight mb-2 relative z-10">
-                {item.content || "今週の体調変化を獣医さんに。"}
+            <h4 className="text-[12px] font-black text-[#4E342E] leading-tight mb-1 relative z-10">
+                {item.title || "気がかりな記録があります"}
+            </h4>
+
+            <p className="text-[9.5px] font-bold text-[#4E342E]/60 leading-relaxed mb-2 relative z-10">
+                {item.content || "今週の体調変化を獣医さんに共有しましょう。"}
             </p>
 
             <div className="mt-auto flex justify-between items-center relative z-10">
@@ -218,8 +219,8 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     <div className="w-1 h-1 rounded-full bg-brand-peach animate-pulse" />
                     <div className="w-1 h-1 rounded-full bg-[#4E342E]/10" />
                 </div>
-                <div className="px-3 py-1 bg-[#4E342E]/10 rounded-full text-[9px] font-bold text-[#4E342E]/70 border border-[#4E342E]/10">
-                    レポートを作成
+                <div className="inline-flex px-2 py-0.5 bg-[#4E342E]/5 rounded border border-[#4E342E]/10 text-[9px] font-bold text-[#4E342E]/60">
+                    記録する
                 </div>
             </div>
         </div>
@@ -235,15 +236,15 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
             {/* Header */}
             <div className="flex items-center gap-1.5 mb-1.5 relative z-10">
-                <div className="w-5 h-5 flex items-center justify-center text-[#FF9500]">
-                    {item.missionIcon || <Eye className="w-4 h-4 text-[#FF9500]" />}
+                <div className="w-3.5 h-3.5 flex items-center justify-center text-[#FF9500]">
+                    {item.missionIcon || <Eye className="w-3.5 h-3.5" />}
                 </div>
-                <h3 className="text-[10px] font-black tracking-[0.1em] text-[#4E342E]/50">今週のテーマ</h3>
+                <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40">今週のテーマ</h3>
             </div>
 
             {/* Title & Desc */}
-            <h4 className="text-[13px] font-black text-[#4E342E] leading-tight mb-1 relative z-10">{item.title}</h4>
-            <p className="text-[9px] text-[#4E342E]/70 font-medium leading-relaxed w-[75%] relative z-10">
+            <h4 className="text-[12px] font-black text-[#4E342E] leading-tight mb-1 relative z-10">{item.title}</h4>
+            <p className="text-[9.5px] font-bold text-[#4E342E]/60 leading-relaxed w-[75%] relative z-10">
                 {item.missionDesc || item.content}
             </p>
 
@@ -263,23 +264,16 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
 
     const renderPromptCard = (item: FeedItem) => (
         <div className="h-full flex flex-col p-4 relative overflow-hidden">
-            <div className="absolute -bottom-4 -right-4 opacity-[0.06] pointer-events-none select-none scale-[4] origin-bottom-right">
-                {item.missionIcon}
+            <div className="flex items-center gap-1.5 mb-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-brand-peach" />
+                <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40">今日のひとこと</h3>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-                <div className="text-lg">
-                    {item.missionIcon}
-                </div>
-                <div>
-                    <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今日のひとこと</h3>
-                </div>
-            </div>
-            <h4 className="text-[13px] font-black text-[#4E342E] leading-tight mb-1">{item.title}</h4>
-            <p className="text-[9.5px] text-[#4E342E]/50 font-medium leading-tight mb-auto">
+            <h4 className="text-[12px] font-black text-[#4E342E] leading-tight mb-1">{item.title}</h4>
+            <p className="text-[9.5px] font-bold text-[#4E342E]/60 leading-relaxed mb-auto">
                 {item.content}
             </p>
             <div className="mt-2">
-                <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-xl text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
+                <div className="inline-flex px-2 py-0.5 bg-[#4E342E]/5 rounded border border-[#4E342E]/10 text-[9px] font-bold text-[#4E342E]/60">
                     記録する
                 </div>
             </div>
@@ -299,40 +293,45 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                 onClick={item.onClick}
             >
                 {/* 撮影済みの場合は右に写真を配置、未撮影の場合はフルレイアウトに */}
-                <div className={`flex flex-col p-4 z-10 justify-center h-full transition-all ${item.imageUrl ? 'w-[55%]' : 'w-full'}`}>
+                <div className={`flex flex-col p-4 z-10 h-full transition-all ${item.imageUrl ? 'w-[55%]' : 'w-full'}`}>
 
                     {/* 上部: タイトルとステータス */}
-                    <div className="flex items-center justify-between w-full mb-3">
-                        <h3 className="text-[10.5px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">
-                            きょうの1枚
-                        </h3>
+                    <div className="flex items-center justify-between w-full mb-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5">
+                            <Camera className="w-3.5 h-3.5 text-brand-peach" />
+                            <h3 className="text-[9px] font-black uppercase tracking-wider text-[#4E342E]/40">
+                                きょうの1枚
+                            </h3>
+                        </div>
                         {!item.imageUrl && (
-                            <span className="text-[10px] font-bold text-brand-peach bg-brand-peach/5 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex px-2 py-0.5 bg-brand-peach/5 rounded border border-brand-peach/10 text-[9px] font-bold text-brand-peach">
                                 {photoDays > 0 ? `今週 ${photoDays}日記録！` : '最初の1枚を記録しましょう'}
                             </span>
                         )}
                         {item.imageUrl && (
-                            <span className="text-[9px] font-bold text-brand-peach bg-brand-peach/5 px-1.5 py-0.5 rounded-full">
+                            <span className="inline-flex px-2 py-0.5 bg-brand-peach/5 rounded border border-brand-peach/10 text-[9px] font-bold text-brand-peach">
                                 {photoDays}日記録
                             </span>
                         )}
                     </div>
 
                     {/* 下部: 横幅フル活用のWeek Dots */}
-                    <div className={`flex items-center w-full ${item.imageUrl ? 'justify-between' : 'justify-between px-2'}`}>
-                        {DAY_LABELS.map((label, i) => (
-                            <div key={i} className="flex flex-col items-center gap-1.5">
-                                <span className={`text-[9px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'}`}>{label}</span>
-                                <div className={`rounded-full border-2 transition-all flex-shrink-0 ${item.imageUrl ? 'w-[18px] h-[18px]' : 'w-[22px] h-[22px]'} ${dots[i]
-                                    ? 'bg-brand-peach border-brand-peach shadow-[0_0_8px_rgba(232,180,160,0.4)]'
-                                    : i === todayIdx
-                                        ? 'border-brand-peach/50 bg-brand-peach/10'
-                                        : i < todayIdx
-                                            ? 'border-[#4E342E]/10 bg-[#4E342E]/[0.03]'
-                                            : 'border-[#4E342E]/5 bg-transparent'
-                                    }`} />
-                            </div>
-                        ))}
+                    <div className="flex-1 flex flex-col justify-center min-h-0">
+                        <div className={`flex items-center w-full ${item.imageUrl ? 'justify-between' : 'justify-between px-2'}`}>
+                            {DAY_LABELS.map((label, i) => (
+                                <div key={i} className="flex flex-col items-center gap-1.5">
+                                    <span className={`text-[9px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'}`}>{label}</span>
+                                    <div className={`rounded-full border-2 transition-all flex-shrink-0 ${item.imageUrl ? 'w-[18px] h-[18px]' : 'w-[22px] h-[22px]'} ${dots[i]
+                                        ? 'bg-brand-peach border-brand-peach shadow-[0_0_8px_rgba(232,180,160,0.4)]'
+                                        : i === todayIdx
+                                            ? 'border-brand-peach/50 bg-brand-peach/10'
+                                            : i < todayIdx
+                                                ? 'border-[#4E342E]/10 bg-[#4E342E]/[0.03]'
+                                                : 'border-[#4E342E]/5 bg-transparent'
+                                        }`} />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -361,23 +360,23 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             )}
 
             {/* Content overlay */}
-            <div className="relative z-10 flex flex-col p-3.5 w-full">
-                <div className="flex items-center gap-1.5 mb-1">
-                    <Clock className="w-3 h-3 text-white/60" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.1em] text-white/50">{item.memoryLabel || '思い出'}</span>
+            <div className="relative z-10 flex flex-col p-4 w-full">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="w-3.5 h-3.5 text-white/50" />
+                    <h3 className="text-[9px] font-black uppercase tracking-wider text-white/40">{item.memoryLabel || '思い出'}</h3>
                 </div>
 
                 <div className="mt-auto">
                     {item.catName && (
-                        <span className="text-[9px] font-bold text-white/50 mb-0.5 block">{item.catName}</span>
+                        <h4 className="text-[12px] font-black text-white leading-tight mb-1">{item.catName}</h4>
                     )}
                     {item.content && (
-                        <p className="text-[11px] font-bold text-white/90 leading-tight line-clamp-2">
+                        <p className="text-[9.5px] font-bold text-white/80 leading-relaxed line-clamp-2">
                             {item.content}
                         </p>
                     )}
                     {!item.content && !item.imageUrl && (
-                        <p className="text-[10px] text-white/40 italic">この日の記録</p>
+                        <p className="text-[9.5px] font-bold text-white/40 italic leading-relaxed">この日の記録</p>
                     )}
                 </div>
             </div>
