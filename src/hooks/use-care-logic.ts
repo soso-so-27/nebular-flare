@@ -8,7 +8,7 @@ import {
     useSettingsContext,
     useCoreContext
 } from '@/store/app-store';
-import { useFootprintContext } from '@/providers/footprint-provider';
+
 import { getCatchUpItems } from '@/lib/utils-catchup';
 import { useAuth } from '@/providers/auth-provider';
 import { useUserReadTimestamps } from './use-supabase-data';
@@ -146,7 +146,8 @@ export function useCareData() {
     const { settings, setSettings } = useSettingsContext();
     const { isDemo } = useCoreContext();
 
-    const { awardForCare } = useFootprintContext();
+    // 足あとポイント凍結中: no-op
+    const awardForCare = async (_catId?: string, _actionId?: string, _skipPopup?: boolean) => { };
     const { lastSeenPhotoAt, lastSeenIncidentAt } = useUserReadTimestamps();
     const { user } = useAuth();
     const { dayStartHour } = settings;

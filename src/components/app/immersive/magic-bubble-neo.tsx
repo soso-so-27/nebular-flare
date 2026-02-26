@@ -6,7 +6,7 @@ import { sounds } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { IncidentModal } from "../modals/incident-modal";
 import { PhotoModal } from "../modals/photo-modal";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 import { UnifiedCareList } from "./unified-care-list";
 import { useCareData } from "@/hooks/use-care-logic";
 import { IntegratedNotificationPill } from "./integrated-notification-pill";
@@ -67,7 +67,7 @@ export function MagicBubbleNeo({
 
     const { cats } = useCatContext();
     const { settings } = useSettingsContext();
-    const { stats } = useFootprintContext();
+
     const isLight = contrastMode === 'light';
     const isV2 = settings.layoutType.startsWith('v2-');
     const isUnified = settings.homeButtonMode === 'unified';
@@ -128,21 +128,6 @@ export function MagicBubbleNeo({
                         background: 'linear-gradient(145deg, rgba(232, 180, 160, 0.25), rgba(232, 180, 160, 0.1))'
                     }}
                 >
-                    {/* Footprint Badge (Opens Exchange) */}
-                    <button
-                        onClick={() => {
-                            triggerFeedback('light');
-                            if (onOpenExchange) onOpenExchange();
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[#E8B4A0]/20 transition-colors active:scale-95"
-                    >
-                        <PawPrint className="w-3.5 h-3.5 text-white/90" />
-                        <span className="text-sm font-bold text-white font-mono tracking-wider">{stats.householdTotal}</span>
-                    </button>
-
-                    {/* Divider */}
-                    <div className="w-px h-4 bg-[#E8B4A0]/40 mx-0.5" />
-
                     {/* Menu Button (System) */}
                     <button
                         onClick={() => {

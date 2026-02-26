@@ -6,7 +6,7 @@ import { useCatContext, useCareContext, useCoreContext, useSettingsContext, useI
 import { format } from 'date-fns';
 import { Camera, Send, X, Loader2, MessageCircle, Tag, Utensils, Activity, Eye, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 import { getFullImageUrl, cn } from '@/lib/utils';
 
 // Tags
@@ -33,7 +33,7 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
     const { addIncident } = useIncidentContext();
     const { isDemo } = useCoreContext();
     const { settings } = useSettingsContext();
-    const { awardForNyannlog } = useFootprintContext();
+
 
     const [note, setNote] = useState('');
     const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(new Set());
@@ -206,8 +206,7 @@ export function EmbeddedInputCard({ onSubmitSuccess, onSuccess, isStandalone = f
             );
             if (error) throw error;
 
-            // Award footprints for each cat
-            catIds.forEach(id => awardForNyannlog?.(id));
+
 
             toast.success(isConsult ? "相談を投稿しました" : "記録しました");
 

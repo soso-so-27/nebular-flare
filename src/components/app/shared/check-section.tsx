@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { getToday } from "@/lib/date-utils";
 import { getIcon } from "@/lib/icon-utils";
 import { createClient } from "@/lib/supabase";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 
 interface CheckItem {
     id: string;
@@ -31,7 +31,7 @@ export function CheckSection() {
     const { settings } = useSettingsContext();
     const { isDemo } = useCoreContext();
 
-    const { awardForCare, awardForObservation } = useFootprintContext();
+
 
     const today = useMemo(() => getToday(settings.dayStartHour), [settings.dayStartHour]);
 
@@ -81,7 +81,7 @@ export function CheckSection() {
                 if (result?.error) {
                     toast.error("完了しましたが写真のアップロードに失敗しました");
                 } else {
-                    awardForCare(catId);
+
                     toast.success("写真付きで完了しました！");
                 }
             } else {
@@ -175,7 +175,7 @@ export function CheckSection() {
                             if (result?.error) {
                                 toast.error("記録に失敗しました");
                             } else {
-                                awardForCare(def.perCat ? activeCatId : undefined);
+
                                 toast.success(`${def.title} 完了！`);
                             }
                         }
@@ -212,7 +212,7 @@ export function CheckSection() {
                             if (result?.error) {
                                 toast.error("記録に失敗しました");
                             } else {
-                                awardForCare(def.perCat ? activeCatId : undefined);
+
                                 toast.success(`${def.title}（${slotLabel}）完了！`);
                             }
                         }

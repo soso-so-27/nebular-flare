@@ -8,7 +8,7 @@ import { useCatContext, useSettingsContext } from '@/store/app-store';
 import { X, Loader2, Image as ImageIcon, MessageCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { CatAvatar } from "@/components/ui/cat-avatar";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 
 type PhotoModalProps = {
     isOpen: boolean;
@@ -19,7 +19,7 @@ type PhotoModalProps = {
 export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProps) {
     const { cats, uploadCatImage } = useCatContext();
     const { settings } = useSettingsContext();
-    const { awardForPhoto } = useFootprintContext();
+
     const [loading, setLoading] = useState(false);
     const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(() => {
         if (preselectedCatId) return new Set([preselectedCatId]);
@@ -75,9 +75,7 @@ export function PhotoModal({ isOpen, onClose, preselectedCatId }: PhotoModalProp
                 if (error) throw error;
             }
 
-            // Award footprint for photo (2pts) for each cat (scaling based on photo count?)
-            // For now, simple 1 award per batch per cat
-            selectedCatIds.forEach(id => awardForPhoto(id));
+
             toast.success(`${photos.length}件の写真を保存しました`);
             handleClose();
         } catch (e: any) {

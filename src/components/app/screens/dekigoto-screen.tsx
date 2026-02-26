@@ -11,7 +11,7 @@ import { useIncidentContext, useCoreContext, useCatContext } from "@/store/app-s
 import { LayoutIslandNeo } from "../immersive/layout-island-neo";
 import { HomeViewToggle } from "../shared/home-view-toggle";
 import { triggerFeedback } from "@/lib/haptics";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 
 interface DekigotoScreenProps {
     onClose: () => void;
@@ -48,7 +48,7 @@ export function DekigotoScreen({
     const { incidents: incidentList, toggleBookmark, addReaction, removeReaction } = useIncidentContext();
     const { currentUserId } = useCoreContext();
     const { cats } = useCatContext();
-    const { stats } = useFootprintContext();
+
     const inputCardRef = useRef<HTMLDivElement>(null);
     const groupedLogs = useGroupedLogs('events', null, 'all');
     const scrollRef = useRef<HTMLDivElement>(null);

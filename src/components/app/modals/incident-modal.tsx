@@ -9,7 +9,7 @@ import { Loader2, Camera, X, Sparkles, Wind, Bandage, Utensils, BatteryLow, Tras
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CatAvatar } from "@/components/ui/cat-avatar";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 
 type IncidentModalProps = {
     isOpen: boolean;
@@ -34,7 +34,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
     const { cats } = useCatContext();
     const { addIncident } = useIncidentContext();
     const { settings } = useSettingsContext();
-    const { awardForIncident } = useFootprintContext();
+
     const [loading, setLoading] = useState(false);
     const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(() => {
         if (defaultCatId) return new Set([defaultCatId]);
@@ -104,8 +104,7 @@ export function IncidentModal({ isOpen, onClose, defaultCatId }: IncidentModalPr
             );
             if (error) throw error;
 
-            // Award footprints for each cat
-            catIds.forEach(id => awardForIncident(id));
+
 
             toast.success("相談を記録しました");
             onClose();

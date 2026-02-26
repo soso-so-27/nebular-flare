@@ -18,8 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { FootprintStatsCard } from "../shared/footprint-stats-card";
-import { useFootprints } from "@/hooks/use-supabase-data";
+
 
 interface FamilyMember {
     id: string;
@@ -44,11 +43,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
     const [members, setMembers] = useState<FamilyMember[]>([]);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
-    // Footprint stats
-    const { stats, loading: statsLoading } = useFootprints({
-        userId: user?.id,
-        householdId: householdId || undefined,
-    });
+
 
     // Set portal target after mount (client-side only)
     useEffect(() => {
@@ -61,15 +56,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
         { id: '2', name: 'パートナー', email: 'partner@example.com', avatar: '👩', role: 'member', joinedAt: '2024-06-15' },
     ];
 
-    // Demo footprint data
-    const demoStats = isDemo ? {
-        userTotal: 47,
-        householdTotal: 98,
-        breakdown: [
-            { user_id: '1', display_name: 'あなた', total_points: 47 },
-            { user_id: '2', display_name: 'パートナー', total_points: 51 },
-        ],
-    } : stats;
+
 
     // Fetch members from global state (which already uses a direct query workaround)
     useEffect(() => {
@@ -223,16 +210,7 @@ export function FamilyMemberModal({ isOpen, onClose }: FamilyMemberModalProps) {
 
                         {/* Content */}
                         <div className="p-5 overflow-y-auto flex-1 pb-10 scrollbar-thin scrollbar-thumb-slate-200">
-                            {/* Footprint Stats Card */}
-                            <div className="mb-5">
-                                <FootprintStatsCard
-                                    userTotal={demoStats.userTotal}
-                                    householdTotal={demoStats.householdTotal}
-                                    breakdown={demoStats.breakdown}
-                                    currentUserId={user?.id || '1'}
-                                    loading={!isDemo && statsLoading}
-                                />
-                            </div>
+
 
                             {/* Member List */}
                             <div className="space-y-2">

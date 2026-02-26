@@ -6,7 +6,7 @@ import { Heart, ChevronDown, MessageCircle, Grid3X3, Camera, Zap, Cat, BookOpen,
 import { useCatContext, useSettingsContext } from "@/store/app-store";
 import { UnifiedCareList } from "./unified-care-list";
 import { useCareData } from "@/hooks/use-care-logic";
-import { useFootprintContext } from "@/providers/footprint-provider";
+
 import { IntegratedNotificationPill } from "./integrated-notification-pill";
 import { triggerFeedback } from "@/lib/haptics";
 
@@ -45,7 +45,7 @@ export const LayoutIslandNeo = React.memo(function LayoutIslandNeo({
 
     const { cats } = useCatContext();
     const { settings } = useSettingsContext();
-    const { stats } = useFootprintContext();
+
     const {
         progress,
         careItems,
@@ -157,21 +157,6 @@ export const LayoutIslandNeo = React.memo(function LayoutIslandNeo({
                             background: 'linear-gradient(145deg, rgba(78, 52, 46, 0.15), rgba(78, 52, 46, 0.05))'
                         }}
                     >
-                        {/* Footprint Badge (Opens Exchange) */}
-                        <button
-                            onClick={() => {
-                                triggerFeedback('light');
-                                onOpenExchange();
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-[#E8B4A0]/20 transition-colors active:scale-95"
-                        >
-                            <PawPrint className="w-3.5 h-3.5 text-[#4E342E]/80" />
-                            <span className="text-sm font-bold text-[#4E342E] font-mono tracking-wider">{stats.householdTotal}</span>
-                        </button>
-
-                        {/* Divider */}
-                        <div className="w-px h-4 bg-[#4E342E]/20 mx-0.5" />
-
                         {/* Menu Button (System) */}
                         <button
                             onClick={() => {

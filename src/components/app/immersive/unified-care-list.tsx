@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ChevronDown, Check, AlertCircle, MessageCircle, Bell, X, Cat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCatContext } from '@/store/app-store';
-import { useFootprintContext } from '@/providers/footprint-provider';
+
 import { getCatchUpItems } from '@/lib/utils-catchup';
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";

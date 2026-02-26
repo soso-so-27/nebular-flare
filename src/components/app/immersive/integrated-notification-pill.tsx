@@ -62,21 +62,6 @@ export function IntegratedNotificationPill({
                     {Math.round(progress * 100)}%
                 </span>
             </motion.button>
-
-            {/* 🐾 足あと (Footprints) */}
-            <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    triggerFeedback('medium');
-                    onOpenExchange?.();
-                }}
-                className={segmentBase}
-            >
-                <PawPrint className={cn("w-5 h-5", iconColor)} />
-                <span className={cn("text-xs font-black tabular-nums", textColor)}>
-                    {footprints}
-                </span>
-            </motion.button>
         </motion.div>
     );
 }

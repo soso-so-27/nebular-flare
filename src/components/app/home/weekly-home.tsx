@@ -63,6 +63,7 @@ import { ReportConfigData, SitterReportData, Incident } from "@/types";
 import { SitterReportConfigModal } from "../modals/sitter-report-config-modal";
 import { SitterReportView } from "../shared/sitter-report-view";
 import { LayoutIslandNeo } from "../immersive/layout-island-neo";
+import { useMemories } from "@/hooks/use-memories";
 // HomeBackground はコンテキストプロップスが必要なため、WeeklyHomeでは使用しない
 
 // UI Layout Constants
@@ -159,6 +160,7 @@ export function WeeklyHome({
     const { careLogs, careTaskDefs, addCareLog } = useCareContext();
     const { careItems } = useCareData();
     const { user: currentUser } = useAuth();
+    const memories = useMemories();
 
     // Support for Album & Report views
     const [showWeeklyAlbum, setShowWeeklyAlbum] = useState(false);
@@ -226,7 +228,7 @@ export function WeeklyHome({
             });
         }
 
-        // ====== TODAY'S PHOTO CARD ======
+        // ====== PHOTO CHALLENGE CARD (merged today's photo + daily prompt) ======
         const todaysPhotos = (incidents || [])
             .filter(inc =>
                 inc.photos && inc.photos.length > 0 &&
@@ -238,16 +240,32 @@ export function WeeklyHome({
         const topToday = todaysPhotos[0];
         const topTodayUrl = topToday ? getFullImageUrl(topToday.photos[0]) : undefined;
 
+        // Calculate week photo dots (Mon-Sun)
+        const dotWeekStart = currentWeekStart;
+        const dotWeekEnd = endOfWeek(dotWeekStart, { weekStartsOn: 1 });
+        const weekDays2 = eachDayOfInterval({ start: dotWeekStart, end: dotWeekEnd });
+        const weekDots = weekDays2.map(day =>
+            (incidents || []).some(inc =>
+                inc.photos && inc.photos.length > 0 &&
+                isSameDay(new Date(inc.created_at), day) &&
+                belongsToSelectedCats(inc.cat_id)
+            )
+        );
+
+        // Daily prompt
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
+        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
+        const todayPrompt = DAILY_PROMPTS[promptIndex];
+
         items.push({
-            id: 'todays-photo',
+            id: 'photo-challenge',
             type: 'photo',
-            title: '今日の1枚',
+            title: 'きょうの1枚',
             content: topToday ? format(new Date(topToday.created_at), 'HH:mm') + ' の記録' : '今日の様子を写真に残しませんか？',
             imageUrl: topTodayUrl,
-            ctaLabel: topToday ? '記録を追加' : '記録する',
+            weekDots,
+            promptText: `${todayPrompt.title} — ${todayPrompt.desc}`,
             onClick: handleTriggerCapture,
-            icon: Camera,
-            color: 'text-white'
         });
 
         // ====== WEEKLY MISSION CARD ======
@@ -300,22 +318,21 @@ export function WeeklyHome({
             });
         }
 
-        // ====== DAILY PROMPT (always last) ======
-        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
-        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
-        const todayPrompt = DAILY_PROMPTS[promptIndex];
-
-        items.push({
-            id: 'daily-prompt',
-            type: 'prompt',
-            title: todayPrompt.title,
-            content: todayPrompt.desc,
-            missionIcon: todayPrompt.icon,
-            onClick: handleTriggerCapture,
-        });
+        // ====== MEMORY REWIND CARDS ======
+        for (const memory of memories) {
+            items.push({
+                id: memory.id,
+                type: 'memory',
+                title: memory.label,
+                content: memory.note || undefined,
+                imageUrl: memory.imageUrl,
+                memoryLabel: memory.label,
+                catName: memory.catName,
+            });
+        }
 
         return items;
-    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId]);
+    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId, memories]);
 
 
     // Initial measurement

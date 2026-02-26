@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History, Eye } from "lucide-react";
+import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History, Eye, Clock } from "lucide-react";
 
 export interface FeedItem {
     id: string;
@@ -20,6 +20,12 @@ export interface FeedItem {
     missionIcon?: React.ReactNode;
     missionDesc?: string;
     missionCompleted?: boolean;
+    // Photo Challenge
+    weekDots?: boolean[];   // 7 booleans (Mon–Sun) indicating photo taken
+    promptText?: string;    // Today's prompt text
+    // Memory Rewind
+    memoryLabel?: string;   // e.g. "1ヶ月前の今日"
+    catName?: string;       // Cat name for memory cards
 }
 
 interface WeeklyFeedCarouselProps {
@@ -279,6 +285,106 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
         </div>
     );
 
+    const DAY_LABELS = ['月', '火', '水', '木', '金', '土', '日'];
+
+    const renderPhotoChallengeCard = (item: FeedItem) => {
+        const dots = item.weekDots || [];
+        const photoDays = dots.filter(Boolean).length;
+        const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0
+
+        return (
+            <div className="h-full flex overflow-hidden relative">
+                {/* Left: Context */}
+                <div className="w-[50%] flex flex-col p-3.5 pr-2 z-10">
+                    <div className="flex items-center gap-1.5 mb-1 shrink-0">
+                        <Camera className="w-3 h-3 text-brand-peach" />
+                        <h3 className="text-[8px] font-black uppercase tracking-[0.08em] text-[#4E342E]/50">きょうの1枚</h3>
+                    </div>
+
+                    {item.promptText && (
+                        <p className="text-[10px] font-bold text-[#4E342E] leading-tight mb-1.5 line-clamp-2">
+                            {item.promptText}
+                        </p>
+                    )}
+
+                    {/* Week Dots */}
+                    <div className="flex items-center gap-[5px] mt-auto mb-1">
+                        {DAY_LABELS.map((label, i) => (
+                            <div key={i} className="flex flex-col items-center gap-0.5">
+                                <span className={`text-[7px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'
+                                    }`}>{label}</span>
+                                <div className={`w-3 h-3 rounded-full border transition-all ${dots[i]
+                                    ? 'bg-brand-peach border-brand-peach shadow-[0_0_6px_rgba(232,180,160,0.5)]'
+                                    : i === todayIdx
+                                        ? 'border-brand-peach/50 bg-brand-peach/10'
+                                        : i < todayIdx
+                                            ? 'border-[#4E342E]/10 bg-[#4E342E]/[0.03]'
+                                            : 'border-[#4E342E]/5 bg-transparent'
+                                    }`} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <span className="text-[9px] font-black text-brand-peach">
+                        {photoDays > 0 ? `今週 ${photoDays}日撮影！` : '今週まだ撮ってないよ'}
+                    </span>
+                </div>
+
+                {/* Right: Photo or CTA */}
+                <div className="flex-1 relative overflow-hidden">
+                    {item.imageUrl ? (
+                        <>
+                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[#FEFDFB]/70 to-transparent" />
+                        </>
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-brand-peach/[0.04] space-y-1.5">
+                            <Camera className="w-5 h-5 text-brand-peach/30" />
+                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">タップして撮影</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderMemoryCard = (item: FeedItem) => (
+        <div className="h-full flex overflow-hidden relative">
+            {/* Full-bleed photo with sepia overlay */}
+            {item.imageUrl ? (
+                <>
+                    <img src={item.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: 'sepia(0.3) saturate(0.8)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#3E2723]/80 via-[#3E2723]/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#3E2723]/40 to-transparent" />
+                </>
+            ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#5D4037] to-[#3E2723]" />
+            )}
+
+            {/* Content overlay */}
+            <div className="relative z-10 flex flex-col p-3.5 w-full">
+                <div className="flex items-center gap-1.5 mb-1">
+                    <Clock className="w-3 h-3 text-white/60" />
+                    <span className="text-[8px] font-black uppercase tracking-[0.1em] text-white/50">{item.memoryLabel || '思い出'}</span>
+                </div>
+
+                <div className="mt-auto">
+                    {item.catName && (
+                        <span className="text-[9px] font-bold text-white/50 mb-0.5 block">{item.catName}</span>
+                    )}
+                    {item.content && (
+                        <p className="text-[11px] font-bold text-white/90 leading-tight line-clamp-2">
+                            {item.content}
+                        </p>
+                    )}
+                    {!item.content && !item.imageUrl && (
+                        <p className="text-[10px] text-white/40 italic">この日の記録</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
     const renderContent = (item: FeedItem) => {
         let content;
         if (item.type === 'album') content = renderAlbumCard(item);
@@ -286,7 +392,9 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
         else if (item.type === 'care') content = renderCareCard(item);
         else if (item.type === 'mission') content = renderMissionCard(item);
         else if (item.type === 'prompt') content = renderPromptCard(item);
-        else if (item.type === 'photo' || item.type === 'memory') content = renderPhotoCard(item);
+        else if (item.type === 'memory') content = renderMemoryCard(item);
+        else if (item.type === 'photo' && item.weekDots) content = renderPhotoChallengeCard(item);
+        else if (item.type === 'photo') content = renderPhotoCard(item);
         else {
             content = (
                 <div className="p-4 flex-1 flex flex-col overflow-hidden">
