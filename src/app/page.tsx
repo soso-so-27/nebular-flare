@@ -459,7 +459,6 @@ function AppContent() {
                 >
                   <WeeklyHome
                     onOpenSidebar={() => setShowSidebar(true)}
-                    onOpenNewEvent={() => handleOpenNyannlog('input')}
                     onNavigate={(t) => setTab(t)}
                     selectedCatIds={[]}
                     // Lifted Props for Dock

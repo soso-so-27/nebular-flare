@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay } from "date-fns";
-import { Camera, PenLine, Cat } from "lucide-react";
+import { Cat } from "lucide-react";
 import { useCatContext, useIncidentContext } from "@/store/app-store";
 import { getFullImageUrl } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ interface DayCellProps {
     isLarge: boolean;
     selectedCatIds: string[];
     onClick: (e?: React.MouseEvent) => void;
-    onQuickPost?: (day: Date) => void;
     cornerRadius?: CornerRadius;
 }
 
@@ -50,7 +49,6 @@ export function DayCell({
     isLarge,
     selectedCatIds,
     onClick,
-    onQuickPost,
     cornerRadius
 }: DayCellProps) {
     const { cats } = useCatContext();
@@ -200,47 +198,8 @@ export function DayCell({
 
 
                 <div className="flex-1 flex items-center justify-center">
-                    {isToday && !thumbnailUrl ? (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onQuickPost?.(day);
-                            }}
-                            className="w-12 h-12 rounded-2xl border border-[#4E342E]/10 flex items-center justify-center bg-[#4E342E]/[0.04] active:scale-95 transition-transform"
-                            aria-label="きろくする"
-                        >
-                            <PenLine className="w-5 h-5 text-[#4E342E]/30" />
-                        </button>
-                    ) : (
-                        !thumbnailUrl && (
-                            <Cat className="w-10 h-10 text-[#4E342E]/[0.03]" />
-                        )
-                    )}
-                    {isToday && thumbnailUrl && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onQuickPost?.(day);
-                            }}
-                            className="absolute bottom-2 right-2 w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center active:scale-90 transition-transform shadow-lg"
-                            aria-label="きろくする"
-                        >
-                            <PenLine className="w-3.5 h-3.5 text-white" />
-                        </button>
-                    )}
-                </div>
-
-                {/* 右下: カメラアイコン (状態表示、薄く小さく) */}
-                <div className="flex items-center justify-end">
                     {!thumbnailUrl && (
-                        <Camera
-                            className="transition-opacity duration-300"
-                            style={{
-                                width: isLarge ? 14 : 10,
-                                height: isLarge ? 14 : 10,
-                                color: 'rgba(0, 0, 0, 0.12)'
-                            }}
-                        />
+                        <Cat className="w-10 h-10 text-[#4E342E]/[0.03]" />
                     )}
                 </div>
             </div>

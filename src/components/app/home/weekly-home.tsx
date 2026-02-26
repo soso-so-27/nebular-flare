@@ -118,7 +118,6 @@ const POSE_MISSIONS = [
 
 interface WeeklyHomeProps {
     onOpenSidebar: () => void;
-    onOpenNewEvent: () => void;
     onNavigate?: (id: string) => void;
     selectedCatIds: string[];
     // Dock Props
@@ -135,7 +134,6 @@ interface WeeklyHomeProps {
 
 export function WeeklyHome({
     onOpenSidebar,
-    onOpenNewEvent,
     onNavigate,
     selectedCatIds,
     onOpenCalendar,
@@ -174,9 +172,6 @@ export function WeeklyHome({
     const [selectedSitterCatId, setSelectedSitterCatId] = useState<string | null>(null);
 
 
-    const handleTriggerCapture = useCallback(() => {
-        onOpenPhoto();
-    }, [onOpenPhoto]);
 
     const handleDaySelect = useCallback((day: Date) => setSelectedDay(day), []);
 
@@ -200,7 +195,7 @@ export function WeeklyHome({
                 title: 'はじめの3ステップ',
                 content: '① 写真を撮る → ② お世話を記録 → ③ 図鑑を眺める',
                 missionIcon: <SparklesIcon className="w-5 h-5 text-brand-peach" />,
-                onClick: handleTriggerCapture,
+                onClick: undefined,
             });
         }
 
@@ -228,7 +223,7 @@ export function WeeklyHome({
                 })) : undefined,
                 content: doneTasks >= totalTasks ? '全部おわったよ！えらい 🎉' : undefined,
                 ctaLabel: undoneTasks.length === 0 ? 'もっと見る' : undefined,
-                onClick: undoneTasks.length === 0 ? onOpenNewEvent : undefined,
+                onClick: undoneTasks.length === 0 ? undefined : undefined,
                 icon: Heart,
                 color: doneTasks >= totalTasks ? 'text-green-500' : 'text-brand-peach',
             });
@@ -271,7 +266,7 @@ export function WeeklyHome({
             imageUrl: topTodayUrl,
             weekDots,
             promptText: `${todayPrompt.title} — ${todayPrompt.desc}`,
-            onClick: handleTriggerCapture,
+            onClick: undefined,
         });
 
         // ====== WEEKLY MISSION CARD ======
@@ -296,7 +291,7 @@ export function WeeklyHome({
             missionIcon: currentMission.icon,
             missionDesc: currentMission.desc,
             missionCompleted,
-            onClick: handleTriggerCapture,
+            onClick: undefined,
         });
 
         // ====== CLINIC REPORT (conditional — only if health incidents this week) ======
@@ -340,7 +335,7 @@ export function WeeklyHome({
         }
 
         return items;
-    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleTriggerCapture, handleDaySelect, onOpenNewEvent, setShowReportConfig, setSelectedReportCatId, memories]);
+    }, [incidents, careLogs, selectedCatIds, cats, currentWeekStart, careItems, addCareLog, handleDaySelect, setShowReportConfig, setSelectedReportCatId, memories]);
 
 
     // Initial measurement
@@ -493,7 +488,6 @@ export function WeeklyHome({
                             weekDays={weekDays}
                             selectedCatIds={selectedCatIds}
                             onDaySelect={handleDaySelect}
-                            onQuickPost={onOpenNewEvent}
                             layoutData={layoutData}
                         />
 

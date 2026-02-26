@@ -250,7 +250,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                 ) : (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-xl border border-[#FF9500]/15">
                         <Camera className="w-2.5 h-2.5 text-[#FF9500]" />
-                        <span className="text-[9px] font-black text-[#FF9500]">きろくしてクリア</span>
+                        <span className="text-[9px] font-black text-[#FF9500]">📷 できろくしよう</span>
                     </div>
                 )}
                 <div className="flex gap-[3px]">
@@ -279,7 +279,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             </p>
             <div className="mt-2">
                 <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-xl text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
-                    きろくしよう →
+                    📷 からきろくしよう
                 </div>
             </div>
         </div>
@@ -340,7 +340,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-brand-peach/[0.04] space-y-1.5">
                             <Camera className="w-5 h-5 text-brand-peach/30" />
-                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">タップしてきろく</span>
+                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">📷 からきろく</span>
                         </div>
                     )}
                 </div>
