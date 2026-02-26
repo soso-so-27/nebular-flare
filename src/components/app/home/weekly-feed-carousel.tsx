@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History, Eye, Clock } from "lucide-react";
+import { Sparkles, Heart, Camera, ArrowRight, BookOpen, Stethoscope, FileText, Plus, History, Eye, Clock, Check } from "lucide-react";
 
 export interface FeedItem {
     id: string;
@@ -143,7 +143,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                         </div>
                     )) : (
                         <div className="flex flex-col items-center justify-center text-center py-2">
-                            <span className="text-2xl mb-1">🎉</span>
+                            <Heart className="w-6 h-6 text-brand-peach mb-1 opacity-80" />
                             <p className="text-[12px] font-bold text-[#4E342E]/70">{item.content || '今日はまだお世話がありません'}</p>
                         </div>
                     )}
@@ -244,13 +244,13 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             <div className="flex items-center justify-between mt-2 relative z-10">
                 {item.missionCompleted ? (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#34C759]/10 rounded-xl border border-[#34C759]/20">
-                        <span className="text-[9px]">✅</span>
+                        <Check className="w-2.5 h-2.5 text-[#34C759]" />
                         <span className="text-[9px] font-black text-[#34C759]">達成！</span>
                     </div>
                 ) : (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-xl border border-[#FF9500]/15">
                         <Camera className="w-2.5 h-2.5 text-[#FF9500]" />
-                        <span className="text-[9px] font-black text-[#FF9500]">📷 できろくしよう</span>
+                        <span className="text-[9px] font-black text-[#FF9500]">記録する</span>
                     </div>
                 )}
                 <div className="flex gap-[3px]">
@@ -279,7 +279,7 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
             </p>
             <div className="mt-2">
                 <div className="inline-flex px-2.5 py-1 bg-[#4E342E]/5 rounded-xl text-[9px] font-bold text-[#4E342E]/60 border border-[#4E342E]/8">
-                    📷 からきろくしよう
+                    記録する
                 </div>
             </div>
         </div>
@@ -297,18 +297,32 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                 className="h-full flex overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform"
                 onClick={item.onClick}
             >
-                {/* 撮影済みの場合は右に写真を配置、未撮影の場合はドットを中心寄りに */}
-                <div className={`flex flex-col p-4 z-10 justify-center h-full transition-all ${item.imageUrl ? 'w-[55%]' : 'w-full items-center'}`}>
-                    <div className={`flex items-center gap-1.5 mb-2 ${item.imageUrl ? '' : 'justify-center'}`}>
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">きょうの1枚</h3>
+                {/* 撮影済みの場合は右に写真を配置、未撮影の場合はフルレイアウトに */}
+                <div className={`flex flex-col p-4 z-10 justify-center h-full transition-all ${item.imageUrl ? 'w-[55%]' : 'w-full'}`}>
+
+                    {/* 上部: タイトルとステータス */}
+                    <div className="flex items-center justify-between w-full mb-3">
+                        <h3 className="text-[10.5px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">
+                            きょうの1枚
+                        </h3>
+                        {!item.imageUrl && (
+                            <span className="text-[10px] font-bold text-brand-peach bg-brand-peach/5 px-2 py-0.5 rounded-full">
+                                {photoDays > 0 ? `今週 ${photoDays}日記録！` : '最初の1枚を記録しましょう'}
+                            </span>
+                        )}
+                        {item.imageUrl && (
+                            <span className="text-[9px] font-bold text-brand-peach bg-brand-peach/5 px-1.5 py-0.5 rounded-full">
+                                {photoDays}日記録
+                            </span>
+                        )}
                     </div>
 
-                    {/* 大きなWeek Dots */}
-                    <div className={`flex items-center justify-center gap-[6px] mt-2 mb-3`}>
+                    {/* 下部: 横幅フル活用のWeek Dots */}
+                    <div className={`flex items-center w-full ${item.imageUrl ? 'justify-between' : 'justify-between px-2'}`}>
                         {DAY_LABELS.map((label, i) => (
-                            <div key={i} className="flex flex-col items-center gap-1">
+                            <div key={i} className="flex flex-col items-center gap-1.5">
                                 <span className={`text-[9px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'}`}>{label}</span>
-                                <div className={`w-5 h-5 rounded-full border-2 transition-all ${dots[i]
+                                <div className={`rounded-full border-2 transition-all flex-shrink-0 ${item.imageUrl ? 'w-[18px] h-[18px]' : 'w-[22px] h-[22px]'} ${dots[i]
                                     ? 'bg-brand-peach border-brand-peach shadow-[0_0_8px_rgba(232,180,160,0.4)]'
                                     : i === todayIdx
                                         ? 'border-brand-peach/50 bg-brand-peach/10'
@@ -319,10 +333,6 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                             </div>
                         ))}
                     </div>
-
-                    <span className="text-[11px] font-black text-brand-peach mt-1">
-                        {photoDays > 0 ? `今週 ${photoDays}日記録！` : '最初の1枚を記録しよう✨'}
-                    </span>
                 </div>
 
                 {/* Right: Photo (Only if exists) */}

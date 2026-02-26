@@ -212,7 +212,7 @@ export function WeeklyHome({
                 id: 'care-unified',
                 type: 'care',
                 title: doneTasks >= totalTasks
-                    ? `今日のお世話 ✨ ${doneTasks}/${totalTasks} 完了`
+                    ? `今日のお世話 ${doneTasks}/${totalTasks} 完了`
                     : `今日のおねがい（${doneTasks}/${totalTasks}）`,
                 listItems: undoneTasks.length > 0 ? undoneTasks.map(t => ({
                     label: t.label,
@@ -223,7 +223,7 @@ export function WeeklyHome({
                         toast.success(`✅ ${t.label} 完了！`, { duration: 2000 });
                     }
                 })) : undefined,
-                content: doneTasks >= totalTasks ? '全部おわったよ！えらい 🎉' : undefined,
+                content: doneTasks >= totalTasks ? 'すべて完了しました' : undefined,
                 ctaLabel: undoneTasks.length === 0 ? 'もっと見る' : undefined,
                 onClick: undoneTasks.length === 0 ? undefined : undefined,
                 icon: Heart,
