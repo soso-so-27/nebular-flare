@@ -286,7 +286,7 @@ export function WeeklyHome({
             missionIcon: currentMission.icon,
             missionDesc: currentMission.desc,
             missionCompleted,
-            onClick: undefined,
+            onClick: onTriggerCapture,
         });
 
         // ====== CLINIC REPORT (conditional — only if health incidents this week) ======

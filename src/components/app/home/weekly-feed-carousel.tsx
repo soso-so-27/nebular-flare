@@ -226,36 +226,37 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
     );
 
     const renderMissionCard = (item: FeedItem) => (
-        <div className="h-full flex flex-col p-4 relative overflow-hidden">
+        <div
+            className="h-full flex flex-col p-4 relative overflow-hidden bg-[#FF9500]/[0.02] cursor-pointer active:scale-[0.98] transition-transform"
+            onClick={item.onClick}
+        >
             {/* Subtle gradient accent */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#FF9500]/10 to-transparent rounded-bl-full" />
-            <div className="flex items-center gap-2 mb-2 relative z-10">
-                <div className="w-7 h-7 rounded-lg bg-[#FF9500]/15 flex items-center justify-center">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#FF9500]/10 to-transparent rounded-bl-full pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-center gap-1.5 mb-1.5 relative z-10">
+                <div className="w-5 h-5 flex items-center justify-center text-[#FF9500]">
                     {item.missionIcon || <Eye className="w-4 h-4 text-[#FF9500]" />}
                 </div>
-                <div>
-                    <h3 className="text-[8px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">今週のミッション</h3>
-                    <h4 className="text-[12px] font-black text-[#4E342E] leading-tight">{item.title}</h4>
-                </div>
+                <h3 className="text-[10px] font-black tracking-[0.1em] text-[#4E342E]/50">今週のテーマ</h3>
             </div>
-            <p className="text-[9.5px] text-[#4E342E]/50 font-medium leading-tight mb-auto relative z-10">
+
+            {/* Title & Desc */}
+            <h4 className="text-[13px] font-black text-[#4E342E] leading-tight mb-1 relative z-10">{item.title}</h4>
+            <p className="text-[9px] text-[#4E342E]/70 font-medium leading-relaxed w-[75%] relative z-10">
                 {item.missionDesc || item.content}
             </p>
-            <div className="flex items-center justify-between mt-2 relative z-10">
+
+            {/* Ticket Stamp Area */}
+            <div className="absolute bottom-2.5 right-2.5 flex items-center justify-center w-14 h-14 rounded-full border-[1.5px] border-dashed border-[#4E342E]/15 rotate-[-5deg]">
                 {item.missionCompleted ? (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#34C759]/10 rounded-xl border border-[#34C759]/20">
-                        <Check className="w-2.5 h-2.5 text-[#34C759]" />
-                        <span className="text-[9px] font-black text-[#34C759]">達成！</span>
+                    <div className="flex flex-col items-center justify-center text-[#34C759] rotate-[5deg]">
+                        <Check className="w-6 h-6 stroke-[3]" />
+                        <span className="text-[8px] font-black uppercase tracking-wider">Clear</span>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF9500]/10 rounded-xl border border-[#FF9500]/15">
-                        <Camera className="w-2.5 h-2.5 text-[#FF9500]" />
-                        <span className="text-[9px] font-black text-[#FF9500]">記録する</span>
-                    </div>
+                    <span className="text-[8px] font-black text-[#4E342E]/20 text-center leading-tight">未発見</span>
                 )}
-                <div className="flex gap-[3px]">
-                    <div className={`w-2 h-2 rounded-full ${item.missionCompleted ? 'bg-[#34C759]' : 'bg-[#4E342E]/10'}`} />
-                </div>
             </div>
         </div>
     );
