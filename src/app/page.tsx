@@ -469,6 +469,7 @@ function AppContent() {
                     onOpenIncident={() => setShowIncidentListSheet(true)}
                     onOpenIncidentDetail={handleOpenIncidentDetail}
                     onOpenNyannlogSheet={(tab, date?) => handleOpenNyannlog(tab as any || 'events', date)}
+                    onTriggerCapture={() => hiddenFileInputRef.current?.click()}
                     selectedDate={calendarDate}
                     onDateChange={setCalendarDate}
                   />

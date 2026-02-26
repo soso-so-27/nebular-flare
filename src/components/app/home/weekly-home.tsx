@@ -118,6 +118,7 @@ const POSE_MISSIONS = [
 
 interface WeeklyHomeProps {
     onOpenSidebar: () => void;
+    onTriggerCapture?: () => void;
     onNavigate?: (id: string) => void;
     selectedCatIds: string[];
     // Dock Props
@@ -134,6 +135,7 @@ interface WeeklyHomeProps {
 
 export function WeeklyHome({
     onOpenSidebar,
+    onTriggerCapture,
     onNavigate,
     selectedCatIds,
     onOpenCalendar,
@@ -253,20 +255,13 @@ export function WeeklyHome({
             )
         );
 
-        // Daily prompt
-        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (24 * 60 * 60 * 1000));
-        const promptIndex = dayOfYear % DAILY_PROMPTS.length;
-        const todayPrompt = DAILY_PROMPTS[promptIndex];
-
         items.push({
             id: 'photo-challenge',
             type: 'photo',
             title: 'きょうの1枚',
-            content: topToday ? format(new Date(topToday.created_at), 'HH:mm') + ' の記録' : '今日の様子を写真に残しませんか？',
             imageUrl: topTodayUrl,
             weekDots,
-            promptText: `${todayPrompt.title} — ${todayPrompt.desc}`,
-            onClick: undefined,
+            onClick: onTriggerCapture,
         });
 
         // ====== WEEKLY MISSION CARD ======

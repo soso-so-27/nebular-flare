@@ -293,28 +293,23 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
         const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0
 
         return (
-            <div className="h-full flex overflow-hidden relative">
-                {/* Left: Context */}
-                <div className="w-[50%] flex flex-col p-3.5 pr-2 z-10">
-                    <div className="flex items-center gap-1.5 mb-1 shrink-0">
-                        <Camera className="w-3 h-3 text-brand-peach" />
-                        <h3 className="text-[8px] font-black uppercase tracking-[0.08em] text-[#4E342E]/50">きょうの1枚</h3>
+            <div
+                className="h-full flex overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform"
+                onClick={item.onClick}
+            >
+                {/* 撮影済みの場合は右に写真を配置、未撮影の場合はドットを中心寄りに */}
+                <div className={`flex flex-col p-4 z-10 justify-center h-full transition-all ${item.imageUrl ? 'w-[55%]' : 'w-full items-center'}`}>
+                    <div className={`flex items-center gap-1.5 mb-2 ${item.imageUrl ? '' : 'justify-center'}`}>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.1em] text-[#4E342E]/40">きょうの1枚</h3>
                     </div>
 
-                    {item.promptText && (
-                        <p className="text-[10px] font-bold text-[#4E342E] leading-tight mb-1.5 line-clamp-2">
-                            {item.promptText}
-                        </p>
-                    )}
-
-                    {/* Week Dots */}
-                    <div className="flex items-center gap-[5px] mt-auto mb-1">
+                    {/* 大きなWeek Dots */}
+                    <div className={`flex items-center justify-center gap-[6px] mt-2 mb-3`}>
                         {DAY_LABELS.map((label, i) => (
-                            <div key={i} className="flex flex-col items-center gap-0.5">
-                                <span className={`text-[8px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'
-                                    }`}>{label}</span>
-                                <div className={`w-4 h-4 rounded-full border transition-all ${dots[i]
-                                    ? 'bg-brand-peach border-brand-peach shadow-[0_0_6px_rgba(232,180,160,0.5)]'
+                            <div key={i} className="flex flex-col items-center gap-1">
+                                <span className={`text-[9px] font-bold ${i === todayIdx ? 'text-brand-peach' : 'text-[#4E342E]/30'}`}>{label}</span>
+                                <div className={`w-5 h-5 rounded-full border-2 transition-all ${dots[i]
+                                    ? 'bg-brand-peach border-brand-peach shadow-[0_0_8px_rgba(232,180,160,0.4)]'
                                     : i === todayIdx
                                         ? 'border-brand-peach/50 bg-brand-peach/10'
                                         : i < todayIdx
@@ -325,25 +320,18 @@ export function WeeklyFeedCarousel({ screenWidth, xOffset, items }: WeeklyFeedCa
                         ))}
                     </div>
 
-                    <span className="text-[9px] font-black text-brand-peach">
-                        {photoDays > 0 ? `今週 ${photoDays}日撮影！` : '今週まだ撮ってないよ'}
+                    <span className="text-[11px] font-black text-brand-peach mt-1">
+                        {photoDays > 0 ? `今週 ${photoDays}日記録！` : '最初の1枚を記録しよう✨'}
                     </span>
                 </div>
 
-                {/* Right: Photo or CTA */}
-                <div className="flex-1 relative overflow-hidden">
-                    {item.imageUrl ? (
-                        <>
-                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-                            <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[#FEFDFB]/70 to-transparent" />
-                        </>
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-brand-peach/[0.04] space-y-1.5">
-                            <Camera className="w-5 h-5 text-brand-peach/30" />
-                            <span className="text-[8px] font-bold text-[#4E342E]/30 px-3 text-center">📷 からきろく</span>
-                        </div>
-                    )}
-                </div>
+                {/* Right: Photo (Only if exists) */}
+                {item.imageUrl && (
+                    <div className="flex-1 relative overflow-hidden">
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#FEFDFB] to-transparent" />
+                    </div>
+                )}
             </div>
         );
     };
