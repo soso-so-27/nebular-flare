@@ -33,7 +33,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
         timingStyle, setTimingStyle,
         isSaving,
         form,
-        resetForm, handleSave, startEdit
+        resetForm, handleSave, startEdit, updateCareTask
     } = useCareTaskForm();
 
     if (!portalTarget) return null;
@@ -45,7 +45,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-[#4E342E]/20 backdrop-blur-sm"
+                    className="fixed inset-0 z-[10020] flex items-end justify-center sm:items-center bg-[#4E342E]/20 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -72,7 +72,15 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                                 editingId={editingId}
                                 isAdding={isAdding}
                                 onEdit={startEdit}
-                                onDelete={deleteCareTask}
+                                onDelete={(id, title) => {
+                                    if (window.confirm(`「${title}」をごみ箱に移動しますか？\n※ 後で再開する可能性がある場合は「無効化」ボタンをおすすめします。`)) {
+                                        deleteCareTask(id);
+                                    }
+                                }}
+                                onToggleEnable={(task) => {
+                                    updateCareTask(task.id, { enabled: task.enabled === false });
+                                    toast.success(task.enabled === false ? `「${task.title}」を有効にしました` : `「${task.title}」を無効にしました`);
+                                }}
                                 onAdd={() => setIsAdding(true)}
                                 onCancelAdd={resetForm}
                                 onSave={handleSave}

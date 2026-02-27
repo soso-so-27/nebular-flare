@@ -63,6 +63,7 @@ const ReportConfigModal = dynamic(() => import("@/components/app/modals/report-c
 const SitterReportConfigModal = dynamic(() => import("@/components/app/modals/sitter-report-config-modal").then(m => ({ default: m.SitterReportConfigModal })), { ssr: false });
 const InventorySettingsModal = dynamic(() => import("@/components/app/modals/inventory-settings-modal").then(m => ({ default: m.InventorySettingsModal })), { ssr: false });
 const ObservationHistoryModal = dynamic(() => import("@/components/app/modals/observation-history-modal").then(m => ({ default: m.ObservationHistoryModal })), { ssr: false });
+const CareSettingsModal = dynamic(() => import("@/components/app/modals/care-settings-modal").then(m => ({ default: m.CareSettingsModal })), { ssr: false });
 
 
 /* eslint-disable @next/next/no-img-element */
@@ -784,6 +785,10 @@ function AppContent() {
 
               <ThemeExchangeModal
                 isOpen={openSection === 'exchange'}
+                onClose={() => setOpenSection(null)}
+              />
+              <CareSettingsModal
+                isOpen={openSection === 'care'}
                 onClose={() => setOpenSection(null)}
               />
             </React.Suspense>

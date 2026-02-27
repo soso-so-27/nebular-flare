@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { uploadMultipleImages } from "@/lib/storage";
 import type { Database } from '@/types/database';
+import { toast } from 'sonner';
 
 export type CareLog = Database['public']['Tables']['care_logs']['Row'];
 export type Observation = Database['public']['Tables']['observations']['Row'];
@@ -43,6 +44,33 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     });
 
     const addMutation = useMutation({
+        onMutate: async (newLog: { type: string, catId?: string, note?: string, images: File[], date?: string | Date }) => {
+            await queryClient.cancelQueries({ queryKey });
+            const previousLogs = queryClient.getQueryData(queryKey);
+            queryClient.setQueryData(queryKey, (old: any) => {
+                const optimisticLog = {
+                    id: `temp-${Date.now()}`,
+                    household_id: householdId,
+                    cat_id: newLog.catId || null,
+                    type: newLog.type,
+                    notes: newLog.note || null,
+                    images: [],
+                    done_by: 'optimistic',
+                    done_at: newLog.date ? (typeof newLog.date === 'string' ? new Date(newLog.date).toISOString() : newLog.date.toISOString()) : new Date().toISOString(),
+                    temp: true
+                };
+                return old ? [optimisticLog, ...old] : [optimisticLog];
+            });
+            return { previousLogs };
+        },
+        onError: (err, newLog, context: any) => {
+            console.error(err);
+            toast.error("通信エラーが発生しました。記録が保存されていません。");
+            queryClient.setQueryData(queryKey, context.previousLogs);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
         mutationFn: async ({ type, catId, note, images, date }: { type: string, catId?: string, note?: string, images: File[], date?: string | Date }) => {
             if (!householdId) throw new Error("Household ID not found");
             const { data: user } = await supabase.auth.getUser();
@@ -94,6 +122,22 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
     });
 
     const deleteMutation = useMutation({
+        onMutate: async (id: string) => {
+            await queryClient.cancelQueries({ queryKey });
+            const previousLogs = queryClient.getQueryData(queryKey);
+            queryClient.setQueryData(queryKey, (old: any) => {
+                return old ? old.filter((log: any) => log.id !== id) : [];
+            });
+            return { previousLogs };
+        },
+        onError: (err, id, context: any) => {
+            console.error(err);
+            toast.error("通信エラーが発生しました。削除が反映されていません。");
+            queryClient.setQueryData(queryKey, context.previousLogs);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
         mutationFn: async (id: string) => {
             if (!householdId) return;
             const { error } = await supabase
@@ -101,23 +145,33 @@ export function useTodayCareLogs(householdId: string | null, dayStartHour: numbe
                 .update({ deleted_at: new Date().toISOString() })
                 .eq('id', id);
             if (error) throw error;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-        },
+        }
     });
 
     const updateNoteMutation = useMutation({
+        onMutate: async ({ id, note }: { id: string, note: string }) => {
+            await queryClient.cancelQueries({ queryKey });
+            const previousLogs = queryClient.getQueryData(queryKey);
+            queryClient.setQueryData(queryKey, (old: any) => {
+                return old ? old.map((log: any) => log.id === id ? { ...log, notes: note, temp_updated: true } : log) : [];
+            });
+            return { previousLogs };
+        },
+        onError: (err, variables, context: any) => {
+            console.error(err);
+            toast.error("通信エラーが発生しました。メモが保存されていません。");
+            queryClient.setQueryData(queryKey, context.previousLogs);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
         mutationFn: async ({ id, note }: { id: string, note: string }) => {
             const { error } = await supabase
                 .from('care_logs')
                 .update({ notes: note })
                 .eq('id', id);
             if (error) throw error;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-        },
+        }
     });
 
     useEffect(() => {

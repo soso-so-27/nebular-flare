@@ -153,13 +153,16 @@ export function getCatchUpItems({
         const currentHour = now.getHours();
 
         const getSlotStartTime = (slot: string): number => {
-            const date = new Date(now);
+            const date = new Date(startDt);
             switch (slot) {
                 case 'morning': date.setHours(5, 0, 0, 0); break;
                 case 'noon': date.setHours(11, 0, 0, 0); break;
                 case 'evening': date.setHours(15, 0, 0, 0); break;
                 case 'night': date.setHours(20, 0, 0, 0); break;
-                default: date.setHours(0, 0, 0, 0);
+                default: date.setHours(dayStartHour, 0, 0, 0);
+            }
+            if (date.getHours() < dayStartHour) {
+                date.setDate(date.getDate() + 1);
             }
             return date.getTime();
         };
@@ -313,8 +316,7 @@ export function getCatchUpItems({
                     let periodLabel = '今日分';
 
                     if (def.frequency === 'weekly') {
-                        const d = new Date(now);
-                        d.setHours(d.getHours() - dayStartHour);
+                        const d = new Date(startDt);
                         const day = d.getDay();
                         const diffToMon = (day === 0 ? -6 : 1 - day);
                         d.setDate(d.getDate() + diffToMon);
@@ -322,8 +324,7 @@ export function getCatchUpItems({
                         periodStart.setHours(dayStartHour, 0, 0, 0);
                         periodLabel = '今週分';
                     } else if (def.frequency === 'monthly') {
-                        const d = new Date(now);
-                        d.setHours(d.getHours() - dayStartHour);
+                        const d = new Date(startDt);
                         periodStart = new Date(d.getFullYear(), d.getMonth(), 1);
                         periodStart.setHours(dayStartHour, 0, 0, 0);
                         periodLabel = '今月分';

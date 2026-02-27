@@ -176,6 +176,6 @@ export function useCareTaskForm() {
             reminderOffsetMinutes, setReminderOffsetMinutes,
             mealSlots, setMealSlots
         },
-        resetForm, handleSave, startEdit
+        resetForm, handleSave, startEdit, updateCareTask
     };
 }

@@ -12,7 +12,8 @@ interface CareTaskListProps {
     editingId: string | null;
     isAdding: boolean;
     onEdit: (task: CareTaskDef) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: string, title: string) => void;
+    onToggleEnable: (task: CareTaskDef) => void;
     onAdd: () => void;
     onCancelAdd: () => void;
     onSave: () => void;
@@ -31,6 +32,7 @@ export const CareTaskList = ({
     isAdding,
     onEdit,
     onDelete,
+    onToggleEnable,
     onAdd,
     onCancelAdd,
     onSave,
@@ -81,10 +83,13 @@ export const CareTaskList = ({
                                 </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0 pl-3 border-l border-[#4E342E]/10 opacity-70 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => onToggleEnable(task)} className="p-2 rounded-full hover:bg-[#4E342E]/5 text-[#4E342E]/30 hover:text-[#4E342E]/70 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5" title={task.enabled !== false ? "無効にする" : "有効にする"}>
+                                    {task.enabled !== false ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 rotate-45" />}
+                                </button>
                                 <button onClick={() => onEdit(task)} className="p-2 rounded-full hover:bg-[#4E342E]/5 text-[#4E342E]/30 hover:text-[#4E342E]/70 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5">
                                     <Edit2 className="h-3.5 w-3.5" />
                                 </button>
-                                <button onClick={() => onDelete(task.id)} className="p-2 rounded-full hover:bg-rose-500/10 text-[#4E342E]/20 hover:text-rose-500 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5">
+                                <button onClick={() => onDelete(task.id, task.title)} className="p-2 rounded-full hover:bg-rose-500/10 text-[#4E342E]/20 hover:text-rose-500 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5" title="完全に削除する">
                                     <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                             </div>

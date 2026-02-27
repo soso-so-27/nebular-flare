@@ -8,6 +8,7 @@
 import { createClient } from '@/lib/supabase';
 import { storageLogger } from '@/lib/logger';
 import { validateFileUpload, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_IMAGE_SIZE, MAX_VIDEO_SIZE } from '@/lib/file-validation';
+import imageCompression from 'browser-image-compression';
 
 export interface UploadOptions {
     allowedTypes?: readonly string[];
@@ -64,11 +65,26 @@ export async function uploadFile(
         return { publicUrl: null, storagePath: null, error: validation.error || 'Validation failed' };
     }
 
+    let fileToUpload = file;
+    if (file.type.startsWith('image/')) {
+        try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1600,
+                useWebWorker: true
+            };
+            fileToUpload = await imageCompression(file, options);
+            storageLogger.info(`Compressed image from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`);
+        } catch (compressionError) {
+            storageLogger.warn('Image compression failed, proceeding with original file.', compressionError);
+        }
+    }
+
     // Upload to storage
-    const { error } = await supabase.storage.from(opts.bucket).upload(storagePath, file, {
+    const { error } = await supabase.storage.from(opts.bucket).upload(storagePath, fileToUpload, {
         cacheControl: opts.cacheControl,
         upsert: false,
-        contentType: file.type,
+        contentType: fileToUpload.type || file.type,
     });
 
     if (error) {

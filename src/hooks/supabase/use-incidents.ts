@@ -26,7 +26,8 @@ export function useIncidents(householdId: string | null) {
                 `)
                 .eq('household_id', householdId)
                 .is('deleted_at', null)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(100);
 
             if (error) throw error;
 
