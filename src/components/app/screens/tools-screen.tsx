@@ -14,9 +14,10 @@ import {
 } from "lucide-react";
 import { cn, getFullImageUrl } from "@/lib/utils";
 import { triggerFeedback } from "@/lib/haptics";
-import { useCatContext, useCoreContext } from "@/store/app-store";
+import { useCatContext, useCareContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { startOfWeek } from "date-fns";
+import { useInventory } from "@/hooks/supabase/use-inventory";
 
 // ─────────────────────────────────
 // Types
@@ -70,6 +71,29 @@ export function ToolsScreen({
     const [shouldLoad, setShouldLoad] = useState(false);
     const supabaseRef = useRef(createClient());
     const sectionRef = useRef<HTMLDivElement>(null);
+
+    // Fetch dynamic status data
+    const { inventory, loading: inventoryLoading } = useInventory(householdId);
+    const { careLogs, careTaskDefs, tasks } = useCareContext();
+
+    // ── Calculate Dynamic Statuses ──
+
+    // 1. Care Progress (Today's tasks)
+    const careStatus = useMemo(() => {
+        if (!tasks || tasks.length === 0) return null;
+        // tasks in careContext are calculated for current cats
+        const total = tasks.length;
+        // Count how many tasks have a corresponding careLog for today
+        // (This is a simplified check, ideally we match catId and type)
+        const doneCount = tasks.filter(t => t.done).length;
+        return { done: doneCount, total };
+    }, [tasks]);
+
+    // 2. Inventory Alerts
+    const inventoryAlertCount = useMemo(() => {
+        if (!inventory) return 0;
+        return inventory.filter(item => item.stock_level === 'low').length;
+    }, [inventory]);
 
     // ─────────────────────────────────
     // Fetch Data
@@ -153,23 +177,7 @@ export function ToolsScreen({
         return { dailyPick, weeklyHighlight, pastYearPhotos };
     }, [allPhotos]);
 
-    const toolSections = [
-        {
-            title: "日々の管理",
-            tools: [
-                { title: "お世話管理", desc: "お世話項目の設定・確認", icon: Clock, onClick: onOpenCareManagement },
-                { title: "在庫管理", desc: "フードや消耗品の残量", icon: Package, onClick: onOpenInventory },
-            ]
-        },
-        {
-            title: "レポート・分析",
-            tools: [
-                { title: "受診用レポート", desc: "獣医さんへの説明用", icon: FileText, onClick: onOpenReport },
-                { title: "引継ぎシート", desc: "シッターさんへの指示", icon: History, onClick: onOpenSitter },
-                { title: "健康推移", desc: "体重や体調の変化", icon: TrendingUp, onClick: onOpenTrends },
-            ]
-        }
-    ];
+    // Remove toolSections as we will hardcode the layout to support different designs
 
     return (
         <div className="h-full bg-[#FDF8F1] dark:bg-[#121214] overflow-y-auto px-5 pt-14 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]">
@@ -266,47 +274,109 @@ export function ToolsScreen({
                 </div>
 
                 {/* ── ツール Section ── */}
-                <div className="space-y-8">
-                    {toolSections.map((section) => (
-                        <nav key={section.title} aria-label={section.title} className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-5 border border-[#F2EFEA] dark:border-white/5">
-                            <h2 className="text-[11px] font-bold text-[#787570] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
-                                {section.title}
-                            </h2>
-                            <div className="grid grid-cols-2 gap-3.5">
-                                {section.tools.map((tool, idx) => {
-                                    const Icon = tool.icon;
-                                    const isFullWidth = section.tools.length % 2 !== 0 && idx === 0;
-                                    return (
-                                        <motion.button
-                                            key={tool.title}
-                                            whileTap={{ scale: 0.96 }}
-                                            aria-label={`${tool.title}: ${tool.desc}`}
-                                            onClick={() => {
-                                                triggerFeedback('light');
-                                                tool.onClick();
-                                            }}
-                                            className={cn(
-                                                "flex flex-col items-start p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm active:shadow-none transition-all text-left min-h-[110px]",
-                                                isFullWidth && "col-span-2 flex-row items-center gap-4 min-h-[0] py-4"
-                                            )}
-                                        >
-                                            <div className={cn(
-                                                "w-8 h-8 rounded-lg bg-[#FDF8F1] dark:bg-white/10 text-brand-peach flex items-center justify-center",
-                                                !isFullWidth && "mb-3"
-                                            )}>
-                                                <Icon className="w-[20px] h-[20px]" strokeWidth={1.8} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] mb-0.5 leading-tight">{tool.title}</h3>
-                                                <p className="text-[12px] text-[#787570] dark:text-[#787570] leading-relaxed line-clamp-2">{tool.desc}</p>
-                                            </div>
-                                            {isFullWidth && <ChevronRight className="w-4 h-4 text-[#D4CFC9]" />}
-                                        </motion.button>
-                                    );
-                                })}
-                            </div>
-                        </nav>
-                    ))}
+                <div className="space-y-6">
+                    {/* 日々の管理 (Grid Layout - 操作系) */}
+                    <nav aria-label="日々の管理" className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-5 border border-[#F2EFEA] dark:border-white/5">
+                        <h2 className="text-[11px] font-bold text-[#787570] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
+                            日々の管理
+                        </h2>
+                        <div className="grid grid-cols-2 gap-3.5">
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                aria-label="お世話管理: お世話項目の設定・確認"
+                                onClick={() => { triggerFeedback('light'); onOpenCareManagement(); }}
+                                className="flex flex-col items-start p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm transition-all text-left min-h-[120px] relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-brand-sage/5 rounded-bl-[100px] z-0" />
+                                <div className="w-9 h-9 rounded-[12px] bg-brand-sage/10 text-brand-sage flex items-center justify-center mb-3 relative z-10 transition-colors">
+                                    <Clock className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div className="relative z-10 flex-1 flex flex-col justify-end">
+                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] mb-1 leading-tight">お世話管理</h3>
+                                    <p className={cn(
+                                        "text-[11px] font-bold",
+                                        careStatus?.done === careStatus?.total && careStatus?.total !== 0 ? "text-brand-sage" : "text-[#A6A29A]"
+                                    )}>
+                                        {careStatus ? `${careStatus.done} / ${careStatus.total} 完了` : "項目の設定・確認"}
+                                    </p>
+                                </div>
+                            </motion.button>
+
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                aria-label="在庫管理: フードや消耗品の残量"
+                                onClick={() => { triggerFeedback('light'); onOpenInventory(); }}
+                                className="flex flex-col items-start p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm transition-all text-left min-h-[120px] relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-brand-peach/5 rounded-bl-[100px] z-0" />
+                                <div className="w-9 h-9 rounded-[12px] bg-brand-peach/10 text-brand-peach flex items-center justify-center mb-3 relative z-10 transition-colors">
+                                    <Package className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div className="relative z-10 flex-1 flex flex-col justify-end">
+                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] mb-1 leading-tight">在庫管理</h3>
+                                    <p className={cn(
+                                        "text-[11px] font-bold",
+                                        inventoryAlertCount > 0 ? "text-brand-peach" : "text-[#A6A29A]"
+                                    )}>
+                                        {inventoryLoading ? "確認中..." : inventoryAlertCount > 0 ? `不足 ${inventoryAlertCount}件` : `登録 ${inventory.length}件`}
+                                    </p>
+                                </div>
+                            </motion.button>
+                        </div>
+                    </nav>
+
+                    {/* レポート・分析 (List Layout - 出力・閲覧系) */}
+                    <nav aria-label="レポート・分析" className="bg-[#FAF4ED] dark:bg-white/5 rounded-[32px] p-5 border border-[#F2EFEA] dark:border-white/5">
+                        <h2 className="text-[11px] font-bold text-[#787570] dark:text-[#A6A29A] tracking-[0.1em] mb-4 ml-2 uppercase">
+                            レポート・分析
+                        </h2>
+                        <div className="flex flex-col gap-3">
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => { triggerFeedback('light'); onOpenReport(); }}
+                                className="flex items-center p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm transition-all text-left group"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-[#FDF8F1] dark:bg-white/10 text-[#4E342E] flex items-center justify-center mr-4 group-hover:bg-[#4E342E] group-hover:text-white transition-colors duration-300">
+                                    <FileText className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] leading-tight mb-0.5">受診用レポート</h3>
+                                    <p className="text-[12px] text-[#A6A29A] leading-relaxed">獣医さんへの説明用</p>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-[#D4CFC9]" strokeWidth={1.5} />
+                            </motion.button>
+
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => { triggerFeedback('light'); onOpenSitter(); }}
+                                className="flex items-center p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm transition-all text-left group"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-[#FDF8F1] dark:bg-white/10 text-[#4E342E] flex items-center justify-center mr-4 group-hover:bg-[#4E342E] group-hover:text-white transition-colors duration-300">
+                                    <History className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] leading-tight mb-0.5">引継ぎシート</h3>
+                                    <p className="text-[12px] text-[#A6A29A] leading-relaxed">シッターさんへの指示に</p>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-[#D4CFC9]" strokeWidth={1.5} />
+                            </motion.button>
+
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => { triggerFeedback('light'); onOpenTrends(); }}
+                                className="flex items-center p-4 rounded-[24px] bg-white dark:bg-[#1c1c1e] border border-[#F2EFEA] dark:border-white/5 shadow-sm transition-all text-left group"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-brand-lavender/10 text-brand-lavender flex items-center justify-center mr-4 group-hover:bg-brand-lavender group-hover:text-white transition-colors duration-300">
+                                    <TrendingUp className="w-5 h-5" strokeWidth={2} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-[15px] text-[#4E342E] dark:text-[#E8E6E1] leading-tight mb-0.5">健康推移</h3>
+                                    <p className="text-[12px] text-[#A6A29A] leading-relaxed">体重や体調の変化をグラフ化</p>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-[#D4CFC9]" strokeWidth={1.5} />
+                            </motion.button>
+                        </div>
+                    </nav>
                 </div>
 
                 <div className="mt-12 flex flex-col items-center justify-center gap-3 opacity-30 pb-10">
