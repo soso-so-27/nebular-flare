@@ -472,10 +472,10 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     return (
         <div className="fixed inset-0 z-50 bg-[#FDF8F1] dark:bg-[#121214] flex flex-col pb-32">
             <header className="sticky top-0 z-30 bg-[#FDF8F1]/80 dark:bg-[#121214]/80 backdrop-blur-xl border-b border-[#F2EFEA] dark:border-white/10 pt-[env(safe-area-inset-top)]" role="banner">
-                <div className="flex items-center justify-between px-5 h-14">
-                    <div className="w-8" />
-                    <h1 className="text-[18px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">アルバム図鑑</h1>
-                    <div className="flex items-center justify-end w-20">
+                <div className="flex items-center px-5 h-14">
+                    <div className="w-16" /> {/* Spacer for centering alignment */}
+                    <h1 className="flex-1 text-center text-[18px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">アルバム図鑑</h1>
+                    <div className="flex items-center justify-end w-16">
                         {verificationQueue.length > 0 ? (
                             <button onClick={() => setIsVerificationOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm animate-pulse" aria-label={`${verificationQueue.length}件の確認待ち記録があります`}>
                                 <span className="font-bold text-xs">{verificationQueue.length}</span>
@@ -521,13 +521,15 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 ) : (
                     <div className="pb-24 pt-4">
                         <div className="px-5 space-y-10">
-                            {/* ─── WEEKLY MISSION ─── */}
+                            {/* ─── WEEKLY MISSION (THEME) ─── */}
                             {(() => {
                                 const POSE_MISSIONS = [
                                     { id: '香箱座り', label: '「香箱座り」を見つけよう！', desc: '前足を体の下に折りたたんで座るポーズ。リラックスの証拠です。' },
-                                    { id: 'ごろん', label: '「ごろん」を見つけよう！', desc: 'お腹を見せて転がるポーズ。とっても信頼されている証です。' },
-                                    { id: 'へそ天', label: '「へそ天」を見つけよう！', desc: '仰向けに寝転がる完全リラックスモード。' },
-                                    { id: 'のび', label: '「のび」を見つけよう！', desc: '伸びをする瞬間を激写しよう！' },
+                                    { id: 'へそ天', label: '「へそ天」を見つけよう！', desc: '仰向けでお腹を見せていたら信頼の証。' },
+                                    { id: 'スフィンクス', label: '「スフィンクス」を見つけよう！', desc: '前足を前に伸ばして伏せるポーズ。' },
+                                    { id: 'まんまる', label: '「まんまる」を見つけよう！', desc: 'まんまるになっていたらすかさずパシャリ。' },
+                                    { id: 'にょろーん', label: '「にょろーん」を見つけよう！', desc: '長く伸びているポーズ。暑い日によく見るかも。' },
+                                    { id: 'ちょこん座り', label: '「ちょこん座り」を見つけよう！', desc: '背筋を伸ばして上品に座る姿。' },
                                     { id: '箱イン', label: '「箱イン」を見つけよう！', desc: '箱や袋に入っていたらチャンス！' },
                                     { id: 'ふみふみ', label: '「ふみふみ」を見つけよう！', desc: '前足を交互に動かすニーディング。' },
                                 ];
@@ -535,17 +537,25 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                 const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
                                 const mission = POSE_MISSIONS[weekNumber % POSE_MISSIONS.length];
                                 return (
-                                    <div className="mb-2 p-4 rounded-2xl bg-gradient-to-br from-brand-peach/10 to-amber-50 dark:from-brand-peach/10 dark:to-white/5 border border-brand-peach/20">
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-brand-peach/20 flex items-center justify-center shrink-0">
-                                                <Target className="w-5 h-5 text-brand-peach" />
+                                    <div className="mb-2 relative overflow-hidden rounded-[24px] bg-white dark:bg-[#1c1c1e] shadow-sm border border-[#F2EFEA] dark:border-white/5">
+                                        <div className="p-4 relative z-10">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                                <div className="w-4 h-4 rounded-full bg-[#FF9500]/10 flex items-center justify-center text-[#FF9500]">
+                                                    <Target className="w-3 h-3" />
+                                                </div>
+                                                <h3 className="text-[10px] font-black uppercase tracking-wider text-[#4E342E]/50 dark:text-[#E8E6E1]/50">今週のテーマ</h3>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[11px] font-bold text-brand-peach tracking-wide uppercase mb-0.5">今週のミッション</p>
-                                                <p className="text-[15px] font-bold text-[#4E342E] dark:text-[#E8E6E1] leading-snug">{mission.label}</p>
-                                                <p className="text-[12px] text-[#787570] dark:text-[#A6A29A] mt-1 leading-relaxed">{mission.desc}</p>
+                                            <div className="flex justify-between items-end">
+                                                <div className="w-[85%]">
+                                                    <h4 className="text-[14px] font-black text-[#4E342E] dark:text-[#E8E6E1] leading-tight mb-1">{mission.label}</h4>
+                                                    <p className="text-[11px] font-bold text-[#4E342E]/60 dark:text-[#E8E6E1]/60 leading-relaxed">
+                                                        {mission.desc}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
+                                        {/* Subtle gradient accent matching Home screen theme card */}
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FF9500]/10 to-transparent rounded-bl-full pointer-events-none" />
                                     </div>
                                 );
                             })()}

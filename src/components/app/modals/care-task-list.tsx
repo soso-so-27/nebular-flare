@@ -45,42 +45,48 @@ export const CareTaskList = ({
     return (
         <div className="space-y-4">
             {careTaskDefs.map(task => (
-                <div key={task.id} className="p-3 bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-2xl space-y-3">
+                <div key={task.id} className="p-3 pr-4 bg-white/80 backdrop-blur-md border border-[#4E342E]/5 shadow-[0_2px_16px_-4px_rgba(78,52,46,0.04)] hover:shadow-[0_4px_20px_-4px_rgba(78,52,46,0.06)] hover:border-[#4E342E]/10 transition-all rounded-[24px] group">
                     {editingId === task.id ? (
-                        <CareTaskForm
-                            activeTab={activeTab}
-                            setActiveTab={setActiveTab}
-                            timingStyle={timingStyle}
-                            setTimingStyle={setTimingStyle}
-                            form={form}
-                            cats={cats}
-                            onSave={onSave}
-                            onCancel={onCancelAdd}
-                            isSaving={isSaving}
-                            taskInfo={{ title: task.title, icon: task.icon, priority: task.priority || 'normal' }}
-                        />
+                        <div className="p-1">
+                            <CareTaskForm
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                timingStyle={timingStyle}
+                                setTimingStyle={setTimingStyle}
+                                form={form}
+                                cats={cats}
+                                onSave={onSave}
+                                onCancel={onCancelAdd}
+                                isSaving={isSaving}
+                                taskInfo={{ title: task.title, icon: task.icon, priority: task.priority || 'normal' }}
+                            />
+                        </div>
                     ) : (
-                        <div className={cn("flex items-center justify-between", task.enabled === false && "opacity-50")}>
-                            <div className="flex items-center gap-3">
-                                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", task.priority === 'high' ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary')}>
-                                    {(() => { const Icon = getIcon(task.icon); return <Icon className="w-6 h-6" />; })()}
+                        <div className={cn("flex items-center justify-between", task.enabled === false && "opacity-50 grayscale")}>
+                            <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                                <div className={cn("w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors", task.priority === 'high' ? 'bg-rose-50 text-rose-500 group-hover:bg-rose-100' : 'bg-[#F2EFEA] text-emerald-600 group-hover:bg-[#EAE5DC]')}>
+                                    {(() => { const Icon = getIcon(task.icon); return <Icon className="w-5 h-5" />; })()}
                                 </div>
-                                <div>
+                                <div className="flex-1 min-w-0 flex flex-col justify-center">
                                     <div className="flex items-center gap-2">
-                                        <p className="font-black text-slate-900 dark:text-white">{task.title}</p>
-                                        {task.priority === 'high' && <span className="text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-red-500 text-white rounded-full">High</span>}
-                                        {task.enabled === false && <span className="text-[10px] px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">無効</span>}
+                                        <p className="font-black text-[13px] text-[#4E342E] leading-snug truncate">{task.title}</p>
+                                        {task.priority === 'high' && <span className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-rose-500 text-white rounded-[6px] shrink-0">High</span>}
+                                        {task.enabled === false && <span className="text-[9px] px-1.5 py-0.5 bg-[#4E342E]/10 text-[#4E342E]/50 rounded-[6px] font-bold shrink-0">無効</span>}
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium">
+                                    <p className="text-[11px] text-[#4E342E]/40 font-bold truncate mt-0.5">
                                         {task.frequencyType === 'interval' ? `${task.intervalHours}h毎` : task.frequency}
-                                        <span className="mx-1">•</span>
+                                        <span className="mx-1 opacity-50 font-normal">•</span>
                                         {task.perCat ? '猫ごと' : '共通'}
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex gap-1">
-                                <button onClick={() => onEdit(task)} className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><Edit2 className="h-4 w-4 text-slate-400" /></button>
-                                <button onClick={() => onDelete(task.id)} className="p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="h-4 w-4 text-red-400" /></button>
+                            <div className="flex items-center gap-1 shrink-0 pl-3 border-l border-[#4E342E]/10 opacity-70 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => onEdit(task)} className="p-2 rounded-full hover:bg-[#4E342E]/5 text-[#4E342E]/30 hover:text-[#4E342E]/70 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5">
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+                                <button onClick={() => onDelete(task.id)} className="p-2 rounded-full hover:bg-rose-500/10 text-[#4E342E]/20 hover:text-rose-500 transition-colors bg-white shadow-[0_2px_8px_-2px_rgba(78,52,46,0.05)] border border-[#4E342E]/5">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                             </div>
                         </div>
                     )}
@@ -88,25 +94,25 @@ export const CareTaskList = ({
             ))}
 
             {!isAdding && !editingId && (
-                <button onClick={onAdd} className="w-full mt-4 py-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 text-sm font-black flex items-center justify-center gap-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
+                <button onClick={onAdd} className="w-full mt-4 py-4 rounded-[24px] border-2 border-dashed border-[#4E342E]/10 text-[#4E342E]/40 text-sm font-black flex items-center justify-center gap-2 hover:border-amber-600 hover:text-amber-600 hover:bg-amber-600/5 transition-all">
                     <Plus className="h-5 w-5" />
                     新しいおねがいを定義
                 </button>
             )}
 
             {isAdding && (
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl space-y-4">
-                    <div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /><p className="text-sm font-black text-primary">新規おねがい</p></div>
+                <div className="p-4 bg-white/80 border border-[#4E342E]/10 rounded-[24px] space-y-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" /><p className="text-sm font-black text-amber-600">新規おねがい</p></div>
                     <div className="space-y-1">
-                        <label className="text-xs font-black text-primary/60 uppercase">名前</label>
-                        <input type="text" value={form.title} onChange={(e) => form.setTitle(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/30 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-primary/40" placeholder="例：ちゅ〜る、ブラッシング" autoFocus />
+                        <label className="text-xs font-black text-[#4E342E]/40 uppercase">名前</label>
+                        <input type="text" value={form.title} onChange={(e) => form.setTitle(e.target.value)} className="w-full px-4 py-3 rounded-[16px] border border-[#4E342E]/10 bg-white/80 text-[#4E342E] outline-none focus:ring-2 focus:ring-amber-600/20" placeholder="例：ちゅ〜る、ブラッシング" autoFocus />
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={onSave} disabled={isSaving} className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-black shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                    <div className="flex gap-2 pt-2">
+                        <button onClick={onSave} disabled={isSaving} className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-black shadow-lg shadow-amber-600/20 flex items-center justify-center gap-2 transition-colors">
                             {isSaving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                             定義する
                         </button>
-                        <button onClick={onCancelAdd} className="px-4 py-3 rounded-xl bg-white dark:bg-slate-800 text-slate-500 text-sm font-bold border border-slate-200 dark:border-slate-700">やめる</button>
+                        <button onClick={onCancelAdd} className="px-6 py-3 rounded-xl bg-[#4E342E]/5 hover:bg-[#4E342E]/10 text-[#4E342E]/60 text-sm font-bold transition-colors">やめる</button>
                     </div>
                 </div>
             )}

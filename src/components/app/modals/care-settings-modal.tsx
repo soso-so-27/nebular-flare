@@ -45,7 +45,7 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-[#4E342E]/10 backdrop-blur-sm"
+                    className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center bg-[#4E342E]/20 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -54,15 +54,15 @@ export function CareSettingsModal({ isOpen, onClose }: CareSettingsModalProps) {
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#FAF9F7]/95 dark:bg-[#1E1E23]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 w-full max-w-md max-h-full sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl flex flex-col"
+                        className="bg-[#FDF8F1] w-full max-w-md max-h-[85vh] sm:rounded-[32px] rounded-t-[32px] overflow-hidden shadow-2xl flex flex-col"
                     >
-                        <div className="px-4 py-3 border-b border-white/20 dark:border-white/5 flex items-center justify-between shrink-0">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Check className="h-5 w-5 text-primary" />
+                        <div className="px-5 py-4 border-b border-[#4E342E]/5 flex items-center justify-between shrink-0">
+                            <h2 className="text-lg font-bold text-[#4E342E] flex items-center gap-2">
+                                <Check className="h-5 w-5 text-emerald-500" />
                                 ONEGAIの設定
                             </h2>
-                            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <X className="h-5 w-5 text-slate-500" />
+                            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-[#4E342E]/5 transition-colors">
+                                <X className="h-5 w-5 text-[#4E342E]/40" />
                             </button>
                         </div>
 
