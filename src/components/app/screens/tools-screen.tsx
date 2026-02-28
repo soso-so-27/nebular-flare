@@ -266,9 +266,19 @@ export function ToolsScreen({
                             )}
                         </div>
                     ) : (
-                        <div className="h-48 flex flex-col items-center justify-center gap-3 bg-white/40 dark:bg-white/5 rounded-[24px]">
-                            <Cat className="w-6 h-6 text-[#D4CFC9] animate-pulse" />
-                            <span className="text-[10px] font-bold text-[#787570] tracking-wide">写真を読み込み中です...</span>
+                        <div className="space-y-6">
+                            <div className="w-full aspect-[4/5] flex flex-col items-center justify-center gap-3 bg-white/40 dark:bg-white/5 rounded-[24px] border border-[#F2EFEA]/50 dark:border-white/5">
+                                <Cat className="w-6 h-6 text-[#D4CFC9] animate-pulse" />
+                                <span className="text-[10px] font-bold text-[#787570] tracking-wide animate-pulse">写真を読み込み中です...</span>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="w-24 h-4 bg-[#F2EFEA] dark:bg-white/5 rounded-full animate-pulse mx-1" />
+                                <div className="flex gap-2 overflow-hidden -mx-4 px-4 pb-1">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-24 h-24 shrink-0 rounded-2xl bg-[#F2EFEA] dark:bg-white/5 animate-pulse" />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
