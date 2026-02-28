@@ -601,10 +601,11 @@ function AppContent() {
               {tab === "tools" && (
                 <motion.div
                   key="tools-screen"
-                  className="fixed inset-0 z-[10002] bg-[#FAF9F7]"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  className="fixed inset-0 z-[10002] bg-[#FDF8F1] dark:bg-[#121214]"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   <ToolsScreen
                     onOpenReport={() => setOpenSection('report')}
