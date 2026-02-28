@@ -12,8 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "**/*", // Skip all lint errors for now to unblock Vercel deployments
   ]),
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "prefer-const": "off",
+      "react-hooks/exhaustive-deps": "off"
+    }
+  }
 ]);
 
 export default eslintConfig;
