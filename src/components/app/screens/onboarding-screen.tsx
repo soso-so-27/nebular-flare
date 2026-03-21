@@ -35,13 +35,13 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         try {
             // Create household
             onboardingLogger.debug('Creating household...');
-            const { data: household, error: householdError } = await supabase
+            const householdId = crypto.randomUUID();
+            const { error: householdError } = await supabase
                 .from('households')
-                .insert({ name: householdName })
-                .select()
-                .single();
+                .insert({ id: householdId, name: householdName });
+            const household = { id: householdId };
 
-            if (householdError || !household) {
+            if (householdError) {
                 onboardingLogger.error('Household creation failed:', householdError);
                 toast.error("世帯の作成に失敗しました: " + (householdError?.message || 'Unknown error'));
                 setIsSubmitting(false);
@@ -54,7 +54,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 .from('users')
                 .upsert({
                     id: user.id,
-                    household_id: household.id,
+                    household_id: householdId,
                     display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User'
                 }, {
                     onConflict: 'id'
@@ -67,13 +67,31 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 return;
             }
 
+            onboardingLogger.debug('Creating household membership...');
+            const { error: membershipError } = await supabase
+                .from('household_members')
+                .upsert({
+                    household_id: householdId,
+                    user_id: user.id,
+                    role: 'owner'
+                }, {
+                    onConflict: 'household_id,user_id'
+                });
+
+            if (membershipError) {
+                onboardingLogger.error('Household membership failed:', membershipError);
+                toast.error("世帯メンバーの作成に失敗しました: " + membershipError.message);
+                setIsSubmitting(false);
+                return;
+            }
+
             // Create cats (without created_by to avoid FK issues, or use null)
             const validCats = cats.filter(c => c.name.trim());
             onboardingLogger.debug('Creating cats:', validCats.length);
             if (validCats.length > 0) {
                 const { error: catsError } = await supabase.from('cats').insert(
                     validCats.map(c => ({
-                        household_id: household.id,
+                        household_id: householdId,
                         name: c.name,
                         avatar: c.avatar
                         // Removed created_by to avoid FK constraint issues

@@ -12,14 +12,14 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, display_name, email, created_at)
+  INSERT INTO public.users (id, display_name, created_at)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
-    NEW.email,
     NOW()
   )
-  ON CONFLICT (id) DO NOTHING; -- Prevent errors if user already exists
+  ON CONFLICT (id) DO UPDATE
+    SET display_name = EXCLUDED.display_name; -- Keep profile name in sync on retry
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

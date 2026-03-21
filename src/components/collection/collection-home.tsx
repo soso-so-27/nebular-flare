@@ -17,9 +17,9 @@ import { toast } from "sonner";
 import { useCatContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { PhotoDetailView } from "@/components/app/immersive/photo-detail-view";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // ─────────────────────────────────
 // Shared types (same as zukan-screen)
@@ -40,6 +40,100 @@ interface ShelfPhoto {
     id: string; url: string; storagePath: string; catId: string; catName: string;
     catIds?: string[]; createdAt: string; source: string; memo?: string;
     tags?: any[]; isUrl?: boolean; aiAnalysis?: AIAnalysis;
+}
+
+interface DiscoveryRecord {
+    id: string;
+    cat_id: string | null;
+    title: string | null;
+    type: string | null;
+    photo_id: string | null;
+    created_at: string;
+    is_read: boolean;
+    collection_definition_id: string | null;
+    collection_definitions: {
+        id: string;
+        slug: string | null;
+        name: string | null;
+        category: string | null;
+    } | {
+        id: string;
+        slug: string | null;
+        name: string | null;
+        category: string | null;
+    }[] | null;
+    photos: {
+        id: string;
+        storage_path: string | null;
+        created_at: string | null;
+    } | {
+        id: string;
+        storage_path: string | null;
+        created_at: string | null;
+    }[] | null;
+}
+
+interface DiscoveryGroup {
+    key: string;
+    photoId: string | null;
+    discoveries: DiscoveryRecord[];
+    primary: DiscoveryRecord;
+    count: number;
+}
+
+function takeRelation<T>(value: T | T[] | null | undefined): T | null {
+    if (!value) return null;
+    return Array.isArray(value) ? value[0] ?? null : value;
+}
+
+function formatDiscoveryCopy(discovery: DiscoveryRecord, cats: { id: string; name: string }[]) {
+    const definition = takeRelation(discovery.collection_definitions);
+    const catName = cats.find((cat) => cat.id === discovery.cat_id)?.name;
+    const entryName = definition?.name || discovery.title || '新しい発見';
+
+    if (catName) {
+        return `${catName}の「${entryName}」を見つけました`;
+    }
+
+    return `「${entryName}」を見つけました`;
+}
+
+function formatDiscoveryDate(value: string) {
+    return new Date(value).toLocaleDateString('ja-JP', {
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+function buildDiscoveryGroupCopy(group: DiscoveryGroup, cats: { id: string; name: string }[]) {
+    const primary = group.primary;
+    const definition = takeRelation(primary.collection_definitions);
+    const catName = cats.find((cat) => cat.id === primary.cat_id)?.name;
+    const entryName = definition?.name || primary.title || "新しい発見";
+
+    if (group.count > 1) {
+        return catName
+            ? `${catName}の「${entryName}」ほか${group.count - 1}件を見つけました`
+            : `「${entryName}」ほか${group.count - 1}件を見つけました`;
+    }
+
+    return catName
+        ? `${catName}の「${entryName}」を見つけました`
+        : `「${entryName}」を見つけました`;
+}
+
+function buildDiscoveryCopy(discovery: DiscoveryRecord, cats: { id: string; name: string }[]) {
+    const definition = takeRelation(discovery.collection_definitions);
+    const catName = cats.find((cat) => cat.id === discovery.cat_id)?.name;
+    const entryName = definition?.name || discovery.title || "新しい発見";
+
+    if (catName) {
+        return `${catName}の「${entryName}」を見つけました`;
+    }
+
+    return `「${entryName}」を見つけました`;
 }
 
 function mapToShelfPhoto(img: any): ShelfPhoto {
@@ -68,6 +162,7 @@ interface CollectionHomeProps {
 export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHomeProps) {
     const { cats, analyzeCatImage } = useCatContext();
     const { householdId } = useCoreContext();
+    const queryClient = useQueryClient();
 
     const [allPhotos, setAllPhotos] = useState<ShelfPhoto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -76,9 +171,12 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
     const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
 
     const supabaseRef = useRef(createClient());
+    const isDemo = useMemo(
+        () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('demo') === 'true',
+        []
+    );
 
     const loadPhotos = useCallback(async () => {
-        const isDemo = new URLSearchParams(window.location.search).get('demo') === 'true';
         if (isDemo) {
             // Generate mock data for demo
             const mockPhotos: ShelfPhoto[] = [
@@ -127,9 +225,15 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
         if (error) { console.error(error); setLoading(false); return; }
         setAllPhotos((data as any[] || []).map(mapToShelfPhoto));
         setLoading(false);
-    }, [householdId]);
+    }, [householdId, isDemo]);
 
-    useEffect(() => { loadPhotos(); }, [loadPhotos]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            void loadPhotos();
+        }, 0);
+
+        return () => clearTimeout(timer);
+    }, [loadPhotos]);
 
     // ─── Compute collections ───
     const zukanCollections = useMemo(() => {
@@ -174,10 +278,6 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
     }, [allPhotos]);
 
     // ─── Recent Discoveries ───
-    const recentDiscoveries = useMemo(() => {
-        return allPhotos.slice(0, 8);
-    }, [allPhotos]);
-
     // ─── Weekly Album ───
     const weeklyAlbum = useMemo(() => {
         if (allPhotos.length === 0) return null;
@@ -216,32 +316,74 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
         return DAILY_MISSIONS[weekNumber % DAILY_MISSIONS.length];
     }, []);
 
-    const [discoveries, setDiscoveries] = useState<any[]>([]);
+    const discoveryQueryKey = ['collection-home-discoveries', householdId];
+    const { data: discoveries = [] } = useQuery<DiscoveryRecord[]>({
+        queryKey: discoveryQueryKey,
+        enabled: !!householdId && !isDemo,
+        refetchInterval: 15000,
+        queryFn: async () => {
+            const supabase = supabaseRef.current;
+            const { data, error } = await supabase
+                .from('discoveries')
+                .select('id, cat_id, title, type, photo_id, created_at, is_read, collection_definition_id, collection_definitions(id, slug, name, category), photos(id, storage_path, created_at)')
+                .eq('is_read', false)
+                .order('created_at', { ascending: false });
 
-    const checkDiscoveries = useCallback(async () => {
-        const isDemo = new URLSearchParams(window.location.search).get('demo') === 'true';
-        if (!householdId || isDemo) return;
-        const supabase = supabaseRef.current;
-        const { data, error } = await supabase
-            .from('discoveries')
-            .select('*, collection_definitions(*), photos(*)')
-            .eq('is_read', false)
-            .order('created_at', { ascending: false });
+            if (error) {
+                throw error;
+            }
 
-        if (!error && data) {
-            setDiscoveries(data);
+            return (data || []) as DiscoveryRecord[];
+        },
+    });
+
+    const groupedDiscoveries = useMemo<DiscoveryGroup[]>(() => {
+        const grouped = new Map<string, DiscoveryRecord[]>();
+
+        for (const discovery of discoveries) {
+            const key = discovery.photo_id || discovery.id;
+            const existing = grouped.get(key) || [];
+            existing.push(discovery);
+            grouped.set(key, existing);
         }
-    }, [householdId]);
 
-    useEffect(() => {
-        checkDiscoveries();
-        const interval = setInterval(checkDiscoveries, 15000); // Poll every 15s
-        return () => clearInterval(interval);
-    }, [checkDiscoveries]);
+        return Array.from(grouped.entries())
+            .map(([key, items]) => {
+                const sorted = [...items].sort(
+                    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                );
+
+                return {
+                    key,
+                    photoId: sorted[0]?.photo_id || null,
+                    discoveries: sorted,
+                    primary: sorted[0],
+                    count: sorted.length,
+                };
+            })
+            .sort(
+                (a, b) =>
+                    new Date(b.primary.created_at).getTime() - new Date(a.primary.created_at).getTime()
+            );
+    }, [discoveries]);
 
     const markDiscoveryAsRead = async (id: string) => {
-        setDiscoveries(prev => prev.filter(d => d.id !== id));
+        queryClient.setQueryData<DiscoveryRecord[]>(discoveryQueryKey, (prev = []) =>
+            prev.filter((discovery) => discovery.id !== id)
+        );
+
         await (supabaseRef.current.from('discoveries') as any).update({ is_read: true }).eq('id', id);
+        void queryClient.invalidateQueries({ queryKey: discoveryQueryKey });
+        onOpenCollection();
+    };
+
+    const markDiscoveryGroupAsRead = async (ids: string[]) => {
+        queryClient.setQueryData<DiscoveryRecord[]>(discoveryQueryKey, (prev = []) =>
+            prev.filter((discovery) => !ids.includes(discovery.id))
+        );
+
+        await (supabaseRef.current.from('discoveries') as any).update({ is_read: true }).in('id', ids);
+        void queryClient.invalidateQueries({ queryKey: discoveryQueryKey });
         onOpenCollection();
     };
 
@@ -272,7 +414,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
 
             <div className="flex-1 overflow-y-auto pb-32">
                 <AnimatePresence>
-                    {discoveries.length > 0 && (
+                    {groupedDiscoveries.length > 0 && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: -20 }}
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
@@ -280,25 +422,41 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                             className="px-5 pt-4"
                         >
                             <button
-                                onClick={() => markDiscoveryAsRead(discoveries[0].id)}
+                                onClick={() => markDiscoveryGroupAsRead(groupedDiscoveries[0].discoveries.map((discovery) => discovery.id))}
                                 className="w-full flex items-center justify-between p-4 rounded-[20px] bg-[#FFFFFF] border border-[rgba(0,0,0,0.06)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] relative overflow-hidden group text-left"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-[#C8A97E]/5 to-transparent pointer-events-none" />
                                 <div className="flex items-center gap-4 relative z-10 w-full">
-                                    <div className="w-12 h-12 rounded-full bg-[#C8A97E]/20 flex items-center justify-center shrink-0">
-                                        <Sparkles className="w-6 h-6 text-[#C8A97E]" />
+                                    <div className="w-14 h-14 rounded-[16px] overflow-hidden bg-[#F6F3EE] shrink-0">
+                                        {takeRelation(groupedDiscoveries[0].primary.photos)?.storage_path ? (
+                                            <img
+                                                src={getFullImageUrl(takeRelation(groupedDiscoveries[0].primary.photos)?.storage_path || '', { width: 240, height: 240, resize: "cover", quality: 80 })}
+                                                className="w-full h-full object-cover"
+                                                alt=""
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-[#C8A97E]/20 flex items-center justify-center">
+                                                <Sparkles className="w-6 h-6 text-[#C8A97E]" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0 pr-2">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-bold text-[#C8A97E] px-2 py-0.5 rounded-full bg-[#C8A97E]/10">
+                                            <span className="hidden">
                                                 今日の発掘({discoveries.length})
+                                            </span>
+                                            <span className="text-[11px] font-bold text-[#C8A97E] px-2 py-0.5 rounded-full bg-[#C8A97E]/10">
+                                                発見 {groupedDiscoveries[0].count}件
                                             </span>
                                         </div>
                                         <h3 className="text-[14px] font-bold text-[#4E342E] dark:text-[#E8E6E1] truncate">
-                                            {discoveries[0].title}
+                                            {buildDiscoveryGroupCopy(groupedDiscoveries[0], cats)}
                                         </h3>
-                                        <p className="text-[12px] text-[#8E8B85] truncate">
+                                        <p className="hidden">
                                             タップしてコレクションを開く
+                                        </p>
+                                        <p className="text-[12px] text-[#8E8B85] truncate">
+                                            {formatDiscoveryDate(groupedDiscoveries[0].primary.created_at)}
                                         </p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-[#C8A97E] shrink-0" />
@@ -358,7 +516,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                             );
                         })()}
 
-                        <div className="space-y-4">
+                        <div className="hidden">
                             <h2 className="text-[18px] font-[600] text-[#2F2A26] px-1">最近の発見</h2>
                             {discoveries.length > 0 ? (
                                 <div className="space-y-3">
@@ -402,6 +560,78 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                         </div>
 
                         {/* ─── C. コレクション進捗 ─── */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="text-[18px] font-[600] text-[#2F2A26]">最近の発見</h2>
+                                <button
+                                    onClick={onOpenCollection}
+                                    className="text-[12px] font-[500] text-[#C8A97E] active:opacity-70"
+                                >
+                                    図鑑を見る
+                                </button>
+                            </div>
+                            {groupedDiscoveries.length > 0 ? (
+                                <div className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                    <div className="flex gap-3 pb-1">
+                                        {groupedDiscoveries.slice(0, 6).map((group, idx) => {
+                                            const photo = takeRelation(group.primary.photos);
+                                            const imageUrl = photo?.storage_path
+                                                ? getFullImageUrl(photo.storage_path, { width: 480, height: 360, resize: "cover", quality: 80 })
+                                                : null;
+
+                                            return (
+                                                <motion.button
+                                                    key={group.key}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: idx * 0.06 }}
+                                                    onClick={() => markDiscoveryGroupAsRead(group.discoveries.map((discovery) => discovery.id))}
+                                                    className="w-[280px] shrink-0 overflow-hidden rounded-[24px] border border-[rgba(0,0,0,0.06)] bg-[#FFFFFF] text-left shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+                                                >
+                                                    <div className="aspect-[4/3] bg-[#F6F3EE]">
+                                                        {imageUrl ? (
+                                                            <img
+                                                                src={imageUrl}
+                                                                className="h-full w-full object-cover"
+                                                                alt=""
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center bg-[#C8A97E]/10">
+                                                                <Sparkles className="h-8 w-8 text-[#C8A97E]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="space-y-2 p-4">
+                                                        <div className="inline-flex items-center rounded-full bg-[#C8A97E]/10 px-2.5 py-1 text-[10px] font-bold text-[#C8A97E]">
+                                                            {group.count > 1 ? `${group.count} DISCOVERIES` : 'DISCOVERY'}
+                                                        </div>
+                                                        <h3 className="line-clamp-2 text-[15px] font-[600] leading-snug text-[#2F2A26]">
+                                                            {buildDiscoveryGroupCopy(group, cats)}
+                                                        </h3>
+                                                        <p className="text-[12px] text-[#7A726B]">
+                                                            {formatDiscoveryDate(group.primary.created_at)}
+                                                        </p>
+                                                    </div>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3 rounded-[20px] border border-[rgba(0,0,0,0.06)] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[#F6F3EE]">
+                                        <Search className="h-5 w-5 text-[#A08D74]" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-[14px] font-[600] text-[#2F2A26]">まだ新しい発見はありません</h3>
+                                        <p className="mt-0.5 text-[12px] font-[400] text-[#7A726B]">
+                                            写真が増えると、この子らしい発見がここに届きます。
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="space-y-4">
                             <div className="flex items-center justify-between px-1">
                                 <h2 className="text-[18px] font-[600] text-[#2F2A26]">この子らしさ</h2>
