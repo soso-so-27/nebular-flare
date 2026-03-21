@@ -1,23 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Klee_One } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const kleeOne = Klee_One({
-  variable: "--font-klee",
-  weight: ["400"],
-  subsets: ["latin"],
-});
 
 import { PwaRegister } from "@/components/pwa-register";
 import { Toaster } from "@/components/ui/sonner";
@@ -68,8 +51,8 @@ export default function RootLayout({
         `}} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${kleeOne.variable} antialiased scrollbar-hide`}
-        style={{ backgroundColor: '#FAF8F5', margin: 0, padding: 0 }}
+        className="antialiased scrollbar-hide"
+        style={{ backgroundColor: '#F6F3EE', margin: 0, padding: 0 }}
         suppressHydrationWarning
       >
         <QueryProvider>

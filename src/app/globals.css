@@ -70,49 +70,54 @@
   --z-index-negative: -1;
 }
 
-/* Brand-inspired color palette - 猫のいる暮らしを、そっと整える (Updated) */
+/* Brand-inspired color palette - 仕様書準拠 v2.0 */
 :root {
-  --radius: 0.75rem;
+  --radius: 1.125rem;
+  --font-geist-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  --font-geist-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-zen-maru: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  /* 18px */
 
-  /* Brand Base - 生成り/乳白ガラス (warmer, softer) */
-  --background: #FAF8F5;
-  --foreground: oklch(0.22 0.012 45);
+  /* Brand Base */
+  --background: #F6F3EE;
+  --foreground: #4E342E;
+  /* 濃い茶色を維持 */
 
-  /* Card/Popover - Enhanced Glassmorphism */
-  --card: rgba(255, 255, 255, 0.72);
-  --card-foreground: oklch(0.22 0.012 45);
-  --card-border: rgba(255, 255, 255, 0.25);
-  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --popover: rgba(255, 255, 255, 0.92);
-  --popover-foreground: oklch(0.22 0.012 45);
+  /* Card */
+  --card: #FFFFFF;
+  --card-foreground: #4E342E;
+  --card-border: rgba(0, 0, 0, 0.05);
+  /* 影と調和 */
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --popover: #FFFFFF;
+  --popover-foreground: #4E342E;
 
-  /* Brand Semantic Colors - Refined for cat photos */
-  --sage: oklch(0.65 0.12 150);
-  /* 軸色：安心・継続 - slightly more vibrant */
-  --peach: #E8B4A0;
-  /* 感情：楽しさ・体温 - warmer, more golden */
+  /* Brand Semantic Colors (仕様書準拠) */
+  --brand-main: #C8A97E;
+  --brand-accent: #6B7A6B;
+  --sage: #C8A97E;
+  /* 互換性維持 */
+  --peach: #6B7A6B;
+  /* 互換性維持 */
   --lavender: oklch(0.70 0.12 285);
-  /* 変化：静かな注意 - slightly richer */
-  --cream: oklch(0.96 0.02 75);
-  /* 補助：柔らかなハイライト */
 
-  /* Primary = Sage（軸色） */
-  --primary: var(--sage);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Primary = Main（#C8A97E） */
+  --primary: var(--brand-main);
+  --primary-foreground: #FFFFFF;
 
-  /* Secondary - Warm neutral */
+  /* Secondary */
   --secondary: oklch(0.95 0.012 70);
-  --secondary-foreground: oklch(0.32 0.015 45);
+  --secondary-foreground: #4E342E;
 
-  /* Muted - Softer */
+  /* Muted */
   --muted: oklch(0.94 0.01 70);
   --muted-foreground: oklch(0.48 0.015 45);
 
-  /* Accent = Peach（感情） */
-  --accent: var(--peach);
-  --accent-foreground: oklch(0.28 0.015 45);
+  /* Accent = Accent（#6B7A6B） */
+  --accent: var(--brand-accent);
+  --accent-foreground: #FFFFFF;
 
-  /* Destructive = ラベンダー（静かな注意）*/
+  /* Destructive */
   --destructive: var(--lavender);
 
   /* Borders & Inputs - Softer */
@@ -147,43 +152,44 @@
 }
 
 .dark {
-  /* Brand Semantic Colors (Dark Mode) - Enhanced visibility */
-  --sage: oklch(0.70 0.12 150);
-  --peach: oklch(0.75 0.13 45);
+  /* Brand Semantic Colors (Dark Mode) */
+  --brand-main: #C8A97E;
+  --brand-accent: #6B7A6B;
+  --sage: #C8A97E;
+  --peach: #6B7A6B;
   --lavender: oklch(0.72 0.12 285);
   --cream: oklch(0.28 0.02 70);
 
   --background: oklch(0.14 0.01 45);
-  --foreground: oklch(0.94 0.01 80);
+  --foreground: #F6F3EE;
 
-  /* Dark Glassmorphism */
-  --card: rgba(20, 20, 25, 0.72);
-  --card-foreground: oklch(0.94 0.01 80);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
-  --popover: rgba(25, 25, 30, 0.92);
-  --popover-foreground: oklch(0.94 0.01 80);
+  /* Cards */
+  --card: rgba(30, 30, 35, 0.9);
+  --card-foreground: #F6F3EE;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --popover: rgba(30, 30, 35, 0.95);
+  --popover-foreground: #F6F3EE;
 
   /* Rive-like Liquid Glass System (Dark) */
-  --glass-surface: rgba(30, 30, 35, 0.70);
-  /* Luminance Boost (Dark) */
-  --glass-highlight: rgba(255, 255, 255, 0.15);
+  --glass-surface: rgba(40, 40, 45, 0.85);
+  --glass-highlight: rgba(255, 255, 255, 0.10);
   --glass-shadow-floating:
-    0 10px 40px -10px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 
-  /* Primary = Sage */
-  --primary: var(--sage);
-  --primary-foreground: oklch(0.12 0 0);
+  /* Primary */
+  --primary: var(--brand-main);
+  --primary-foreground: #FFFFFF;
 
   --secondary: oklch(0.24 0.01 45);
   --secondary-foreground: oklch(0.90 0.01 80);
   --muted: oklch(0.26 0.01 45);
   --muted-foreground: oklch(0.62 0.015 75);
 
-  /* Accent = Peach */
-  --accent: oklch(0.26 0.025 45);
-  --accent-foreground: oklch(0.90 0.01 80);
+  /* Accent */
+  --accent: var(--brand-accent);
+  --accent-foreground: #FFFFFF;
 
   /* Destructive = Lavender */
   --destructive: var(--lavender);
@@ -278,6 +284,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans);
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;

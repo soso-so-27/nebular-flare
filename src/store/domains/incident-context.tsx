@@ -1,10 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, ReactNode } from 'react';
 import { useIncidents } from '@/hooks/use-supabase-data';
 import { Incident } from '@/types';
-import { createClient } from '@/lib/supabase';
-import { storeLogger } from '@/lib/logger';
 
 interface IncidentContextType {
     incidents: Incident[];
@@ -21,7 +19,6 @@ interface IncidentContextType {
 const IncidentContext = createContext<IncidentContextType | undefined>(undefined);
 
 export function IncidentProvider({ children, householdId, isDemo }: { children: ReactNode; householdId: string | null; isDemo: boolean }) {
-    const supabase = createClient() as any;
     const {
         incidents,
         addIncident: sAdd,
@@ -34,17 +31,19 @@ export function IncidentProvider({ children, householdId, isDemo }: { children: 
         updateIncidentNote: sUpdateNote
     } = useIncidents(isDemo ? null : householdId);
 
-    const wrap = (fn: any) => async (...args: any[]) => {
+    const wrap = useCallback((fn: any) => async (...args: any[]) => {
         if (isDemo) return { error: "Demo mode" };
         return (await fn(...args)) || {};
-    };
+    }, [isDemo]);
+
+    const addIncident = useCallback(async (...args: any[]) => {
+        if (isDemo) return { error: "Demo mode" };
+        return (await (sAdd as any)(...args)) || {};
+    }, [isDemo, sAdd]);
 
     const value = useMemo(() => ({
         incidents,
-        addIncident: async (...args: any[]) => {
-            if (isDemo) return { error: "Demo mode" };
-            return (await (sAdd as any)(...args)) || {};
-        },
+        addIncident,
         addIncidentUpdate: wrap(sAddUp),
         resolveIncident: wrap(sResolve),
         deleteIncident: wrap(sDel),
@@ -53,11 +52,9 @@ export function IncidentProvider({ children, householdId, isDemo }: { children: 
         toggleBookmark: wrap(sTogBook),
         updateIncidentNote: (id: string, note: string) => {
             if (isDemo) return Promise.resolve({ error: "Demo mode" });
-            const { updateIncidentNote: sUpdate } = useIncidents(householdId); // This is sneaky because useIncidents is called inside Provider but we need the new function. Wait.
-            // Actually, the destructuring in line 24 already has it if I update it.
             return (sUpdateNote as any)(id, note);
         }
-    }), [incidents, isDemo, sAdd, sAddUp, sResolve, sDel, sAddRea, sRemRea, sTogBook, sUpdateNote]);
+    }), [addIncident, incidents, isDemo, sAddUp, sResolve, sDel, sAddRea, sRemRea, sTogBook, sUpdateNote, wrap]);
 
     return <IncidentContext.Provider value={value}>{children}</IncidentContext.Provider>;
 }

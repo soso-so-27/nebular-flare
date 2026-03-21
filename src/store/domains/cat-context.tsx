@@ -201,7 +201,7 @@ export function CatProvider({ children, householdId, isDemo }: { children: React
         if (isDemo) return { error: null };
         try {
             if (storagePath) {
-                await supabase.storage.from('avatars').remove([storagePath]);
+                await supabase.storage.from('cat-images').remove([storagePath]);
             }
             const { error } = await supabase.from('cat_images').delete().eq('id', imageId);
             if (error) throw error;
