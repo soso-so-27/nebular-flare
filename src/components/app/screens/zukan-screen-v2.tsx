@@ -15,6 +15,7 @@ import { cn, getFullImageUrl } from "@/lib/utils";
 import { useCatContext, useCoreContext } from "@/store/app-store";
 import { createClient } from "@/lib/supabase";
 import { PhotoDetailView } from "../immersive/photo-detail-view";
+import { CatSettingsModal } from "@/components/app/modals/cat-settings-modal";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -247,6 +248,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDetailImage, setSelectedDetailImage] = useState<any>(null);
+    const [isCatSettingsOpen, setIsCatSettingsOpen] = useState<boolean>(false);
 
     const loadPhotos = useCallback(async () => {
         if (!householdId) return;
@@ -477,11 +479,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     );
     const spotlightGroups = useMemo(() => inProgressGroups, [inProgressGroups]);
     const primaryCat = cats[0];
-    const primaryCatBreed = primaryCat?.breed || null;
-    const primaryCatBirthDate =
-        (primaryCat as { birth_date?: string | null; birthday?: string | null } | undefined)?.birth_date ||
-        primaryCat?.birthday ||
-        null;
+    const primaryCatBirthday = primaryCat?.birthday ?? null;
 
     if (loading) {
         return (
@@ -608,19 +606,25 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
 
                 {primaryCat ? (
                     <section className="space-y-3">
-                        <h2
-                            className="text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
-                            style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
-                        >
-                            {"\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u30fb\u30b1\u30a2\u8a18\u9332"}
-                        </h2>
+                        <div className="flex items-center justify-between">
+                            <h2
+                                className="text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
+                                style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
+                            >
+                                {"\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u30fb\u30b1\u30a2\u8a18\u9332"}
+                            </h2>
+                            <button
+                                type="button"
+                                className="text-[12px] text-[#3D5A80]"
+                                onClick={() => setIsCatSettingsOpen(true)}
+                            >
+                                {"\u7de8\u96c6"}
+                            </button>
+                        </div>
                         <div className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
                             <p className="text-[16px] font-semibold text-[#1E2840]">{primaryCat.name}</p>
-                            {primaryCatBreed ? (
-                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBreed}</p>
-                            ) : null}
-                            {primaryCatBirthDate ? (
-                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBirthDate}</p>
+                            {primaryCatBirthday ? (
+                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBirthday}</p>
                             ) : null}
                         </div>
                     </section>
@@ -638,6 +642,10 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 </section>
             </div>
 
+            <CatSettingsModal
+                isOpen={isCatSettingsOpen}
+                onClose={() => setIsCatSettingsOpen(false)}
+            />
             <PhotoDetailView isOpen={!!selectedDetailImage} onClose={() => setSelectedDetailImage(null)} image={selectedDetailImage} />
         </div>
     );
