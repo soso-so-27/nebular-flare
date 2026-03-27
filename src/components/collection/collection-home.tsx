@@ -71,18 +71,14 @@ function selectHeroPhoto(photos: HomePhoto[]) {
 
 function buildDiscoveryHeadline(group: DiscoveryGroup, catsById: Map<string, string>) {
     const definition = takeRelation<any>(group.primary.collection_definitions);
-    const catName = group.primary.cat_id ? catsById.get(group.primary.cat_id) : null;
-    const entryName = definition?.name || group.primary.title || "\u65b0\u3057\u3044\u767a\u898b";
+    const catName = group.primary.cat_id ? catsById.get(group.primary.cat_id) || "\u306d\u3053" : "\u306d\u3053";
+    const entryName = definition?.name;
 
-    if (group.count <= 1) {
-        return catName
-            ? `${catName}\u306e\u300c${entryName}\u300d\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f`
-            : `\u300c${entryName}\u300d\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f`;
+    if (entryName) {
+        return `\u300c${entryName}\u3001\u307e\u305f\u5897\u3048\u307e\u3057\u305f\u3002\u300d`;
     }
 
-    return catName
-        ? `${catName}\u306e\u65b0\u3057\u3044\u767a\u898b\u304c${group.count}\u4ef6\u3042\u308a\u307e\u3057\u305f`
-        : `\u65b0\u3057\u3044\u767a\u898b\u304c${group.count}\u4ef6\u3042\u308a\u307e\u3057\u305f`;
+    return `\u300c${catName}\u306e\u65b0\u3057\u3044\u4e00\u9762\u3001\u898b\u3064\u304b\u308a\u307e\u3057\u305f\u3002\u300d`;
 }
 
 export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHomeProps) {

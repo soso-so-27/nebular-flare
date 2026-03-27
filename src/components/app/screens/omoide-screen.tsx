@@ -9,7 +9,7 @@ export function OmoideScreen() {
     const catName = cats[0]?.name ?? "\u306d\u3053";
 
     return (
-        <div className="flex min-h-[100dvh] items-center justify-center bg-[#F2F1EF] px-6 py-6">
+        <div className="flex min-h-[calc(100dvh-64px)] items-start justify-center bg-[#F2F1EF] px-6 pt-16 pb-6">
             <div className="flex w-full max-w-[320px] flex-col items-center text-center">
                 <div className="flex h-[240px] w-full items-center justify-center rounded-[4px] bg-gradient-to-b from-[#E7E6E3] to-[#DDDCD8]">
                     <Lock className="h-8 w-8 text-[#8A8988]" strokeWidth={1.8} />

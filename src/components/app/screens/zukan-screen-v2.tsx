@@ -622,7 +622,12 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         <div className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
                             <p className="text-[16px] font-semibold text-[#1E2840]">{primaryCat.name}</p>
                             {primaryCatBirthday ? (
-                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBirthday}</p>
+                                <p className="mt-1 text-[13px] text-[#5A5958]">
+                                    {(() => {
+                                        const d = new Date(primaryCatBirthday);
+                                        return `${d.getFullYear()}\u5e74${d.getMonth() + 1}\u6708${d.getDate()}\u65e5`;
+                                    })()}
+                                </p>
                             ) : null}
                         </div>
                     </section>
@@ -631,7 +636,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 <section className="space-y-3">
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-medium text-[#8A8988]">すべての写真</h2>
-                        <span className="text-sm text-[#5A5958]">{filteredPhotos.length}枚</span>
                     </div>
                     <AllPhotosSection
                         photos={filteredPhotos}
