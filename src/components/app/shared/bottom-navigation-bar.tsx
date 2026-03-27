@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Calendar, Camera, Cat, Home } from "lucide-react";
+import { BookOpen, Camera, Cat, Home } from "lucide-react";
 import { triggerFeedback } from "@/lib/haptics";
 
 interface BottomNavigationBarProps {
@@ -12,11 +12,10 @@ interface BottomNavigationBarProps {
 }
 
 const tabs = [
-    { id: "home", label: "ホーム", icon: Home },
-    { id: "collection", label: "図鑑", icon: BookOpen },
-    { id: "camera", label: "撮影", icon: Camera, isCenter: true },
-    { id: "cat", label: "うちの子", icon: Cat },
-    { id: "calendar", label: "カレンダー", icon: Calendar },
+    { id: "home", label: "\u3053\u306e\u3054\u308d", icon: Home },
+    { id: "camera", label: "", icon: Camera, isCenter: true, ariaLabel: "\u64ae\u5f71" },
+    { id: "memories", label: "\u304a\u3082\u3044\u3067", icon: BookOpen },
+    { id: "cat", label: "\u306d\u3053", icon: Cat },
 ];
 
 export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
@@ -27,7 +26,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
         <nav
             className="fixed bottom-0 left-0 right-0 z-[10005] border-t border-[#DDDCD8] bg-[#F2F1EF]/92 pb-[max(env(safe-area-inset-bottom),12px)] pl-[max(env(safe-area-inset-left),8px)] pr-[max(env(safe-area-inset-right),8px)] pt-3 backdrop-blur-xl"
             role="navigation"
-            aria-label="メインナビゲーション"
+            aria-label="\u30e1\u30a4\u30f3\u30ca\u30d3\u30b2\u30fc\u30b7\u30e7\u30f3"
         >
             <div className="relative mx-auto flex h-[64px] max-w-md items-end justify-between px-2">
                 {tabs.map((tab) => {
@@ -41,7 +40,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                                     type="button"
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.94 }}
-                                    aria-label="撮影を開く"
+                                    aria-label={tab.ariaLabel ?? tab.label}
                                     onClick={() => {
                                         triggerFeedback("medium");
                                         onTabChange(tab.id);
