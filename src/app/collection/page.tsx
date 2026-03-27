@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { SplashScreen } from "@/components/app/screens/splash-screen";
 import { ZukanScreen } from "@/components/app/screens/zukan-screen";
+import { OmoideScreen } from "@/components/app/screens/omoide-screen";
 import { CollectionHome } from "@/components/collection/collection-home";
 import { CaptureWorkflowSheet } from "@/components/app/shared/capture-workflow-sheet";
 import { BottomNavigationBar } from "@/components/app/shared/bottom-navigation-bar";
@@ -45,26 +46,6 @@ const IncidentDetailModal = dynamic(
 // ─────────────────────────────────
 // Collection App Content (コレクション軸)
 // ─────────────────────────────────
-function MemoriesPlaceholderScreen() {
-    return (
-        <div className="fixed inset-0 z-[10001] bg-[#F6F3EE] px-6 pb-32 pt-24">
-            <div className="mx-auto flex h-full max-w-md items-center justify-center">
-                <div className="w-full rounded-[32px] border border-[#DDDCD8] bg-[#FAFAF9] p-8 text-center shadow-sm">
-                    <p className="text-sm font-medium tracking-[0.18em] text-[#8A8988]">
-                        {"\u304a\u3082\u3044\u3067"}
-                    </p>
-                    <h2 className="mt-3 text-3xl font-semibold text-[#1E2840]">
-                        {"\u6e96\u5099\u4e2d"}
-                    </h2>
-                    <p className="mt-4 text-sm leading-7 text-[#5A5958]">
-                        {"\u3053\u306e\u753b\u9762\u306f\u5f8c\u3067\u5b9f\u88c5\u4e88\u5b9a\u3067\u3059\u3002"}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function CollectionAppContent({ showImportInitially = false }: { showImportInitially?: boolean }) {
     const [tab, setTab] = useState("home"); // HOMEがデフォルト
     const [showZukanDetail, setShowZukanDetail] = useState(false);
@@ -266,7 +247,7 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                         transition={{ duration: 0.3, ease: "circOut" }}
                         className="fixed inset-0 z-[10001]"
                     >
-                        <MemoriesPlaceholderScreen />
+                        <OmoideScreen />
                     </motion.div>
                 )}
             </AnimatePresence>
