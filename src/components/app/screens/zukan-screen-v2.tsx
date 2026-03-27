@@ -524,7 +524,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     <section className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-bold text-text-primary">{"\u3053\u306e\u5b50\u306e\u3053\u3068"}</h2>
-                            <span className="text-sm text-[#5A5958]">{spotlightGroups.length}件</span>
                         </div>
                         <div className="space-y-5">
                             {spotlightGroups.map((group) => (
@@ -583,7 +582,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                 </div>
                                                 <div className="space-y-1 px-3 py-3">
                                                     <p className="line-clamp-1 text-[13px] font-semibold text-text-primary">{item.name}</p>
-                                                    <p className="text-[11px] text-[#5A5958]">{item.count}枚</p>
                                                 </div>
                                             </button>
                                         ))}

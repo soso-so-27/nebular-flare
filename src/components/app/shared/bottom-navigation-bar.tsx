@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Camera, Cat, Home } from "lucide-react";
+import { Camera, Cat, Clock, Home } from "lucide-react";
 import { triggerFeedback } from "@/lib/haptics";
 
 interface BottomNavigationBarProps {
@@ -14,7 +14,7 @@ interface BottomNavigationBarProps {
 const tabs = [
     { id: "home", label: "\u3053\u306e\u3054\u308d", icon: Home },
     { id: "camera", label: "", icon: Camera, isCenter: true, ariaLabel: "\u64ae\u5f71" },
-    { id: "memories", label: "\u304a\u3082\u3044\u3067", icon: BookOpen },
+    { id: "memories", label: "\u304a\u3082\u3044\u3067", icon: Clock },
     { id: "cat", label: "\u306d\u3053", icon: Cat },
 ];
 

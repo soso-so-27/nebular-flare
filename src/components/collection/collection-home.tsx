@@ -352,7 +352,6 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                                                 </div>
                                             </div>
                                             <div className="space-y-2 p-3">
-                                                <span className="inline-block rounded-full bg-[#3D5A80] px-2.5 py-0.5 text-xs font-medium text-white">{`${group.count}\u4ef6\u306e\u767a\u898b`}</span>
                                                 <p className="line-clamp-1 text-sm font-medium text-[#1E2840]">{buildDiscoveryHeadline(group, catsById)}</p>
                                                 <p className="text-xs text-[#5A5958]">{formatDistanceToNow(new Date(group.primary.created_at), { addSuffix: true, locale: ja })}</p>
                                             </div>
