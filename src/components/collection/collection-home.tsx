@@ -283,14 +283,23 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
             <div className="mx-auto w-full max-w-[420px]">
                 <div className="relative h-[340px] w-full overflow-hidden">
                     {heroPhoto ? (
-                        <button type="button" className="h-full w-full text-left" onClick={() => setSelectedDetailImage(heroPhoto)}>
-                            <img src={heroPhoto.url} alt={heroPhoto.catName} className="h-full w-full object-cover" style={{ objectPosition: "center 25%" }} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
-                            <div className="absolute bottom-6 left-5">
-                                <p className="text-4xl font-bold text-white drop-shadow-lg">{heroPhoto.catName}</p>
-                                <p className="mt-1 text-base text-white/80">{heroDate}</p>
-                            </div>
-                        </button>
+                        <>
+                            <button type="button" className="h-full w-full text-left" onClick={() => setSelectedDetailImage(heroPhoto)}>
+                                <img src={heroPhoto.url} alt={heroPhoto.catName} className="h-full w-full object-cover" style={{ objectPosition: "center 25%" }} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
+                                <div className="absolute bottom-6 left-5">
+                                    <p className="text-4xl font-bold text-white drop-shadow-lg">{heroPhoto.catName}</p>
+                                    <p className="mt-1 text-base text-white/80">{heroDate}</p>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onOpenImport}
+                                className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#1E2840] shadow-md"
+                            >
+                                <Camera className="h-5 w-5 text-white" />
+                            </button>
+                        </>
                     ) : (
                         <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#E7E6E3]">
                             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#DAD9D5]">

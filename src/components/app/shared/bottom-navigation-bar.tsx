@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Camera, Cat, Clock, Home } from "lucide-react";
+import { BookOpen, CalendarDays, Cat } from "lucide-react";
 import { triggerFeedback } from "@/lib/haptics";
 
 interface BottomNavigationBarProps {
@@ -12,9 +12,8 @@ interface BottomNavigationBarProps {
 }
 
 const tabs = [
-    { id: "home", label: "\u3053\u306e\u3054\u308d", icon: Home },
-    { id: "camera", label: "", icon: Camera, isCenter: true, ariaLabel: "\u64ae\u5f71" },
-    { id: "memories", label: "\u304a\u3082\u3044\u3067", icon: Clock },
+    { id: "home", label: "\u3053\u306e\u3054\u308d", icon: CalendarDays },
+    { id: "memories", label: "\u304a\u3082\u3044\u3067", icon: BookOpen },
     { id: "cat", label: "\u306d\u3053", icon: Cat },
 ];
 
@@ -32,26 +31,6 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
-
-                    if (tab.isCenter) {
-                        return (
-                            <div key={tab.id} className="relative -top-4">
-                                <motion.button
-                                    type="button"
-                                    whileHover={{ scale: 1.04 }}
-                                    whileTap={{ scale: 0.94 }}
-                                    aria-label={tab.ariaLabel ?? tab.label}
-                                    onClick={() => {
-                                        triggerFeedback("medium");
-                                        onTabChange(tab.id);
-                                    }}
-                                    className="flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[#3D5A80] text-white shadow-[0_10px_24px_rgba(61,90,128,0.28)] ring-4 ring-[#F2F1EF]"
-                                >
-                                    <Icon className="h-7 w-7" strokeWidth={2.2} />
-                                </motion.button>
-                            </div>
-                        );
-                    }
 
                     return (
                         <button

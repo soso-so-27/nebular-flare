@@ -257,13 +257,8 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                 <BottomNavigationBar
                     activeTab={tab}
                     onTabChange={(newTab) => {
-                        if (newTab === "camera") {
-                            setShowZukanDetail(false);
-                            setIsCaptureWorkflowOpen(true);
-                        } else {
-                            setTab(newTab);
-                            setShowZukanDetail(false);
-                        }
+                        setTab(newTab);
+                        setShowZukanDetail(false);
                     }}
                     hasNewNotifications={hasUnreadNotifications}
                 />
