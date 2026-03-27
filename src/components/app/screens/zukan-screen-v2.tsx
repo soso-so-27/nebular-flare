@@ -99,7 +99,7 @@ interface ZukanScreenProps {
     onClose?: () => void;
 }
 
-type Discovery = { id: string; title: string; description: string | null; created_at: string };
+type Discovery = { id: string; title: string; created_at: string };
 
 type CollectionItem = {
     id: string;
@@ -356,7 +356,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
             (async () => {
                 const { data: discoveryRows, error: discoveriesError } = await supabase
                     .from("discoveries")
-                    .select("id, title, description, created_at")
+                    .select("id, title, created_at")
                     .eq("household_id", householdId)
                     .eq("is_visible", true)
                     .order("created_at", { ascending: false })
@@ -369,7 +369,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 return ((discoveryRows || []) as Discovery[]).map((row) => ({
                     id: row.id,
                     title: row.title,
-                    description: row.description,
                     created_at: row.created_at,
                 }));
             })(),
@@ -511,9 +510,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             {discoveries.map((discovery) => (
                                 <div key={discovery.id} className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
                                     <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
-                                    {discovery.description ? (
-                                        <p className="mt-1 text-[13px] font-light text-[#5A5958]">{discovery.description}</p>
-                                    ) : null}
                                 </div>
                             ))}
                         </div>
@@ -624,8 +620,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                             {primaryCatBirthday ? (
                                 <p className="mt-1 text-[13px] text-[#5A5958]">
                                     {(() => {
-                                        const d = new Date(primaryCatBirthday);
-                                        return `${d.getFullYear()}\u5e74${d.getMonth() + 1}\u6708${d.getDate()}\u65e5`;
+                                        const parts = primaryCatBirthday.split("-");
+                                        return `${parts[0]}\u5e74${parseInt(parts[1])}\u6708${parseInt(parts[2])}\u65e5`;
                                     })()}
                                 </p>
                             ) : null}
