@@ -354,11 +354,13 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 };
             })(),
             (async () => {
+                const catId = cats[0]?.id;
+                if (!catId) return [] as Discovery[];
+
                 const { data: discoveryRows, error: discoveriesError } = await supabase
                     .from("discoveries")
                     .select("id, title, created_at")
-                    .eq("household_id", householdId)
-                    .eq("is_visible", true)
+                    .eq("cat_id", catId)
                     .order("created_at", { ascending: false })
                     .limit(3);
 
