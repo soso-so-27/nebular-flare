@@ -1,580 +1,655 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import {
     ArrowRight,
-    CheckCircle2,
-    Sparkles,
-    ChevronDown,
-    AlertCircle,
-    Users,
-    Heart,
-    Cloud,
-    ShieldCheck,
-    Smartphone,
-    Check,
-    Info,
-    Layers,
-    Calendar,
-    Zap,
-    PlayCircle,
+    Bell,
     Camera,
-    Play,
-    Lock
+    Check,
+    HeartHandshake,
+    PawPrint,
+    Sparkles,
+    Stars,
+    Users,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
-// --- Sub-components ---
+const heroPoints = [
+    "写真から始めやすい",
+    "家族で見守りやすい",
+    "あとから振り返りやすい",
+];
 
-const Navbar = () => (
-    <nav className="fixed top-0 inset-x-0 h-16 md:h-20 flex items-center justify-between px-6 md:px-12 z-50 bg-[#FAF8F5]/80 backdrop-blur-md border-b border-[#4E342E]/5">
-        <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-[#E8B4A0] rounded-xl md:rounded-2xl flex items-center justify-center shadow-sm">
-                <CatIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
-            <span className="text-lg md:text-xl font-bold text-[#4E342E] tracking-tight font-serif">にゃるほど</span>
-        </div>
-        <div className="flex items-center gap-4">
-            <Link href="/" className="text-xs md:text-sm font-bold text-[#4E342E]/60 hover:text-[#4E342E] transition-colors">
-                ログイン / 使っている方はこちら
-            </Link>
-        </div>
-    </nav>
-);
+const steps = [
+    {
+        id: "01",
+        title: "撮る",
+        body: "いつもの一枚を残す。",
+        note: "まずは写真だけで大丈夫です。",
+    },
+    {
+        id: "02",
+        title: "たまる",
+        body: "日々の記録として積み上がる。",
+        note: "うちの子らしさが少しずつ見えてきます。",
+    },
+    {
+        id: "03",
+        title: "見返す",
+        body: "家族で最近のようすを共有する。",
+        note: "今週の変化も追いやすくなります。",
+    },
+];
 
-const PhoneMockup = ({ children, className = "", scale = 1 }: { children: React.ReactNode, className?: string, scale?: number }) => (
-    <div
-        className={`relative mx-auto w-full max-w-[280px] md:max-w-[320px] aspect-[9/18.5] bg-[#121214] rounded-[3rem] border-[6px] md:border-[8px] border-[#222] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] p-2 md:p-3 overflow-hidden ${className}`}
-        style={{ transform: `scale(${scale})` }}
-    >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 md:w-24 h-5 md:h-6 bg-[#222] rounded-b-2xl z-20 flex items-center justify-center">
-            <div className="w-6 md:w-8 h-1 bg-white/10 rounded-full" />
-        </div>
-        <div className="w-full h-full rounded-[2rem] md:rounded-[2.2rem] overflow-hidden bg-white">
-            {children}
-        </div>
-    </div>
-);
+const features = [
+    {
+        eyebrow: "Collection",
+        title: "写真が、記録になる。",
+        body: "アルバムで終わらず、その日の発見として残せます。",
+        points: ["写真から始められる", "日々のようすがたまる"],
+        image: "/demo-cat-1.png",
+        tone: "light" as const,
+        variant: "collection" as const,
+    },
+    {
+        eyebrow: "Family Share",
+        title: "家族で、同じ記録を見る。",
+        body: "離れていても、最近のようすを同じ場所で追えます。",
+        points: ["招待して共有できる", "見逃しを減らせる"],
+        image: "/demo-cat-2.png",
+        tone: "dark" as const,
+        variant: "family" as const,
+    },
+    {
+        eyebrow: "Weekly View",
+        title: "1週間単位で、振り返れる。",
+        body: "毎日の断片をまとめて見ると、変化が見えやすくなります。",
+        points: ["週の流れを追いやすい", "思い出として残しやすい"],
+        image: "/demo-cat-1.png",
+        tone: "light" as const,
+        variant: "weekly" as const,
+    },
+];
 
-const StoreBadge = ({ type }: { type: 'apple' | 'google' }) => (
-    <div className="flex items-center gap-2 px-4 py-2 bg-[#4E342E] text-white rounded-xl cursor-pointer hover:bg-black transition-colors group">
-        {type === 'apple' ? (
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" /></svg>
-        ) : (
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 512 512"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" /></svg>
-        )}
-        <div className="flex flex-col leading-none">
-            <span className="text-[8px] font-bold opacity-60 uppercase">{type === 'apple' ? 'Download on the' : 'Get it on'}</span>
-            <span className="text-xs font-black">{type === 'apple' ? 'App Store' : 'Google Play'}</span>
-        </div>
-    </div>
-);
-
-const ImageWithPlaceholder = ({ src, alt, icon: Icon = CatIcon }: { src: string, alt: string, icon?: any }) => {
-    const [error, setError] = React.useState(false);
-
+function CatIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
-        <div className="w-full h-full bg-[#FAF8F5] flex items-center justify-center relative overflow-hidden">
-            {!error ? (
-                <img
-                    src={src}
-                    alt={alt}
-                    onError={() => setError(true)}
-                    className="w-full h-full object-cover"
-                />
-            ) : (
-                <div className="flex flex-col items-center gap-3 text-[#4E342E]/10 p-6 text-center">
-                    <Icon className="w-16 h-16" />
-                    <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">{alt}</p>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// --- Sections ---
-
-const Hero = () => (
-    <section className="relative min-h-[95lvh] md:h-[100lvh] w-full flex items-center bg-[#FAF8F5] overflow-hidden pt-20 md:pt-0">
-        {/* Background Image Area */}
-        <div className="absolute top-0 right-0 w-full md:w-[65%] h-full z-0">
-            <ImageWithPlaceholder
-                src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=2043"
-                alt="愛猫との幸せな日常"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/60 md:via-[#FAF8F5]/10 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FAF8F5]/20 via-transparent to-[#FAF8F5]/90" />
-
-            {/* Phone Overlays (Visual Proof) */}
-            <div className="hidden lg:block absolute top-[15%] right-[10%] z-20 space-x-[-100px] pointer-events-none">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9, x: 50 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.8, duration: 1 }}
-                    className="relative inline-block rotate-[-6deg] drop-shadow-2xl"
-                >
-                    <PhoneMockup scale={0.8} className="bg-[#1a1a1c]">
-                        <ImageWithPlaceholder src="https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=500" alt="記録画面例" icon={Camera} />
-                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                            <div className="w-full h-10 bg-[#E8B4A0] rounded-xl flex items-center justify-center text-white font-bold text-xs">
-                                思い出を保存
-                            </div>
-                        </div>
-                    </PhoneMockup>
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9, x: 100 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 1.1, duration: 1 }}
-                    className="relative inline-block z-10 drop-shadow-2xl mt-24"
-                >
-                    <PhoneMockup scale={0.85} className="bg-[#1a1a1c]">
-                        <ImageWithPlaceholder src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&q=80&w=500" alt="図鑑・アルバム画面例" icon={Layers} />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
-                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
-                                <CatIcon className="w-8 h-8 text-white" />
-                            </div>
-                        </div>
-                    </PhoneMockup>
-                </motion.div>
-            </div>
-        </div>
-
-        {/* Content Area with White Veil */}
-        <div className="relative z-30 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-start text-left">
-            <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="max-w-2xl bg-[#FAF8F5]/40 md:bg-[#FAF8F5]/0 backdrop-blur-sm md:backdrop-blur-none p-6 md:p-0 rounded-[2rem] md:rounded-none"
-            >
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E8B4A0]/10 text-[#E8B4A0] rounded-full text-[9px] md:text-[10px] font-black tracking-widest uppercase mb-6 shadow-sm border border-[#E8B4A0]/10">
-                    <Sparkles className="w-3 h-3" />
-                    猫専用ライフログ・モバイルアプリ
-                </div>
-
-                <h1 className="text-[clamp(2.5rem,8.5vw,4.8rem)] font-bold text-[#4E342E] leading-[1.05] mb-8 font-serif">
-                    静かに、美しく残す。<br />
-                    猫のためのジャーナル。
-                </h1>
-
-                {/* 3 Point Benefits */}
-                <div className="space-y-4 mb-10 border-l-2 border-[#E8B4A0]/30 pl-6 py-2">
-                    {[
-                        "1日1枚、迷わず残せる「きょうの1枚」",
-                        "お世話や体調を記録する「受診レポート」共有",
-                        "手帳のように一望できる「ホーム・ダイジェスト」"
-                    ].map((text, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.5 + i * 0.1 }}
-                            className="flex items-center gap-3 text-[#4E342E] font-serif font-medium"
-                        >
-                            <div className="w-5 h-5 bg-[#E8B4A0]/10 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-[#E8B4A0]" />
-                            </div>
-                            <span className="text-base md:text-lg leading-tight">{text}</span>
-                        </motion.div>
-                    ))}
-                </div>
-
-                <p className="text-lg md:text-xl text-[#4E342E]/70 mb-10 font-bold italic">
-                    「撮るだけで、あとから探せるプレミアムな猫手帳」
-                </p>
-
-                <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
-                    <div className="flex flex-col items-center w-full sm:w-auto gap-3">
-                        <Link href="/" className="w-full sm:w-auto px-12 py-5 bg-[#E8B4A0] text-white rounded-full text-xl font-bold shadow-[0_20px_60px_rgba(232,180,160,0.4)] hover:scale-105 transition-all flex items-center justify-center gap-3 active:scale-95">
-                            無料ではじめる
-                            <ArrowRight className="w-6 h-6" />
-                        </Link>
-                        <div className="flex items-center gap-2 text-[10px] text-[#4E342E]/30 font-bold">
-                            <Lock className="w-3 h-3" /> 写真は安全に保存されます（解約はいつでも1タップ）
-                        </div>
-                    </div>
-
-                    <Link href="#concept" className="w-full sm:w-auto px-10 py-5 bg-white text-[#4E342E]/60 border border-[#4E342E]/10 rounded-full text-lg font-bold hover:bg-[#4E342E]/5 transition-all flex items-center justify-center gap-2">
-                        <Play className="w-4 h-4" /> 完成例を見る
-                    </Link>
-                </div>
-
-                {/* Store Badges */}
-                <div className="flex items-center gap-4 mt-12 opacity-80 scale-90 md:scale-100 origin-left">
-                    <StoreBadge type="apple" />
-                    <StoreBadge type="google" />
-                </div>
-            </motion.div>
-        </div>
-
-        {/* Scroll Indicator (Subtle) */}
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            transition={{ delay: 2, duration: 1 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[#4E342E] animate-bounce cursor-pointer flex flex-col items-center gap-1"
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="23"
+            viewBox="0 0 24 23"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
         >
-            <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
-        </motion.div>
-    </section>
-);
+            <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.45.65.18.8 1.1.35 1.47l-1.12.92C21.07 7.32 22 9.18 22 11c0 5.15-4.56 9-10 9s-10-3.85-10-9c0-1.82.93-3.68 2.35-5.8l-1.12-.92c-.45-.37-.3-1.29.35-1.47 1.39-.39 4.64.45 6.42 2.45.65-.17 1.33-.26 2-.26Z" />
+            <path d="M9 10.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1Z" />
+            <path d="M15 10.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1Z" />
+            <path d="m8 15 2-1h4l2 1" />
+        </svg>
+    );
+}
 
-const FeatureSection = ({
-    title,
-    desc,
-    features,
-    image,
-    icon: Icon,
-    reverse = false,
-    tag
-}: {
-    title: string,
-    desc: string,
-    features: string[],
-    image: string,
-    icon: any,
-    reverse?: boolean,
-    tag?: string
-}) => (
-    <div className={`flex flex-col ${reverse ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-12 md:gap-24`}>
-        <div className="flex-1 space-y-6 md:space-y-8 text-center md:text-left">
-            <div className={`w-12 h-12 bg-[#FAF8F5] rounded-xl flex items-center justify-center mx-auto md:mx-0 ${tag === 'Vet' ? 'text-rose-400' : tag === 'Atlas' ? 'text-[#E8B4A0]' : tag === 'Timeline' ? 'text-sky-400' : 'text-amber-400'}`}>
-                <Icon className="w-6 h-6" />
-            </div>
-            <h3 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif leading-tight">
-                {title}
-            </h3>
-            <p className="text-base md:text-lg text-[#4E342E]/60 leading-relaxed max-w-lg mx-auto md:mx-0">
-                {desc}
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-sm mx-auto md:mx-0">
-                {features.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-[#4E342E]/70 font-medium font-serif justify-center md:justify-start">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" /> <span className="text-left">{f}</span>
-                    </li>
-                ))}
-            </ul>
-        </div>
-        <div className="flex-1 w-full max-w-[280px] md:max-w-none">
-            <PhoneMockup>
-                <ImageWithPlaceholder src={image} alt={title} icon={Icon} />
-            </PhoneMockup>
-        </div>
-    </div>
-);
-
-const PainSection = () => (
-    <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDF8F1]">
-        <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16 md:mb-20 space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif">こんなお悩み、ありませんか？</h2>
-                <p className="text-[#4E342E]/60 text-base md:text-lg">愛猫との毎日はあっという間。だからこそ、後悔しない記録を。</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-                {[
-                    {
-                        title: "思い出が埋もれる",
-                        desc: "写真はたくさんあるけれど、あの時の記憶がスマホの奥底に。AIが自動で整理し、いつでも出会えるようにします。",
-                        icon: Cloud
-                    },
-                    {
-                        title: "共有がバラバラ",
-                        desc: "LINEやSNSでは情報が流れてしまう。家族全員で一つの「命の記録」を共有できる、特別な場所を用意しました。",
-                        icon: Users
-                    },
-                    {
-                        title: "病院で説明できない",
-                        desc: "「昨日から様子が変」を具体的に伝えるのは難しい。日々の記録が、獣医さんへの確かなレポートに変わります。",
-                        icon: AlertCircle
-                    }
-                ].map((item, i) => (
-                    <div key={i} className="space-y-4 text-center md:text-left">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#E8B4A0] shadow-sm mx-auto md:mx-0">
-                            <item.icon className="w-6 h-6" />
-                        </div>
-                        <h4 className="text-xl font-bold text-[#4E342E] font-serif">{item.title}</h4>
-                        <p className="text-sm text-[#4E342E]/60 leading-relaxed">{item.desc}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </section>
-);
-
-const FeaturesTour = () => (
-    <section className="py-24 md:py-40 px-6 md:px-12 bg-white space-y-32 md:space-y-48">
-        <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20 md:mb-32 space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif leading-tight">
-                    手のひらに、<br className="md:hidden" />
-                    愛猫との最高の居場所を。
-                </h2>
-                <p className="text-[#4E342E]/60 text-base md:text-lg max-w-2xl mx-auto">NyaruHDは、スマートフォンでの体験に特化した、猫と飼い主のための専用アプリです。</p>
-            </div>
-
-            <div className="space-y-32 md:space-y-48">
-                <FeatureSection
-                    tag="Atlas"
-                    icon={Layers}
-                    title="手帳風インデックス「ダイジェスト」"
-                    desc="毎日の「今日のおねがい（タスク）」や「きょうの1枚」を、洗練されたウィジェット形式でホーム画面に集約。美しい手帳を開くような体験を提供します。"
-                    features={["今日のおねがい", "きょうの1枚", "今週のテーマ"]}
-                    image="https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=1000"
-                />
-                <FeatureSection
-                    tag="Timeline"
-                    icon={Users}
-                    reverse
-                    title="家族とゆるやかにつながる場所"
-                    desc="LINEやSNSのタイムラインとは異なり、猫のためだけの静かな空間。お世話の完了状況や「今日のおねがい」を家族全員でスムーズに共有できます。"
-                    features={["お世話通知・完了共有", "家族の「いいね」機能", "洗練されたUIでの対話"]}
-                    image="https://images.unsplash.com/photo-1606214174585-fe31582dc6ee?auto=format&fit=crop&q=80&w=1000"
-                />
-                <FeatureSection
-                    tag="Rewind"
-                    icon={Calendar}
-                    title="過去と出逢う「思い出（Rewind）」"
-                    desc="1年前、1ヶ月前の今日、あの子は何をしてた？ 過去の何気ない写真を美しいセピアのカードとして毎日のダイジェストへお届けします。"
-                    features={["1年前の今日を振り返る", "過去カードの自動生成", "日々の記録を宝物にするAI"]}
-                    image="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&q=80&w=1000"
-                />
-                <FeatureSection
-                    tag="Vet"
-                    icon={Heart}
-                    reverse
-                    title="確かな安心に「受診レポート」"
-                    desc="診察室で「最近はどうですか？」と聞かれても安心。日々の「気がかり」や健康状態のメモを、獣医師へそのまま見せられるレポートに整えます。"
-                    features={["ダイジェストから即記録", "気がかり機能", "1分で状況共有"]}
-                    image="https://images.unsplash.com/photo-1599443015574-be5fe8a044b8?auto=format&fit=crop&q=80&w=1000"
-                />
-            </div>
-        </div>
-    </section>
-);
-
-const RoadmapSection = () => (
-    <section className="py-24 px-6 md:px-12 bg-[#FAF8F5]">
-        <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4E342E]/5 text-[#4E342E]/40 rounded-full text-[10px] font-black tracking-widest uppercase">
-                    Application Roadmap
-                </div>
-                <h2 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif">30日後に届く、新しい感動。</h2>
-                <p className="text-[#4E342E]/60 text-base md:text-lg">開発中の機能も、トライアル期間中に続々と追加予定です。</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                {[
-                    {
-                        icon: PlayCircle,
-                        tag: "Premium",
-                        title: "AIハイライト・ムービー",
-                        desc: "1ヶ月の写真をAIが自動で感動的な1分のショートムービーに。音楽と共に、成長の記録が鮮やかに蘇ります。"
-                    },
-                    {
-                        icon: Zap,
-                        tag: "Premium",
-                        title: "ヘルス・インサイト分析",
-                        desc: "蓄積されたデータから、食欲や活動の「予兆」をAIが検知。一歩先の安心を飼い主さんに届けます。"
-                    }
-                ].map((item, i) => (
-                    <div key={i} className="p-8 md:p-10 bg-white rounded-[2.5rem] md:rounded-[40px] shadow-sm border border-[#4E342E]/5 hover:shadow-xl transition-all duration-500">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#E8B4A0]/10 rounded-2xl flex items-center justify-center text-[#E8B4A0]">
-                                <item.icon className="w-5 h-5 md:w-6 md:h-6" />
-                            </div>
-                            <span className="text-[9px] font-black text-[#E8B4A0] border border-[#E8B4A0]/20 px-2 py-0.5 rounded-full uppercase tracking-widest">{item.tag}</span>
-                        </div>
-                        <h4 className="text-xl md:text-2xl font-bold text-[#4E342E] mb-3 md:mb-4 font-serif">{item.title}</h4>
-                        <p className="text-xs md:text-sm text-[#4E342E]/60 leading-relaxed">{item.desc}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </section>
-);
-
-const PricingSection = () => (
-    <section id="pricing" className="py-24 md:py-32 px-6 md:px-12 bg-white">
-        <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16 md:mb-20 space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold text-[#4E342E] font-serif">ずっと続く、安心のプラン</h2>
-                <p className="text-[#4E342E]/60 text-base md:text-lg">まずは1ヶ月、無料ですべての機能をお試しください。</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 max-w-4xl mx-auto">
-                {/* Standard Plan */}
-                <div className="relative p-8 md:p-10 bg-[#FAF8F5] rounded-[2.5rem] md:rounded-[48px] border border-[#4E342E]/5 flex flex-col">
-                    <div className="mb-6 md:mb-8">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-[#4E342E]/5 rounded-full text-[10px] font-bold text-[#4E342E]/40 mb-4 uppercase">
-                            <Camera className="w-3 h-3" /> 画像メイン
-                        </div>
-                        <h3 className="text-xl md:text-2xl font-bold text-[#4E342E] font-serif mb-2">スタンダード</h3>
-                        <p className="text-[#4E342E]/50 text-xs md:text-sm italic">静止画で残す、愛おしい日常</p>
-                    </div>
-                    <div className="mb-8 md:mb-10 flex items-baseline gap-1">
-                        <span className="text-3xl md:text-4xl font-black text-[#4E342E]">¥980</span>
-                        <span className="text-[#4E342E]/40 text-xs md:text-sm font-bold">/月 (税込)</span>
-                    </div>
-                    <ul className="space-y-4 mb-10 flex-grow">
-                        {[
-                            "1ヶ月無料トライアル",
-                            "高画質写真の無制限保存",
-                            "ジャーナル・ダイジェスト機能",
-                            "家族共有（最大2人）",
-                            "受診レポート作成"
-                        ].map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-xs md:text-sm font-medium text-[#4E342E]/70 font-serif">
-                                <Check className="w-4 h-4 text-[#E8B4A0]" />
-                                {item}
-                            </li>
-                        ))}
-                        <li className="flex items-center gap-3 text-xs md:text-sm font-medium text-[#4E342E]/20 font-serif line-through">
-                            動画の保存・再生
-                        </li>
-                    </ul>
-                    <Link href="/" className="w-full py-4 md:py-5 bg-white text-[#4E342E] border border-[#4E342E]/10 rounded-2xl font-bold text-center hover:bg-[#4E342E] hover:text-white transition-all shadow-sm">
-                        スタンダードで体験
-                    </Link>
-                </div>
-
-                {/* Premium Plan */}
-                <div className="relative p-8 md:p-10 bg-[#4E342E] text-white rounded-[2.5rem] md:rounded-[48px] shadow-3xl flex flex-col md:scale-105 z-10 overflow-hidden border-2 border-[#E8B4A0]/20">
-                    <div className="absolute top-0 right-0 px-6 py-2 bg-[#E8B4A0] text-white text-[9px] font-black uppercase tracking-widest rounded-bl-2xl">
-                        Popular
-                    </div>
-                    <div className="mb-6 md:mb-8">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold text-[#E8B4A0] mb-4 uppercase">
-                            <PlayCircle className="w-3 h-3" /> 動画・フル機能
-                        </div>
-                        <h3 className="text-xl md:text-2xl font-bold font-serif mb-2">プレミアム</h3>
-                        <p className="text-white/40 text-xs md:text-sm italic">動画とAIで、もっと鮮明な絆に</p>
-                    </div>
-                    <div className="mb-8 md:mb-10 flex items-baseline gap-1">
-                        <span className="text-3xl md:text-4xl font-black">¥1,480</span>
-                        <span className="text-white/40 text-xs md:text-sm font-bold">/月 (税込)</span>
-                    </div>
-                    <ul className="space-y-4 mb-10 flex-grow">
-                        {[
-                            "1ヶ月無料トライアル",
-                            "動画・写真の無制限保存",
-                            "家族共有（無制限）",
-                            "受診レポート詳細分析",
-                            "AIハイライトムービー作成 (Soon)",
-                            "優先サポート"
-                        ].map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-xs md:text-sm font-medium text-white/80 font-serif">
-                                <Check className="w-4 h-4 text-[#E8B4A0]" />
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-                    <Link href="/" className="w-full py-4 md:py-5 bg-[#E8B4A0] text-white rounded-2xl font-bold text-center hover:bg-[#E8A58D] transition-all shadow-xl shadow-[#E8B4A0]/20">
-                        プレミアムで体験
-                    </Link>
-                </div>
-            </div>
-
-            <p className="text-center mt-12 text-[#4E342E]/30 text-[10px] md:text-xs font-serif flex items-center justify-center gap-2">
-                <Info className="w-3 h-3" />
-                トライアル期間終了まで料金は発生しません。解約はアプリ内からいつでも可能です。
-            </p>
-        </div>
-    </section>
-);
-
-const FinalCTA = () => (
-    <section className="py-24 md:py-32 px-6 text-center bg-[#FDF8F1]">
-        <div className="max-w-4xl mx-auto space-y-10 md:space-y-12">
-            <h2 className="text-3xl md:text-7xl font-bold font-serif leading-tight text-[#4E342E]">
-                にゃるほど、<br />この子がいてよかった。
-            </h2>
-            <div className="flex flex-col items-center gap-5">
-                <Link href="/" className="inline-flex items-center gap-3 px-12 py-5 md:px-16 md:py-6 bg-[#4E342E] text-white rounded-full text-lg md:text-2xl font-bold shadow-2xl hover:scale-105 transition-all w-full sm:w-auto overflow-hidden">
-                    無料でつくってみる
-                    <ArrowRight className="w-6 h-6" />
-                </Link>
-                <div className="flex items-center gap-2 text-[10px] md:text-xs text-[#4E342E]/30 font-bold">
-                    <Lock className="w-3.5 h-3.5" /> 写真は安全に保存されます（解約はいつでも1タップ）
-                </div>
-            </div>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-[10px] md:text-sm font-medium text-[#4E342E]/40 mt-8 font-serif">
-                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />初回1ヶ月無料</span>
-                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />解約金なし</span>
-                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" />今日からスタート</span>
-            </div>
-        </div>
-    </section>
-);
-
-export default function LandingPage() {
+function SectionTag({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
     return (
-        <div className="min-h-screen bg-[#FAF8F5] selection:bg-[#E8B4A0]/30 selection:text-[#4E342E] text-[#4E342E]">
-            <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap');
-        .font-serif { font-family: 'Klee One', 'YuMincho', 'Yu Mincho', serif; }
-        html { scroll-behavior: smooth; }
-      `}</style>
-            <Navbar />
-            <main>
-                <Hero />
+        <p className={`text-[11px] font-black uppercase tracking-[0.28em] ${light ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>
+            {children}
+        </p>
+    );
+}
 
-                {/* Mobile Device Recognition Banner */}
-                <section className="bg-[#4E342E] py-4 overflow-hidden border-y border-white/5">
-                    <div className="flex flex-nowrap gap-8 animate-marquee whitespace-nowrap">
-                        {[...Array(10)].map((_, i) => (
-                            <div key={i} className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-widest">
-                                <Smartphone className="w-4 h-4" /> Available on App Store / Google Play
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section id="concept" className="py-20 md:py-24 px-6 md:px-12 text-center bg-white border-y border-[#4E342E]/5">
-                    <div className="max-w-3xl mx-auto space-y-10 md:space-y-12">
-                        <h2 className="text-[clamp(1.4rem,5vw,2.5rem)] text-[#4E342E] font-serif leading-relaxed italic">
-                            「愛猫の写真はたくさんあるけれど、<br />
-                            あの時の、あの瞬間の記憶はどこに行っただろう？」
-                        </h2>
-                        <p className="text-base md:text-lg text-[#4E342E]/50 font-medium leading-loose">
-                            スマホに溢れる写真。忙しい日々に埋もれていく「可愛い」の瞬間。<br />
-                            にゃるほどは、そのバラバラな日常を、一生モノの鮮明な物語に整えます。
-                        </p>
-                    </div>
-                </section>
-
-                <PainSection />
-                <FeaturesTour />
-                <RoadmapSection />
-                <PricingSection />
-                <FinalCTA />
-            </main>
-
-            <footer className="py-12 px-8 text-center bg-white border-t border-[#4E342E]/5">
-                <p className="text-[10px] text-[#4E342E]/30 uppercase tracking-[0.2em] font-black">
-                    © 2026 NyaruHD Team. Optimized for CVR & Mobile Devices.
+function SectionHeading({
+    title,
+    body,
+    light = false,
+    align = "left",
+}: {
+    title: React.ReactNode;
+    body?: React.ReactNode;
+    light?: boolean;
+    align?: "left" | "center";
+}) {
+    return (
+        <div className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-2xl"}>
+            <h2
+                className={`font-[var(--font-zen-maru)] text-4xl font-bold leading-[1.18] tracking-[-0.05em] md:text-5xl ${
+                    light ? "text-white" : "text-[#3f2a22]"
+                }`}
+            >
+                {title}
+            </h2>
+            {body ? (
+                <p className={`mt-4 text-base leading-7 md:text-lg md:leading-8 ${light ? "text-white/72" : "text-[#5b4941]"}`}>
+                    {body}
                 </p>
-            </footer>
-
-            <style jsx>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 30s linear infinite;
-        }
-      `}</style>
+            ) : null}
         </div>
     );
 }
 
-function CatIcon(props: any) {
+function Navbar() {
     return (
-        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="23" viewBox="0 0 24 23" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.45.65.18.8 1.1.35 1.47l-1.12.92C21.07 7.32 22 9.18 22 11c0 5.15-4.56 9-10 9s-10-3.85-10-9c0-1.82.93-3.68 2.35-5.8l-1.12-.92c-.45-.37-.3-1.29.35-1.47 1.39-.39 4.64.45 6.42 2.45.65-.17 1.33-.26 2-.26Z" />
-            <path d="M9 10.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1Z" /><path d="M15 10.5c.5 0 1 .5 1 1s-.5 1-1 1-1-.5-1-1 .5-1 1-1Z" /><path d="m8 15 2-1h4l2 1" />
-        </svg>
+        <nav className="fixed inset-x-0 top-0 z-50 border-b border-[#59392b]/10 bg-[#fcf5ea]/80 backdrop-blur-xl">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-[1.2rem] bg-[#d0884e] text-white shadow-[0_16px_36px_rgba(208,136,78,0.26)]">
+                        <CatIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <p className="font-[var(--font-zen-maru)] text-xl font-bold tracking-[-0.04em] text-[#3f2a22]">にゃるほど</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#aa734e]">Cat family journal</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Link href="/" className="hidden text-sm font-bold text-[#3f2a22]/60 transition-colors hover:text-[#3f2a22] md:inline-flex">
+                        ログイン
+                    </Link>
+                    <Link
+                        href="/"
+                        className="inline-flex items-center justify-center rounded-full bg-[#3f2a22] px-5 py-2.5 text-sm font-black text-white transition-transform active:scale-95"
+                    >
+                        無料で使ってみる
+                    </Link>
+                </div>
+            </div>
+        </nav>
+    );
+}
+
+function HeroVisual() {
+    return (
+        <div className="relative mx-auto w-full max-w-[420px]">
+            <div className="absolute -left-8 top-16 hidden w-28 rounded-[1.6rem] border border-white/60 bg-white/80 p-2 shadow-[0_20px_40px_-28px_rgba(63,42,34,0.32)] backdrop-blur md:block">
+                <div className="relative aspect-square overflow-hidden rounded-[1.1rem]">
+                    <Image src="/demo-cat-2.png" alt="共有される写真" fill sizes="112px" className="object-cover" />
+                </div>
+                <p className="mt-2 text-center text-[11px] font-black tracking-[0.08em] text-[#6f584e]">share</p>
+            </div>
+
+            <div className="absolute -right-6 bottom-20 hidden w-24 rounded-[1.5rem] border border-[#ecdcc8] bg-[#fff7ec] p-2 shadow-[0_18px_36px_-26px_rgba(63,42,34,0.34)] md:block">
+                <div className="relative aspect-square overflow-hidden rounded-[1rem]">
+                    <Image src="/demo-cat-1.png" alt="週間サムネイル" fill sizes="96px" className="object-cover" />
+                </div>
+                <p className="mt-2 text-center text-[11px] font-black tracking-[0.08em] text-[#b56f3f]">week</p>
+            </div>
+
+            <div className="rounded-[2.8rem] border-[10px] border-[#1b1816] bg-[#1b1816] p-2 shadow-[0_50px_120px_-45px_rgba(24,16,12,0.72)]">
+                <div className="overflow-hidden rounded-[2.2rem] bg-[#fff8f0]">
+                    <div className="relative aspect-[10/18] bg-[linear-gradient(180deg,#fffaf4_0%,#f5eadf_100%)]">
+                        <div className="absolute right-[-10%] top-[-8%] h-36 w-36 rounded-full bg-[#f2d3b1]/65 blur-3xl" />
+                        <div className="absolute bottom-[16%] left-[-12%] h-32 w-32 rounded-full bg-[#dce7d5]/60 blur-3xl" />
+
+                        <div className="absolute left-4 right-4 top-4 rounded-[1.4rem] border border-[#ecdcc8] bg-white/94 p-4 shadow-[0_20px_36px_-28px_rgba(63,42,34,0.36)]">
+                            <div className="flex items-start gap-3">
+                                <div className="relative h-14 w-14 overflow-hidden rounded-[1.1rem] ring-1 ring-[#ead8c4]">
+                                    <Image src="/demo-cat-1.png" alt="今日の写真" fill sizes="56px" className="object-cover" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#a86f46]">Daily highlight</p>
+                                    <p className="mt-1 font-[var(--font-zen-maru)] text-lg font-bold text-[#3f2a22]">今日のハイライト</p>
+                                    <p className="mt-2 text-sm leading-6 text-[#5c4c44]">写真から、その日の発見をひとつ残せます。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="absolute inset-x-4 top-[7.75rem] rounded-[1.4rem] border border-[#ecdcc8] bg-[#fff7ec]/95 p-4 shadow-[0_18px_36px_-28px_rgba(63,42,34,0.34)]">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#a86f46]">Weekly album</p>
+                                    <p className="mt-1 text-sm font-black text-[#3f2a22]">のんびり穏やかな1週間</p>
+                                </div>
+                                <Stars className="h-4 w-4 text-[#b56f3f]" />
+                            </div>
+                            <div className="mt-3 grid gap-2">
+                                <div className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-[#4f4039]">日向ぼっこの写真が3枚</div>
+                                <div className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-[#4f4039]">へそ天を1回発見</div>
+                            </div>
+                        </div>
+
+                        <div className="absolute inset-x-4 bottom-4 rounded-[1.5rem] border border-white/12 bg-[#33231d]/82 p-4 text-white backdrop-blur-xl">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#f0c793]/16 text-[#f0c793]">
+                                        <HeartHandshake className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/48">Todokeru</p>
+                                        <p className="text-sm font-black">家族からの更新</p>
+                                    </div>
+                                </div>
+                                <Bell className="h-4 w-4 text-white/44" />
+                            </div>
+                            <p className="mt-3 text-sm leading-6 text-white/74">新しい写真や気づきを、離れていても同じ画面で見られます。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function Hero() {
+    return (
+        <section className="relative overflow-hidden px-6 pb-20 pt-28 md:px-12 md:pb-28 md:pt-36">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(240,199,147,0.22),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(208,136,78,0.12),_transparent_24%)]" />
+            <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.02fr_0.98fr]">
+                <div className="max-w-2xl">
+                    <SectionTag>Cat family journal</SectionTag>
+                    <h1 className="mt-5 font-[var(--font-zen-maru)] text-5xl font-bold leading-[1.06] tracking-[-0.06em] text-[#3f2a22] md:text-7xl">
+                        猫との毎日を、
+                        <br />
+                        家族で残せる記録に。
+                    </h1>
+                    <div className="mt-6 max-w-xl space-y-3 text-base leading-7 text-[#5b4941] md:text-lg md:leading-8">
+                        <p>にゃるほどは、写真から始められる猫の記録アプリです。</p>
+                        <p>ためて、共有して、あとから振り返りやすく整えます。</p>
+                    </div>
+
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center justify-center gap-3 rounded-full bg-[#d0884e] px-7 py-4 text-base font-black text-white shadow-[0_18px_40px_rgba(208,136,78,0.26)] transition-transform hover:scale-[1.02] active:scale-95"
+                        >
+                            無料で使ってみる
+                            <ArrowRight className="h-5 w-5" />
+                        </Link>
+                        <Link
+                            href="#flow"
+                            className="inline-flex items-center justify-center rounded-full border border-[#5a3e32]/12 bg-white/72 px-7 py-4 text-base font-bold text-[#3f2a22] transition-colors hover:bg-white"
+                        >
+                            記録の流れを見る
+                        </Link>
+                    </div>
+
+                    <div className="mt-8 flex flex-wrap gap-3">
+                        {heroPoints.map((point) => (
+                            <div key={point} className="inline-flex items-center gap-2 rounded-full border border-[#5a3e32]/10 bg-white/76 px-4 py-2.5 text-sm font-bold text-[#4f4039]">
+                                <Check className="h-4 w-4 text-[#b56f3f]" />
+                                <span>{point}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <HeroVisual />
+            </div>
+        </section>
+    );
+}
+
+function ValueStrip() {
+    const items = [
+        {
+            icon: Camera,
+            title: "写真から始める",
+            body: "入力を増やしすぎない。",
+        },
+        {
+            icon: Users,
+            title: "家族で共有する",
+            body: "最近のようすをまとめる。",
+        },
+        {
+            icon: Sparkles,
+            title: "あとから見返す",
+            body: "変化や思い出を残しやすい。",
+        },
+    ];
+
+    return (
+        <section className="px-6 pb-10 md:px-12 md:pb-14">
+            <div className="mx-auto grid max-w-6xl gap-3 rounded-[2rem] border border-[#5a3e32]/8 bg-white/76 p-3 shadow-[0_20px_44px_-36px_rgba(40,27,20,0.24)] md:grid-cols-3">
+                {items.map(({ icon: Icon, title, body }) => (
+                    <div key={title} className="rounded-[1.6rem] bg-[#fffaf3] p-5">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4e0cb] text-[#b56f3f]">
+                            <Icon className="h-5 w-5" />
+                        </div>
+                        <p className="mt-4 font-[var(--font-zen-maru)] text-2xl font-bold tracking-[-0.04em] text-[#3f2a22]">{title}</p>
+                        <p className="mt-1.5 text-sm leading-6 text-[#5b4941]">{body}</p>
+                    </div>
+                ))}
+            </div>
+        </section>
+    );
+}
+
+function FlowSection() {
+    return (
+        <section id="flow" className="bg-white px-6 py-22 md:px-12 md:py-28">
+            <div className="mx-auto max-w-6xl">
+                <div className="max-w-2xl">
+                    <SectionTag>Flow</SectionTag>
+                    <SectionHeading
+                        title="使い方は、3つだけ。"
+                        body="読む量を増やさず、流れだけですぐ分かる構成にしています。"
+                    />
+                </div>
+
+                <div className="mt-10 grid gap-4 lg:grid-cols-3">
+                    {steps.map((step, index) => (
+                        <div
+                            key={step.id}
+                            className={`rounded-[2rem] border p-7 ${
+                                index === 1
+                                    ? "border-[#3f2a22]/8 bg-[linear-gradient(180deg,#3b2720_0%,#2b1d18_100%)] text-white"
+                                    : "border-[#5a3e32]/8 bg-[linear-gradient(180deg,#fffdfa_0%,#fdf3e7_100%)] text-[#3f2a22]"
+                            }`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm font-black tracking-[0.18em] ${index === 1 ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>{step.id}</span>
+                                <PawPrint className={`h-5 w-5 ${index === 1 ? "text-[#f0c793]" : "text-[#d0884e]"}`} />
+                            </div>
+                            <p className="mt-6 font-[var(--font-zen-maru)] text-3xl font-bold tracking-[-0.05em]">{step.title}</p>
+                            <p className={`mt-3 text-lg leading-8 ${index === 1 ? "text-white/88" : "text-[#4f4039]"}`}>{step.body}</p>
+                            <p className={`mt-6 text-sm leading-6 ${index === 1 ? "text-white/64" : "text-[#7a675f]"}`}>{step.note}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function FeatureMock({
+    image,
+    title,
+    tone = "light",
+    variant = "collection",
+}: {
+    image: string;
+    title: string;
+    tone?: "light" | "dark";
+    variant?: "collection" | "family" | "weekly";
+}) {
+    const dark = tone === "dark";
+
+    if (variant === "family") {
+        return (
+            <div className={`rounded-[2rem] border p-5 ${dark ? "border-white/10 bg-white/6" : "border-[#edd7c0] bg-[#fffaf3]"}`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>Family chat</p>
+                        <p className={`mt-1 font-[var(--font-zen-maru)] text-2xl font-bold ${dark ? "text-white" : "text-[#3f2a22]"}`}>{title}</p>
+                    </div>
+                    <Users className={`h-5 w-5 ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`} />
+                </div>
+
+                <div className="mt-5 space-y-3">
+                    <div className={`ml-auto max-w-[85%] rounded-[1.4rem] px-4 py-3 text-sm font-bold ${dark ? "bg-[#4a342c] text-white" : "bg-white text-[#4f4039]"}`}>
+                        ごはん、いつも通り食べてるよ
+                    </div>
+                    <div className={`flex max-w-[92%] items-center gap-3 rounded-[1.4rem] px-3 py-3 ${dark ? "bg-white/8 text-white/86" : "bg-white text-[#4f4039]"}`}>
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                            <Image src={image} alt={title} fill sizes="48px" className="object-cover" />
+                        </div>
+                        <div className="text-sm font-bold leading-6">日向ぼっこしてた写真も追加しておいたよ</div>
+                    </div>
+                    <div className={`max-w-[80%] rounded-[1.4rem] px-4 py-3 text-sm font-bold ${dark ? "bg-white/8 text-white/86" : "bg-white text-[#4f4039]"}`}>
+                        あとで一緒に見返そうね
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (variant === "weekly") {
+        return (
+            <div className={`rounded-[2rem] border p-5 ${dark ? "border-white/10 bg-white/6" : "border-[#edd7c0] bg-[#fffaf3]"}`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>Weekly board</p>
+                        <p className={`mt-1 font-[var(--font-zen-maru)] text-2xl font-bold ${dark ? "text-white" : "text-[#3f2a22]"}`}>{title}</p>
+                    </div>
+                    <Stars className={`h-5 w-5 ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`} />
+                </div>
+
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                    {[0, 1, 2].map((index) => (
+                        <div key={index} className="space-y-2">
+                            <div className="relative aspect-square overflow-hidden rounded-[1rem]">
+                                <Image src={index === 1 ? "/demo-cat-2.png" : image} alt={title} fill sizes="96px" className="object-cover" />
+                            </div>
+                            <div className={`rounded-xl px-2 py-2 text-center text-[11px] font-black ${dark ? "bg-white/8 text-white/72" : "bg-white text-[#6f584e]"}`}>
+                                {["朝の一枚", "日向ぼっこ", "寝顔"][index]}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`rounded-[2rem] border p-5 ${dark ? "border-white/10 bg-white/6" : "border-[#edd7c0] bg-[#fffaf3]"}`}>
+            <div className="flex items-start gap-4">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[1.1rem] ring-1 ring-black/5">
+                    <Image src={image} alt={title} fill sizes="64px" className="object-cover" />
+                </div>
+                <div>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>Preview</p>
+                    <p className={`mt-1 font-[var(--font-zen-maru)] text-2xl font-bold leading-[1.2] ${dark ? "text-white" : "text-[#3f2a22]"}`}>{title}</p>
+                </div>
+            </div>
+
+                <div className="mt-5 grid gap-2">
+                <div className={`rounded-2xl px-3 py-3 text-sm font-bold ${dark ? "bg-white/8 text-white/86" : "bg-white text-[#4f4039]"}`}>今日のハイライト</div>
+                <div className={`rounded-2xl px-3 py-3 text-sm font-bold ${dark ? "bg-white/8 text-white/86" : "bg-white text-[#4f4039]"}`}>最近の発見</div>
+                <div className={`rounded-2xl px-3 py-3 text-sm font-bold ${dark ? "bg-white/8 text-white/86" : "bg-white text-[#4f4039]"}`}>週間アルバム</div>
+            </div>
+        </div>
+    );
+}
+
+function FeatureSection({
+    eyebrow,
+    title,
+    body,
+    points,
+    image,
+    tone = "light",
+    reverse = false,
+    variant = "collection",
+}: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    points: string[];
+    image: string;
+    tone?: "light" | "dark";
+    reverse?: boolean;
+    variant?: "collection" | "family" | "weekly";
+}) {
+    const dark = tone === "dark";
+
+    return (
+        <div
+            className={`grid items-center gap-8 rounded-[2.4rem] border px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[0.95fr_1.05fr] ${
+                dark
+                    ? "border-white/8 bg-[linear-gradient(180deg,#3b2720_0%,#2e1f1a_100%)]"
+                    : "border-[#5a3e32]/8 bg-[linear-gradient(180deg,#fffdfa_0%,#fdf3e7_100%)]"
+            } ${reverse ? "lg:[&>*:first-child]:order-2" : ""}`}
+        >
+            <div className={dark ? "text-white" : "text-[#3f2a22]"}>
+                <SectionTag light={dark}>{eyebrow}</SectionTag>
+                <h3 className="mt-4 max-w-[10ch] font-[var(--font-zen-maru)] text-4xl font-bold leading-[1.14] tracking-[-0.05em] md:text-5xl">
+                    {title}
+                </h3>
+                <p className={`mt-4 max-w-xl text-base leading-7 md:text-lg md:leading-8 ${dark ? "text-white/72" : "text-[#5b4941]"}`}>{body}</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                    {points.map((point) => (
+                        <div
+                            key={point}
+                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold ${
+                                dark ? "bg-white/8 text-white/84" : "bg-white text-[#4f4039]"
+                            }`}
+                        >
+                            <Check className={`h-4 w-4 ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`} />
+                            <span>{point}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className={`grid gap-4 ${reverse ? "sm:grid-cols-[1.1fr_0.9fr]" : "sm:grid-cols-[0.9fr_1.1fr]"}`}>
+                <FeatureMock image={image} title={title} tone={tone} variant={variant} />
+                <div className={`rounded-[2rem] border p-5 ${dark ? "border-white/10 bg-[#2a1b17]" : "border-[#edd7c0] bg-white"}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.24em] ${dark ? "text-[#f0c793]" : "text-[#b56f3f]"}`}>Why it works</p>
+                    <p className={`mt-3 font-[var(--font-zen-maru)] text-2xl font-bold leading-[1.25] ${dark ? "text-white" : "text-[#3f2a22]"}`}>
+                        文字を読む前に、
+                        <br />
+                        使い方が見えてくる。
+                    </p>
+                    <p className={`mt-4 text-sm leading-7 ${dark ? "text-white/68" : "text-[#5b4941]"}`}>
+                        たくさん説明しなくても、何ができるかを画面の形で伝える構成にしています。
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function Features() {
+    return (
+        <section className="px-6 py-24 md:px-12 md:py-32">
+            <div className="mx-auto max-w-7xl space-y-8 md:space-y-10">
+                <div className="mx-auto max-w-3xl text-center">
+                    <SectionTag>Features</SectionTag>
+                    <SectionHeading
+                        title="必要な価値だけ、短く見せる。"
+                        body="情報を足しすぎず、今のアプリで伝えられる強みだけに絞っています。"
+                        align="center"
+                    />
+                </div>
+
+                {features.map((feature, index) => (
+                    <FeatureSection
+                        key={feature.eyebrow}
+                        eyebrow={feature.eyebrow}
+                        title={feature.title}
+                        body={feature.body}
+                        points={feature.points}
+                        image={feature.image}
+                        tone={feature.tone}
+                        reverse={index % 2 === 1}
+                        variant={feature.variant}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+}
+
+function EasyStart() {
+    return (
+        <section className="bg-[linear-gradient(180deg,#f7efe4_0%,#f1e5d8_100%)] px-6 py-20 md:px-12 md:py-24">
+            <div className="mx-auto grid max-w-6xl gap-8 rounded-[2.5rem] border border-[#5a3e32]/8 bg-white/78 p-8 shadow-[0_24px_56px_-40px_rgba(40,27,20,0.34)] md:p-12 lg:grid-cols-[0.95fr_1.05fr]">
+                <div>
+                    <SectionTag>Easy start</SectionTag>
+                    <SectionHeading
+                        title="がんばりすぎなくていい。"
+                        body="最初から細かく記録しなくても、写真からゆるく始められます。"
+                    />
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-1">
+                    {[
+                        "まずは写真だけでいい",
+                        "家族だけで共有できる",
+                        "あとから整理しやすい",
+                    ].map((item) => (
+                        <div key={item} className="flex items-center gap-3 rounded-[1.6rem] border border-[#edd7c0] bg-[#fffaf3] px-4 py-4 text-sm font-bold text-[#4f4039]">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f4e0cb] text-[#b56f3f]">
+                                <Check className="h-4 w-4" />
+                            </div>
+                            <span>{item}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function FinalCta() {
+    return (
+        <section className="relative overflow-hidden bg-[linear-gradient(180deg,#3b2720_0%,#241915_100%)] px-6 py-24 text-white md:px-12 md:py-32">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(240,199,147,0.18),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.08),_transparent_30%)]" />
+            <div className="relative mx-auto max-w-4xl text-center">
+                <SectionTag light>Start simple</SectionTag>
+                <SectionHeading
+                    title={
+                        <>
+                            今日の一枚から、
+                            <br />
+                            記録をはじめよう。
+                        </>
+                    }
+                    body="写真が、そのまま思い出と記録になります。"
+                    light
+                    align="center"
+                />
+
+                <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center justify-center gap-3 rounded-full bg-[#d0884e] px-8 py-4 text-lg font-black text-white shadow-[0_18px_40px_rgba(208,136,78,0.28)] transition-transform hover:scale-[1.02] active:scale-95"
+                    >
+                        無料で使ってみる
+                        <ArrowRight className="h-5 w-5" />
+                    </Link>
+                    <Link
+                        href="#flow"
+                        className="inline-flex items-center justify-center rounded-full border border-white/14 px-8 py-4 text-lg font-bold text-white/78 transition-colors hover:bg-white/8"
+                    >
+                        使い方を見る
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+export default function LandingPage() {
+    return (
+        <div className="min-h-screen bg-[#fcf5ea] text-[#3f2a22] selection:bg-[#efd8bd] selection:text-[#3f2a22]">
+            <Navbar />
+            <main>
+                <Hero />
+                <ValueStrip />
+                <FlowSection />
+                <Features />
+                <EasyStart />
+                <FinalCta />
+            </main>
+
+            <footer className="border-t border-[#5a3e32]/8 bg-white px-6 py-10 md:px-12">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4e0cb] text-[#b56f3f]">
+                            <CatIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="font-[var(--font-zen-maru)] text-base font-bold tracking-[-0.04em] text-[#3f2a22]">にゃるほど</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#aa734e]">Cat family journal</p>
+                        </div>
+                    </div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#3f2a22]/36">2026 Nyaruhodo. Built for everyday life with cats.</p>
+                </div>
+            </footer>
+
+            <style jsx global>{`
+                html {
+                    scroll-behavior: smooth;
+                }
+                body {
+                    overflow-x: hidden;
+                }
+            `}</style>
+        </div>
     );
 }

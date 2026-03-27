@@ -235,7 +235,7 @@ export function SitterReportConfigModal({ isOpen, onClose, onComplete, cats, ini
                                         <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex gap-3 border border-amber-100 dark:border-amber-900/20">
                                             <Sparkles className="w-5 h-5 text-amber-500 shrink-0" />
                                             <p className="text-[11px] leading-relaxed text-amber-900/70 dark:text-amber-200/70">
-                                                図鑑の記録から、猫ちゃんの「好き」や「癖」をAIが抽出しました。必要に応じて編集してください。
+                                                コレクションの記録から、猫ちゃんの「好き」や「癖」をAIが抽出しました。必要に応じて編集してください。
                                             </p>
                                         </div>
 
@@ -245,7 +245,7 @@ export function SitterReportConfigModal({ isOpen, onClose, onComplete, cats, ini
                                             </Label>
 
                                             <div className="space-y-2">
-                                                <Label className="text-[10px] font-bold text-slate-500">注目の癖（図鑑から自動抽出）</Label>
+                                                <Label className="text-[10px] font-bold text-slate-500">注目の癖（コレクションから自動抽出）</Label>
                                                 <div className="flex flex-wrap gap-2">
                                                     {highlightHabits.map(h => (
                                                         <span key={h} className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 rounded-full text-[10px] font-bold">

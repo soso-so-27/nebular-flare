@@ -21,11 +21,10 @@ import { ZukanScreen } from "@/components/app/screens/zukan-screen";
 import { CatScreen } from "@/components/app/screens/cat-screen";
 import { CalendarScreen } from "@/components/app/screens/calendar-screen";
 import { CollectionHome } from "@/components/collection/collection-home";
-import { CollectionPhoto } from "@/components/collection/collection-photo";
 import { CaptureWorkflowSheet } from "@/components/app/shared/capture-workflow-sheet";
 import { BottomNavigationBar } from "@/components/app/shared/bottom-navigation-bar";
 import { PhotoImportWizard } from "@/components/collection/photo-import-wizard";
-import { NotificationSheet, NotificationItem } from "@/components/app/home/notification-sheet";
+import { NotificationItem } from "@/components/app/home/notification-sheet";
 import { FootprintProvider } from "@/providers/footprint-provider";
 import {
     CheckCircle2, Pill, AlertTriangle, Stethoscope, FileText, Heart
@@ -218,11 +217,12 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                         initial={{ opacity: 1 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.3 } }}
-                        className="fixed inset-0 z-0"
+                        className="relative z-0"
                     >
                         <CollectionHome
                             onOpenCollection={() => setTab("collection")}
                             onOpenImport={() => setIsImportWizardOpen(true)}
+                            onOpenCat={() => setTab("cat")}
                         />
                     </motion.div>
                 )}
@@ -234,22 +234,9 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3, ease: "circOut" }}
-                        className="fixed inset-0 z-[10001]"
+                        className="relative z-[1]"
                     >
                         <ZukanScreen onClose={() => setShowZukanDetail(false)} />
-                    </motion.div>
-                )}
-
-                {tab === "photo" && (
-                    <motion.div
-                        key="photo-layer"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.3, ease: "circOut" }}
-                        className="fixed inset-0 z-[10001]"
-                    >
-                        <CollectionPhoto onOpenImport={() => setIsImportWizardOpen(true)} />
                     </motion.div>
                 )}
 
@@ -280,34 +267,14 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                 )}
             </AnimatePresence>
 
-            <NotificationSheet
-                isOpen={tab === "notifications"}
-                onClose={() => setTab("home")}
-                notifications={realNotifications}
-                onSelectItem={(item) => {
-                    if (item.incidentId) {
-                        setSelectedIncidentId(item.incidentId);
-                        setTab("home");
-                    } else if (item.link === 'zukan' || item.link === 'collection') {
-                        setTab('collection');
-                    } else if (item.targetDate) {
-                        setTab("calendar");
-                    }
-                }}
-            />
-
             {/* ─── Global Bottom Nav ─── */}
             {!showSplash && (
                 <BottomNavigationBar
                     activeTab={tab}
                     onTabChange={(newTab) => {
                         if (newTab === "camera") {
-                            hiddenFileInputRef.current?.click();
-                        } else if (newTab === "notifications") {
-                            setTab(newTab);
                             setShowZukanDetail(false);
-                            setLastViewedAt(new Date());
-                            updateSettings({ lastSeenPhotoAt: new Date().toISOString() });
+                            setIsCaptureWorkflowOpen(true);
                         } else {
                             setTab(newTab);
                             setShowZukanDetail(false);
@@ -322,7 +289,7 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                 isOpen={isImportWizardOpen}
                 onClose={() => setIsImportWizardOpen(false)}
                 onComplete={() => {
-                    setTab("collection");
+                    setTab("home");
                     setIsImportWizardOpen(false);
                 }}
             />
@@ -368,40 +335,33 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
 // ─────────────────────────────────
 function CollectionWithProfile({ user }: { user: any }) {
     const { profile, loading: profileLoading, refetch } = useUserProfile(user);
-    const [needsOnboarding, setNeedsOnboarding] = useState(false);
-    const [checkComplete, setCheckComplete] = useState(false);
     const [onboardingDone, setOnboardingDone] = useState(false);
-
-    useEffect(() => {
-        if (!profileLoading) {
-            if (onboardingDone && profile?.householdId) {
-                setNeedsOnboarding(false);
-                setCheckComplete(true);
-            } else if (!onboardingDone) {
-                setNeedsOnboarding(!profile?.householdId);
-                setCheckComplete(true);
-            }
-        }
-    }, [profile, profileLoading, onboardingDone]);
+    const [pendingHouseholdId, setPendingHouseholdId] = useState<string | null>(null);
+    const checkComplete = !profileLoading;
+    const effectiveHouseholdId = profile?.householdId ?? pendingHouseholdId ?? null;
+    const effectiveUserId = profile?.userId ?? user?.id ?? null;
+    const needsOnboarding = !effectiveHouseholdId && !onboardingDone;
 
     if (profileLoading || !checkComplete) return <SplashScreen />;
 
     if (needsOnboarding && !onboardingDone) {
         return (
             <OnboardingScreen
-                onComplete={() => {
+                onComplete={(householdId) => {
+                    if (householdId) {
+                        setPendingHouseholdId(householdId);
+                    }
                     setOnboardingDone(true);
-                    setNeedsOnboarding(false);
-                    // No need to refetch immediately, let the state update
+                    refetch();
                 }}
             />
         );
     }
 
     return (
-        <FootprintProvider userId={user?.id} householdId={profile?.householdId ?? undefined} isDemo={false}>
-            <AppProvider householdId={profile?.householdId ?? null} currentUserId={profile?.userId ?? null} isDemo={false}>
-                <CollectionAppContent showImportInitially={onboardingDone} />
+        <FootprintProvider userId={user?.id} householdId={effectiveHouseholdId ?? undefined} isDemo={false}>
+            <AppProvider householdId={effectiveHouseholdId} currentUserId={effectiveUserId} isDemo={false}>
+                <CollectionAppContent />
             </AppProvider>
         </FootprintProvider>
     );
@@ -412,12 +372,8 @@ function CollectionAuth() {
     const searchParams = useSearchParams();
     const isDemo = searchParams.get('demo') === 'true';
 
-    const userRef = React.useRef<any>(null);
-    if (user) userRef.current = user;
-    const effectiveUser = user || userRef.current;
-
-    if (loading && !effectiveUser) return <SplashScreen />;
-    if (!effectiveUser && !isDemo && !loading) return <LoginScreen />;
+    if (loading && !user && !isDemo) return <SplashScreen />;
+    if (!user && !isDemo && !loading) return <LoginScreen />;
 
     if (isDemo) {
         return (
@@ -429,7 +385,7 @@ function CollectionAuth() {
         );
     }
 
-    return <CollectionWithProfile user={effectiveUser} />;
+    return <CollectionWithProfile user={user} />;
 }
 
 export default function CollectionPage() {

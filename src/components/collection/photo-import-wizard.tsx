@@ -28,9 +28,10 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     onComplete?: () => void;
+    onImported?: (count: number) => void;
 }
 
-export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
+export function PhotoImportWizard({ isOpen, onClose, onComplete, onImported }: Props) {
     const { householdId, isDemo } = useCoreContext();
     const { cats } = useCatContext();
     const { session } = useAuth();
@@ -159,6 +160,7 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
             }
         }
 
+        onImported?.(uploadedAssets.length);
         setIsProcessing(false);
         setStep('summary');
     };
@@ -166,16 +168,16 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[11000] flex flex-col bg-[#F6F3EE] dark:bg-[#121214]">
+        <div className="fixed inset-0 z-[11000] flex flex-col bg-bg-primary dark:bg-[#121214]">
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-[#F6F3EE]/80 dark:bg-[#121214]/80 backdrop-blur-md px-5 h-16 flex items-center justify-between border-b border-[#F2EFEA] dark:border-white/5 pt-[env(safe-area-inset-top)]">
+            <header className="sticky top-0 z-10 h-16 items-center justify-between border-b border-border-subtle bg-bg-primary/80 px-5 pt-[env(safe-area-inset-top)] backdrop-blur-md dark:border-white/5 dark:bg-[#121214]/80">
                 <button
                     onClick={onClose}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-[#8E8B85] hover:bg-black/5"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-text-tertiary hover:bg-black/5"
                 >
                     <X className="w-6 h-6" />
                 </button>
-                <h2 className="text-lg font-bold text-[#4E342E] dark:text-[#E8E6E1]">
+                <h2 className="text-lg font-bold text-text-primary dark:text-[#E8E6E1]">
                     {step === 'select' && '写真を選ぶ'}
                     {step === 'uploading' && 'バックアップ中'}
                     {step === 'summary' && 'インポート受付完了'}
@@ -186,14 +188,21 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
             <main className="flex-1 overflow-y-auto px-5 py-6">
                 {step === 'select' && (
                     <div className="max-w-md mx-auto space-y-8">
-                        <div className="text-center space-y-3">
-                            <div className="w-20 h-20 bg-[#C8A97E]/20 rounded-3xl flex items-center justify-center mx-auto">
-                                <ImageIcon className="w-10 h-10 text-[#C8A97E]" />
+                        <div className="hidden">
+                            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-accent-soft">
+                                <ImageIcon className="h-10 w-10 text-accent-primary" />
                             </div>
-                            <h3 className="text-xl font-bold text-[#4E342E] dark:text-[#E8E6E1]">思い出をコレクションに</h3>
-                            <p className="text-sm text-[#8E8B85] leading-relaxed">
+                            <h3 className="text-xl font-bold text-text-primary dark:text-[#E8E6E1]">思い出をコレクションに</h3>
+                            <p className="text-sm leading-relaxed text-text-tertiary">
                                 猫の写真を見つけてコレクションを作ります。<br />
-                                選択した写真の裏側で、こっそりAIが仕分けます。
+                                選択した写真を、裏側でそっと整理します。
+                            </p>
+                        </div>
+                        <div className="text-center space-y-3">
+                            <h3 className="text-2xl font-bold text-text-primary dark:text-[#E8E6E1]">写真を追加しました</h3>
+                            <p className="text-[15px] font-medium leading-relaxed text-text-tertiary">
+                                {results.filter(r => r.status === 'done').length}枚の写真を追加しました。<br />
+                                このあとは、写真ごとの発見がそっと整理されていきます。
                             </p>
                         </div>
 
@@ -211,7 +220,7 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
                             ))}
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="aspect-square rounded-2xl border-2 border-dashed border-[#E8E1D9] dark:border-white/10 flex flex-col items-center justify-center gap-2 text-[#8E8B85] hover:bg-black/5 transition-colors"
+                                className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border dark:border-white/10 text-text-tertiary transition-colors hover:bg-black/5"
                             >
                                 <Plus className="w-6 h-6" />
                                 <span className="text-[11px] font-bold">追加</span>
@@ -232,23 +241,29 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
                 {step === 'uploading' && (
                     <div className="max-w-md mx-auto h-full flex flex-col items-center justify-center space-y-8 py-20">
                         <div className="relative">
-                            <div className="w-32 h-32 rounded-full border-4 border-[#F2EFEA] dark:border-white/5 border-t-[#C8A97E] animate-spin" />
+                            <div className="h-32 w-32 animate-spin rounded-full border-4 border-bg-secondary border-t-accent-primary dark:border-white/5 dark:border-t-accent-primary" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <Sparkles className="w-10 h-10 text-[#C8A97E]" />
+                                <Sparkles className="w-10 h-10 text-accent-primary" />
                             </div>
                         </div>
                         <div className="text-center space-y-4">
-                            <h3 className="text-xl font-bold text-[#4E342E] dark:text-[#E8E6E1]">
+                            <h3 className="hidden">
                                 {progress === 100 ? 'アップロード完了！' : '写真を安全に保存しています...'}
                             </h3>
-                            <div className="w-64 h-3 bg-[#F2EFEA] dark:bg-white/5 rounded-full overflow-hidden mx-auto">
+                            <h3 className="text-xl font-bold text-text-primary dark:text-[#E8E6E1]">
+                                {progress === 100 ? '写真の追加を受け付けました' : '写真を追加しています...'}
+                            </h3>
+                            <div className="mx-auto h-3 w-64 overflow-hidden rounded-full bg-bg-secondary dark:bg-white/5">
                                 <motion.div
-                                    className="h-full bg-[#C8A97E]"
+                                    className="h-full bg-accent-primary"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress}%` }}
                                 />
                             </div>
-                            <p className="text-sm font-bold text-[#8E8B85]">
+                            <p className="hidden">
+                                {results.filter(r => r.status === 'done').length} / {results.length} 枚完了
+                            </p>
+                            <p className="text-sm font-bold text-text-tertiary">
                                 {results.filter(r => r.status === 'done').length} / {results.length} 枚完了
                             </p>
                         </div>
@@ -260,26 +275,35 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="w-24 h-24 bg-[#6B7A6B]/20 rounded-full flex items-center justify-center"
+                            className="flex h-24 w-24 items-center justify-center rounded-full bg-accent-discover/20"
                         >
-                            <Check className="w-12 h-12 text-[#6B7A6B]" />
+                            <Check className="w-12 h-12 text-accent-discover" />
                         </motion.div>
 
                         <div className="text-center space-y-3">
-                            <h3 className="text-2xl font-bold text-[#4E342E] dark:text-[#E8E6E1]">受け付けました！</h3>
-                            <p className="text-[15px] text-[#8E8B85] font-medium leading-relaxed">
+                            <h3 className="text-2xl font-bold text-text-primary dark:text-[#E8E6E1]">受け付けました！</h3>
+                            <p className="text-[15px] font-medium leading-relaxed text-text-tertiary">
                                 {results.filter(r => r.status === 'done').length}枚の写真をアップロードしました。<br />
-                                この後、裏側でAIが猫を探してコレクションに自動登録します。
+                                このあと裏側で猫を見つけて、コレクションへ自然につなげます。
                             </p>
                         </div>
 
-                        <div className="w-full bg-white dark:bg-white/5 rounded-3xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#F2EFEA] dark:border-white/10 space-y-4">
+                        <div className="hidden">
                             <div className="flex items-center gap-3">
-                                <Sparkles className="w-5 h-5 text-[#C8A97E]" />
-                                <span className="text-[13px] font-bold text-[#4E342E] dark:text-[#E8E6E1]">ホーム画面でお知らせします</span>
+                                <Sparkles className="w-5 h-5 text-accent-primary" />
+                                <span className="text-[13px] font-bold text-text-primary dark:text-[#E8E6E1]">ホーム画面でお知らせします</span>
                             </div>
-                            <p className="text-[12px] text-[#8E8B85]">
-                                解析が終わって新しい発見があれば、ホーム画面の「✨ 今日の発見」に届きます。アプリを閉じて待っていても大丈夫です！
+                            <p className="text-[12px] text-text-tertiary">
+                                新しい発見があれば、ホーム画面の「今日の発見」に届きます。アプリを閉じて待っていても大丈夫です！
+                            </p>
+                        </div>
+                        <div className="w-full space-y-4 rounded-3xl border border-border-subtle bg-bg-elevated p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+                            <div className="flex items-center gap-3">
+                                <Sparkles className="w-5 h-5 text-accent-primary" />
+                                <span className="text-[13px] font-bold text-text-primary dark:text-[#E8E6E1]">ホームで見つけやすくなります</span>
+                            </div>
+                            <p className="text-[12px] text-text-tertiary">
+                                新しい発見があれば、ホーム画面の「最近の発見」に届きます。アプリを閉じていても大丈夫です。
                             </p>
                         </div>
 
@@ -288,7 +312,7 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
                                 onComplete?.();
                                 onClose();
                             }}
-                            className="w-full h-16 rounded-[32px] bg-[#4E342E] dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+                            className="flex h-16 w-full items-center justify-center gap-3 rounded-full bg-accent-primary font-bold text-white shadow-sm dark:bg-white dark:text-black"
                         >
                             <span>ホームに戻る</span>
                             <ArrowRight className="w-6 h-6" />
@@ -299,11 +323,11 @@ export function PhotoImportWizard({ isOpen, onClose, onComplete }: Props) {
 
             {/* Footer */}
             {step === 'select' && (
-                <footer className="p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] bg-[#F6F3EE] dark:bg-[#121214] border-t border-[#F2EFEA] dark:border-white/5">
+                <footer className="border-t border-border-subtle bg-bg-primary p-8 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] dark:border-white/5 dark:bg-[#121214]">
                     <button
                         onClick={startAsyncImport}
                         disabled={results.length === 0}
-                        className="w-full h-16 rounded-[32px] bg-[#4E342E] dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.1)] disabled:opacity-50"
+                        className="flex h-16 w-full items-center justify-center gap-3 rounded-full bg-accent-primary font-bold text-white shadow-sm disabled:opacity-50 dark:bg-white dark:text-black"
                     >
                         <span>インポートを開始({results.length}枚)</span>
                         <ChevronRight className="w-6 h-6" />

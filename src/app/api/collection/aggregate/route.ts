@@ -107,7 +107,8 @@ function ruleMatches(aiResult: AnalysisResult, ruleJson: Record<string, any> | n
         }
 
         const expectedTags = normalizeTags(value).map(normalizeText);
-        if (expectedTags.length > 0 && expectedTags.some((tag) => (tagMap as any)[field].map(normalizeText).includes(tag))) {
+        const fieldTags = (tagMap as any)[field]?.map(normalizeText) || [];
+        if (expectedTags.length > 0 && expectedTags.some((tag) => fieldTags.includes(tag))) {
             return true;
         }
     }
@@ -149,11 +150,24 @@ async function ensureDefinition(
 async function applyCollectionMatch(
     supabase: ReturnType<typeof createClient>,
     catId: string,
+    catName: string | null,
     photoId: string,
     aiResult: AnalysisResult,
     definition: CollectionDefinitionRecord,
     discoveries: any[]
 ) {
+    const { data: existingPhotoLink } = await supabase
+        .from('cat_collection_photos')
+        .select('id')
+        .eq('cat_id', catId)
+        .eq('collection_definition_id', definition.id)
+        .eq('photo_id', photoId)
+        .maybeSingle();
+
+    if (existingPhotoLink) {
+        return;
+    }
+
     await supabase
         .from('cat_collection_photos')
         .upsert(
@@ -173,7 +187,42 @@ async function applyCollectionMatch(
         .eq('collection_definition_id', definition.id)
         .single();
 
+    const collectionName = definition.name || 'コレクション';
+
     if (existingItem) {
+        const { data: existingDiscovery } = await supabase
+            .from('discoveries')
+            .select('id')
+            .eq('cat_id', catId)
+            .eq('collection_definition_id', definition.id)
+            .eq('photo_id', photoId)
+            .eq('type', 'collection_update')
+            .maybeSingle();
+
+        let updatedDiscovery: any = null;
+        if (!existingDiscovery) {
+            const { data } = await supabase
+                .from('discoveries')
+                .insert({
+                    cat_id: catId,
+                    type: 'collection_update',
+                    collection_definition_id: definition.id,
+                    title: catName
+                        ? `${catName}の『${collectionName}』に新しい写真が加わりました`
+                        : `新しい『${collectionName}』に新しい写真が加わりました`,
+                    body: `${collectionName}に、この子らしい1枚が加わりました。`,
+                    photo_id: photoId,
+                    is_read: false,
+                })
+                .select('*')
+                .single();
+            updatedDiscovery = data ?? null;
+        }
+
+        if (updatedDiscovery) {
+            discoveries.push(updatedDiscovery);
+        }
+
         await supabase
             .from('cat_collection_items')
             .update({
@@ -198,19 +247,34 @@ async function applyCollectionMatch(
             current_level: 1,
         });
 
-    const { data: newDiscovery } = await supabase
+    const { data: existingDiscovery } = await supabase
         .from('discoveries')
-        .insert({
-            cat_id: catId,
-            type: 'new_collection',
-            collection_definition_id: definition.id,
-            title: `${definition.name || 'New collection'} discovered`,
-            body: 'A new collection entry was detected from this photo.',
-            photo_id: photoId,
-            is_read: false,
-        })
-        .select('*')
-        .single();
+        .select('id')
+        .eq('cat_id', catId)
+        .eq('collection_definition_id', definition.id)
+        .eq('photo_id', photoId)
+        .eq('type', 'new_collection')
+        .maybeSingle();
+
+    let newDiscovery: any = null;
+    if (!existingDiscovery) {
+        const { data } = await supabase
+            .from('discoveries')
+            .insert({
+                cat_id: catId,
+                type: 'new_collection',
+                collection_definition_id: definition.id,
+                title: catName
+                    ? `${catName}の『${collectionName}』を見つけました！`
+                    : `新しい『${collectionName}』を見つけました！`,
+                body: `${collectionName}に、この子の最初の1枚が加わりました。`,
+                photo_id: photoId,
+                is_read: false,
+            })
+            .select('*')
+            .single();
+        newDiscovery = data ?? null;
+    }
 
     if (newDiscovery) {
         discoveries.push(newDiscovery);
@@ -337,6 +401,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Cat not linked to this photo' }, { status: 404 });
         }
 
+        const { data: catRecord } = await supabase
+            .from('cats')
+            .select('name')
+            .eq('id', catLink.cat_id)
+            .maybeSingle();
+
         const discoveries: any[] = [];
         const ruleResult = await getRuleBasedDefinitions(supabase, aiResult as AnalysisResult);
         const matchedDefinitions = ruleResult.usedRuleTable
@@ -347,6 +417,7 @@ export async function POST(req: NextRequest) {
             await applyCollectionMatch(
                 supabase,
                 catLink.cat_id,
+                catRecord?.name || null,
                 photoId,
                 aiResult as AnalysisResult,
                 definition,

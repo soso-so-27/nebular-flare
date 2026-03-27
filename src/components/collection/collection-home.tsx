@@ -1,696 +1,664 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-    Award, Target, ChevronRight, Loader2, Camera, Wand2, Sparkles,
-    Search, X, Cat, Lock, Image as ImageIcon,
-    Package, PawPrint, Circle, Activity, Box,
-    Utensils, Moon, Zap, Smile, Frown, Meh, AlertCircle,
-    Cloud, Sun, Stethoscope, Droplets, Flame, Scissors, ShieldAlert,
-    UserPlus, HeartPulse, Home, Sofa, MapPin, Footprints,
-    CalendarDays, Gift, Cake, Baby, TrendingUp, ShoppingBag, Brush, Heart,
-    Wind, History, Camera as CameraIcon2
-} from "lucide-react";
-import { cn, getFullImageUrl } from "@/lib/utils";
-import { toast } from "sonner";
-import { useCatContext, useCoreContext } from "@/store/app-store";
-import { createClient } from "@/lib/supabase";
+import React, { useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale";
+import { BookOpen, Camera, Cat, Sparkles } from "lucide-react";
 import { PhotoDetailView } from "@/components/app/immersive/photo-detail-view";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase";
+import { useAuth } from "@/providers/auth-provider";
+import { getFullImageUrl } from "@/lib/utils";
+import { useCatContext, useCoreContext } from "@/store/app-store";
 
 /* eslint-disable @next/next/no-img-element */
 
-// ─────────────────────────────────
-// Shared types (same as zukan-screen)
-// ─────────────────────────────────
-interface AIAnalysis {
-    labels?: { moment?: string; scene?: string; shot?: string; };
-    forYouScores?: { dailyPick?: number; weeklyHighlight?: number; funnyMoment?: number; };
-    uiTags?: string[];
-    needUserConfirm?: boolean;
-    userConfirmed?: boolean;
-    confirmedAt?: string;
-    zukanShelf?: string;
-    pose?: string;
-    metadata?: Record<string, string>;
+interface CollectionHomeProps {
+    onOpenCollection: () => void;
+    onOpenImport: () => void;
+    onOpenCat: () => void;
 }
 
-interface ShelfPhoto {
-    id: string; url: string; storagePath: string; catId: string; catName: string;
-    catIds?: string[]; createdAt: string; source: string; memo?: string;
-    tags?: any[]; isUrl?: boolean; aiAnalysis?: AIAnalysis;
-}
-
-interface DiscoveryRecord {
+interface HomePhoto {
     id: string;
-    cat_id: string | null;
-    title: string | null;
-    type: string | null;
-    photo_id: string | null;
-    created_at: string;
-    is_read: boolean;
-    collection_definition_id: string | null;
-    collection_definitions: {
-        id: string;
-        slug: string | null;
-        name: string | null;
-        category: string | null;
-    } | {
-        id: string;
-        slug: string | null;
-        name: string | null;
-        category: string | null;
-    }[] | null;
-    photos: {
-        id: string;
-        storage_path: string | null;
-        created_at: string | null;
-    } | {
-        id: string;
-        storage_path: string | null;
-        created_at: string | null;
-    }[] | null;
+    storagePath: string;
+    thumbnailPath: string | null;
+    url: string;
+    createdAt: string;
+    source: string;
+    catId: string | null;
+    catIds: string[];
+    catName: string;
+    poseTags: string[];
+    sceneSummary: string | null;
+    rawDescription: string | null;
 }
 
 interface DiscoveryGroup {
     key: string;
     photoId: string | null;
-    discoveries: DiscoveryRecord[];
-    primary: DiscoveryRecord;
+    primary: any;
+    discoveries: any[];
     count: number;
 }
+
+interface HighlightGroup {
+    id: string;
+    title: string;
+    headline: string;
+    body: string;
+    totalCount: number;
+    unlockedCount: number;
+    remaining: number;
+    complete: boolean;
+    latestAt: string | null;
+    representativePhoto: string | null;
+}
+
+const CATEGORY_COPY: Record<string, { title: string; body: string; completeBody: string }> = {
+    pose: {
+        title: "\u3053\u306e\u5b50\u3089\u3057\u3044\u30dd\u30fc\u30ba\u304c\u96c6\u307e\u3063\u3066\u3044\u307e\u3059",
+        body: "\u5ea7\u308a\u65b9\u3084\u898b\u4e0a\u3052\u308b\u4ed5\u8349\u306b\u3001\u3053\u306e\u5b50\u3089\u3057\u3055\u304c\u306b\u3058\u3093\u3067\u3044\u307e\u3059",
+        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u30dd\u30fc\u30ba\u306e\u8a18\u9332\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
+    },
+    action: {
+        title: "\u6bce\u65e5\u306e\u3057\u3050\u3055\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
+        body: "\u898b\u3064\u3081\u308b\u3001\u304f\u3064\u308d\u3050\u3001\u904a\u3076\u3002\u6bce\u65e5\u306e\u52d5\u304d\u304c\u7269\u8a9e\u306b\u306a\u3063\u3066\u3044\u304d\u307e\u3059",
+        completeBody: "\u6bce\u65e5\u306e\u3057\u3050\u3055\u306e\u8a18\u9332\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
+    },
+    location: {
+        title: "\u3088\u304f\u3044\u308b\u5834\u6240\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
+        body: "\u843d\u3061\u7740\u304f\u5834\u6240\u3084\u304f\u3064\u308d\u3050\u98a8\u666f\u304c\u3001\u3053\u306e\u5b50\u306e\u5c45\u5834\u6240\u3092\u6559\u3048\u3066\u304f\u308c\u307e\u3059",
+        completeBody: "\u3088\u304f\u904e\u3054\u3059\u5834\u6240\u306e\u8a18\u9332\u304c\u305d\u308d\u3063\u3066\u3044\u307e\u3059",
+    },
+    emotion: {
+        title: "\u8868\u60c5\u306e\u5909\u5316\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
+        body: "\u3084\u3055\u3057\u3044\u76ee\u7dda\u3084\u597d\u5947\u5fc3\u306e\u9854\u306b\u3001\u3053\u306e\u5b50\u306e\u6c17\u5206\u304c\u306b\u3058\u307f\u307e\u3059",
+        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u8868\u60c5\u306e\u7269\u8a9e\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
+    },
+    object: {
+        title: "\u66ae\u3089\u3057\u306e\u98a8\u666f\u304c\u96c6\u307e\u3063\u3066\u3044\u307e\u3059",
+        body: "\u5bb6\u5177\u3084\u672c\u3068\u4e00\u7dd2\u306e\u5199\u771f\u304b\u3089\u3001\u3053\u306e\u5b50\u306e\u66ae\u3089\u3057\u304c\u898b\u3048\u3066\u304d\u307e\u3059",
+        completeBody: "\u66ae\u3089\u3057\u306e\u8a18\u61b6\u304c\u63c3\u3044\u3001\u7269\u8a9e\u304c\u3072\u3068\u3064\u5b8c\u6210\u3057\u307e\u3057\u305f",
+    },
+    other: {
+        title: "\u65b0\u3057\u3044\u767a\u898b",
+        body: "\u5c0f\u3055\u306a\u6c17\u3065\u304d\u304c\u91cd\u306a\u308b\u307b\u3069\u3001\u3053\u306e\u5b50\u306e\u7269\u8a9e\u304c\u80b2\u3063\u3066\u3044\u304d\u307e\u3059",
+        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u7269\u8a9e\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
+    },
+};
 
 function takeRelation<T>(value: T | T[] | null | undefined): T | null {
     if (!value) return null;
     return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-function formatDiscoveryCopy(discovery: DiscoveryRecord, cats: { id: string; name: string }[]) {
-    const definition = takeRelation(discovery.collection_definitions);
-    const catName = cats.find((cat) => cat.id === discovery.cat_id)?.name;
-    const entryName = definition?.name || discovery.title || '新しい発見';
-
-    if (catName) {
-        return `${catName}の「${entryName}」を見つけました`;
-    }
-
-    return `「${entryName}」を見つけました`;
+function getCategoryCopy(category: string | null | undefined) {
+    if (!category) return CATEGORY_COPY.other;
+    return CATEGORY_COPY[category] || CATEGORY_COPY.other;
 }
 
-function formatDiscoveryDate(value: string) {
-    return new Date(value).toLocaleDateString('ja-JP', {
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+function selectHeroPhoto(photos: HomePhoto[]) {
+    if (!photos.length) return null;
+
+    const faceForward = photos.find((photo) => {
+        const poseText = photo.poseTags.join(" ").toLowerCase();
+        const description = `${photo.sceneSummary ?? ""} ${photo.rawDescription ?? ""}`.toLowerCase();
+        return (
+            poseText.includes("facing_forward") ||
+            poseText.includes("facing forward") ||
+            description.includes("face") ||
+            description.includes("close") ||
+            description.includes("portrait")
+        );
     });
+
+    if (faceForward) return faceForward;
+
+    const withPose = photos.find((photo) => photo.poseTags.length > 0);
+    if (withPose) return withPose;
+
+    return photos[0];
 }
 
-function buildDiscoveryGroupCopy(group: DiscoveryGroup, cats: { id: string; name: string }[]) {
-    const primary = group.primary;
-    const definition = takeRelation(primary.collection_definitions);
-    const catName = cats.find((cat) => cat.id === primary.cat_id)?.name;
-    const entryName = definition?.name || primary.title || "新しい発見";
+function buildDiscoveryHeadline(group: DiscoveryGroup, catsById: Map<string, string>) {
+    const definition = takeRelation<any>(group.primary.collection_definitions);
+    const catName = group.primary.cat_id ? catsById.get(group.primary.cat_id) : null;
+    const entryName = definition?.name || group.primary.title || "\u65b0\u3057\u3044\u767a\u898b";
 
-    if (group.count > 1) {
+    if (group.count <= 1) {
         return catName
-            ? `${catName}の「${entryName}」ほか${group.count - 1}件を見つけました`
-            : `「${entryName}」ほか${group.count - 1}件を見つけました`;
+            ? `${catName}\u306e\u300c${entryName}\u300d\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f`
+            : `\u300c${entryName}\u300d\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f`;
     }
 
     return catName
-        ? `${catName}の「${entryName}」を見つけました`
-        : `「${entryName}」を見つけました`;
+        ? `${catName}\u306e\u65b0\u3057\u3044\u767a\u898b\u304c${group.count}\u4ef6\u3042\u308a\u307e\u3057\u305f`
+        : `\u65b0\u3057\u3044\u767a\u898b\u304c${group.count}\u4ef6\u3042\u308a\u307e\u3057\u305f`;
 }
 
-function buildDiscoveryCopy(discovery: DiscoveryRecord, cats: { id: string; name: string }[]) {
-    const definition = takeRelation(discovery.collection_definitions);
-    const catName = cats.find((cat) => cat.id === discovery.cat_id)?.name;
-    const entryName = definition?.name || discovery.title || "新しい発見";
-
-    if (catName) {
-        return `${catName}の「${entryName}」を見つけました`;
+function buildHighlightCopy(group: HighlightGroup) {
+    if (group.complete) {
+        return {
+            headline: `${group.title}\u304c\u5b8c\u6210\u3057\u307e\u3057\u305f`,
+            body: getCategoryCopy(group.id).completeBody,
+        };
     }
 
-    return `「${entryName}」を見つけました`;
-}
+    if (group.remaining > 0 && group.remaining <= 2) {
+        return {
+            headline: `\u3042\u3068${group.remaining}\u3064\u3067${group.title}\u304c\u5b8c\u6210\u3057\u307e\u3059`,
+            body: getCategoryCopy(group.id).body,
+        };
+    }
 
-function mapToShelfPhoto(img: any): ShelfPhoto {
     return {
-        id: img.id,
-        url: getFullImageUrl(img.url, { width: 400, height: 400, resize: "cover", quality: 80 }),
-        storagePath: img.url, catId: img.cat_id, catName: img.cat_name,
-        catIds: img.cat_ids, createdAt: img.created_at, source: img.source || "profile",
-        memo: img.memo, tags: img.tags, isUrl: img.is_url, aiAnalysis: img.ai_analysis,
+        headline: `${group.title}\u306b\u65b0\u3057\u3044\u5199\u771f\u304c\u52a0\u308f\u308a\u307e\u3057\u305f`,
+        body: getCategoryCopy(group.id).body,
     };
 }
 
-interface ZukanItemDef { id: string; label: string; icon: React.ReactNode; isLegendary?: boolean; }
-interface ZukanAxisDef { id: string; title: string; metaKey: string; items: ZukanItemDef[]; color: string; fallbackIcon: React.ReactNode; }
-
-import { ZUKAN_AXES, DAILY_MISSIONS } from "@/lib/zukan-data";
-
-// ─────────────────────────────────
-// Props
-// ─────────────────────────────────
-interface CollectionHomeProps {
-    onOpenCollection: () => void;
-    onOpenImport: () => void;
-}
-
-export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHomeProps) {
-    const { cats, analyzeCatImage } = useCatContext();
-    const { householdId } = useCoreContext();
-    const queryClient = useQueryClient();
-
-    const [allPhotos, setAllPhotos] = useState<ShelfPhoto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedDetailImage, setSelectedDetailImage] = useState<any>(null);
-    const [batchTagging, setBatchTagging] = useState(false);
-    const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
-
+export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: CollectionHomeProps) {
+    const { cats } = useCatContext();
+    const { householdId, isDemo } = useCoreContext();
+    const { session, loading: authLoading } = useAuth();
     const supabaseRef = useRef(createClient());
-    const isDemo = useMemo(
-        () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('demo') === 'true',
-        []
-    );
+    const [selectedDetailImage, setSelectedDetailImage] = useState<HomePhoto | null>(null);
 
-    const loadPhotos = useCallback(async () => {
-        if (isDemo) {
-            // Generate mock data for demo
-            const mockPhotos: ShelfPhoto[] = [
-                {
-                    id: 'mock-1', url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
-                    storagePath: '', catId: 'cat-1', catName: '麦', createdAt: new Date().toISOString(),
-                    source: 'profile', aiAnalysis: { forYouScores: { dailyPick: 0.95 }, pose: '香箱座り' }
-                },
-                {
-                    id: 'mock-2', url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800',
-                    storagePath: '', catId: 'cat-2', catName: '雨', createdAt: new Date(Date.now() - 86400000).toISOString(),
-                    source: 'profile', aiAnalysis: { forYouScores: { dailyPick: 0.8 }, pose: 'へそ天' }
-                },
-                {
-                    id: 'mock-3', url: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=800',
-                    storagePath: '', catId: 'cat-1', catName: '麦', createdAt: new Date(Date.now() - 172800000).toISOString(),
-                    source: 'profile', aiAnalysis: { pose: 'スフィンクス' }
-                },
-                {
-                    id: 'mock-4', url: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=800',
-                    storagePath: '', catId: 'cat-1', catName: '麦', createdAt: new Date(Date.now() - 259200000).toISOString(),
-                    source: 'profile', aiAnalysis: { pose: 'まんまる' }
-                },
-                {
-                    id: 'mock-5', url: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=800',
-                    storagePath: '', catId: 'cat-1', catName: '麦', createdAt: new Date(Date.now() - 345600000).toISOString(),
-                    source: 'profile', aiAnalysis: { pose: 'ちょうちん座り' }
-                },
-                {
-                    id: 'mock-6', url: 'https://images.unsplash.com/photo-1511044568932-338cba0ad80dc?w=800',
-                    storagePath: '', catId: 'cat-2', catName: '雨', createdAt: new Date(Date.now() - 432000000).toISOString(),
-                    source: 'profile', aiAnalysis: { pose: 'にょーん' }
-                },
-            ];
-            setAllPhotos(mockPhotos);
-            setLoading(false);
-            return;
-        }
+    const catsById = useMemo(() => new Map(cats.map((cat) => [cat.id, cat.name])), [cats]);
+    const catIds = useMemo(() => cats.map((cat) => cat.id), [cats]);
+    const canRunLiveQueries = !isDemo && !!householdId && !!session && !authLoading;
 
-        if (!householdId) { setLoading(false); return; }
-        setLoading(true);
-        const supabase = supabaseRef.current;
-        const { data, error } = await (supabase.rpc as any)("get_unified_gallery", {
-            target_household_id: householdId, limit_count: 500, offset_count: 0,
-        });
-        if (error) { console.error(error); setLoading(false); return; }
-        setAllPhotos((data as any[] || []).map(mapToShelfPhoto));
-        setLoading(false);
-    }, [householdId, isDemo]);
+    const getAvatarUrl = (path: string | null | undefined): string => {
+        if (!path) return "";
+        if (path.startsWith("http")) return path;
+        return getFullImageUrl(path);
+    };
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            void loadPhotos();
-        }, 0);
-
-        return () => clearTimeout(timer);
-    }, [loadPhotos]);
-
-    // ─── Compute collections ───
-    const zukanCollections = useMemo(() => {
-        return ZUKAN_AXES.map(axis => {
-            const itemMap: Record<string, ShelfPhoto[]> = {};
-            axis.items.forEach(item => { itemMap[item.id] = []; });
-            allPhotos.forEach(photo => {
-                const ai = photo.aiAnalysis;
-                if (!ai) return;
-                let val: string | undefined;
-                if (axis.metaKey === 'pose') val = ai.pose;
-                else if (ai.metadata) val = ai.metadata[axis.metaKey];
-                if (val && itemMap[val]) itemMap[val].push(photo);
-            });
-            const collectedCount = axis.items.filter(item => itemMap[item.id].length > 0).length;
-            // Get a preview photo (first found)
-            const previewPhotos = axis.items
-                .map(item => itemMap[item.id][0])
-                .filter(Boolean)
-                .slice(0, 4);
-            return { ...axis, itemMap, collectedCount, totalCount: axis.items.length, previewPhotos };
-        });
-    }, [allPhotos]);
-
-    const totalCollected = useMemo(() => zukanCollections.reduce((sum, c) => sum + c.collectedCount, 0), [zukanCollections]);
-    const totalItems = useMemo(() => zukanCollections.reduce((sum, c) => sum + c.totalCount, 0), [zukanCollections]);
-
-    const untaggedCount = useMemo(() => {
-        return allPhotos.filter(p => !p.aiAnalysis || !p.aiAnalysis.pose).length;
-    }, [allPhotos]);
-
-    // ─── Daily Highlight Photo ───
-    const dailyHighlight = useMemo(() => {
-        if (allPhotos.length === 0) return null;
-        const sorted = [...allPhotos].sort((a, b) => {
-            const scoreA = a.aiAnalysis?.forYouScores?.dailyPick ?? 0;
-            const scoreB = b.aiAnalysis?.forYouScores?.dailyPick ?? 0;
-            if (scoreB !== scoreA) return scoreB - scoreA;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
-        return sorted[0];
-    }, [allPhotos]);
-
-    // ─── Recent Discoveries ───
-    // ─── Weekly Album ───
-    const weeklyAlbum = useMemo(() => {
-        if (allPhotos.length === 0) return null;
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const thisWeek = allPhotos.filter(p => new Date(p.createdAt) >= oneWeekAgo);
-        if (thisWeek.length < 3) return null;
-        return {
-            title: "のんびり穏やかな1週間",
-            photos: thisWeek.slice(0, 5),
-            startDate: oneWeekAgo.toISOString(),
-            endDate: now.toISOString()
-        };
-    }, [allPhotos]);
-
-    const runBatchTagging = useCallback(async () => {
-        const untagged = allPhotos.filter(p => !p.aiAnalysis || !p.aiAnalysis.pose);
-        if (untagged.length === 0) return;
-        setBatchTagging(true);
-        setBatchProgress({ current: 0, total: untagged.length });
-        for (let i = 0; i < untagged.length; i++) {
-            const photo = untagged[i];
-            const imageUrl = getFullImageUrl(photo.storagePath, { width: 800, height: 800, resize: 'contain', quality: 90 });
-            try { await analyzeCatImage(photo.id, imageUrl); } catch (e) { console.error(e); }
-            setBatchProgress({ current: i + 1, total: untagged.length });
-            if (i < untagged.length - 1) await new Promise(r => setTimeout(r, 2000));
-        }
-        setBatchTagging(false);
-        loadPhotos();
-    }, [allPhotos, loadPhotos, analyzeCatImage]);
-
-    // Weekly mission
-    const mission = useMemo(() => {
-        const today = new Date();
-        const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
-        return DAILY_MISSIONS[weekNumber % DAILY_MISSIONS.length];
-    }, []);
-
-    const discoveryQueryKey = ['collection-home-discoveries', householdId];
-    const { data: discoveries = [] } = useQuery<DiscoveryRecord[]>({
-        queryKey: discoveryQueryKey,
-        enabled: !!householdId && !isDemo,
-        refetchInterval: 15000,
+    const photosQuery = useQuery<HomePhoto[]>({
+        queryKey: ["collection-home-photos", householdId, catIds.join(","), isDemo, !!session, authLoading],
+        enabled: isDemo || canRunLiveQueries,
         queryFn: async () => {
+            if (isDemo || !householdId) return [];
+            if (!session) return [];
+
             const supabase = supabaseRef.current;
-            const { data, error } = await supabase
-                .from('discoveries')
-                .select('id, cat_id, title, type, photo_id, created_at, is_read, collection_definition_id, collection_definitions(id, slug, name, category), photos(id, storage_path, created_at)')
-                .eq('is_read', false)
-                .order('created_at', { ascending: false });
+            const { data: photos, error } = await supabase
+                .from("photos")
+                .select("id, storage_path, thumbnail_path, created_at, source")
+                .eq("household_id", householdId)
+                .order("created_at", { ascending: false })
+                .limit(60);
 
             if (error) {
-                throw error;
+                console.error("[collection-home] photos query failed", error);
+                return [];
             }
 
-            return (data || []) as DiscoveryRecord[];
+            const rows = photos || [];
+            if (rows.length === 0) {
+                const { data: galleryRows, error: galleryError } = await (supabase.rpc as any)("get_unified_gallery", {
+                    target_household_id: householdId,
+                    limit_count: 60,
+                    offset_count: 0,
+                });
+
+                if (galleryError) {
+                    console.error("[collection-home] gallery fallback failed", galleryError);
+                    return [];
+                }
+
+                return ((galleryRows || []) as any[]).map((row) => ({
+                    id: row.id,
+                    storagePath: row.url,
+                    thumbnailPath: null,
+                    url: getFullImageUrl(row.url, { width: 720, height: 720, resize: "cover", quality: 82 }),
+                    createdAt: row.created_at,
+                    source: row.source || "profile",
+                    catId: row.cat_id || null,
+                    catIds: row.cat_ids || (row.cat_id ? [row.cat_id] : []),
+                    catName:
+                        row.cat_name ||
+                        (row.cat_id ? catsById.get(row.cat_id) || "\u3046\u3061\u306e\u5b50" : "\u3046\u3061\u306e\u5b50"),
+                    poseTags: row.ai_analysis?.pose ? [row.ai_analysis.pose] : [],
+                    sceneSummary: row.ai_analysis?.labels?.scene || null,
+                    rawDescription: row.ai_analysis?.labels?.shot || null,
+                }));
+            }
+
+            const photoIds = rows.map((row) => row.id);
+            const [{ data: links }, { data: analyses }] = await Promise.all([
+                supabase.from("photo_cat_links").select("photo_id, cat_id, is_primary").in("photo_id", photoIds),
+                supabase
+                    .from("photo_analysis_results")
+                    .select("photo_id, pose_tags, raw_json, scene_summary")
+                    .in("photo_id", photoIds),
+            ]);
+
+            const linkMap = new Map<string, any[]>();
+            for (const row of links || []) {
+                const bucket = linkMap.get(row.photo_id) || [];
+                bucket.push(row);
+                linkMap.set(row.photo_id, bucket);
+            }
+
+            const analysisMap = new Map<string, any>();
+            for (const row of analyses || []) {
+                analysisMap.set(row.photo_id, row);
+            }
+
+            return rows.map((row: any) => {
+                const photoLinks = linkMap.get(row.id) || [];
+                const primaryLink = photoLinks.find((link: any) => link.is_primary) || photoLinks[0];
+                const analysis = analysisMap.get(row.id);
+                const rawJson = analysis?.raw_json || {};
+                const rawDescription =
+                    typeof rawJson.description === "string"
+                        ? rawJson.description
+                        : typeof rawJson.scene_summary === "string"
+                          ? rawJson.scene_summary
+                          : null;
+                const catId = primaryLink?.cat_id || null;
+                const imagePath = row.thumbnail_path || row.storage_path;
+
+                return {
+                    id: row.id,
+                    storagePath: row.storage_path,
+                    thumbnailPath: row.thumbnail_path,
+                    url: getFullImageUrl(imagePath, { width: 720, height: 720, resize: "cover", quality: 82 }),
+                    createdAt: row.created_at,
+                    source: row.source || "camera_roll",
+                    catId,
+                    catIds: photoLinks.map((link: any) => link.cat_id),
+                    catName: catId ? catsById.get(catId) || "\u3046\u3061\u306e\u5b50" : "\u3046\u3061\u306e\u5b50",
+                    poseTags: analysis?.pose_tags || [],
+                    sceneSummary: analysis?.scene_summary || null,
+                    rawDescription,
+                };
+            });
         },
     });
 
-    const groupedDiscoveries = useMemo<DiscoveryGroup[]>(() => {
-        const grouped = new Map<string, DiscoveryRecord[]>();
+    const discoveriesQuery = useQuery<DiscoveryGroup[]>({
+        queryKey: ["collection-home-discoveries", householdId, catIds.join(","), isDemo, !!session, authLoading],
+        enabled: isDemo || canRunLiveQueries,
+        queryFn: async () => {
+            if (isDemo || !householdId) return [];
+            if (!session) return [];
 
-        for (const discovery of discoveries) {
-            const key = discovery.photo_id || discovery.id;
-            const existing = grouped.get(key) || [];
-            existing.push(discovery);
-            grouped.set(key, existing);
+            const supabase = supabaseRef.current;
+            const { data, error } = await supabase
+                .from("discoveries")
+                .select(
+                    "id, cat_id, title, type, photo_id, created_at, is_read, collection_definition_id, collection_definitions:collection_definitions!discoveries_collection_definition_id_fkey(id, slug, name, category), photos:photos!discoveries_photo_id_fkey!inner(id, storage_path, created_at, household_id)"
+                )
+                .eq("photos.household_id", householdId)
+                .order("created_at", { ascending: false })
+                .limit(24);
+
+            if (error) {
+                console.error("[collection-home] discoveries query failed", error);
+                return [];
+            }
+
+            const grouped = new Map<string, any[]>();
+            for (const row of data || []) {
+                const key = row.photo_id || row.id;
+                const bucket = grouped.get(key) || [];
+                bucket.push(row);
+                grouped.set(key, bucket);
+            }
+
+            return Array.from(grouped.entries())
+                .map(([key, entries]) => {
+                    const sorted = [...entries].sort(
+                        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    );
+                    return {
+                        key,
+                        photoId: sorted[0]?.photo_id || null,
+                        primary: sorted[0],
+                        discoveries: sorted,
+                        count: sorted.length,
+                    };
+                })
+                .sort((a, b) => new Date(b.primary.created_at).getTime() - new Date(a.primary.created_at).getTime());
+        },
+    });
+
+    const highlightQuery = useQuery<HighlightGroup | null>({
+        queryKey: ["collection-home-highlight", householdId, catIds.join(","), isDemo, !!session, authLoading],
+        enabled: isDemo || (canRunLiveQueries && catIds.length > 0),
+        queryFn: async () => {
+            if (isDemo || catIds.length === 0) return null;
+            if (!session) return null;
+
+            const supabase = supabaseRef.current;
+            const { data: definitions, error: definitionsError } = await supabase
+                .from("collection_definitions")
+                .select("id, slug, name, category, description")
+                .eq("is_active", true)
+                .order("sort_order", { ascending: true });
+
+            if (definitionsError) {
+                console.error("[collection-home] collection definitions query failed", definitionsError);
+                return null;
+            }
+
+            const definitionRows = definitions || [];
+            if (definitionRows.length === 0) return null;
+
+            const definitionIds = definitionRows.map((definition: any) => definition.id);
+            const [{ data: items }, { data: photos }] = await Promise.all([
+                supabase
+                    .from("cat_collection_items")
+                    .select("collection_definition_id, photo_count, created_at")
+                    .in("cat_id", catIds)
+                    .in("collection_definition_id", definitionIds),
+                supabase
+                    .from("cat_collection_photos")
+                    .select("collection_definition_id, photos:photos!cat_collection_photos_photo_id_fkey(id, storage_path, created_at)")
+                    .in("cat_id", catIds)
+                    .in("collection_definition_id", definitionIds),
+            ]);
+
+            const definitionState = new Map<
+                string,
+                {
+                    category: string;
+                    photoCount: number;
+                    latestAt: string | null;
+                    representativePhoto: string | null;
+                }
+            >();
+
+            for (const definition of definitionRows as any[]) {
+                if (!definition.category) continue;
+                definitionState.set(definition.id, {
+                    category: definition.category,
+                    photoCount: 0,
+                    latestAt: null,
+                    representativePhoto: null,
+                });
+            }
+
+            for (const row of (items || []) as any[]) {
+                const target = definitionState.get(row.collection_definition_id);
+                if (!target) continue;
+                target.photoCount += row.photo_count || 0;
+                if (row.created_at && (!target.latestAt || row.created_at > target.latestAt)) {
+                    target.latestAt = row.created_at;
+                }
+            }
+
+            for (const row of (photos || []) as any[]) {
+                const target = definitionState.get(row.collection_definition_id);
+                const photo = takeRelation<any>(row.photos);
+                if (!target || !photo?.storage_path) continue;
+                if (!target.representativePhoto) {
+                    target.representativePhoto = getFullImageUrl(photo.storage_path, {
+                        width: 960,
+                        height: 720,
+                        resize: "cover",
+                        quality: 84,
+                    });
+                }
+                if (photo.created_at && (!target.latestAt || photo.created_at > target.latestAt)) {
+                    target.latestAt = photo.created_at;
+                }
+            }
+
+            const groups = new Map<string, HighlightGroup>();
+            for (const definition of definitionRows as any[]) {
+                if (!definition.category) continue;
+
+                const progress = definitionState.get(definition.id);
+                const copy = getCategoryCopy(definition.category);
+                const existing =
+                    groups.get(definition.category) || {
+                        id: definition.category,
+                        title: copy.title,
+                        headline: copy.title,
+                        body: copy.body,
+                        totalCount: 0,
+                        unlockedCount: 0,
+                        remaining: 0,
+                        complete: false,
+                        latestAt: null,
+                        representativePhoto: null,
+                    };
+
+                existing.totalCount += 1;
+
+                if (progress && progress.photoCount > 0) {
+                    existing.unlockedCount += 1;
+                    if (progress.latestAt && (!existing.latestAt || progress.latestAt > existing.latestAt)) {
+                        existing.latestAt = progress.latestAt;
+                    }
+                    if (!existing.representativePhoto && progress.representativePhoto) {
+                        existing.representativePhoto = progress.representativePhoto;
+                    }
+                }
+
+                groups.set(definition.category, existing);
+            }
+
+            const candidates = Array.from(groups.values())
+                .map((group) => {
+                    const remaining = Math.max(group.totalCount - group.unlockedCount, 0);
+                    const complete = group.totalCount > 0 && remaining === 0;
+                    return { ...group, remaining, complete };
+                })
+                .filter((group) => group.unlockedCount > 0);
+
+            if (candidates.length === 0) return null;
+
+            const completed = candidates
+                .filter((group) => group.complete)
+                .sort((a, b) => (b.latestAt || "").localeCompare(a.latestAt || ""));
+            if (completed.length > 0) {
+                return { ...completed[0], ...buildHighlightCopy(completed[0]) };
+            }
+
+            const almostThere = candidates
+                .filter((group) => group.remaining > 0 && group.remaining <= 2)
+                .sort((a, b) => a.remaining - b.remaining || (b.latestAt || "").localeCompare(a.latestAt || ""));
+            if (almostThere.length > 0) {
+                return { ...almostThere[0], ...buildHighlightCopy(almostThere[0]) };
+            }
+
+            const recent = [...candidates].sort((a, b) => (b.latestAt || "").localeCompare(a.latestAt || ""));
+            return { ...recent[0], ...buildHighlightCopy(recent[0]) };
+        },
+    });
+
+    const photos = photosQuery.data || [];
+    const discoveries = discoveriesQuery.data || [];
+    const featuredGroup = highlightQuery.data;
+    const heroPhoto = useMemo(() => selectHeroPhoto(photos), [photos]);
+    const recentPhotos = useMemo(() => photos.filter((photo) => photo.id !== heroPhoto?.id).slice(0, 6), [heroPhoto?.id, photos]);
+    const heroDate = heroPhoto?.createdAt
+        ? format(new Date(heroPhoto.createdAt), "M\u6708d\u65e5", { locale: ja })
+        : format(new Date(), "M\u6708d\u65e5", { locale: ja });
+
+    const renderCatAvatar = (cat: (typeof cats)[number]) => {
+        if (cat.avatar && cat.avatar !== "cat-fallback") {
+            return getAvatarUrl(cat.avatar);
         }
-
-        return Array.from(grouped.entries())
-            .map(([key, items]) => {
-                const sorted = [...items].sort(
-                    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                );
-
-                return {
-                    key,
-                    photoId: sorted[0]?.photo_id || null,
-                    discoveries: sorted,
-                    primary: sorted[0],
-                    count: sorted.length,
-                };
-            })
-            .sort(
-                (a, b) =>
-                    new Date(b.primary.created_at).getTime() - new Date(a.primary.created_at).getTime()
-            );
-    }, [discoveries]);
-
-    const markDiscoveryAsRead = async (id: string) => {
-        queryClient.setQueryData<DiscoveryRecord[]>(discoveryQueryKey, (prev = []) =>
-            prev.filter((discovery) => discovery.id !== id)
-        );
-
-        await (supabaseRef.current.from('discoveries') as any).update({ is_read: true }).eq('id', id);
-        void queryClient.invalidateQueries({ queryKey: discoveryQueryKey });
-        onOpenCollection();
-    };
-
-    const markDiscoveryGroupAsRead = async (ids: string[]) => {
-        queryClient.setQueryData<DiscoveryRecord[]>(discoveryQueryKey, (prev = []) =>
-            prev.filter((discovery) => !ids.includes(discovery.id))
-        );
-
-        await (supabaseRef.current.from('discoveries') as any).update({ is_read: true }).in('id', ids);
-        void queryClient.invalidateQueries({ queryKey: discoveryQueryKey });
-        onOpenCollection();
+        const firstImage = cat.images?.[0]?.storagePath;
+        return firstImage ? getFullImageUrl(firstImage, { width: 160, height: 160, resize: "cover", quality: 82 }) : "";
     };
 
     return (
-        <div className="fixed inset-0 z-0 bg-[#F6F3EE] dark:bg-[#121214] flex flex-col">
-            {/* ─── Header ─── */}
-            <header className="sticky top-0 z-30 bg-[#F6F3EE]/80 dark:bg-[#121214]/80 backdrop-blur-xl border-b border-[#F2EFEA] dark:border-white/10 pt-[env(safe-area-inset-top)]">
-                <div className="flex items-center justify-between px-5 h-14">
-                    <h1 className="text-[28px] font-[700] tracking-[-0.5px] text-[#4E342E] dark:text-[#E8E6E1]">今日のねこ</h1>
-                    <div className="flex items-center gap-2">
-                        {batchTagging ? (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#787570]/10 text-[#787570] text-[12px] font-medium animate-pulse">
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>{batchProgress.current}/{batchProgress.total}</span>
+        <div className="min-h-[100dvh] bg-[#F2F1EF] pb-32">
+            <div className="mx-auto w-full max-w-[420px]">
+                <div className="relative h-[340px] w-full overflow-hidden">
+                    {heroPhoto ? (
+                        <button type="button" className="h-full w-full text-left" onClick={() => setSelectedDetailImage(heroPhoto)}>
+                            <img src={heroPhoto.url} alt={heroPhoto.catName} className="h-full w-full object-cover" style={{ objectPosition: "center 25%" }} />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
+                            <div className="absolute bottom-6 left-5">
+                                <p className="text-4xl font-bold text-white drop-shadow-lg">{heroPhoto.catName}</p>
+                                <p className="mt-1 text-base text-white/80">{heroDate}</p>
                             </div>
-                        ) : untaggedCount > 0 ? (
-                            <button
-                                onClick={runBatchTagging}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#C8A97E]/10 text-[#C8A97E] text-[13px] font-bold active:scale-95 transition-transform"
-                            >
-                                <Wand2 className="w-4 h-4" />
-                                <span>一括解析({untaggedCount})</span>
+                        </button>
+                    ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#E7E6E3]">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#DAD9D5]">
+                                <Camera className="h-8 w-8 text-[#8A8988]" />
+                            </div>
+                            <p className="text-lg font-medium text-[#5A5958]">{"\u6700\u521d\u306e\u4e00\u679a\u3092\u64ae\u3063\u3066\u307f\u307e\u3057\u3087\u3046"}</p>
+                            <button type="button" onClick={onOpenImport} className="rounded-full bg-[#3D5A80] px-6 py-3 font-medium text-white">
+                                {"\u5199\u771f\u3092\u8ffd\u52a0\u3059\u308b"}
                             </button>
-                        ) : null}
-                    </div>
-                </div>
-            </header>
-
-            <div className="flex-1 overflow-y-auto pb-32">
-                <AnimatePresence>
-                    {groupedDiscoveries.length > 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0, y: -20 }}
-                            animate={{ opacity: 1, height: 'auto', y: 0 }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="px-5 pt-4"
-                        >
-                            <button
-                                onClick={() => markDiscoveryGroupAsRead(groupedDiscoveries[0].discoveries.map((discovery) => discovery.id))}
-                                className="w-full flex items-center justify-between p-4 rounded-[20px] bg-[#FFFFFF] border border-[rgba(0,0,0,0.06)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] relative overflow-hidden group text-left"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#C8A97E]/5 to-transparent pointer-events-none" />
-                                <div className="flex items-center gap-4 relative z-10 w-full">
-                                    <div className="w-14 h-14 rounded-[16px] overflow-hidden bg-[#F6F3EE] shrink-0">
-                                        {takeRelation(groupedDiscoveries[0].primary.photos)?.storage_path ? (
-                                            <img
-                                                src={getFullImageUrl(takeRelation(groupedDiscoveries[0].primary.photos)?.storage_path || '', { width: 240, height: 240, resize: "cover", quality: 80 })}
-                                                className="w-full h-full object-cover"
-                                                alt=""
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-[#C8A97E]/20 flex items-center justify-center">
-                                                <Sparkles className="w-6 h-6 text-[#C8A97E]" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0 pr-2">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="hidden">
-                                                今日の発掘({discoveries.length})
-                                            </span>
-                                            <span className="text-[11px] font-bold text-[#C8A97E] px-2 py-0.5 rounded-full bg-[#C8A97E]/10">
-                                                発見 {groupedDiscoveries[0].count}件
-                                            </span>
-                                        </div>
-                                        <h3 className="text-[14px] font-bold text-[#4E342E] dark:text-[#E8E6E1] truncate">
-                                            {buildDiscoveryGroupCopy(groupedDiscoveries[0], cats)}
-                                        </h3>
-                                        <p className="hidden">
-                                            タップしてコレクションを開く
-                                        </p>
-                                        <p className="text-[12px] text-[#8E8B85] truncate">
-                                            {formatDiscoveryDate(groupedDiscoveries[0].primary.created_at)}
-                                        </p>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-[#C8A97E] shrink-0" />
-                                </div>
-                            </button>
-                        </motion.div>
+                        </div>
                     )}
-                </AnimatePresence>
+                </div>
 
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-                        <Loader2 className="w-6 h-6 animate-spin text-[#D4CFC9]" />
-                        <p className="text-[13px] text-[#787570]">読み込み中...</p>
-                    </div>
-                ) : (
-                    <div className="px-5 pt-4 space-y-8 pb-10">
-                        {/* ─── A. 今日の一枚 ─── */}
-                        {dailyHighlight && (() => {
-                            const ai = dailyHighlight.aiAnalysis;
-                            let copy = "今日はのんびり過ごしていました";
-                            if (ai?.pose) {
-                                if (ai.pose.includes('寝')) copy = "今日はよく眠っていました";
-                                else if (ai.pose.includes('へそ天')) copy = "今日はリラックスしていました";
-                                else if (ai.pose.includes('香箱')) copy = "今日は落ち着いた様子でした";
-                            }
-
-                            return (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="relative aspect-[4/4.8] w-full rounded-[20px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.05)] group cursor-pointer"
-                                    onClick={() => setSelectedDetailImage(dailyHighlight)}
-                                >
-                                    <img
-                                        src={dailyHighlight.url}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        alt="Today's Cat"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#2F2A26]/80 via-transparent to-transparent" />
-
-                                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                                        <div className="space-y-1">
-                                            <div className="inline-flex items-center gap-1.5 mb-1 opacity-90">
-                                                <span className="text-[12px] font-medium text-white shadow-sm">
-                                                    {new Date(dailyHighlight.createdAt).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}
-                                                </span>
-                                            </div>
-                                            <h2 className="text-[24px] font-[600] text-white leading-tight drop-shadow-md">
-                                                {dailyHighlight.catName}
-                                            </h2>
-                                            <p className="text-[14px] font-[400] text-white/90 drop-shadow-sm mt-1">
-                                                {copy}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })()}
-
-                        <div className="hidden">
-                            <h2 className="text-[18px] font-[600] text-[#2F2A26] px-1">最近の発見</h2>
-                            {discoveries.length > 0 ? (
-                                <div className="space-y-3">
-                                    {discoveries.slice(0, 2).map((disc, idx) => (
-                                        <motion.button
-                                            key={disc.id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: idx * 0.1 }}
-                                            onClick={() => markDiscoveryAsRead(disc.id)}
-                                            className="w-full flex items-center justify-between p-4 rounded-[20px] bg-[#FFFFFF] border border-[rgba(0,0,0,0.06)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] text-left"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-[14px] bg-[#C8A97E]/10 flex items-center justify-center shrink-0">
-                                                    <Sparkles className="w-5 h-5 text-[#C8A97E]" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-[14px] font-[600] text-[#2F2A26]">
-                                                        {disc.title.replace('コレクション追加', 'の傾向が見えました')}
-                                                    </h3>
-                                                    <p className="text-[12px] font-[400] text-[#7A726B] mt-0.5">
-                                                        タップしてさらに詳しく
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight className="w-5 h-5 text-[#C8A97E]/60 shrink-0" />
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[rgba(0,0,0,0.06)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-[14px] bg-[#F6F3EE] flex items-center justify-center shrink-0">
-                                        <Search className="w-5 h-5 text-[#A08D74]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-[14px] font-[600] text-[#2F2A26]">まだ新しい発見はありません</h3>
-                                        <p className="text-[12px] font-[400] text-[#7A726B] mt-0.5">写真が増えると、この子らしさが見えてきます</p>
-                                    </div>
-                                </div>
-                            )}
+                {discoveries.length > 0 ? (
+                    <section className="bg-[#F2F1EF] px-4 py-6">
+                        <div className="mb-3 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-[#1E2840]">{"\u65b0\u3057\u3044\u767a\u898b"}</h2>
+                            <button type="button" onClick={onOpenCollection} className="text-sm font-medium text-[#5A5958]">
+                                {"\u3059\u3079\u3066\u898b\u308b"}
+                            </button>
                         </div>
-
-                        {/* ─── C. コレクション進捗 ─── */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between px-1">
-                                <h2 className="text-[18px] font-[600] text-[#2F2A26]">最近の発見</h2>
-                                <button
-                                    onClick={onOpenCollection}
-                                    className="text-[12px] font-[500] text-[#C8A97E] active:opacity-70"
-                                >
-                                    図鑑を見る
-                                </button>
-                            </div>
-                            {groupedDiscoveries.length > 0 ? (
-                                <div className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                    <div className="flex gap-3 pb-1">
-                                        {groupedDiscoveries.slice(0, 6).map((group, idx) => {
-                                            const photo = takeRelation(group.primary.photos);
-                                            const imageUrl = photo?.storage_path
-                                                ? getFullImageUrl(photo.storage_path, { width: 480, height: 360, resize: "cover", quality: 80 })
-                                                : null;
-
-                                            return (
-                                                <motion.button
-                                                    key={group.key}
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: idx * 0.06 }}
-                                                    onClick={() => markDiscoveryGroupAsRead(group.discoveries.map((discovery) => discovery.id))}
-                                                    className="w-[280px] shrink-0 overflow-hidden rounded-[24px] border border-[rgba(0,0,0,0.06)] bg-[#FFFFFF] text-left shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
-                                                >
-                                                    <div className="aspect-[4/3] bg-[#F6F3EE]">
-                                                        {imageUrl ? (
-                                                            <img
-                                                                src={imageUrl}
-                                                                className="h-full w-full object-cover"
-                                                                alt=""
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-full w-full items-center justify-center bg-[#C8A97E]/10">
-                                                                <Sparkles className="h-8 w-8 text-[#C8A97E]" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="space-y-2 p-4">
-                                                        <div className="inline-flex items-center rounded-full bg-[#C8A97E]/10 px-2.5 py-1 text-[10px] font-bold text-[#C8A97E]">
-                                                            {group.count > 1 ? `${group.count} DISCOVERIES` : 'DISCOVERY'}
-                                                        </div>
-                                                        <h3 className="line-clamp-2 text-[15px] font-[600] leading-snug text-[#2F2A26]">
-                                                            {buildDiscoveryGroupCopy(group, cats)}
-                                                        </h3>
-                                                        <p className="text-[12px] text-[#7A726B]">
-                                                            {formatDiscoveryDate(group.primary.created_at)}
-                                                        </p>
-                                                    </div>
-                                                </motion.button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-3 rounded-[20px] border border-[rgba(0,0,0,0.06)] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[#F6F3EE]">
-                                        <Search className="h-5 w-5 text-[#A08D74]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-[14px] font-[600] text-[#2F2A26]">まだ新しい発見はありません</h3>
-                                        <p className="mt-0.5 text-[12px] font-[400] text-[#7A726B]">
-                                            写真が増えると、この子らしい発見がここに届きます。
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between px-1">
-                                <h2 className="text-[18px] font-[600] text-[#2F2A26]">この子らしさ</h2>
-                                <button
-                                    onClick={onOpenCollection}
-                                    className="text-[12px] font-[400] text-[#C8A97E] active:opacity-70"
-                                >
-                                    すべて見る
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                {zukanCollections.slice(0, 4).map((axis, idx) => {
-                                    const maxBlocks = 6;
-                                    const blockRatio = axis.collectedCount / axis.totalCount;
-                                    const filledBlocks = Math.max(1, Math.round(maxBlocks * blockRatio));
+                        <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <div className="flex gap-3">
+                                {discoveries.slice(0, 5).map((group) => {
+                                    const photo = takeRelation<any>(group.primary.photos);
+                                    const imageUrl = photo?.storage_path
+                                        ? getFullImageUrl(photo.storage_path, {
+                                              width: 640,
+                                              height: 480,
+                                              resize: "cover",
+                                              quality: 82,
+                                          })
+                                        : "";
 
                                     return (
-                                        <motion.button
-                                            key={axis.id}
-                                            initial={{ opacity: 0, y: 15 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.1 + idx * 0.04 }}
-                                            onClick={onOpenCollection}
-                                            className="bg-[#FFFFFF] p-4 rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[rgba(0,0,0,0.06)] text-left flex flex-col justify-between aspect-[4/3]"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-[8px] flex items-center justify-center shrink-0"
-                                                    style={{ backgroundColor: `${axis.color}15`, color: axis.color }}>
-                                                    {axis.fallbackIcon}
+                                        <button key={group.key} type="button" onClick={onOpenCollection} className="min-w-[240px] max-w-[260px] flex-shrink-0 overflow-hidden rounded-xl border border-[#3D5A80]/15 bg-[#FAFAF9] text-left shadow-sm">
+                                            <div className="relative h-40 w-full overflow-hidden">
+                                                {imageUrl ? (
+                                                    <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center bg-[#E7E6E3]">
+                                                        <Sparkles className="h-8 w-8 text-[#3D5A80]" />
+                                                    </div>
+                                                )}
+                                                <div className="absolute left-2 top-2 rounded-full bg-white/80 p-1 backdrop-blur-sm">
+                                                    <Sparkles className="h-3.5 w-3.5 text-[#3D5A80]" />
                                                 </div>
-                                                <p className="text-[14px] font-[600] text-[#2F2A26] truncate">{axis.title}</p>
                                             </div>
-
-                                            <div className="mt-3">
-                                                <div className="flex gap-1 h-1.5 mb-2">
-                                                    {[...Array(maxBlocks)].map((_, i) => (
-                                                        <div
-                                                            key={i}
-                                                            className="flex-1 rounded-full transition-colors duration-500"
-                                                            style={{
-                                                                backgroundColor: i < filledBlocks ? axis.color : '#F2EFEA'
-                                                            }}
-                                                        />
-                                                    ))}
-                                                </div>
-                                                <p className="text-[12px] font-medium text-[#A08D74] tabular-nums">
-                                                    {axis.collectedCount} / {axis.totalCount} 集まりました
-                                                </p>
+                                            <div className="space-y-2 p-3">
+                                                <span className="inline-block rounded-full bg-[#3D5A80] px-2.5 py-0.5 text-xs font-medium text-white">{`${group.count}\u4ef6\u306e\u767a\u898b`}</span>
+                                                <p className="line-clamp-1 text-sm font-medium text-[#1E2840]">{buildDiscoveryHeadline(group, catsById)}</p>
+                                                <p className="text-xs text-[#5A5958]">{formatDistanceToNow(new Date(group.primary.created_at), { addSuffix: true, locale: ja })}</p>
                                             </div>
-                                        </motion.button>
+                                        </button>
                                     );
                                 })}
                             </div>
                         </div>
+                    </section>
+                ) : null}
 
-                    </div>
-                )}
+                {featuredGroup ? (
+                    <section className="bg-[#E7E6E3] px-4 py-6">
+                        <button type="button" onClick={onOpenCollection} className="w-full overflow-hidden rounded-2xl border border-[#3D5A80]/15 bg-[#FAFAF9] text-left shadow-sm transition-transform active:scale-[0.98]">
+                            <div className="aspect-[4/3] bg-[#E7E6E3]">
+                                {featuredGroup.representativePhoto ? (
+                                    <img src={featuredGroup.representativePhoto} alt={featuredGroup.title} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-[#DAD9D5]">
+                                        <BookOpen className="h-8 w-8 text-[#3D5A80]" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="space-y-3 p-4">
+                                <div className="inline-flex items-center rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-xs font-medium text-[#1E2840]">{featuredGroup.title}</div>
+                                <div>
+                                    <p className={featuredGroup.complete ? "text-xl font-bold text-[#1E2840]" : "text-lg font-bold text-[#1E2840]"}>{featuredGroup.headline}</p>
+                                    <p className="mt-1 text-sm leading-6 text-[#5A5958]">{featuredGroup.body}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#D9D8D5]">
+                                        <div
+                                            className="h-full rounded-full bg-[#3D5A80]"
+                                            style={{
+                                                width: `${Math.max((featuredGroup.unlockedCount / Math.max(featuredGroup.totalCount, 1)) * 100, 8)}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm text-[#5A5958]">
+                                        <span>
+                                            {featuredGroup.complete
+                                                ? `${featuredGroup.unlockedCount}\u7a2e\u985e\u304c\u898b\u3064\u304b\u3063\u3066\u3044\u307e\u3059`
+                                                : `\u3042\u3068${featuredGroup.remaining}\u3064\u3067\u5b8c\u6210\u3057\u307e\u3059`}
+                                        </span>
+                                        <span>{`${featuredGroup.unlockedCount}/${featuredGroup.totalCount}`}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    </section>
+                ) : null}
+
+                {recentPhotos.length > 0 ? (
+                    <section className="bg-[#F2F1EF] px-4 py-5">
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-[#8A8988]">{"\u6700\u8fd1\u306e\u5199\u771f"}</h3>
+                            <button type="button" onClick={onOpenCollection} className="text-sm font-medium text-[#5A5958]">
+                                {"\u3059\u3079\u3066\u306e\u5199\u771f"}
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-[2px]">
+                            {recentPhotos.map((photo) => (
+                                <button key={photo.id} type="button" className="aspect-square overflow-hidden rounded-none" onClick={() => setSelectedDetailImage(photo)}>
+                                    <img src={photo.url} alt={photo.catName} className="h-full w-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
+                {cats.length > 1 ? (
+                    <section className="bg-[#E7E6E3] px-4 py-5">
+                        <div className="mb-3">
+                            <h3 className="text-sm font-medium text-[#8A8988]">{"\u3046\u3061\u306e\u5b50\u305f\u3061"}</h3>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {cats.map((cat) => {
+                                const avatarUrl = renderCatAvatar(cat);
+                                return (
+                                    <button key={cat.id} type="button" onClick={onOpenCat} className="flex items-center gap-3 rounded-2xl bg-[#FAFAF9] px-4 py-4 text-left shadow-sm transition-transform active:scale-[0.98]">
+                                        {avatarUrl ? (
+                                            <img src={avatarUrl} alt={cat.name} className="h-12 w-12 rounded-full object-cover" />
+                                        ) : (
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DAD9D5]">
+                                                <Cat className="h-6 w-6 text-[#8A8988]" />
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium text-[#1E2840]">{cat.name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+                ) : null}
+
+                {!heroPhoto && discoveries.length === 0 && !featuredGroup && recentPhotos.length === 0 ? (
+                    <section className="bg-[#F2F1EF] px-4 py-6">
+                        <div className="rounded-2xl border border-[#DDDCD8] bg-[#FAFAF9] p-5 text-center shadow-sm">
+                            <p className="text-base font-medium text-[#1E2840]">{"\u5199\u771f\u304c\u5897\u3048\u308b\u3068\u3001\u3053\u306e\u5b50\u306e\u7269\u8a9e\u304c\u898b\u3048\u3066\u304d\u307e\u3059"}</p>
+                            <button type="button" onClick={onOpenImport} className="mt-4 rounded-full bg-[#3D5A80] px-5 py-2.5 text-sm font-medium text-white">
+                                {"\u5199\u771f\u3092\u8ffd\u52a0\u3059\u308b"}
+                            </button>
+                        </div>
+                    </section>
+                ) : null}
             </div>
+
             <PhotoDetailView isOpen={!!selectedDetailImage} onClose={() => setSelectedDetailImage(null)} image={selectedDetailImage} />
         </div>
     );

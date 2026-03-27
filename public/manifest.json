@@ -1,11 +1,11 @@
 {
-  "name": "にゃるほど - ねこの足あとアプリ",
-  "short_name": "NyaruHD",
+  "name": "にゃるほど — 毎日のひとコマが、この子の物語になる",
+  "short_name": "にゃるほど",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#FAF9F7",
-  "background_color": "#FAF9F7",
+  "theme_color": "#F2F1EF",
+  "background_color": "#F2F1EF",
   "gcm_sender_id": "103953800507",
   "icons": [
     {

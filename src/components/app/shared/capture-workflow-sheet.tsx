@@ -20,7 +20,7 @@ import { createPortal } from 'react-dom';
 import { resizeImage } from '@/lib/image-processing';
 
 const TAGS = [
-    { id: 'nenne', label: '眠り' },
+    { id: 'nenne', label: '眠い' },
     { id: 'gohan', label: 'ごはん' },
     { id: 'asobi', label: '遊び' },
     { id: 'amaenbou', label: '甘えん坊' },
@@ -28,7 +28,7 @@ const TAGS = [
     { id: 'happening', label: 'ハプニング' },
     { id: 'futari', label: 'ふたり' },
     { id: 'madobe', label: '窓辺' },
-    { id: 'odekake', label: 'おでかけ・病院' },
+    { id: 'odekake', label: 'おでかけ・通院' },
     { id: 'other', label: 'その他' },
 ];
 
@@ -45,13 +45,13 @@ const AI_TAG_MAP: Record<string, string> = {
     'Body': 'からだ',
     'Vomit': 'からだ',
     'vet': 'からだ',
-    'Behavior': 'ようす',
-    'Status': 'ようす',
+    'Behavior': '様子',
+    'Status': '様子',
     'Event': 'できごと',
-    'sleep': 'ようす',
-    'play': 'ようす',
-    'mischief': 'ようす',
-    'explore': 'ようす',
+    'sleep': '様子',
+    'play': '様子',
+    'mischief': '様子',
+    'explore': '様子',
 };
 
 type Step = 'annotate' | 'ai' | 'saving';
@@ -395,7 +395,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-[#4E342E]/10 backdrop-blur-sm"
+                className="absolute inset-0 bg-[#1E2840]/12 backdrop-blur-sm"
                 onClick={onClose}
             />
 
@@ -404,7 +404,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="relative bg-[#fafafa] dark:bg-[#1c1c1e] w-full max-w-lg h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-[40px] sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
+                className="relative bg-[#FAFAF9] dark:bg-[#1c1c1e] w-full max-w-lg h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-[40px] sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
             >
                 {/* Pull Indicator */}
                 <div className="flex flex-col items-center pt-3 pb-1 gap-2">
@@ -415,13 +415,13 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                             <React.Fragment key={s}>
                                 <div className={cn(
                                     "w-2 h-2 rounded-full transition-all duration-300",
-                                    step === s ? "bg-[#4E342E] dark:bg-white scale-125" :
-                                        (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#4E342E]/40 dark:bg-white/40" :
+                                    step === s ? "bg-[#3D5A80] dark:bg-white scale-125" :
+                                        (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#3D5A80]/40 dark:bg-white/40" :
                                             "bg-gray-200 dark:bg-white/10"
                                 )} />
                                 {i < 2 && <div className={cn(
                                     "w-4 h-px transition-colors",
-                                    (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#4E342E]/30 dark:bg-white/30" : "bg-gray-200 dark:bg-white/10"
+                                    (['annotate', 'ai', 'saving'].indexOf(step) > i) ? "bg-[#3D5A80]/30 dark:bg-white/30" : "bg-gray-200 dark:bg-white/10"
                                 )} />}
                             </React.Fragment>
                         ))}
@@ -433,13 +433,13 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                     <button
                         onClick={onClose}
                         aria-label="閉じる"
-                        className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center text-[#8E8B85] active:scale-90 transition-all border border-black/[0.02]"
+                        className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center text-[#8A8988] active:scale-90 transition-all border border-border-subtle"
                     >
                         <X className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl font-bold text-[#4E342E] dark:text-white tracking-tight">
+                    <h2 className="text-xl font-bold text-[#1E2840] dark:text-white tracking-tight">
                         {step === 'annotate' && '写真を記録しよう'}
-                        {step === 'ai' && 'AIが分析しました'}
+                        {step === 'ai' && 'AIが解析しました'}
                         {step === 'saving' && '保存中...'}
                     </h2>
                     <button
@@ -638,7 +638,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">図鑑の棚（アルバム）</span>
+                                                        <span className="text-[12px] font-black text-[#8E8B85] uppercase tracking-[0.2em]">コレクションの棚（アルバム）</span>
                                                     </div>
                                                     {aiSelectedShelf && (
                                                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black dark:bg-white rounded-full">
@@ -683,7 +683,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
 
                                                 <div className="mx-1 p-3 bg-black/[0.03] dark:bg-white/5 rounded-2xl flex items-start gap-2.5 opacity-80">
                                                     <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed font-bold">
-                                                        写真に映っている物や状況をキーワードとして登録しておくと、後から図鑑で「窓辺」「スイカ」などの言葉で検索できるようになります。
+                                                        写真に映っている物や状況をキーワードとして登録しておくと、後からコレクションで「窓辺」「スイカ」などの言葉で検索できるようになります。
                                                     </p>
                                                 </div>
 
@@ -732,7 +732,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                                     </button>
                                                 </div>
                                                 <p className="text-[11px] text-[#8E8B85] dark:text-[#A6A29A] font-bold px-1 tracking-tight">
-                                                    ※AI判定されたキーワードは自動で強調されます
+                                                    ※AI判定されたキーワードは自動で強調されます。
                                                 </p>
                                             </div>
                                         </div>
@@ -798,6 +798,7 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                                 ) : (
                                     <>
                                         <span>保存する</span>
+                                        <Check className="w-6 h-6" />
                                     </>
                                 )}
                             </button>
@@ -806,36 +807,44 @@ export function CaptureWorkflowSheet({ isOpen, onClose, initialPhotos }: Props) 
                 </footer>
 
                 {/* Debug Overlay */}
-                {showDebug && (
-                    <div className="absolute inset-x-0 bottom-0 z-[100] bg-white/95 dark:bg-black/95 h-[70%] overflow-y-auto p-6 font-mono text-[11px] rounded-t-[32px] shadow-2xl border-t border-black/10">
-                        <div className="flex justify-between items-center mb-4 sticky top-0 bg-inherit py-2 border-b border-black/5">
-                            <h3 className="font-black text-sm tracking-widest text-gray-400">デバッグログ</h3>
-                            <button
-                                onClick={() => setShowDebug(false)}
-                                className="px-3 py-1 bg-black text-white rounded-full text-[10px] font-bold"
-                            >
-                                閉じる
-                            </button>
-                        </div>
-                        <div className="space-y-1.5 pb-20">
-                            {debugLogs.length === 0 && <div className="text-gray-300 italic">No logs yet...</div>}
-                            {debugLogs.map((log, i) => (
-                                <div key={i} className="mb-1 border-b border-black/[0.03] dark:border-white/5 pb-1 text-gray-600 dark:text-gray-300 break-all">
-                                    {log}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <AnimatePresence>
+                    {showDebug && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="absolute inset-0 bg-[#fafafa]/95 dark:bg-[#1c1c1e]/95 z-50 p-6 flex flex-col"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-gray-500">DEBUG LOGS</h3>
+                                <button onClick={() => setShowDebug(false)} className="p-2">
+                                    <X className="w-5 h-5 text-gray-400" />
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto font-mono text-[10px] space-y-1 bg-black/5 p-4 rounded-2xl">
+                                {debugLogs.map((log, i) => (
+                                    <div key={i} className="py-0.5 border-b border-black/5">{log}</div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Real File Input */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                        if (e.target.files) {
+                            handleFiles(Array.from(e.target.files));
+                            e.target.value = '';
+                        }
+                    }}
+                />
             </motion.div>
-            <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                multiple
-                onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
-            />
         </div>,
         document.body
     );

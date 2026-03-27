@@ -10,7 +10,8 @@ import {
     Eye,
     ShoppingCart,
     AlertCircle,
-    Cat
+    Cat,
+    Sparkles
 } from "lucide-react";
 import { getIcon } from "@/lib/icon-utils";
 
@@ -25,6 +26,7 @@ export interface ActivityItem {
     timestamp: string;
     icon?: string;
     notes?: string;
+    trendText?: string;
     // For Calendar view where we might show time
     showTime?: boolean;
 }
@@ -37,18 +39,16 @@ interface ActivityLogItemProps {
 export const getActivityColor = (type: string) => {
     switch (type) {
         case 'care':
-            return "bg-brand-peach/20 text-brand-peach ring-1 ring-brand-peach/30 shadow-sm shadow-brand-peach/20";
+            return "bg-[#FFF8EF] text-[#C8A97E] border border-[#F2EFEA]";
         case 'observation':
-            // Grouped with Soudan (Lavender) in Action Menu
-            return "bg-brand-lavender/10 text-brand-lavender ring-1 ring-brand-lavender/30";
+            return "bg-[#F0F4F2] text-[#6B7A6B] border border-[#E8EAE8]";
         case 'inventory':
-            // Grouped with Todokeru (Peach)
-            return "bg-brand-peach/10 text-brand-peach ring-1 ring-brand-peach/30";
+            return "bg-[#FDF8F1] text-[#C8A97E] border border-[#F2EFEA]";
         case 'incident':
         case 'nyannlog':
-            return "bg-brand-lavender/20 text-brand-lavender ring-1 ring-brand-lavender/40 shadow-sm shadow-brand-lavender/20";
+            return "bg-[#F9F0FE] text-[#B8A6D9] border border-[#EBE3F0]";
         default:
-            return "bg-slate-100 dark:bg-slate-800 text-slate-500";
+            return "bg-[#F2EFEA] text-[#8E8B85]";
     }
 };
 
@@ -89,15 +89,15 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-wrap items-center px-4 py-3 rounded-2xl bg-white/5 border border-white/5 mb-2 last:mb-0 hover:bg-white/10 transition-colors group backdrop-blur-sm"
+            className="flex flex-wrap items-center px-4 py-3.5 rounded-[20px] bg-white border border-[#F2EFEA] mb-2 last:mb-0 shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
         >
             {/* Icon Column */}
-            <div className="flex-shrink-0 mr-3">
+            <div className="flex-shrink-0 mr-3.5">
                 <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-white/10 shadow-sm",
-                    item.type === 'incident' ? "bg-brand-lavender/20 text-brand-lavender" :
-                        item.type === 'care' ? "bg-brand-peach/20 text-brand-peach" :
-                            "bg-slate-700/50 text-slate-400"
+                    "w-9 h-9 rounded-[12px] flex items-center justify-center",
+                    item.type === 'incident' ? "bg-[#F9F0FE] text-[#B8A6D9]" :
+                        item.type === 'care' ? "bg-[#FFF8EF] text-[#C8A97E]" :
+                            "bg-[#F0F4F2] text-[#6B7A6B]"
                 )}>
                     {getActivityIcon(item)}
                 </div>
@@ -106,7 +106,7 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
             {/* Content Flex Row */}
             <div className="flex-1 flex items-center min-w-0 gap-2 overflow-hidden">
                 {/* Title */}
-                <span className="text-sm font-bold text-slate-100 truncate flex-shrink-0 max-w-[50%]">
+                <span className="text-[14px] font-bold text-[#2F2A26] truncate flex-shrink-0 max-w-[50%]">
                     {item.title}
                 </span>
 
@@ -114,11 +114,11 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
                 {item.userId && (
                     <div className="flex items-center gap-1.5 flex-shrink max-w-[30%]">
                         {item.userAvatar && (
-                            <div className="w-4 h-4 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                            <div className="w-4 h-4 rounded-full overflow-hidden bg-[#F2EFEA] flex-shrink-0">
                                 <Image src={item.userAvatar} alt="" width={16} height={16} className="w-full h-full object-cover" />
                             </div>
                         )}
-                        <span className="text-[10px] text-slate-400 font-medium truncate">
+                        <span className="text-[11px] text-[#A6A29A] font-medium truncate">
                             {item.userName || 'User'}
                         </span>
                     </div>
@@ -126,7 +126,7 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
 
                 {/* Cat Name */}
                 {item.catName && (
-                    <span className="text-[10px] text-slate-500 truncate flex-shrink">
+                    <span className="text-[11px] text-[#A6A29A] truncate flex-shrink">
                         {item.catName}
                     </span>
                 )}
@@ -134,7 +134,7 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
 
             {/* Time Column (Right) */}
             <div className="flex-shrink-0 ml-2">
-                <span className="text-xs font-mono font-medium text-slate-500">
+                <span className="text-[11px] font-mono font-bold text-[#A6A29A]">
                     {item.showTime
                         ? format(new Date(item.timestamp), 'HH:mm')
                         : formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: ja })
@@ -143,11 +143,24 @@ export const ActivityLogItem = React.memo(function ActivityLogItem({ item, index
             </div>
 
             {/* Notes Section - Renders below if present */}
-            {item.notes && (
-                <div className="w-full mt-1.5 px-1 basis-full group-hover:bg-white/5 rounded-lg transition-colors">
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                        {item.notes}
-                    </p>
+            {(item.notes || item.trendText) && (
+                <div className="w-full mt-2.5 flex flex-col gap-2">
+                    {item.notes && (
+                        <div className="px-1 pl-12">
+                            <p className="text-[12px] text-[#7A726B] line-clamp-2 leading-relaxed">
+                                {item.notes}
+                            </p>
+                        </div>
+                    )}
+                    {item.trendText && (
+                        <div className="bg-[#FFF8EF] border border-[#F2EFEA] ml-11 px-3 py-2 rounded-[12px] flex gap-2 w-[calc(100%-2.75rem)] relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/40 to-transparent rounded-bl-full pointer-events-none" />
+                            <Sparkles className="w-4 h-4 text-[#C8A97E] shrink-0 mt-[2px]" />
+                            <p className="text-[12px] font-bold text-[#4E342E] leading-relaxed relative z-10">
+                                {item.trendText}
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
         </motion.div>

@@ -22,7 +22,7 @@ async function check() {
             fs.writeFileSync('configs_debug.txt', JSON.stringify(data, null, 2));
         }
     } catch (e) {
-        fs.writeFileSync('configs_debug.txt', `Catch Error: ${e.message}`);
+        fs.writeFileSync('configs_debug.txt', `Catch Error: ${(e as Error).message}`);
     }
 }
 

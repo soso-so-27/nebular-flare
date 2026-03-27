@@ -195,7 +195,7 @@ export function WeeklyHome({
                 id: 'onboarding-guide',
                 type: 'prompt',
                 title: 'はじめの3ステップ',
-                content: '① 写真を撮る → ② お世話を記録 → ③ 図鑑を眺める',
+                content: '① 写真を撮る → ② お世話を記録 → ③ コレクションを眺める',
                 missionIcon: <SparklesIcon className="w-5 h-5 text-brand-peach" />,
                 onClick: undefined,
             });

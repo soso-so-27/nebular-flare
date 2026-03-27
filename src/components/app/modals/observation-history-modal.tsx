@@ -129,8 +129,6 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
         return new Date(dateTimeString).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     };
 
-    if (typeof document === 'undefined') return null;
-
     // --- Chart Data Preparation ---
     const chartData = useMemo(() => {
         const filtered = selectedCatId ? observations.filter(o => o.cat_id === selectedCatId) : observations;
@@ -216,6 +214,8 @@ export function ObservationHistoryModal({ isOpen, onClose }: ObservationHistoryM
 
     // Colors for multiple cats (Sage, Peach, Lavender, Taupe)
     const COLORS = ['#8BA888', '#E8B4A0', '#A898C8', '#B8B0A8'];
+
+    if (typeof document === 'undefined') return null;
 
     return createPortal(
         <AnimatePresence>

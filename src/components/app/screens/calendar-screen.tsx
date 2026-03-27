@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin, MessageSquare, AlertCircle, Syringe, Pill, Stethoscope, Trash2, Check, Heart, Cat } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin, MessageSquare, AlertCircle, Syringe, Pill, Stethoscope, Trash2, Check, Heart, Cat, Sparkles } from "lucide-react";
 import { useCareContext, useCatContext, useIncidentContext, useCoreContext, useMedicationContext } from "@/store/app-store";
 import { useAuth } from '@/providers/auth-provider';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
@@ -33,6 +33,21 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
 
     const { data: monthData, loading } = useCalendarData(profile?.householdId || null, currentMonth);
     const { careLogs: dayCareLogs, observations: dayObservations, refetch: refetchDayLogs } = useDateLogs(profile?.householdId || null, selectedDate);
+
+    const pickObservationTrend = (id: string, type: string) => {
+        if (type !== 'appetite' && type !== 'condition') return undefined;
+
+        const mockTrendTexts = [
+            '水をよく飲むようになりました。',
+            'いつもより甘えん坊です。',
+            'おもちゃへの反応が良いです。',
+            undefined,
+            undefined,
+            undefined,
+        ];
+        const seed = id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        return mockTrendTexts[seed % mockTrendTexts.length];
+    };
 
     const calendarDays = useMemo(() => {
         if (viewMode === 'week') {
@@ -172,6 +187,8 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                     displayUserName;
             }
 
+            const randomTrend = pickObservationTrend(o.id, o.type);
+
             records.push({
                 id: o.id,
                 type: 'observation',
@@ -182,6 +199,7 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                 userName: displayUserName,
                 userAvatar: user?.avatar_url,
                 notes: o.value && o.value !== (def?.title) ? `${o.value}\n${o.notes || ''}` : o.notes,
+                trendText: randomTrend,
                 showTime: true
             });
         });
@@ -228,7 +246,7 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
         });
 
         return records.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    }, [dayCareLogs, dayObservations, incidents, careTaskDefs, noticeDefs, cats, selectedDate, householdUsers, currentUser]);
+    }, [dayCareLogs, dayObservations, incidents, careTaskDefs, noticeDefs, cats, selectedDate, householdUsers, currentUser, medicationLogs]);
 
     const handleDelete = async (id: string, type: 'care' | 'observation' | 'incident') => {
         if (!confirm("削除しますか？")) return;
@@ -239,44 +257,44 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
     };
 
     return (
-        <div className="space-y-6 pb-20 pt-2">
+        <div className="space-y-6 pb-20 pt-2 bg-[#F2F1EF] min-h-screen">
             {/* Header */}
-            <div className="flex items-center justify-between px-4">
-                <h2 className="text-xl font-bold flex items-center gap-2 tabular-nums text-white">
+            <div className="flex items-center justify-between px-4 pt-4">
+                <h2 className="text-xl font-bold flex items-center gap-2 tabular-nums text-[#1E2840]">
                     {viewMode === 'week'
                         ? `${format(calendarDays[0], 'M/d')} - ${format(calendarDays[6], 'M/d')}`
                         : format(currentMonth, 'yyyy年 M月', { locale: ja })
                     }
                 </h2>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex bg-black/20 p-1 rounded-full border border-white/5">
+                <div className="flex items-center gap-3">
+                    <div className="flex bg-[#E7E6E3] p-1 rounded-full border border-[#DDDCD8]">
                         <button
                             onClick={() => setViewMode('week')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all duration-300 ${viewMode === 'week'
-                                ? 'bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            className={`px-4 py-1.5 text-[11px] font-bold rounded-full transition-all duration-300 ${viewMode === 'week'
+                                ? 'bg-white text-[#1E2840] shadow-sm'
+                                : 'text-[#8A8988] hover:text-[#1E2840] hover:bg-black/5'
                                 }`}
                         >
                             週
                         </button>
                         <button
                             onClick={() => setViewMode('month')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all duration-300 ${viewMode === 'month'
-                                ? 'bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            className={`px-4 py-1.5 text-[11px] font-bold rounded-full transition-all duration-300 ${viewMode === 'month'
+                                ? 'bg-white text-[#1E2840] shadow-sm'
+                                : 'text-[#8A8988] hover:text-[#1E2840] hover:bg-black/5'
                                 }`}
                         >
                             月
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-full text-white hover:bg-white/10 hover:text-white">
-                            <ChevronLeft className="h-5 w-5" />
+                    <div className="flex items-center gap-0.5">
+                        <Button variant="ghost" size="icon" onClick={handlePrev} className="h-8 w-8 rounded-full text-[#8A8988] hover:bg-black/5 hover:text-[#1E2840]">
+                            <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-full text-white hover:bg-white/10 hover:text-white">
-                            <ChevronRight className="h-5 w-5" />
+                        <Button variant="ghost" size="icon" onClick={handleNext} className="h-8 w-8 rounded-full text-[#8A8988] hover:bg-black/5 hover:text-[#1E2840]">
+                            <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>
@@ -285,14 +303,14 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
             {/* Calendar Grid */}
             <div className="px-2">
                 {/* Day Headers */}
-                <div className="grid grid-cols-7 mb-2 text-center text-xs font-medium">
-                    <div className="text-red-300/80">日</div>
-                    <div className="text-white/40">月</div>
-                    <div className="text-white/40">火</div>
-                    <div className="text-white/40">水</div>
-                    <div className="text-white/40">木</div>
-                    <div className="text-white/40">金</div>
-                    <div className="text-blue-300/80">土</div>
+                <div className="grid grid-cols-7 mb-2 text-center text-[10px] font-bold">
+                    <div className="text-[#8A8988]">日</div>
+                    <div className="text-[#8A8988]">月</div>
+                    <div className="text-[#8A8988]">火</div>
+                    <div className="text-[#8A8988]">水</div>
+                    <div className="text-[#8A8988]">木</div>
+                    <div className="text-[#8A8988]">金</div>
+                    <div className="text-[#8A8988]">土</div>
                 </div>
 
                 {/* Days */}
@@ -312,28 +330,28 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                                 key={idx}
                                 onClick={() => setSelectedDate(day)}
                                 className={`
-                                    relative flex flex-col items-center justify-start pt-2 h-14 rounded-2xl transition-all duration-300
+                                    relative flex flex-col items-center justify-start pt-2 h-[60px] rounded-[16px] transition-all duration-300
                                     ${!isCurrentMonth ? 'opacity-30' : ''}
                                     ${isSelected
-                                        ? 'bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] ring-1 ring-white/20'
-                                        : 'hover:bg-white/5'}
+                                        ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-[#DDDCD8]'
+                                        : 'hover:bg-white/50'}
                                 `}
                             >
                                 <span className={`
-                                    text-xs font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full transition-all
+                                    text-[12px] font-bold mb-1 w-7 h-7 flex items-center justify-center rounded-full transition-all
                                     ${isTodayDate
-                                        ? 'bg-[#E8B4A0] text-slate-900 font-bold shadow-[0_0_10px_rgba(232,180,160,0.6)]'
-                                        : isSelected ? 'text-white font-bold' : 'text-slate-300'}
+                                        ? 'bg-[#3D5A80] text-white shadow-sm'
+                                        : isSelected ? 'text-[#3D5A80]' : 'text-[#1E2840]'}
                                 `}>
                                     {format(day, 'd')}
                                 </span>
 
-                                {/* Indicators - Glass Style */}
-                                <div className="flex items-center gap-1 mt-1">
-                                    {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-[#E8B4A0] shadow-[0_0_5px_rgba(232,180,160,0.8)]" />}
-                                    {(dayData?.hasMedication) && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]" />}
-                                    {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                                    {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-[#B8A6D9] shadow-[0_0_5px_rgba(184,166,217,0.8)] animate-pulse" />}
+                                {/* Indicators */}
+                                <div className="flex items-center gap-1 mt-0.5">
+                                    {(dayData?.hasCare) && <div className="w-1.5 h-1.5 rounded-full bg-[#3D5A80]" />}
+                                    {(dayData?.hasMedication) && <div className="w-1.5 h-1.5 rounded-full bg-[#3D5A80]" />}
+                                    {(dayData?.hasEvent) && <div className="w-1.5 h-1.5 rounded-full bg-[#3D5A80]" />}
+                                    {(hasIncident || dayData?.hasCrisis) && <div className="w-1.5 h-1.5 rounded-full bg-[#1E2840] animate-pulse" />}
                                 </div>
                             </button>
                         );
@@ -341,17 +359,58 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                 </div>
             </div>
 
+            {/* 月の傾向・季節のまとめ */}
+            <div className="px-4 space-y-4">
+                {/* 1. Monthly Trend / AI Summary */}
+                <div className="bg-white rounded-[20px] p-4 border border-[#DDDCD8] shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-4 h-4 text-[#3D5A80]" />
+                        <h3 className="text-[13px] font-bold text-[#1E2840]">今月にゃるほど</h3>
+                    </div>
+                    <p className="text-[13px] text-[#5A5958] leading-relaxed">
+                        日中の窓辺で過ごす時間が先月より増えています。また、夜は早めに寝かしつける時間帯が増え、落ち着いて過ごせているようです。
+                    </p>
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <div className="shrink-0 bg-[#E7E6E3] rounded-[10px] px-3 py-2 flex items-center gap-2">
+                            <Cat className="w-3.5 h-3.5 text-[#3D5A80]" />
+                            <span className="text-[11px] font-bold text-[#1E2840]">活動量: 安定</span>
+                        </div>
+                        <div className="shrink-0 bg-[#E7E6E3] rounded-[10px] px-3 py-2 flex items-center gap-2">
+                            <Heart className="w-3.5 h-3.5 text-[#3D5A80]" />
+                            <span className="text-[11px] font-bold text-[#1E2840]">食欲: 良好</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2. Seasonal Summary (Preview) */}
+                <div className="bg-gradient-to-br from-[#3D5A80]/10 to-[#3D5A80]/5 rounded-[20px] p-4 border border-[#3D5A80]/15 relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 opacity-10">
+                        <Cat className="w-24 h-24" />
+                    </div>
+                    <div className="relative z-10 flex cursor-pointer items-center justify-between">
+                        <div>
+                            <div className="text-[10px] font-bold text-[#3D5A80] mb-1">Coming Soon</div>
+                            <h3 className="text-[14px] font-bold text-[#1E2840]">春の振り返りレポート</h3>
+                            <p className="text-[11px] text-[#5A5958] mt-1">去年の春と比べた暮らしの変化を見てみましょう</p>
+                        </div>
+                        <div className="bg-white rounded-full p-2 text-[#3D5A80] shadow-sm">
+                            <ChevronRight className="w-4 h-4" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Selected Day Detail */}
             <div className="space-y-4 px-4">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <div className="flex items-center justify-between pb-2 border-b border-[#DDDCD8]">
+                    <h3 className="text-[14px] font-bold text-[#1E2840] flex items-center gap-2">
                         <span>{format(selectedDate, 'M月d日 (E)', { locale: ja })}</span>
-                        <span className="text-xs font-normal text-slate-400">のリクエスト履歴</span>
+                        <span className="text-[11px] font-normal text-[#8A8988]">の記録</span>
                     </h3>
 
                     <div className="flex items-center gap-2">
                         {/* Completion Rate Badge */}
-                        <div className="flex items-center gap-1.5 bg-[#E8B4A0]/20 text-[#E8B4A0] text-xs px-2.5 py-0.5 rounded-full font-bold border border-[#E8B4A0]/20 shadow-[0_0_10px_rgba(232,180,160,0.1)]">
+                        <div className="flex items-center gap-1.5 bg-[#3D5A80]/10 text-[#3D5A80] text-[11px] px-2.5 py-1 rounded-full font-bold border border-[#DDDCD8]">
                             <Cat className="w-3 h-3 fill-current" />
                             <span>
                                 {(() => {
@@ -396,15 +455,15 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                     {events
                         .filter(e => isSameDay(new Date(e.at), selectedDate))
                         .map(e => (
-                            <div key={e.id} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 flex flex-row items-center gap-2 mb-1 last:mb-0 backdrop-blur-md">
-                                <Badge variant="outline" className="text-[10px] h-4 px-1 font-bold border-orange-500/50 text-orange-200 bg-orange-500/10 shrink-0">
+                                <div key={e.id} className="rounded-[16px] border border-[#DDDCD8] bg-white px-3 py-2.5 flex flex-row items-center gap-3 mb-2 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-bold border-[#DDDCD8] text-[#8A8988] bg-[#E7E6E3] shrink-0">
                                     {e.type === 'vet' ? '通院' : e.type === 'med' ? '薬' : 'その他'}
                                 </Badge>
                                 <div className="min-w-0 flex-1 flex flex-row items-center gap-2">
-                                    <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                    <span className="text-[11px] font-mono font-bold text-[#8A8988] shrink-0">
                                         {format(new Date(e.at), 'HH:mm')}
                                     </span>
-                                    <p className="text-xs font-bold text-slate-200 truncate">{e.title}</p>
+                                    <p className="text-[13px] font-bold text-[#1E2840] truncate">{e.title}</p>
                                 </div>
                             </div>
                         ))
@@ -413,8 +472,8 @@ export function CalendarScreen({ selectedDate: propSelectedDate, onDateChange }:
                     {/* Past Records */}
                     <div className="space-y-1">
                         {dayRecords.length === 0 ? (
-                            <div className="text-center py-10 text-slate-500 bg-white/5 rounded-2xl border border-dashed border-white/10">
-                                <p className="text-sm">この日の記録はありません</p>
+                            <div className="text-center py-10 text-[#8A8988] bg-transparent rounded-[20px] border border-dashed border-[#DDDCD8]">
+                                <p className="text-[13px] font-bold">この日の記録はありません</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
