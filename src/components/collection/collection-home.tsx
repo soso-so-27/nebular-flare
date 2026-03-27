@@ -4,7 +4,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { BookOpen, Camera, Cat, Sparkles } from "lucide-react";
+import { Camera, Sparkles } from "lucide-react";
 import { PhotoDetailView } from "@/components/app/immersive/photo-detail-view";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
@@ -16,7 +16,6 @@ import { useCatContext, useCoreContext } from "@/store/app-store";
 interface CollectionHomeProps {
     onOpenCollection: () => void;
     onOpenImport: () => void;
-    onOpenCat: () => void;
 }
 
 interface HomePhoto {
@@ -42,60 +41,9 @@ interface DiscoveryGroup {
     count: number;
 }
 
-interface HighlightGroup {
-    id: string;
-    title: string;
-    headline: string;
-    body: string;
-    totalCount: number;
-    unlockedCount: number;
-    remaining: number;
-    complete: boolean;
-    latestAt: string | null;
-    representativePhoto: string | null;
-}
-
-const CATEGORY_COPY: Record<string, { title: string; body: string; completeBody: string }> = {
-    pose: {
-        title: "\u3053\u306e\u5b50\u3089\u3057\u3044\u30dd\u30fc\u30ba\u304c\u96c6\u307e\u3063\u3066\u3044\u307e\u3059",
-        body: "\u5ea7\u308a\u65b9\u3084\u898b\u4e0a\u3052\u308b\u4ed5\u8349\u306b\u3001\u3053\u306e\u5b50\u3089\u3057\u3055\u304c\u306b\u3058\u3093\u3067\u3044\u307e\u3059",
-        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u30dd\u30fc\u30ba\u306e\u8a18\u9332\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
-    },
-    action: {
-        title: "\u6bce\u65e5\u306e\u3057\u3050\u3055\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
-        body: "\u898b\u3064\u3081\u308b\u3001\u304f\u3064\u308d\u3050\u3001\u904a\u3076\u3002\u6bce\u65e5\u306e\u52d5\u304d\u304c\u7269\u8a9e\u306b\u306a\u3063\u3066\u3044\u304d\u307e\u3059",
-        completeBody: "\u6bce\u65e5\u306e\u3057\u3050\u3055\u306e\u8a18\u9332\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
-    },
-    location: {
-        title: "\u3088\u304f\u3044\u308b\u5834\u6240\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
-        body: "\u843d\u3061\u7740\u304f\u5834\u6240\u3084\u304f\u3064\u308d\u3050\u98a8\u666f\u304c\u3001\u3053\u306e\u5b50\u306e\u5c45\u5834\u6240\u3092\u6559\u3048\u3066\u304f\u308c\u307e\u3059",
-        completeBody: "\u3088\u304f\u904e\u3054\u3059\u5834\u6240\u306e\u8a18\u9332\u304c\u305d\u308d\u3063\u3066\u3044\u307e\u3059",
-    },
-    emotion: {
-        title: "\u8868\u60c5\u306e\u5909\u5316\u304c\u898b\u3048\u3066\u304d\u307e\u3057\u305f",
-        body: "\u3084\u3055\u3057\u3044\u76ee\u7dda\u3084\u597d\u5947\u5fc3\u306e\u9854\u306b\u3001\u3053\u306e\u5b50\u306e\u6c17\u5206\u304c\u306b\u3058\u307f\u307e\u3059",
-        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u8868\u60c5\u306e\u7269\u8a9e\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
-    },
-    object: {
-        title: "\u66ae\u3089\u3057\u306e\u98a8\u666f\u304c\u96c6\u307e\u3063\u3066\u3044\u307e\u3059",
-        body: "\u5bb6\u5177\u3084\u672c\u3068\u4e00\u7dd2\u306e\u5199\u771f\u304b\u3089\u3001\u3053\u306e\u5b50\u306e\u66ae\u3089\u3057\u304c\u898b\u3048\u3066\u304d\u307e\u3059",
-        completeBody: "\u66ae\u3089\u3057\u306e\u8a18\u61b6\u304c\u63c3\u3044\u3001\u7269\u8a9e\u304c\u3072\u3068\u3064\u5b8c\u6210\u3057\u307e\u3057\u305f",
-    },
-    other: {
-        title: "\u65b0\u3057\u3044\u767a\u898b",
-        body: "\u5c0f\u3055\u306a\u6c17\u3065\u304d\u304c\u91cd\u306a\u308b\u307b\u3069\u3001\u3053\u306e\u5b50\u306e\u7269\u8a9e\u304c\u80b2\u3063\u3066\u3044\u304d\u307e\u3059",
-        completeBody: "\u3053\u306e\u5b50\u3089\u3057\u3044\u7269\u8a9e\u304c\u3072\u3068\u3064\u63c3\u3044\u307e\u3057\u305f",
-    },
-};
-
 function takeRelation<T>(value: T | T[] | null | undefined): T | null {
     if (!value) return null;
     return Array.isArray(value) ? value[0] ?? null : value;
-}
-
-function getCategoryCopy(category: string | null | undefined) {
-    if (!category) return CATEGORY_COPY.other;
-    return CATEGORY_COPY[category] || CATEGORY_COPY.other;
 }
 
 function selectHeroPhoto(photos: HomePhoto[]) {
@@ -137,28 +85,7 @@ function buildDiscoveryHeadline(group: DiscoveryGroup, catsById: Map<string, str
         : `\u65b0\u3057\u3044\u767a\u898b\u304c${group.count}\u4ef6\u3042\u308a\u307e\u3057\u305f`;
 }
 
-function buildHighlightCopy(group: HighlightGroup) {
-    if (group.complete) {
-        return {
-            headline: `${group.title}\u304c\u5b8c\u6210\u3057\u307e\u3057\u305f`,
-            body: getCategoryCopy(group.id).completeBody,
-        };
-    }
-
-    if (group.remaining > 0 && group.remaining <= 2) {
-        return {
-            headline: `\u3042\u3068${group.remaining}\u3064\u3067${group.title}\u304c\u5b8c\u6210\u3057\u307e\u3059`,
-            body: getCategoryCopy(group.id).body,
-        };
-    }
-
-    return {
-        headline: `${group.title}\u306b\u65b0\u3057\u3044\u5199\u771f\u304c\u52a0\u308f\u308a\u307e\u3057\u305f`,
-        body: getCategoryCopy(group.id).body,
-    };
-}
-
-export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: CollectionHomeProps) {
+export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHomeProps) {
     const { cats } = useCatContext();
     const { householdId, isDemo } = useCoreContext();
     const { session, loading: authLoading } = useAuth();
@@ -168,12 +95,6 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
     const catsById = useMemo(() => new Map(cats.map((cat) => [cat.id, cat.name])), [cats]);
     const catIds = useMemo(() => cats.map((cat) => cat.id), [cats]);
     const canRunLiveQueries = !isDemo && !!householdId && !!session && !authLoading;
-
-    const getAvatarUrl = (path: string | null | undefined): string => {
-        if (!path) return "";
-        if (path.startsWith("http")) return path;
-        return getFullImageUrl(path);
-    };
 
     const photosQuery = useQuery<HomePhoto[]>({
         queryKey: ["collection-home-photos", householdId, catIds.join(","), isDemo, !!session, authLoading],
@@ -326,168 +247,19 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
         },
     });
 
-    const highlightQuery = useQuery<HighlightGroup | null>({
-        queryKey: ["collection-home-highlight", householdId, catIds.join(","), isDemo, !!session, authLoading],
-        enabled: isDemo || (canRunLiveQueries && catIds.length > 0),
-        queryFn: async () => {
-            if (isDemo || catIds.length === 0) return null;
-            if (!session) return null;
-
-            const supabase = supabaseRef.current;
-            const { data: definitions, error: definitionsError } = await supabase
-                .from("collection_definitions")
-                .select("id, slug, name, category, description")
-                .eq("is_active", true)
-                .order("sort_order", { ascending: true });
-
-            if (definitionsError) {
-                console.error("[collection-home] collection definitions query failed", definitionsError);
-                return null;
-            }
-
-            const definitionRows = definitions || [];
-            if (definitionRows.length === 0) return null;
-
-            const definitionIds = definitionRows.map((definition: any) => definition.id);
-            const [{ data: items }, { data: photos }] = await Promise.all([
-                supabase
-                    .from("cat_collection_items")
-                    .select("collection_definition_id, photo_count, created_at")
-                    .in("cat_id", catIds)
-                    .in("collection_definition_id", definitionIds),
-                supabase
-                    .from("cat_collection_photos")
-                    .select("collection_definition_id, photos:photos!cat_collection_photos_photo_id_fkey(id, storage_path, created_at)")
-                    .in("cat_id", catIds)
-                    .in("collection_definition_id", definitionIds),
-            ]);
-
-            const definitionState = new Map<
-                string,
-                {
-                    category: string;
-                    photoCount: number;
-                    latestAt: string | null;
-                    representativePhoto: string | null;
-                }
-            >();
-
-            for (const definition of definitionRows as any[]) {
-                if (!definition.category) continue;
-                definitionState.set(definition.id, {
-                    category: definition.category,
-                    photoCount: 0,
-                    latestAt: null,
-                    representativePhoto: null,
-                });
-            }
-
-            for (const row of (items || []) as any[]) {
-                const target = definitionState.get(row.collection_definition_id);
-                if (!target) continue;
-                target.photoCount += row.photo_count || 0;
-                if (row.created_at && (!target.latestAt || row.created_at > target.latestAt)) {
-                    target.latestAt = row.created_at;
-                }
-            }
-
-            for (const row of (photos || []) as any[]) {
-                const target = definitionState.get(row.collection_definition_id);
-                const photo = takeRelation<any>(row.photos);
-                if (!target || !photo?.storage_path) continue;
-                if (!target.representativePhoto) {
-                    target.representativePhoto = getFullImageUrl(photo.storage_path, {
-                        width: 960,
-                        height: 720,
-                        resize: "cover",
-                        quality: 84,
-                    });
-                }
-                if (photo.created_at && (!target.latestAt || photo.created_at > target.latestAt)) {
-                    target.latestAt = photo.created_at;
-                }
-            }
-
-            const groups = new Map<string, HighlightGroup>();
-            for (const definition of definitionRows as any[]) {
-                if (!definition.category) continue;
-
-                const progress = definitionState.get(definition.id);
-                const copy = getCategoryCopy(definition.category);
-                const existing =
-                    groups.get(definition.category) || {
-                        id: definition.category,
-                        title: copy.title,
-                        headline: copy.title,
-                        body: copy.body,
-                        totalCount: 0,
-                        unlockedCount: 0,
-                        remaining: 0,
-                        complete: false,
-                        latestAt: null,
-                        representativePhoto: null,
-                    };
-
-                existing.totalCount += 1;
-
-                if (progress && progress.photoCount > 0) {
-                    existing.unlockedCount += 1;
-                    if (progress.latestAt && (!existing.latestAt || progress.latestAt > existing.latestAt)) {
-                        existing.latestAt = progress.latestAt;
-                    }
-                    if (!existing.representativePhoto && progress.representativePhoto) {
-                        existing.representativePhoto = progress.representativePhoto;
-                    }
-                }
-
-                groups.set(definition.category, existing);
-            }
-
-            const candidates = Array.from(groups.values())
-                .map((group) => {
-                    const remaining = Math.max(group.totalCount - group.unlockedCount, 0);
-                    const complete = group.totalCount > 0 && remaining === 0;
-                    return { ...group, remaining, complete };
-                })
-                .filter((group) => group.unlockedCount > 0);
-
-            if (candidates.length === 0) return null;
-
-            const completed = candidates
-                .filter((group) => group.complete)
-                .sort((a, b) => (b.latestAt || "").localeCompare(a.latestAt || ""));
-            if (completed.length > 0) {
-                return { ...completed[0], ...buildHighlightCopy(completed[0]) };
-            }
-
-            const almostThere = candidates
-                .filter((group) => group.remaining > 0 && group.remaining <= 2)
-                .sort((a, b) => a.remaining - b.remaining || (b.latestAt || "").localeCompare(a.latestAt || ""));
-            if (almostThere.length > 0) {
-                return { ...almostThere[0], ...buildHighlightCopy(almostThere[0]) };
-            }
-
-            const recent = [...candidates].sort((a, b) => (b.latestAt || "").localeCompare(a.latestAt || ""));
-            return { ...recent[0], ...buildHighlightCopy(recent[0]) };
-        },
-    });
-
     const photos = photosQuery.data || [];
     const discoveries = discoveriesQuery.data || [];
-    const featuredGroup = highlightQuery.data;
     const heroPhoto = useMemo(() => selectHeroPhoto(photos), [photos]);
     const recentPhotos = useMemo(() => photos.filter((photo) => photo.id !== heroPhoto?.id).slice(0, 6), [heroPhoto?.id, photos]);
     const heroDate = heroPhoto?.createdAt
         ? format(new Date(heroPhoto.createdAt), "M\u6708d\u65e5", { locale: ja })
         : format(new Date(), "M\u6708d\u65e5", { locale: ja });
-
-    const renderCatAvatar = (cat: (typeof cats)[number]) => {
-        if (cat.avatar && cat.avatar !== "cat-fallback") {
-            return getAvatarUrl(cat.avatar);
-        }
-        const firstImage = cat.images?.[0]?.storagePath;
-        return firstImage ? getFullImageUrl(firstImage, { width: 160, height: 160, resize: "cover", quality: 82 }) : "";
-    };
+    const questionCatName = heroPhoto?.catId ? catsById.get(heroPhoto.catId) || "\u306d\u3053" : "\u306d\u3053";
+    const heroPhotoAgeMs = heroPhoto ? Date.now() - new Date(heroPhoto.createdAt).getTime() : 0;
+    const promptText =
+        heroPhotoAgeMs >= 7 * 24 * 60 * 60 * 1000
+            ? `${questionCatName}\u306e\u6700\u8fd1\u306f\uff1f`
+            : `\u4eca\u65e5\u306e${questionCatName}\u3001\u3069\u3093\u306a\u5b50\uff1f`;
 
     return (
         <div className="min-h-[100dvh] bg-[#F2F1EF] pb-32">
@@ -515,6 +287,14 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
                     )}
                 </div>
 
+                {heroPhoto ? (
+                    <section className="bg-[#F2F1EF] px-4 py-4">
+                        <div className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] p-4">
+                            <p className="text-[14px] text-[#5A5958]">{promptText}</p>
+                        </div>
+                    </section>
+                ) : null}
+
                 {discoveries.length > 0 ? (
                     <section className="bg-[#F2F1EF] px-4 py-6">
                         <div className="mb-3 flex items-center justify-between">
@@ -525,7 +305,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
                         </div>
                         <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <div className="flex gap-3">
-                                {discoveries.slice(0, 5).map((group) => {
+                                {discoveries.slice(0, 3).map((group) => {
                                     const photo = takeRelation<any>(group.primary.photos);
                                     const imageUrl = photo?.storage_path
                                         ? getFullImageUrl(photo.storage_path, {
@@ -563,47 +343,6 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
                     </section>
                 ) : null}
 
-                {featuredGroup ? (
-                    <section className="bg-[#E7E6E3] px-4 py-6">
-                        <button type="button" onClick={onOpenCollection} className="w-full overflow-hidden rounded-2xl border border-[#3D5A80]/15 bg-[#FAFAF9] text-left shadow-sm transition-transform active:scale-[0.98]">
-                            <div className="aspect-[4/3] bg-[#E7E6E3]">
-                                {featuredGroup.representativePhoto ? (
-                                    <img src={featuredGroup.representativePhoto} alt={featuredGroup.title} className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-[#DAD9D5]">
-                                        <BookOpen className="h-8 w-8 text-[#3D5A80]" />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-3 p-4">
-                                <div className="inline-flex items-center rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-xs font-medium text-[#1E2840]">{featuredGroup.title}</div>
-                                <div>
-                                    <p className={featuredGroup.complete ? "text-xl font-bold text-[#1E2840]" : "text-lg font-bold text-[#1E2840]"}>{featuredGroup.headline}</p>
-                                    <p className="mt-1 text-sm leading-6 text-[#5A5958]">{featuredGroup.body}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#D9D8D5]">
-                                        <div
-                                            className="h-full rounded-full bg-[#3D5A80]"
-                                            style={{
-                                                width: `${Math.max((featuredGroup.unlockedCount / Math.max(featuredGroup.totalCount, 1)) * 100, 8)}%`,
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm text-[#5A5958]">
-                                        <span>
-                                            {featuredGroup.complete
-                                                ? `${featuredGroup.unlockedCount}\u7a2e\u985e\u304c\u898b\u3064\u304b\u3063\u3066\u3044\u307e\u3059`
-                                                : `\u3042\u3068${featuredGroup.remaining}\u3064\u3067\u5b8c\u6210\u3057\u307e\u3059`}
-                                        </span>
-                                        <span>{`${featuredGroup.unlockedCount}/${featuredGroup.totalCount}`}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </button>
-                    </section>
-                ) : null}
-
                 {recentPhotos.length > 0 ? (
                     <section className="bg-[#F2F1EF] px-4 py-5">
                         <div className="mb-3 flex items-center justify-between">
@@ -622,32 +361,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport, onOpenCat }: Co
                     </section>
                 ) : null}
 
-                {cats.length > 1 ? (
-                    <section className="bg-[#E7E6E3] px-4 py-5">
-                        <div className="mb-3">
-                            <h3 className="text-sm font-medium text-[#8A8988]">{"\u3046\u3061\u306e\u5b50\u305f\u3061"}</h3>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            {cats.map((cat) => {
-                                const avatarUrl = renderCatAvatar(cat);
-                                return (
-                                    <button key={cat.id} type="button" onClick={onOpenCat} className="flex items-center gap-3 rounded-2xl bg-[#FAFAF9] px-4 py-4 text-left shadow-sm transition-transform active:scale-[0.98]">
-                                        {avatarUrl ? (
-                                            <img src={avatarUrl} alt={cat.name} className="h-12 w-12 rounded-full object-cover" />
-                                        ) : (
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DAD9D5]">
-                                                <Cat className="h-6 w-6 text-[#8A8988]" />
-                                            </div>
-                                        )}
-                                        <span className="text-sm font-medium text-[#1E2840]">{cat.name}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </section>
-                ) : null}
-
-                {!heroPhoto && discoveries.length === 0 && !featuredGroup && recentPhotos.length === 0 ? (
+                {!heroPhoto && discoveries.length === 0 && recentPhotos.length === 0 ? (
                     <section className="bg-[#F2F1EF] px-4 py-6">
                         <div className="rounded-2xl border border-[#DDDCD8] bg-[#FAFAF9] p-5 text-center shadow-sm">
                             <p className="text-base font-medium text-[#1E2840]">{"\u5199\u771f\u304c\u5897\u3048\u308b\u3068\u3001\u3053\u306e\u5b50\u306e\u7269\u8a9e\u304c\u898b\u3048\u3066\u304d\u307e\u3059"}</p>

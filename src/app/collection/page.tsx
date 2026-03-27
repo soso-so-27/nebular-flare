@@ -240,7 +240,6 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                         <CollectionHome
                             onOpenCollection={() => setTab("cat")}
                             onOpenImport={() => setIsImportWizardOpen(true)}
-                            onOpenCat={() => setTab("cat")}
                         />
                     </motion.div>
                 )}
