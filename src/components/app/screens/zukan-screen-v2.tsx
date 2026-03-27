@@ -4,15 +4,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     BookOpen,
     Camera,
-    Cat,
-    ChevronDown,
     Loader2,
-    Lock,
     PawPrint,
-    Search,
     Smile,
-    Sparkles,
-    Target,
     Activity,
     Home,
     Package,
@@ -104,6 +98,8 @@ interface ZukanScreenProps {
     onClose?: () => void;
 }
 
+type Discovery = { id: string; title: string; description: string | null; created_at: string };
+
 type CollectionItem = {
     id: string;
     name: string;
@@ -124,7 +120,6 @@ type CollectionGroup = {
     lockedItems: CollectionItem[];
     unlockedCount: number;
     totalCount: number;
-    progressPercent: number;
     remaining: number;
     lastUpdatedAt: string | null;
     complete: boolean;
@@ -241,42 +236,28 @@ function mapToShelfPhoto(img: any): ShelfPhoto {
     };
 }
 
-function getAvatarUrl(cat: { avatar?: string | null; images?: { storagePath?: string }[] }) {
-    if (cat.avatar && cat.avatar !== "cat-fallback") {
-        return cat.avatar.startsWith("http") || cat.avatar.startsWith("/")
-            ? cat.avatar
-            : getFullImageUrl(cat.avatar);
-    }
-
-    const firstImage = cat.images?.[0]?.storagePath;
-    return firstImage ? getFullImageUrl(firstImage, { width: 160, height: 160, resize: "cover", quality: 80 }) : null;
-}
-
 export function ZukanScreen({ onClose }: ZukanScreenProps) {
     const { cats } = useCatContext();
     const { householdId } = useCoreContext();
     const supabaseRef = useRef(createClient());
-    const [filterCatId, setFilterCatId] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
     const [allPhotos, setAllPhotos] = useState<ShelfPhoto[]>([]);
     const [v2CollectionMap, setV2CollectionMap] = useState<Record<string, ShelfPhoto[]>>({});
     const [v2CollectionCounts, setV2CollectionCounts] = useState<Record<string, number>>({});
     const [v2Definitions, setV2Definitions] = useState<V2DefinitionRecord[]>([]);
+    const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDetailImage, setSelectedDetailImage] = useState<any>(null);
-    const [showEmptyCategories, setShowEmptyCategories] = useState(false);
 
     const loadPhotos = useCallback(async () => {
         if (!householdId) return;
         setLoading(true);
 
         const supabase = supabaseRef.current;
-        const targetCatIds = (filterCatId ? [filterCatId] : cats.map((cat) => cat.id)).filter(Boolean);
+        const targetCatIds = cats.map((cat) => cat.id).filter(Boolean);
 
-        const [{ data, error }, v2Result] = await Promise.all([
+        const [{ data, error }, v2Result, discoveriesResult] = await Promise.all([
             (supabase.rpc as any)("get_unified_gallery", {
                 target_household_id: householdId,
-                filter_cat_id: filterCatId || undefined,
                 limit_count: 500,
                 offset_count: 0,
             }),
@@ -370,6 +351,26 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     definitions: Array.from(definitionById.values()).filter((definition) => !!definition.slug),
                 };
             })(),
+            (async () => {
+                const { data: discoveryRows, error: discoveriesError } = await supabase
+                    .from("discoveries")
+                    .select("id, title, description, created_at")
+                    .eq("household_id", householdId)
+                    .eq("is_visible", true)
+                    .order("created_at", { ascending: false })
+                    .limit(3);
+
+                if (discoveriesError) {
+                    console.warn("Discovery load failed:", discoveriesError.message);
+                }
+
+                return ((discoveryRows || []) as Discovery[]).map((row) => ({
+                    id: row.id,
+                    title: row.title,
+                    description: row.description,
+                    created_at: row.created_at,
+                }));
+            })(),
         ]);
 
         if (error) {
@@ -382,8 +383,9 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         setV2CollectionMap(v2Result.itemMap);
         setV2CollectionCounts(v2Result.countMap);
         setV2Definitions(v2Result.definitions);
+        setDiscoveries(discoveriesResult);
         setLoading(false);
-    }, [householdId, filterCatId, cats]);
+    }, [householdId, cats]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -393,26 +395,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         return () => clearTimeout(timer);
     }, [loadPhotos]);
 
-    const filteredPhotos = useMemo(() => {
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return allPhotos;
-
-        return allPhotos.filter((photo) => {
-            if (photo.memo?.toLowerCase().includes(q)) return true;
-            if (photo.catName?.toLowerCase().includes(q)) return true;
-            if (photo.tags?.some((tag: any) => (typeof tag === "string" ? tag : tag.name)?.toLowerCase().includes(q))) {
-                return true;
-            }
-
-            const labels = photo.aiAnalysis?.labels;
-            if (labels?.moment?.toLowerCase().includes(q)) return true;
-            if (labels?.scene?.toLowerCase().includes(q)) return true;
-            if (labels?.shot?.toLowerCase().includes(q)) return true;
-            if (photo.aiAnalysis?.uiTags?.some((tag) => tag.toLowerCase().includes(q))) return true;
-
-            return false;
-        });
-    }, [allPhotos, searchQuery]);
+    const filteredPhotos = useMemo(() => allPhotos, [allPhotos]);
 
     const collectionGroups = useMemo<CollectionGroup[]>(() => {
         const groupedDefinitions = v2Definitions.reduce<Record<string, V2DefinitionRecord[]>>((acc, definition) => {
@@ -454,22 +437,11 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         }
                         return new Date(b.latestAt || 0).getTime() - new Date(a.latestAt || 0).getTime();
                     })
-                    .filter((item) => {
-                        if (!searchQuery.trim()) return true;
-                        const q = searchQuery.trim().toLowerCase();
-                        return (
-                            item.name.toLowerCase().includes(q) ||
-                            item.description.toLowerCase().includes(q) ||
-                            presentation.title.toLowerCase().includes(q)
-                        );
-                    });
-
                 const unlockedItems = items.filter((item) => item.unlocked);
                 const lockedItems = items.filter((item) => !item.unlocked);
                 const totalCount = items.length;
                 const unlockedCount = unlockedItems.length;
                 const remaining = Math.max(totalCount - unlockedCount, 0);
-                const progressPercent = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
                 const lastUpdatedAt = unlockedItems
                     .map((item) => item.latestAt)
                     .filter(Boolean)
@@ -485,7 +457,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     lockedItems,
                     unlockedCount,
                     totalCount,
-                    progressPercent,
                     remaining,
                     lastUpdatedAt,
                     complete: totalCount > 0 && unlockedCount === totalCount,
@@ -498,38 +469,19 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 }
                 return new Date(b.lastUpdatedAt || 0).getTime() - new Date(a.lastUpdatedAt || 0).getTime();
             });
-    }, [searchQuery, v2CollectionCounts, v2CollectionMap, v2Definitions]);
+    }, [v2CollectionCounts, v2CollectionMap, v2Definitions]);
 
     const inProgressGroups = useMemo(
         () => collectionGroups.filter((group) => group.unlockedCount > 0),
         [collectionGroups]
     );
-    const featuredGroup = useMemo(() => {
-        if (inProgressGroups.length === 0) return null;
-
-        return [...inProgressGroups].sort((a, b) => {
-            if (a.progressPercent !== b.progressPercent) {
-                return b.progressPercent - a.progressPercent;
-            }
-            if (a.unlockedCount !== b.unlockedCount) {
-                return b.unlockedCount - a.unlockedCount;
-            }
-            return new Date(b.lastUpdatedAt || 0).getTime() - new Date(a.lastUpdatedAt || 0).getTime();
-        })[0];
-    }, [inProgressGroups]);
-    const spotlightGroups = useMemo(
-        () => inProgressGroups.filter((group) => group.id !== featuredGroup?.id),
-        [featuredGroup?.id, inProgressGroups]
-    );
-    const almostCompleteGroups = useMemo(
-        () =>
-            spotlightGroups
-                .filter((group) => !group.complete && group.remaining >= 1 && group.remaining <= 3)
-                .slice(0, 3),
-        [spotlightGroups]
-    );
-    const notStartedGroups = collectionGroups.filter((group) => group.unlockedCount === 0);
-    const featuredPhoto = featuredGroup?.unlockedItems[0]?.photos[0] || null;
+    const spotlightGroups = useMemo(() => inProgressGroups, [inProgressGroups]);
+    const primaryCat = cats[0];
+    const primaryCatBreed = primaryCat?.breed || null;
+    const primaryCatBirthDate =
+        (primaryCat as { birth_date?: string | null; birthday?: string | null } | undefined)?.birth_date ||
+        primaryCat?.birthday ||
+        null;
 
     if (loading) {
         return (
@@ -545,156 +497,25 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     return (
         <div className="min-h-[100dvh] bg-bg-primary pb-32">
             <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-primary/90 px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-2 backdrop-blur-xl">
-                <h1 className="text-xl font-bold text-center text-[#1E2840]">図鑑</h1>
+                <h1 className="text-xl font-bold text-center text-[#1E2840]">{"\u306d\u3053"}</h1>
             </header>
 
             <div className="space-y-8 px-5 py-4">
-                <section className="space-y-2.5">
-                    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <button
-                            type="button"
-                            onClick={() => setFilterCatId(null)}
-                            className={cn(
-                                "flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-[14px] font-bold",
-                                filterCatId === null
-                                    ? "border-transparent bg-[#3D5A80] text-white"
-                                    : "border-border-subtle bg-bg-elevated text-text-secondary"
-                            )}
-                        >
-                            すべて
-                        </button>
-                        {cats.map((cat) => {
-                            const avatarUrl = getAvatarUrl(cat);
-                            return (
-                                <button
-                                    key={cat.id}
-                                    type="button"
-                                    onClick={() => setFilterCatId(cat.id)}
-                                    className={cn(
-                                        "flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[14px] font-bold",
-                                        filterCatId === cat.id
-                                            ? "border-transparent bg-[#3D5A80] text-white"
-                                            : "border-border-subtle bg-bg-elevated text-text-secondary"
-                                    )}
-                                >
-                                    <div className="h-5 w-5 overflow-hidden rounded-full bg-bg-secondary">
-                                        {avatarUrl ? (
-                                            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                                        ) : (
-                                            <Cat className="m-auto h-4 w-4" />
-                                        )}
-                                    </div>
-                                    {cat.name}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
-                            placeholder="図鑑や写真を検索"
-                            className="h-11 w-full rounded-xl bg-bg-elevated pl-10 pr-4 text-[15px] text-text-primary outline-none placeholder:text-text-tertiary"
-                        />
-                    </div>
-                </section>
-
-                {featuredGroup ? (
+                {discoveries.length > 0 ? (
                     <section className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-base font-semibold text-[#1E2840]">いま一番進んでいる図鑑</h2>
-                            <span className="text-sm text-[#5A5958]">
-                                {featuredGroup.unlockedCount}/{featuredGroup.totalCount}
-                            </span>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => featuredPhoto && setSelectedDetailImage(featuredPhoto)}
-                            className={cn(
-                                "w-full overflow-hidden rounded-2xl border text-left transition-transform active:scale-[0.99]",
-                                featuredGroup.complete
-                                    ? "bg-[#3D5A80]/5 border-[#3D5A80]/15"
-                                    : "bg-[#FAFAF9] border-[#E8E7E4]"
-                            )}
+                        <h2
+                            className="text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
+                            style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
                         >
-                            <div className="aspect-[16/10] overflow-hidden bg-bg-secondary">
-                                {featuredPhoto ? (
-                                    <img src={featuredPhoto.url} alt="" className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-text-tertiary">
-                                        <BookOpen className="h-8 w-8" />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-3 p-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-xs font-medium text-[#1E2840]">
-                                        {featuredGroup.title}
-                                    </span>
-                                    {featuredGroup.complete ? (
-                                        <span className="inline-flex rounded-full bg-[#3D5A80] px-2 py-0.5 text-xs font-medium text-white">
-                                            コンプリート！
-                                        </span>
+                            {"\u304d\u3065\u304d"}
+                        </h2>
+                        <div className="space-y-2">
+                            {discoveries.map((discovery) => (
+                                <div key={discovery.id} className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
+                                    <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
+                                    {discovery.description ? (
+                                        <p className="mt-1 text-[13px] font-light text-[#5A5958]">{discovery.description}</p>
                                     ) : null}
-                                </div>
-                                <div className="space-y-1">
-                                    <p className={cn("font-bold text-[#1E2840]", featuredGroup.complete ? "text-lg" : "text-xl")}>
-                                        {featuredGroup.complete
-                                            ? getStoryCopy(featuredGroup).completeHeadline
-                                            : getStoryCopy(featuredGroup).headline}
-                                    </p>
-                                <p className="text-sm text-[#5A5958]">
-                                    {featuredGroup.complete
-                                            ? getStoryCopy(featuredGroup).completeBody
-                                            : getStoryCopy(featuredGroup).nextHint}
-                                </p>
-                            </div>
-                            <p className="line-clamp-2 text-sm text-[#5A5958]">
-                                {featuredGroup.complete
-                                        ? "この子らしい物語がひとつ揃いました。"
-                                        : featuredGroup.description}
-                            </p>
-                                <div className="space-y-1">
-                                    <div className="h-2 overflow-hidden rounded-full bg-[#E7E6E3]">
-                                        <div
-                                            className="h-full rounded-full bg-[#3D5A80]"
-                                            style={{ width: `${featuredGroup.progressPercent}%` }}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm text-[#5A5958]">
-                                        <span>{featuredGroup.unlockedCount}個見つかっています</span>
-                                        <span>
-                                            {featuredGroup.unlockedCount}/{featuredGroup.totalCount}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </button>
-                    </section>
-                ) : null}
-
-                {almostCompleteGroups.length > 0 ? (
-                    <section className="space-y-3">
-                        <h2 className="text-lg font-bold text-[#1E2840]">もうすぐ達成</h2>
-                        <div className="space-y-3">
-                            {almostCompleteGroups.map((group) => (
-                                <div key={`${group.id}-almost`} className="bg-[#FAFAF9] rounded-xl p-4 shadow-sm">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-[#3D5A80]/10 flex items-center justify-center flex-shrink-0">
-                                            <Target className="w-5 h-5 text-[#3D5A80]" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[11px] font-medium text-[#5A5958]">次に見つけたいもの</p>
-                                            <p className="text-sm font-bold text-[#1E2840]">
-                                                あと{group.remaining}つで{group.title}が完成します
-                                            </p>
-                                            <p className="text-xs text-[#5A5958] mt-1 line-clamp-2">
-                                                {getNextHint(group)}
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -704,7 +525,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 {spotlightGroups.length > 0 ? (
                     <section className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-text-primary">進行中の図鑑</h2>
+                            <h2 className="text-lg font-bold text-text-primary">{"\u3053\u306e\u5b50\u306e\u3053\u3068"}</h2>
                             <span className="text-sm text-[#5A5958]">{spotlightGroups.length}件</span>
                         </div>
                         <div className="space-y-5">
@@ -729,14 +550,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                 >
                                                     {group.title}
                                                 </span>
-                                                {group.complete ? (
-                                                    <span className="inline-flex rounded-full bg-[#3D5A80] px-2 py-0.5 text-xs font-medium text-white">
-                                                        コンプリート！
-                                                    </span>
-                                                ) : null}
                                             </div>
                                             <div className="mt-2 flex items-center gap-2">
-                                                {group.complete ? <Sparkles className="h-4 w-4 text-[#3D5A80]" /> : null}
                                                 <p className={cn("text-[#1E2840]", group.complete ? "text-lg font-bold" : "text-base font-bold")}>
                                                     {group.complete ? getStoryCopy(group).completeHeadline : getStoryCopy(group).headline}
                                                 </p>
@@ -749,15 +564,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                         : group.description}
                                             </p>
                                         </div>
-                                        <div className="text-right text-sm text-[#5A5958]">
-                                            {group.unlockedCount}/{group.totalCount}
-                                        </div>
-                                    </div>
-                                    <div className="mt-2 mx-4 h-2 overflow-hidden rounded-full bg-[#E7E6E3]">
-                                        <div
-                                            className="h-full rounded-full bg-[#3D5A80]"
-                                            style={{ width: `${group.progressPercent}%` }}
-                                        />
                                     </div>
                                     <div className="px-4 pb-4 pt-4">
                                         <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -800,34 +606,23 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     </section>
                 ) : null}
 
-                {notStartedGroups.length > 0 ? (
+                {primaryCat ? (
                     <section className="space-y-3">
-                        <button
-                            type="button"
-                            onClick={() => setShowEmptyCategories((value) => !value)}
-                            className="flex items-center gap-2 text-sm font-medium text-[#5A5958]"
+                        <h2
+                            className="text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
+                            style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
                         >
-                            <ChevronDown
-                                className={cn(
-                                    "w-4 h-4 transition-transform",
-                                    showEmptyCategories ? "rotate-180" : ""
-                                )}
-                            />
-                            まだ見つかっていない図鑑（{notStartedGroups.length}）
-                        </button>
-                        {showEmptyCategories ? (
-                            <div className="mt-3 space-y-2">
-                                {notStartedGroups.map((group) => (
-                                    <div
-                                        key={`${group.id}-empty`}
-                                        className="flex items-center justify-between bg-[#E7E6E3] rounded-lg px-3 py-2"
-                                    >
-                                        <span className="text-sm text-[#5A5958]">{group.title}</span>
-                                        <span className="text-xs text-[#8A8988]">0/{group.totalCount}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null}
+                            {"\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u30fb\u30b1\u30a2\u8a18\u9332"}
+                        </h2>
+                        <div className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
+                            <p className="text-[16px] font-semibold text-[#1E2840]">{primaryCat.name}</p>
+                            {primaryCatBreed ? (
+                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBreed}</p>
+                            ) : null}
+                            {primaryCatBirthDate ? (
+                                <p className="mt-1 text-[13px] text-[#5A5958]">{primaryCatBirthDate}</p>
+                            ) : null}
+                        </div>
                     </section>
                 ) : null}
 
@@ -837,7 +632,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                         <span className="text-sm text-[#5A5958]">{filteredPhotos.length}枚</span>
                     </div>
                     <AllPhotosSection
-                        key={`${filterCatId ?? "all"}:${searchQuery}`}
                         photos={filteredPhotos}
                         onSelect={setSelectedDetailImage}
                     />
