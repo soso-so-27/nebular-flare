@@ -2,8 +2,12 @@
 
 import React from "react";
 import { Lock } from "lucide-react";
+import { useCatContext } from "@/store/app-store";
 
 export function OmoideScreen() {
+    const { cats } = useCatContext();
+    const catName = cats[0]?.name ?? "\u306d\u3053";
+
     return (
         <div className="flex min-h-[100dvh] items-center justify-center bg-[#F2F1EF] px-6 py-6">
             <div className="flex w-full max-w-[320px] flex-col items-center text-center">
@@ -11,10 +15,10 @@ export function OmoideScreen() {
                     <Lock className="h-8 w-8 text-[#8A8988]" strokeWidth={1.8} />
                 </div>
                 <p className="mt-6 text-[16px] font-semibold text-[#1E2840]">
-                    {"\u3080\u304e\u306e7\u65e5\u5206\u306e\u8a18\u9332\u304c\u6e9c\u307e\u3063\u3066\u3044\u307e\u3059"}
+                    {`${catName}\u306e7\u65e5\u5206\u306e\u8a18\u9332\u304c\u6e9c\u307e\u3063\u3066\u3044\u307e\u3059`}
                 </p>
                 <p className="mt-2 text-[13px] font-light text-[#5A5958]">
-                    {"\u304a\u3082\u3044\u3067\u30bf\u30d6\u3067\u3001\u3042\u306e\u3053\u308d\u306e\u3080\u304e\u306b\u4f1a\u3048\u307e\u3059\u3002"}
+                    {`\u304a\u3082\u3044\u3067\u30bf\u30d6\u3067\u3001\u3042\u306e\u3053\u308d\u306e${catName}\u306b\u4f1a\u3048\u307e\u3059\u3002`}
                 </p>
                 <button
                     type="button"
