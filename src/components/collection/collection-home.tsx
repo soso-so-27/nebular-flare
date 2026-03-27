@@ -256,10 +256,31 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
         : format(new Date(), "M\u6708d\u65e5", { locale: ja });
     const questionCatName = heroPhoto?.catId ? catsById.get(heroPhoto.catId) || "\u306d\u3053" : "\u306d\u3053";
     const heroPhotoAgeMs = heroPhoto ? Date.now() - new Date(heroPhoto.createdAt).getTime() : 0;
-    const promptText =
-        heroPhotoAgeMs >= 7 * 24 * 60 * 60 * 1000
-            ? `${questionCatName}\u306e\u6700\u8fd1\u306f\uff1f`
-            : `\u4eca\u65e5\u306e${questionCatName}\u3001\u3069\u3093\u306a\u5b50\uff1f`;
+    const promptText = (() => {
+        const days = heroPhotoAgeMs / (24 * 60 * 60 * 1000);
+        const catName = questionCatName;
+
+        if (days >= 365) {
+            return `1\u5e74\u524d\u306e\u4eca\u65e5\u306e${catName}\u3002`;
+        }
+        if (days >= 90) {
+            const months = Math.floor(days / 30);
+            return `${months}\u30f6\u6708\u524d\u306e${catName}\u3002\u306a\u3093\u304b\u9055\u3046\u6c17\u304c\u3059\u308b\u3002`;
+        }
+        if (days >= 30) {
+            return `1\u30f6\u6708\u524d\u306e${catName}\u3001\u899a\u3048\u3066\u308b\uff1f`;
+        }
+        if (days >= 7) {
+            return `1\u9031\u9593\u524d\u306e${catName}\u3001\u899a\u3048\u3066\u308b\uff1f`;
+        }
+        if (days >= 3) {
+            return `${catName}\u306e\u6700\u8fd1\u306f\uff1f`;
+        }
+        if (days < 1) {
+            return `\u4eca\u65e5\u306e${catName}\u3001\u3069\u3093\u306a\u5b50\uff1f`;
+        }
+        return `\u6628\u65e5\u306e${catName}\u3002`;
+    })();
 
     return (
         <div className="min-h-[100dvh] bg-[#F2F1EF] pb-32">
