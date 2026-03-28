@@ -99,7 +99,7 @@ interface ZukanScreenProps {
     onClose?: () => void;
 }
 
-type Discovery = { id: string; title: string; created_at: string };
+type Discovery = { id: string; title: string; created_at: string; photo_id: string | null };
 
 type CollectionItem = {
     id: string;
@@ -237,6 +237,29 @@ function mapToShelfPhoto(img: any): ShelfPhoto {
     };
 }
 
+function selectHeroShelfPhoto(photos: ShelfPhoto[]) {
+    if (!photos.length) return null;
+
+    const faceForward = photos.find((photo) => {
+        const poseText = `${photo.aiAnalysis?.pose ?? ""}`.toLowerCase();
+        const description = `${photo.aiAnalysis?.labels?.scene ?? ""} ${photo.aiAnalysis?.labels?.shot ?? ""}`.toLowerCase();
+        return (
+            poseText.includes("facing_forward") ||
+            poseText.includes("facing forward") ||
+            description.includes("face") ||
+            description.includes("close") ||
+            description.includes("portrait")
+        );
+    });
+
+    if (faceForward) return faceForward;
+
+    const withPose = photos.find((photo) => !!photo.aiAnalysis?.pose);
+    if (withPose) return withPose;
+
+    return photos[0];
+}
+
 export function ZukanScreen({ onClose }: ZukanScreenProps) {
     const { cats } = useCatContext();
     const { householdId } = useCoreContext();
@@ -359,7 +382,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
 
                 const { data: discoveryRows, error: discoveriesError } = await supabase
                     .from("discoveries")
-                    .select("id, title, created_at")
+                    .select("id, title, created_at, photo_id")
                     .eq("cat_id", catId)
                     .order("created_at", { ascending: false })
                     .limit(3);
@@ -372,6 +395,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     id: row.id,
                     title: row.title,
                     created_at: row.created_at,
+                    photo_id: row.photo_id,
                 }));
             })(),
         ]);
@@ -398,7 +422,11 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         return () => clearTimeout(timer);
     }, [loadPhotos]);
 
-    const filteredPhotos = useMemo(() => allPhotos, [allPhotos]);
+    const heroGridPhoto = useMemo(() => selectHeroShelfPhoto(allPhotos), [allPhotos]);
+    const filteredPhotos = useMemo(() => {
+        if (!heroGridPhoto) return allPhotos;
+        return [heroGridPhoto, ...allPhotos.filter((photo) => photo.id !== heroGridPhoto.id)];
+    }, [allPhotos, heroGridPhoto]);
 
     const collectionGroups = useMemo<CollectionGroup[]>(() => {
         const groupedDefinitions = v2Definitions.reduce<Record<string, V2DefinitionRecord[]>>((acc, definition) => {
@@ -481,6 +509,11 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
     const spotlightGroups = useMemo(() => inProgressGroups, [inProgressGroups]);
     const primaryCat = cats[0];
     const primaryCatBirthday = primaryCat?.birthday ?? null;
+    const leadDiscoveryPhoto = useMemo(() => {
+        const photoId = discoveries[0]?.photo_id;
+        if (!photoId) return null;
+        return allPhotos.find((photo) => photo.id === photoId) || null;
+    }, [allPhotos, discoveries]);
 
     if (loading) {
         return (
@@ -499,107 +532,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                 <h1 className="text-xl font-bold text-center text-[#1E2840]">{"\u306d\u3053"}</h1>
             </header>
 
-            <div className="space-y-8 px-5 py-4">
-                {discoveries.length > 0 ? (
-                    <section className="space-y-3">
-                        <h2
-                            className="text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
-                            style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
-                        >
-                            {"\u304d\u3065\u304d"}
-                        </h2>
-                        <div className="space-y-2">
-                            {discoveries.map((discovery) => (
-                                <div key={discovery.id} className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] px-4 py-[14px]">
-                                    <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                ) : null}
-
-                {spotlightGroups.length > 0 ? (
-                    <section className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-text-primary">{"\u3053\u306e\u5b50\u306e\u3053\u3068"}</h2>
-                        </div>
-                        <div className="space-y-5">
-                            {spotlightGroups.map((group) => (
-                                <article
-                                    key={group.id}
-                                    className={cn(
-                                        "rounded-2xl overflow-hidden mb-5",
-                                        group.complete
-                                            ? "bg-[#3D5A80]/5 border border-[#3D5A80]/15"
-                                            : "bg-[#FAFAF9] border border-[#E8E7E4]"
-                                    )}
-                                >
-                                    <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-2">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className={cn(
-                                                        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-                                                        "bg-[#3D5A80]/10 text-[#1E2840]"
-                                                    )}
-                                                >
-                                                    {group.title}
-                                                </span>
-                                            </div>
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <p className={cn("text-[#1E2840]", group.complete ? "text-lg font-bold" : "text-base font-bold")}>
-                                                    {group.complete ? getStoryCopy(group).completeHeadline : getStoryCopy(group).headline}
-                                                </p>
-                                            </div>
-                                            <p className="mt-1 line-clamp-2 text-sm text-[#5A5958]">
-                                                {group.complete
-                                                    ? getStoryCopy(group).completeBody
-                                                    : group.remaining <= 2
-                                                        ? getNextHint(group)
-                                                        : group.description}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="px-4 pb-4 pt-4">
-                                        <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                        {group.unlockedItems.map((item) => (
-                                            <button
-                                                key={item.id}
-                                                type="button"
-                                                onClick={() => item.photos[0] && setSelectedDetailImage(item.photos[0])}
-                                                className="w-[112px] shrink-0 overflow-hidden rounded-xl bg-bg-secondary text-left"
-                                            >
-                                                <div className="aspect-[4/5] overflow-hidden bg-bg-secondary">
-                                                    {item.photos[0] ? (
-                                                        <img src={item.photos[0].url} alt="" className="h-full w-full object-cover" />
-                                                    ) : (
-                                                        <div className="flex h-full w-full items-center justify-center text-text-tertiary">
-                                                            <BookOpen className="h-6 w-6" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="space-y-1 px-3 py-3">
-                                                    <p className="line-clamp-1 text-[13px] font-semibold text-text-primary">{item.name}</p>
-                                                </div>
-                                            </button>
-                                        ))}
-                                        {group.lockedItems.length > 0 ? (
-                                            <div
-                                                className="min-w-[96px] h-[96px] rounded-xl bg-[#E7E6E3] flex items-center justify-center flex-shrink-0"
-                                            >
-                                                <span className="text-sm text-[#8A8988] font-medium">
-                                                    +{group.lockedItems.length}
-                                                </span>
-                                            </div>
-                                        ) : null}
-                                        </div>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    </section>
-                ) : null}
-
+            <div className="space-y-0 px-5 py-4">
                 {primaryCat ? (
                     <section className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -631,9 +564,149 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                     </section>
                 ) : null}
 
-                <section className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-medium text-[#8A8988]">すべての写真</h2>
+                {discoveries.length > 0 ? (
+                    <section className="pt-[var(--space-loose)]">
+                        <h2
+                            className="mb-[var(--space-dense)] text-[9px] uppercase tracking-[0.24em] text-[#3D5A80]"
+                            style={{ fontFamily: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
+                        >
+                            {"\u304d\u3065\u304d"}
+                        </h2>
+                        <div className="space-y-2">
+                            {discoveries.map((discovery, index) => (
+                                <div
+                                    key={discovery.id}
+                                    className={`rounded-[8px] border border-[#DDDCD8] ${
+                                        index === 0 ? "px-3 py-3" : "px-4 py-[14px]"
+                                    }`}
+                                >
+                                    {index === 0 ? (
+                                        <div className="flex items-center gap-3">
+                                            {leadDiscoveryPhoto ? (
+                                                <img
+                                                    src={leadDiscoveryPhoto.url}
+                                                    alt=""
+                                                    className="h-12 w-12 flex-none rounded-[8px] object-cover"
+                                                />
+                                            ) : null}
+                                            <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
+                {spotlightGroups.length > 0 ? (
+                    <section className="pt-[var(--space-loose)]">
+                        <div className="mb-[var(--space-dense)] flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-text-primary">{"\u3053\u306e\u5b50\u306e\u3053\u3068"}</h2>
+                        </div>
+                        <div className="space-y-[var(--space-medium)]">
+                            {spotlightGroups.map((group, index) => {
+                                const leadItem = group.unlockedItems[0];
+                                const leadPhoto = leadItem?.photos[0] || null;
+                                const bodyCopy = group.complete
+                                    ? getStoryCopy(group).completeBody
+                                    : group.remaining <= 2
+                                        ? getNextHint(group)
+                                        : group.description;
+
+                                if (index === 0) {
+                                    return (
+                                        <article
+                                            key={group.id}
+                                            className="overflow-hidden rounded-[12px] bg-[#FAFAF9]"
+                                            style={{ boxShadow: "var(--shadow-card-soft)" }}
+                                        >
+                                            <button type="button" className="block w-full text-left" onClick={() => leadPhoto && setSelectedDetailImage(leadPhoto)}>
+                                                <div className="h-[180px] w-full overflow-hidden bg-bg-secondary">
+                                                    {leadPhoto ? (
+                                                        <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <div className="flex h-full w-full items-center justify-center text-text-tertiary">
+                                                            <BookOpen className="h-6 w-6" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-2 px-4 py-4">
+                                                    <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
+                                                        {group.title}
+                                                    </span>
+                                                    <p className="text-[16px] leading-6 text-[#5A5958]">
+                                                        {group.complete ? getStoryCopy(group).completeHeadline : getStoryCopy(group).headline}
+                                                    </p>
+                                                    <p className="text-[13px] font-medium text-[#8A8988]">{bodyCopy}</p>
+                                                </div>
+                                            </button>
+                                        </article>
+                                    );
+                                }
+
+                                const isHorizontal = index % 2 === 1;
+
+                                return (
+                                    <article
+                                        key={group.id}
+                                        className="overflow-hidden rounded-[12px] bg-[#FAFAF9]"
+                                        style={{ boxShadow: "var(--shadow-card-soft)" }}
+                                    >
+                                        <button
+                                            type="button"
+                                            className={`block w-full text-left ${isHorizontal ? "h-[120px]" : ""}`}
+                                            onClick={() => leadPhoto && setSelectedDetailImage(leadPhoto)}
+                                        >
+                                            {isHorizontal ? (
+                                                <div className="flex h-full">
+                                                    <div className="h-full w-[60%] overflow-hidden bg-bg-secondary">
+                                                        {leadPhoto ? (
+                                                            <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center text-text-tertiary">
+                                                                <BookOpen className="h-6 w-6" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex w-[40%] flex-col justify-center gap-2 px-4 py-4">
+                                                        <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
+                                                            {group.title}
+                                                        </span>
+                                                        <p className="line-clamp-3 text-[15px] leading-6 text-[#5A5958]">{bodyCopy}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="h-[144px] w-full overflow-hidden bg-bg-secondary">
+                                                        {leadPhoto ? (
+                                                            <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center text-text-tertiary">
+                                                                <BookOpen className="h-6 w-6" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="space-y-2 px-4 py-4">
+                                                        <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
+                                                            {group.title}
+                                                        </span>
+                                                        <p className="text-[15px] leading-6 text-[#5A5958]">{bodyCopy}</p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </button>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </section>
+                ) : null}
+
+                <section className="space-y-3 pt-[var(--space-loose)]">
+                    <div className="mb-[var(--space-dense)] flex items-center justify-between">
+                        <h2 className="text-sm font-medium text-[#8A8988]">{"\u3059\u3079\u3066\u306e\u5199\u771f"}</h2>
                     </div>
                     <AllPhotosSection
                         photos={filteredPhotos}
@@ -660,6 +733,8 @@ function AllPhotosSection({
 }) {
     const [visibleCount, setVisibleCount] = useState(12);
     const visiblePhotos = photos.slice(0, visibleCount);
+    const leadPhoto = visiblePhotos[0] || null;
+    const supportingPhotos = visiblePhotos.slice(1);
 
     if (visiblePhotos.length === 0) {
         return (
@@ -676,17 +751,44 @@ function AllPhotosSection({
 
     return (
         <>
-            <div className="grid grid-cols-3 gap-[2px]">
-                {visiblePhotos.map((photo) => (
-                    <button
-                        key={photo.id}
-                        type="button"
-                        onClick={() => onSelect(photo)}
-                        className="aspect-square overflow-hidden rounded-none bg-bg-secondary"
-                    >
-                        <img src={photo.url} alt="" className="h-full w-full object-cover" />
-                    </button>
-                ))}
+            <div className="space-y-[2px]">
+                {leadPhoto ? (
+                    <div className="grid grid-cols-[2fr_1fr] gap-[2px]">
+                        <button
+                            type="button"
+                            onClick={() => onSelect(leadPhoto)}
+                            className="aspect-square overflow-hidden rounded-[8px] bg-bg-secondary"
+                        >
+                            <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
+                        </button>
+                        <div className="grid grid-rows-2 gap-[2px]">
+                            {supportingPhotos.slice(0, 2).map((photo) => (
+                                <button
+                                    key={photo.id}
+                                    type="button"
+                                    onClick={() => onSelect(photo)}
+                                    className="aspect-square overflow-hidden rounded-[4px] bg-bg-secondary"
+                                >
+                                    <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ) : null}
+                {supportingPhotos.length > 2 ? (
+                    <div className="grid grid-cols-3 gap-[2px]">
+                        {supportingPhotos.slice(2).map((photo) => (
+                            <button
+                                key={photo.id}
+                                type="button"
+                                onClick={() => onSelect(photo)}
+                                className="aspect-square overflow-hidden rounded-[4px] bg-bg-secondary"
+                            >
+                                <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                ) : null}
             </div>
             {visibleCount < photos.length ? (
                 <div className="flex justify-center pt-2">

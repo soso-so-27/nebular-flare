@@ -252,6 +252,8 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
         : format(new Date(), "M\u6708d\u65e5", { locale: ja });
     const questionCatName = heroPhoto?.catId ? catsById.get(heroPhoto.catId) || "\u306d\u3053" : "\u306d\u3053";
     const heroPhotoAgeMs = heroPhoto ? Date.now() - new Date(heroPhoto.createdAt).getTime() : 0;
+    const leadRecentPhoto = recentPhotos[0] || null;
+    const supportingRecentPhotos = recentPhotos.slice(1, 7);
     const promptText = (() => {
         const days = heroPhotoAgeMs / (24 * 60 * 60 * 1000);
         const catName = questionCatName;
@@ -287,6 +289,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                             <button type="button" className="h-full w-full text-left" onClick={() => setSelectedDetailImage(heroPhoto)}>
                                 <img src={heroPhoto.url} alt={heroPhoto.catName} className="h-full w-full object-cover" style={{ objectPosition: "center 25%" }} />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/5" />
+                                <div className="absolute inset-x-0 bottom-0 h-[72px] bg-gradient-to-b from-transparent to-[#F2F1EF]" />
                                 <div className="absolute bottom-6 left-5">
                                     <p className="text-4xl font-bold text-white drop-shadow-lg">{heroPhoto.catName}</p>
                                     <p className="mt-1 text-base text-white/80">{heroDate}</p>
@@ -314,24 +317,27 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                 </div>
 
                 {heroPhoto ? (
-                    <section className="bg-[#F2F1EF] px-4 py-4">
-                        <div className="rounded-[4px] border border-[#DDDCD8] bg-[#FAFAF9] p-4">
-                            <p className="text-[14px] text-[#5A5958]">{promptText}</p>
-                        </div>
+                    <section className="bg-[#F2F1EF] px-5 pt-[var(--space-dense)]">
+                        <p
+                            className="text-[19px] leading-[1.65] text-[#5A5958]"
+                            style={{ fontFamily: "var(--font-zen-maru)" }}
+                        >
+                            {promptText}
+                        </p>
                     </section>
                 ) : null}
 
                 {discoveries.length > 0 ? (
-                    <section className="bg-[#F2F1EF] px-4 py-6">
-                        <div className="mb-3 flex items-center justify-between">
+                    <section className="bg-[#F2F1EF] px-4 pt-[var(--space-loose)]">
+                        <div className="mb-[var(--space-dense)] flex items-center justify-between">
                             <h2 className="text-lg font-bold text-[#1E2840]">{"\u65b0\u3057\u3044\u767a\u898b"}</h2>
-                            <button type="button" onClick={onOpenCollection} className="text-sm font-medium text-[#5A5958]">
+                            <button type="button" onClick={onOpenCollection} className="text-[13px] font-medium text-[#8A8988]">
                                 {"\u3059\u3079\u3066\u898b\u308b"}
                             </button>
                         </div>
                         <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <div className="flex gap-3">
-                                {discoveries.slice(0, 3).map((group) => {
+                                {discoveries.slice(0, 3).map((group, index) => {
                                     const photo = takeRelation<any>(group.primary.photos);
                                     const imageUrl = photo?.storage_path
                                         ? getFullImageUrl(photo.storage_path, {
@@ -343,8 +349,16 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                                         : "";
 
                                     return (
-                                        <button key={group.key} type="button" onClick={onOpenCollection} className="min-w-[240px] max-w-[260px] flex-shrink-0 overflow-hidden rounded-xl border border-[#3D5A80]/15 bg-[#FAFAF9] text-left shadow-sm">
-                                            <div className="relative h-40 w-full overflow-hidden">
+                                        <button
+                                            key={group.key}
+                                            type="button"
+                                            onClick={onOpenCollection}
+                                            className={`flex-shrink-0 overflow-hidden rounded-[12px] bg-[#FAFAF9] text-left ${
+                                                index === 0 ? "min-w-[72%] max-w-[72%]" : "min-w-[54%] max-w-[54%]"
+                                            }`}
+                                            style={{ boxShadow: "var(--shadow-card-soft)" }}
+                                        >
+                                            <div className="relative h-[172px] w-full overflow-hidden rounded-t-[12px]">
                                                 {imageUrl ? (
                                                     <img src={imageUrl} alt="" className="h-full w-full object-cover" />
                                                 ) : (
@@ -352,13 +366,10 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                                                         <Sparkles className="h-8 w-8 text-[#3D5A80]" />
                                                     </div>
                                                 )}
-                                                <div className="absolute left-2 top-2 rounded-full bg-white/80 p-1 backdrop-blur-sm">
-                                                    <Sparkles className="h-3.5 w-3.5 text-[#3D5A80]" />
-                                                </div>
                                             </div>
-                                            <div className="space-y-2 p-3">
-                                                <p className="line-clamp-1 text-sm font-medium text-[#1E2840]">{buildDiscoveryHeadline(group, catsById)}</p>
-                                                <p className="text-xs text-[#5A5958]">{formatDistanceToNow(new Date(group.primary.created_at), { addSuffix: true, locale: ja })}</p>
+                                            <div className="space-y-2 px-4 py-3">
+                                                <p className="line-clamp-2 text-[16px] leading-6 text-[#5A5958]">{buildDiscoveryHeadline(group, catsById)}</p>
+                                                <p className="text-[12px] font-medium text-[#8A8988]">{formatDistanceToNow(new Date(group.primary.created_at), { addSuffix: true, locale: ja })}</p>
                                             </div>
                                         </button>
                                     );
@@ -369,19 +380,51 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                 ) : null}
 
                 {recentPhotos.length > 0 ? (
-                    <section className="bg-[#F2F1EF] px-4 py-5">
-                        <div className="mb-3 flex items-center justify-between">
+                    <section className="bg-[#F2F1EF] px-4 pt-[var(--space-loose)] pb-5">
+                        <div className="mb-[var(--space-dense)] flex items-center justify-between">
                             <h3 className="text-sm font-medium text-[#8A8988]">{"\u6700\u8fd1\u306e\u5199\u771f"}</h3>
-                            <button type="button" onClick={onOpenCollection} className="text-sm font-medium text-[#5A5958]">
+                            <button type="button" onClick={onOpenCollection} className="text-[13px] font-medium text-[#8A8988]">
                                 {"\u3059\u3079\u3066\u306e\u5199\u771f"}
                             </button>
                         </div>
-                        <div className="grid grid-cols-3 gap-[2px]">
-                            {recentPhotos.map((photo) => (
-                                <button key={photo.id} type="button" className="aspect-square overflow-hidden rounded-none" onClick={() => setSelectedDetailImage(photo)}>
-                                    <img src={photo.url} alt={photo.catName} className="h-full w-full object-cover" />
-                                </button>
-                            ))}
+                        <div className="space-y-[2px]">
+                            <div className="grid grid-cols-[2fr_1fr] gap-[2px]">
+                                {leadRecentPhoto ? (
+                                    <button
+                                        type="button"
+                                        className="aspect-square overflow-hidden rounded-[8px]"
+                                        onClick={() => setSelectedDetailImage(leadRecentPhoto)}
+                                    >
+                                        <img src={leadRecentPhoto.url} alt={leadRecentPhoto.catName} className="h-full w-full object-cover" />
+                                    </button>
+                                ) : null}
+                                <div className="grid grid-rows-2 gap-[2px]">
+                                    {supportingRecentPhotos.slice(0, 2).map((photo) => (
+                                        <button
+                                            key={photo.id}
+                                            type="button"
+                                            className="aspect-square overflow-hidden rounded-[4px]"
+                                            onClick={() => setSelectedDetailImage(photo)}
+                                        >
+                                            <img src={photo.url} alt={photo.catName} className="h-full w-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            {supportingRecentPhotos.length > 2 ? (
+                                <div className="grid grid-cols-3 gap-[2px]">
+                                    {supportingRecentPhotos.slice(2).map((photo) => (
+                                        <button
+                                            key={photo.id}
+                                            type="button"
+                                            className="aspect-square overflow-hidden rounded-[4px]"
+                                            onClick={() => setSelectedDetailImage(photo)}
+                                        >
+                                            <img src={photo.url} alt={photo.catName} className="h-full w-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
                     </section>
                 ) : null}

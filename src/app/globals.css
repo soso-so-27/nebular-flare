@@ -101,6 +101,10 @@
   --font-geist-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-geist-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   --font-zen-maru: "Zen Maru Gothic", system-ui, -apple-system, sans-serif;
+  --space-dense: 12px;
+  --space-medium: 24px;
+  --space-loose: 40px;
+  --shadow-card-soft: 0 1px 4px rgba(0, 0, 0, 0.06);
   /* 18px */
 
   /* Brand Base */

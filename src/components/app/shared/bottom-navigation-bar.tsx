@@ -2,13 +2,14 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, CalendarDays, Cat } from "lucide-react";
+import { BookOpen, CalendarDays, Cat, Lock } from "lucide-react";
 import { triggerFeedback } from "@/lib/haptics";
 
 interface BottomNavigationBarProps {
     activeTab: string;
     onTabChange: (tab: string) => void;
     hasNewNotifications?: boolean;
+    showMemoriesLock?: boolean;
 }
 
 const tabs = [
@@ -20,13 +21,15 @@ const tabs = [
 export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     activeTab,
     onTabChange,
+    showMemoriesLock = true,
 }) => {
     return (
         <nav
-            className="fixed bottom-0 left-0 right-0 z-[10005] border-t border-[#DDDCD8] bg-[#F2F1EF]/92 pb-[max(env(safe-area-inset-bottom),12px)] pl-[max(env(safe-area-inset-left),8px)] pr-[max(env(safe-area-inset-right),8px)] pt-3 backdrop-blur-xl"
+            className="fixed bottom-0 left-0 right-0 z-[10005] bg-[#F2F1EF]/92 pb-[max(env(safe-area-inset-bottom),12px)] pl-[max(env(safe-area-inset-left),8px)] pr-[max(env(safe-area-inset-right),8px)] pt-3 backdrop-blur-xl"
             role="navigation"
             aria-label="\u30e1\u30a4\u30f3\u30ca\u30d3\u30b2\u30fc\u30b7\u30e7\u30f3"
         >
+            <div className="pointer-events-none absolute inset-x-0 -top-5 h-5 bg-gradient-to-t from-[#F2F1EF] to-transparent" />
             <div className="relative mx-auto flex h-[64px] max-w-md items-end justify-between px-2">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
@@ -48,9 +51,14 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                         >
                             <div className="relative">
                                 <Icon
-                                    className={`h-6 w-6 transition-transform ${isActive ? "scale-110" : "scale-100"}`}
+                                    className={`h-6 w-6 transition-transform ${isActive ? "scale-110 fill-current stroke-current" : "scale-100"}`}
                                     strokeWidth={isActive ? 2.4 : 1.9}
                                 />
+                                {tab.id === "memories" && showMemoriesLock ? (
+                                    <span className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#F2F1EF]">
+                                        <Lock className="h-2 w-2 text-[#8A8988]" strokeWidth={2.2} />
+                                    </span>
+                                ) : null}
                                 {isActive && (
                                     <motion.span
                                         layoutId="tab-indicator"
