@@ -62,7 +62,7 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
 
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [lastViewedAt, setLastViewedAt] = useState<Date>(() => new Date(Date.now() - 3600000));
-    const { updateSettings } = useSettingsContext();
+    const { updateSettings, isPro } = useSettingsContext();
 
     // Splash
     const [showSplash, setShowSplash] = useState(true);
@@ -261,6 +261,7 @@ function CollectionAppContent({ showImportInitially = false }: { showImportIniti
                         setShowZukanDetail(false);
                     }}
                     hasNewNotifications={hasUnreadNotifications}
+                    showMemoriesLock={!isPro}
                 />
             )}
 

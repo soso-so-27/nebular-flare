@@ -328,7 +328,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                 ) : null}
 
                 {discoveries.length > 0 ? (
-                    <section className="bg-[#F2F1EF] px-4 pt-[var(--space-loose)]">
+                    <section className="mt-[var(--space-loose)] bg-[#F2F1EF] px-4">
                         <div className="mb-[var(--space-dense)] flex items-center justify-between">
                             <h2 className="text-lg font-bold text-[#1E2840]">{"\u65b0\u3057\u3044\u767a\u898b"}</h2>
                             <button type="button" onClick={onOpenCollection} className="text-[13px] font-medium text-[#8A8988]">
@@ -380,7 +380,7 @@ export function CollectionHome({ onOpenCollection, onOpenImport }: CollectionHom
                 ) : null}
 
                 {recentPhotos.length > 0 ? (
-                    <section className="bg-[#F2F1EF] px-4 pt-[var(--space-loose)] pb-5">
+                    <section className="mt-[var(--space-loose)] bg-[#F2F1EF] px-4 pb-5">
                         <div className="mb-[var(--space-dense)] flex items-center justify-between">
                             <h3 className="text-sm font-medium text-[#8A8988]">{"\u6700\u8fd1\u306e\u5199\u771f"}</h3>
                             <button type="button" onClick={onOpenCollection} className="text-[13px] font-medium text-[#8A8988]">

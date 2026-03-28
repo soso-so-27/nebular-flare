@@ -506,10 +506,23 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
         () => collectionGroups.filter((group) => group.unlockedCount > 0),
         [collectionGroups]
     );
-    const spotlightGroups = useMemo(() => inProgressGroups, [inProgressGroups]);
+    const spotlightGroups = useMemo(
+        () =>
+            [...inProgressGroups].sort((a, b) => {
+                const aPhotoVolume = a.unlockedItems.reduce((sum, item) => sum + item.photos.length, 0);
+                const bPhotoVolume = b.unlockedItems.reduce((sum, item) => sum + item.photos.length, 0);
+
+                if (aPhotoVolume !== bPhotoVolume) {
+                    return bPhotoVolume - aPhotoVolume;
+                }
+
+                return new Date(b.lastUpdatedAt || 0).getTime() - new Date(a.lastUpdatedAt || 0).getTime();
+            }),
+        [inProgressGroups]
+    );
     const primaryCat = cats[0];
     const primaryCatBirthday = primaryCat?.birthday ?? null;
-    const leadDiscoveryPhoto = useMemo(() => {
+    const firstDiscoveryPhoto = useMemo(() => {
         const photoId = discoveries[0]?.photo_id;
         if (!photoId) return null;
         return allPhotos.find((photo) => photo.id === photoId) || null;
@@ -582,14 +595,14 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                 >
                                     {index === 0 ? (
                                         <div className="flex items-center gap-3">
-                                            {leadDiscoveryPhoto ? (
+                                            {firstDiscoveryPhoto ? (
                                                 <img
-                                                    src={leadDiscoveryPhoto.url}
+                                                    src={firstDiscoveryPhoto.url}
                                                     alt=""
                                                     className="h-12 w-12 flex-none rounded-[8px] object-cover"
                                                 />
                                             ) : null}
-                                            <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
+                                            <p className="min-w-0 text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
                                         </div>
                                     ) : (
                                         <p className="text-[14px] font-semibold text-[#1E2840]">{discovery.title}</p>
@@ -614,38 +627,6 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                     : group.remaining <= 2
                                         ? getNextHint(group)
                                         : group.description;
-
-                                if (index === 0) {
-                                    return (
-                                        <article
-                                            key={group.id}
-                                            className="overflow-hidden rounded-[12px] bg-[#FAFAF9]"
-                                            style={{ boxShadow: "var(--shadow-card-soft)" }}
-                                        >
-                                            <button type="button" className="block w-full text-left" onClick={() => leadPhoto && setSelectedDetailImage(leadPhoto)}>
-                                                <div className="h-[180px] w-full overflow-hidden bg-bg-secondary">
-                                                    {leadPhoto ? (
-                                                        <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
-                                                    ) : (
-                                                        <div className="flex h-full w-full items-center justify-center text-text-tertiary">
-                                                            <BookOpen className="h-6 w-6" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="space-y-2 px-4 py-4">
-                                                    <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
-                                                        {group.title}
-                                                    </span>
-                                                    <p className="text-[16px] leading-6 text-[#5A5958]">
-                                                        {group.complete ? getStoryCopy(group).completeHeadline : getStoryCopy(group).headline}
-                                                    </p>
-                                                    <p className="text-[13px] font-medium text-[#8A8988]">{bodyCopy}</p>
-                                                </div>
-                                            </button>
-                                        </article>
-                                    );
-                                }
-
                                 const isHorizontal = index % 2 === 1;
 
                                 return (
@@ -660,8 +641,8 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                             onClick={() => leadPhoto && setSelectedDetailImage(leadPhoto)}
                                         >
                                             {isHorizontal ? (
-                                                <div className="flex h-full">
-                                                    <div className="h-full w-[60%] overflow-hidden bg-bg-secondary">
+                                                <div className="grid h-full grid-cols-[3fr_2fr]">
+                                                    <div className="h-full overflow-hidden bg-bg-secondary">
                                                         {leadPhoto ? (
                                                             <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
                                                         ) : (
@@ -670,7 +651,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex w-[40%] flex-col justify-center gap-2 px-4 py-4">
+                                                    <div className="flex min-w-0 flex-col justify-center gap-2 px-4 py-4">
                                                         <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
                                                             {group.title}
                                                         </span>
@@ -679,7 +660,7 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <div className="h-[144px] w-full overflow-hidden bg-bg-secondary">
+                                                    <div className={`${index === 0 ? "h-[180px]" : "h-[144px]"} w-full overflow-hidden bg-bg-secondary`}>
                                                         {leadPhoto ? (
                                                             <img src={leadPhoto.url} alt="" className="h-full w-full object-cover" />
                                                         ) : (
@@ -692,7 +673,9 @@ export function ZukanScreen({ onClose }: ZukanScreenProps) {
                                                         <span className="inline-flex rounded-full bg-[#3D5A80]/10 px-2.5 py-0.5 text-[12px] font-medium text-[#8A8988]">
                                                             {group.title}
                                                         </span>
-                                                        <p className="text-[15px] leading-6 text-[#5A5958]">{bodyCopy}</p>
+                                                        <p className={`${index === 0 ? "text-[16px]" : "text-[15px]"} leading-6 text-[#5A5958]`}>
+                                                            {bodyCopy}
+                                                        </p>
                                                     </div>
                                                 </>
                                             )}
